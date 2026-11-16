@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+coverage/
+.cache/
+*.tgz
+# Scrub denylist: never committed
+*denylist*

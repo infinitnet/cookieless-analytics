@@ -1,0 +1,44 @@
+{
+	"__usage_ai-training": {
+		"operator": "Not applicable.",
+		"respect": "Yes ([Anthropic](https://mailarchive.ietf.org/arch/msg/ai-control/mddjatOxSR0h6GmLRBWlc839c7w/), [OpenAI](https://openai.com/index/helping-websites-express-ai-training-preferences/), [Google](https://developers.google.com/search/blog/2026/10/ai-training-control), [Microsoft Bing](https://blogs.bing.com/search/2026/10/your-content-your-choice-clearer-preferences-for-training-and-grounding/))",
+		"function": "AI Data Scrapers",
+		"frequency": "Not applicable.",
+		"description": "`__usage_ai-training` is a policy token defined in an [Internet Draft](https://datatracker.ietf.org/doc/draft-kelley-aipref-training-preference-signal/) that Anthropic's Kevin Kelley submitted to the AI Preferences working group at the IETF to show a preference against crawling data for AI training."
+	},
+	"GPTBot": {
+		"operator": "[OpenAI](https://openai.com)",
+		"respect": "Yes",
+		"function": "Scrapes data to train OpenAI's products.",
+		"frequency": "No information.",
+		"description": "Data is used to train current and future models, removed paywalled data, PII and data that violates the company's policies."
+	},
+	"AddSearchBot": {
+		"operator": "Unclear at this time.",
+		"respect": "Unclear at this time.",
+		"function": "AI Search Crawlers",
+		"frequency": "Unclear at this time.",
+		"description": "AddSearchBot is a web crawler that indexes website content for AddSearch's AI-powered site search solution, collecting data to provide fast and accurate search results. More info can be found at https://knownagents.com/agents/addsearchbot"
+	},
+	"AgentTimes": {
+		"operator": "[The Agent Times](https://theagenttimes.com/about)",
+		"respect": "Unclear at this time.",
+		"function": "Data Scraper from RSS Feeds.",
+		"frequency": "Requests RSS feed every 5-6 minutes.",
+		"description": "Scrapes data for AI news aggregation and republishing."
+	},
+	"Andibot": {
+		"operator": "[Andi](https://andisearch.com/)",
+		"respect": "Unclear at this time",
+		"function": "Search engine using generative AI, AI Search Assistant",
+		"frequency": "No information provided.",
+		"description": "Scrapes website and provides AI summary."
+	},
+	"Anomura": {
+		"operator": "[Direqt](https://direqt.ai)",
+		"respect": "Yes",
+		"function": "Collects data for AI search",
+		"frequency": "No information provided.",
+		"description": "Anomura is Direqt's search crawler, it discovers and indexes pages their customers websites."
+	}
+}

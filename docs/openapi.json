@@ -1,0 +1,2503 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Cookieless Analytics agent API",
+    "version": "1.0.0",
+    "description": "Aggregated analytics for agents and scripts. Send the key in the X-Api-Key header; Authorization: Bearer cannot be used because the host rejects unknown bearer tokens. Scopes: read:analytics, read:search, sync:search, write:annotations, write:dashboards, write:events."
+  },
+  "servers": [
+    {
+      "url": "/_emdash/api/plugins/cookieless-analytics"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/agent/v1/query": {
+      "post": {
+        "operationId": "post_query",
+        "summary": "Run one report. query.compare segment with query.compareSegment compares two segments on the same range (not on search reports, the SEO views or impact). Search reports, including the SEO views, need read:search instead; pages with withSearch and impact over a search report need both. Revenue reports (revenue, revenue_series, revenue_breakdown, revenue_orders) answer in params.currency, default the site's defaultCurrency, list every currency with orders in data.currencies and name the currency in meta.currency; money of two currencies is never added. Long ranges and ranges before the detailed window are answered from daily summaries (notices summary, filter_unavailable:<dim>:<reason>, detail_from:<day>; errors raw_only and narrow_range; the catalog's summaries entry has the rule).",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "report": {
+                    "type": "string",
+                    "enum": [
+                      "overview",
+                      "timeseries",
+                      "pages",
+                      "entry_pages",
+                      "exit_pages",
+                      "not_found",
+                      "satisfaction",
+                      "satisfaction_series",
+                      "channels",
+                      "sources",
+                      "campaigns",
+                      "ai_referrals",
+                      "countries",
+                      "regions",
+                      "devices",
+                      "browsers",
+                      "os",
+                      "languages",
+                      "events",
+                      "event_props",
+                      "goals",
+                      "funnels",
+                      "outbound",
+                      "downloads",
+                      "forms",
+                      "scroll",
+                      "dimension_values",
+                      "search_overview",
+                      "search_queries",
+                      "search_pages",
+                      "search_countries",
+                      "search_devices",
+                      "search_page_queries",
+                      "search_cannibalization",
+                      "search_cannibalization_pages",
+                      "search_cannibalization_page",
+                      "search_cannibalization_query",
+                      "search_position_bands",
+                      "search_position_bands_series",
+                      "search_position_moves",
+                      "search_striking_distance",
+                      "search_movers",
+                      "search_decay",
+                      "traffic_movers",
+                      "traffic_decay",
+                      "impact",
+                      "annotation_impacts",
+                      "revenue",
+                      "revenue_series",
+                      "revenue_breakdown",
+                      "revenue_orders",
+                      "journey_next",
+                      "journey_prev",
+                      "journey_paths",
+                      "collections",
+                      "site_search",
+                      "sites_summary",
+                      "links"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                      },
+                      "to": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+                      },
+                      "filters": {
+                        "default": [],
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "dim": {
+                              "type": "string",
+                              "enum": [
+                                "page",
+                                "entry",
+                                "exit",
+                                "channel",
+                                "source",
+                                "ref_host",
+                                "utm_source",
+                                "utm_medium",
+                                "utm_campaign",
+                                "utm_term",
+                                "utm_content",
+                                "host",
+                                "country",
+                                "region",
+                                "device",
+                                "browser",
+                                "os",
+                                "lang",
+                                "event",
+                                "event_prop",
+                                "goal",
+                                "currency",
+                                "revenue",
+                                "query"
+                              ]
+                            },
+                            "op": {
+                              "type": "string",
+                              "enum": [
+                                "is",
+                                "is_not",
+                                "contains",
+                                "not_contains",
+                                "prefix",
+                                "not_prefix",
+                                "regex",
+                                "not_regex",
+                                "gt",
+                                "gte",
+                                "lt",
+                                "lte"
+                              ]
+                            },
+                            "values": {
+                              "minItems": 1,
+                              "maxItems": 500,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 512
+                              }
+                            },
+                            "prop": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9_]{1,32}$"
+                            }
+                          },
+                          "required": [
+                            "dim",
+                            "op",
+                            "values"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "segment": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "compare": {
+                        "default": "none",
+                        "type": "string",
+                        "enum": [
+                          "previous",
+                          "year",
+                          "none",
+                          "segment"
+                        ]
+                      },
+                      "compareSegment": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "granularity": {
+                        "default": "auto",
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "hour",
+                          "day",
+                          "week"
+                        ]
+                      },
+                      "site": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,32}$"
+                      }
+                    },
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "params": {
+                    "type": "object",
+                    "properties": {
+                      "withSearch": {
+                        "type": "boolean"
+                      },
+                      "withRevenue": {
+                        "type": "boolean"
+                      },
+                      "currency": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 8
+                      },
+                      "field": {
+                        "type": "string",
+                        "enum": [
+                          "utm_source",
+                          "utm_medium",
+                          "utm_campaign",
+                          "utm_term",
+                          "utm_content"
+                        ]
+                      },
+                      "event": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      },
+                      "funnel": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "steps": {
+                        "minItems": 2,
+                        "maxItems": 6,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "page",
+                                "event"
+                              ]
+                            },
+                            "match": {
+                              "default": "is",
+                              "type": "string",
+                              "enum": [
+                                "is",
+                                "prefix",
+                                "regex"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512
+                            },
+                            "label": {
+                              "type": "string",
+                              "maxLength": 64
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "value"
+                          ]
+                        }
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "sequential",
+                          "strict",
+                          "flexible"
+                        ]
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "google",
+                          "bing"
+                        ]
+                      },
+                      "page": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2048
+                      },
+                      "dim": {
+                        "type": "string",
+                        "enum": [
+                          "page",
+                          "entry",
+                          "exit",
+                          "channel",
+                          "source",
+                          "ref_host",
+                          "utm_source",
+                          "utm_medium",
+                          "utm_campaign",
+                          "utm_term",
+                          "utm_content",
+                          "host",
+                          "country",
+                          "region",
+                          "device",
+                          "browser",
+                          "os",
+                          "lang",
+                          "event",
+                          "event_prop",
+                          "goal",
+                          "currency",
+                          "revenue",
+                          "query",
+                          "campaign"
+                        ]
+                      },
+                      "prop": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_]{1,32}$"
+                      },
+                      "prefix": {
+                        "type": "string",
+                        "maxLength": 128
+                      },
+                      "scope": {
+                        "type": "string",
+                        "enum": [
+                          "traffic",
+                          "search",
+                          "annotation",
+                          "none"
+                        ]
+                      },
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "up",
+                          "down"
+                        ]
+                      },
+                      "metric": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_]{1,32}$"
+                      },
+                      "minImpressions": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      },
+                      "minShare": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50
+                      },
+                      "includeBrand": {
+                        "type": "boolean"
+                      },
+                      "list": {
+                        "type": "string",
+                        "enum": [
+                          "matrix",
+                          "up",
+                          "down",
+                          "new",
+                          "lost"
+                        ]
+                      },
+                      "query": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512
+                      },
+                      "annotation": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "manual",
+                          "publish",
+                          "update",
+                          "release"
+                        ]
+                      },
+                      "at": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "window": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "report": {
+                        "type": "string",
+                        "enum": [
+                          "overview",
+                          "channels",
+                          "sources",
+                          "campaigns",
+                          "pages",
+                          "entry_pages",
+                          "countries",
+                          "devices",
+                          "browsers",
+                          "goals",
+                          "events",
+                          "satisfaction",
+                          "search_overview",
+                          "search_pages",
+                          "search_queries",
+                          "search_countries",
+                          "search_devices",
+                          "search_position_bands",
+                          "revenue"
+                        ]
+                      },
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512
+                      },
+                      "goal": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                        "pattern": "^\\/"
+                      },
+                      "context": {
+                        "type": "boolean"
+                      },
+                      "scopeKind": {
+                        "type": "string",
+                        "enum": [
+                          "site",
+                          "host",
+                          "path",
+                          "query"
+                        ]
+                      },
+                      "entry": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                        "pattern": "^\\/"
+                      },
+                      "by": {
+                        "type": "string",
+                        "enum": [
+                          "link",
+                          "place",
+                          "page",
+                          "channel",
+                          "source",
+                          "campaign",
+                          "entry",
+                          "country",
+                          "device",
+                          "browser"
+                        ]
+                      },
+                      "rank": {
+                        "type": "string",
+                        "enum": [
+                          "best",
+                          "worst"
+                        ]
+                      },
+                      "slug": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "withAnnotations": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "report",
+                  "query"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/reports": {
+      "get": {
+        "operationId": "get_reports",
+        "summary": "Catalog: report names, dimensions, operators, metric definitions and scopes.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/summary": {
+      "get": {
+        "operationId": "get_summary",
+        "summary": "The Overview numbers for a range, compared with the previous period (compare=year for the same period last year, none for no comparison), plus data.revenue: revenue, refunds, net revenue and orders per currency, never summed across currencies.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,32}$"
+            }
+          },
+          {
+            "name": "compare",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "previous",
+                "year",
+                "none"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/status": {
+      "get": {
+        "operationId": "get_status",
+        "summary": "Versions, data freshness, rollup watermark, drop counters and search sync state.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/annotations": {
+      "get": {
+        "operationId": "get_annotations",
+        "summary": "Annotations in a range, newest first, with scope and summary; path, host and query keep the ones whose scope matches that value.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,32}$"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "post_annotations",
+        "summary": "Add an annotation, for example a release from a deploy script; scope limits where it shows, path is a shortcut for one page.",
+        "x-scope": "write:annotations",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "ts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "kind": {
+                    "default": "release",
+                    "type": "string",
+                    "enum": [
+                      "release",
+                      "manual"
+                    ]
+                  },
+                  "path": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "scope": {
+                    "type": "object",
+                    "properties": {
+                      "v": {
+                        "type": "number"
+                      },
+                      "host": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "op": {
+                              "type": "string",
+                              "enum": [
+                                "is",
+                                "prefix",
+                                "regex"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512
+                            }
+                          },
+                          "required": [
+                            "op",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "path": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "op": {
+                              "type": "string",
+                              "enum": [
+                                "is",
+                                "prefix",
+                                "regex"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512
+                            }
+                          },
+                          "required": [
+                            "op",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "query": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "op": {
+                              "type": "string",
+                              "enum": [
+                                "is",
+                                "prefix",
+                                "regex"
+                              ]
+                            },
+                            "value": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512
+                            }
+                          },
+                          "required": [
+                            "op",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "target": {
+                    "type": "object",
+                    "properties": {
+                      "report": {
+                        "type": "string",
+                        "enum": [
+                          "overview",
+                          "channels",
+                          "sources",
+                          "campaigns",
+                          "pages",
+                          "entry_pages",
+                          "countries",
+                          "devices",
+                          "browsers",
+                          "goals",
+                          "events",
+                          "satisfaction",
+                          "search_overview",
+                          "search_pages",
+                          "search_queries",
+                          "search_countries",
+                          "search_devices",
+                          "search_position_bands",
+                          "revenue"
+                        ]
+                      },
+                      "metric": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_]{1,40}$"
+                      },
+                      "params": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 512
+                          },
+                          "goal": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "all",
+                              "google",
+                              "bing"
+                            ]
+                          },
+                          "prop": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_]{1,32}$"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 8
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "report",
+                      "metric"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  }
+                },
+                "required": [
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/search/sync": {
+      "post": {
+        "operationId": "post_search_sync",
+        "summary": "Run one Search sync tick now.",
+        "x-scope": "sync:search",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "google",
+                      "bing"
+                    ]
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/search/backfill": {
+      "post": {
+        "operationId": "post_search_backfill",
+        "summary": "Start, cancel or read the progress of a Search backfill.",
+        "x-scope": "sync:search",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "cancel",
+                      "status"
+                    ]
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "google",
+                      "bing"
+                    ]
+                  },
+                  "days": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "from": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "to": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  }
+                },
+                "required": [
+                  "action"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/dashboards": {
+      "get": {
+        "operationId": "get_dashboards",
+        "summary": "Dashboard definitions of the key's sites, or of one site with ?site=.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/dashboards/data": {
+      "post": {
+        "operationId": "post_dashboards_data",
+        "summary": "Run every tile of one dashboard. A dashboard with a search tile also needs read:search.",
+        "x-scope": "read:analytics",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]{12}$"
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  },
+                  "range": {
+                    "type": "string",
+                    "enum": [
+                      "today",
+                      "yesterday",
+                      "7d",
+                      "30d",
+                      "90d",
+                      "12m",
+                      "mtd",
+                      "ytd"
+                    ]
+                  },
+                  "compare": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "previous",
+                      "year",
+                      "segment"
+                    ]
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/dashboards/save": {
+      "post": {
+        "operationId": "post_dashboards_save",
+        "summary": "Create (no id) or replace a dashboard; the catalog lists the tile kinds per report.",
+        "x-scope": "write:dashboards",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dashboard": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]{12}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "tiles": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]{6}$"
+                            },
+                            "report": {
+                              "type": "string",
+                              "enum": [
+                                "overview",
+                                "timeseries",
+                                "satisfaction",
+                                "satisfaction_series",
+                                "search_overview",
+                                "goals",
+                                "pages",
+                                "entry_pages",
+                                "exit_pages",
+                                "not_found",
+                                "channels",
+                                "sources",
+                                "campaigns",
+                                "ai_referrals",
+                                "countries",
+                                "regions",
+                                "devices",
+                                "browsers",
+                                "os",
+                                "languages",
+                                "events",
+                                "event_props",
+                                "funnels",
+                                "outbound",
+                                "downloads",
+                                "forms",
+                                "scroll",
+                                "search_queries",
+                                "search_pages",
+                                "search_countries",
+                                "search_devices",
+                                "search_cannibalization",
+                                "search_cannibalization_pages",
+                                "search_position_bands",
+                                "search_position_bands_series",
+                                "search_position_moves",
+                                "search_striking_distance",
+                                "search_movers",
+                                "search_decay",
+                                "traffic_movers",
+                                "traffic_decay",
+                                "impact",
+                                "revenue",
+                                "revenue_series",
+                                "revenue_breakdown",
+                                "journey_paths",
+                                "collections",
+                                "site_search",
+                                "links"
+                              ]
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "kpi",
+                                "line",
+                                "area",
+                                "bars",
+                                "donut",
+                                "table",
+                                "stacked"
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 60
+                            },
+                            "metric": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9_]{1,32}$"
+                            },
+                            "metrics": {
+                              "minItems": 1,
+                              "maxItems": 4,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9_]{1,32}$"
+                              }
+                            },
+                            "filters": {
+                              "maxItems": 5,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "dim": {
+                                    "type": "string",
+                                    "enum": [
+                                      "page",
+                                      "entry",
+                                      "exit",
+                                      "channel",
+                                      "source",
+                                      "ref_host",
+                                      "utm_source",
+                                      "utm_medium",
+                                      "utm_campaign",
+                                      "utm_term",
+                                      "utm_content",
+                                      "host",
+                                      "country",
+                                      "region",
+                                      "device",
+                                      "browser",
+                                      "os",
+                                      "lang",
+                                      "event",
+                                      "event_prop",
+                                      "goal",
+                                      "currency",
+                                      "revenue",
+                                      "query"
+                                    ]
+                                  },
+                                  "op": {
+                                    "type": "string",
+                                    "enum": [
+                                      "is",
+                                      "is_not",
+                                      "contains",
+                                      "not_contains",
+                                      "prefix",
+                                      "not_prefix",
+                                      "regex",
+                                      "not_regex",
+                                      "gt",
+                                      "gte",
+                                      "lt",
+                                      "lte"
+                                    ]
+                                  },
+                                  "values": {
+                                    "minItems": 1,
+                                    "maxItems": 500,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 512
+                                    }
+                                  },
+                                  "prop": {
+                                    "type": "string",
+                                    "pattern": "^[A-Za-z0-9_]{1,32}$"
+                                  }
+                                },
+                                "required": [
+                                  "dim",
+                                  "op",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "params": {
+                              "type": "object",
+                              "properties": {
+                                "source": {
+                                  "type": "string",
+                                  "enum": [
+                                    "all",
+                                    "google",
+                                    "bing"
+                                  ]
+                                },
+                                "goal": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 128
+                                },
+                                "funnel": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 128
+                                },
+                                "event": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 64
+                                },
+                                "prop": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9_]{1,32}$"
+                                },
+                                "dim": {
+                                  "type": "string",
+                                  "enum": [
+                                    "query",
+                                    "channel",
+                                    "source",
+                                    "campaign",
+                                    "entry",
+                                    "page",
+                                    "country",
+                                    "device",
+                                    "goal",
+                                    "event"
+                                  ]
+                                },
+                                "currency": {
+                                  "type": "string"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "up",
+                                    "down"
+                                  ]
+                                },
+                                "metric": {
+                                  "type": "string",
+                                  "enum": [
+                                    "clicks",
+                                    "impressions",
+                                    "queries"
+                                  ]
+                                },
+                                "minImpressions": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 100000
+                                },
+                                "minShare": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 50
+                                },
+                                "includeBrand": {
+                                  "type": "boolean"
+                                },
+                                "annotation": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 128
+                                },
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "manual",
+                                    "publish",
+                                    "update",
+                                    "release"
+                                  ]
+                                },
+                                "at": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                },
+                                "window": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "report": {
+                                  "type": "string",
+                                  "enum": [
+                                    "overview",
+                                    "channels",
+                                    "sources",
+                                    "campaigns",
+                                    "pages",
+                                    "entry_pages",
+                                    "countries",
+                                    "devices",
+                                    "browsers",
+                                    "goals",
+                                    "events",
+                                    "satisfaction",
+                                    "search_overview",
+                                    "search_pages",
+                                    "search_queries",
+                                    "search_countries",
+                                    "search_devices",
+                                    "search_position_bands",
+                                    "revenue"
+                                  ]
+                                },
+                                "key": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 512
+                                },
+                                "scope": {
+                                  "type": "string",
+                                  "enum": [
+                                    "annotation",
+                                    "none"
+                                  ]
+                                },
+                                "path": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 512,
+                                  "pattern": "^\\/"
+                                },
+                                "entry": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 512,
+                                  "pattern": "^\\/"
+                                },
+                                "list": {
+                                  "type": "string",
+                                  "enum": [
+                                    "matrix",
+                                    "up",
+                                    "down",
+                                    "new",
+                                    "lost"
+                                  ]
+                                },
+                                "by": {
+                                  "type": "string",
+                                  "enum": [
+                                    "link",
+                                    "place",
+                                    "page",
+                                    "channel",
+                                    "source",
+                                    "campaign",
+                                    "entry",
+                                    "country",
+                                    "device"
+                                  ]
+                                },
+                                "rank": {
+                                  "type": "string",
+                                  "enum": [
+                                    "best",
+                                    "worst"
+                                  ]
+                                },
+                                "slug": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 128
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": 5,
+                              "maximum": 25
+                            },
+                            "w": {
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "const": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 2
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 3
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "report",
+                            "kind",
+                            "w"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "defaults": {
+                        "type": "object",
+                        "properties": {
+                          "range": {
+                            "type": "string",
+                            "enum": [
+                              "today",
+                              "yesterday",
+                              "7d",
+                              "30d",
+                              "90d",
+                              "12m",
+                              "mtd",
+                              "ytd"
+                            ]
+                          },
+                          "compare": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "previous",
+                              "year",
+                              "segment"
+                            ]
+                          },
+                          "segment": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "compareSegment": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          },
+                          "filters": {
+                            "maxItems": 10,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "dim": {
+                                  "type": "string",
+                                  "enum": [
+                                    "page",
+                                    "entry",
+                                    "exit",
+                                    "channel",
+                                    "source",
+                                    "ref_host",
+                                    "utm_source",
+                                    "utm_medium",
+                                    "utm_campaign",
+                                    "utm_term",
+                                    "utm_content",
+                                    "host",
+                                    "country",
+                                    "region",
+                                    "device",
+                                    "browser",
+                                    "os",
+                                    "lang",
+                                    "event",
+                                    "event_prop",
+                                    "goal",
+                                    "currency",
+                                    "revenue",
+                                    "query"
+                                  ]
+                                },
+                                "op": {
+                                  "type": "string",
+                                  "enum": [
+                                    "is",
+                                    "is_not",
+                                    "contains",
+                                    "not_contains",
+                                    "prefix",
+                                    "not_prefix",
+                                    "regex",
+                                    "not_regex",
+                                    "gt",
+                                    "gte",
+                                    "lt",
+                                    "lte"
+                                  ]
+                                },
+                                "values": {
+                                  "minItems": 1,
+                                  "maxItems": 500,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 512
+                                  }
+                                },
+                                "prop": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z0-9_]{1,32}$"
+                                }
+                              },
+                              "required": [
+                                "dim",
+                                "op",
+                                "values"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "range",
+                          "compare",
+                          "filters"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "viewer": {
+                        "type": "object",
+                        "properties": {
+                          "ranges": {
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "today",
+                                "yesterday",
+                                "7d",
+                                "30d",
+                                "90d",
+                                "12m",
+                                "mtd",
+                                "ytd"
+                              ]
+                            }
+                          },
+                          "compare": {
+                            "type": "boolean"
+                          },
+                          "annotations": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "ranges",
+                          "compare"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "tiles",
+                      "defaults",
+                      "viewer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  }
+                },
+                "required": [
+                  "dashboard"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/dashboards/delete": {
+      "post": {
+        "operationId": "post_dashboards_delete",
+        "summary": "Delete a dashboard.",
+        "x-scope": "write:dashboards",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]{12}$"
+                  },
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/events": {
+      "post": {
+        "operationId": "post_events",
+        "summary": "Record 1 to 20 events, typically orders from a payment webhook; invalid items are listed in data.rejected by index; a repeated order id replaces the stored amount and currency, a void item nulls them, both count in data.duplicates.",
+        "x-scope": "write:events",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "site": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{1,32}$"
+                  },
+                  "events": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64,
+                          "description": "Event name; a leading underscore is reserved."
+                        },
+                        "val": {
+                          "description": "Order value, rounded to the currency's minor unit. Not with refund.",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1000000000
+                        },
+                        "cur": {
+                          "description": "ISO 4217 code; absent means the site's default currency.",
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 3
+                        },
+                        "oid": {
+                          "description": "Order id: one order is stored once, by any path. Reposting it here replaces the amount and currency and counts in data.duplicates. Never stored.",
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9_.:-]{1,64}$"
+                        },
+                        "void": {
+                          "description": "With name and oid only, no val: sets the stored order's value and currency to null, the event stays. An order id not stored is rejected with unknown_order. Works inside the raw window only.",
+                          "type": "boolean",
+                          "const": true
+                        },
+                        "refund": {
+                          "description": "With name, oid and rid: refund this amount of the stored order (same name and oid), booked on the refund's own day (ts) with the order's attribution, page and currency. Partial refunds add up; above the order's amount is refund_exceeds_order, an order id not stored is unknown_order, cur other than the order's is currency_mismatch. sid, u and p are not read.",
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 1000000000
+                        },
+                        "rid": {
+                          "description": "Refund id, required with refund: a refund is stored once per order and refund id, so a retry counts in data.duplicates. Never stored.",
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9_.:-]{1,64}$"
+                        },
+                        "sid": {
+                          "description": "The page's session id (window.<namespace>.sid) to attribute the event; absent stores it unattributed.",
+                          "type": "string",
+                          "pattern": "^[a-z0-9]{20}$"
+                        },
+                        "ts": {
+                          "description": "Epoch seconds, from 30 days ago (and after the first day of the raw window) to 60 s ahead; absent means now.",
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "u": {
+                          "description": "Path; absent means the session's last page.",
+                          "type": "string",
+                          "maxLength": 2048
+                        },
+                        "p": {
+                          "description": "Properties, at most 10.",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "number",
+                              "boolean"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "events"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/v1/openapi.json": {
+      "get": {
+        "operationId": "get_openapi_json",
+        "summary": "This OpenAPI document.",
+        "x-scope": "any",
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing, malformed, unknown, revoked or expired key, or a scope the key lacks. The body is an empty JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit of the key reached; see Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key"
+      }
+    },
+    "schemas": {
+      "Envelope": {
+        "type": "object",
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {},
+          "meta": {
+            "type": "object",
+            "required": [
+              "site",
+              "from",
+              "to",
+              "generatedAt",
+              "truncated"
+            ],
+            "properties": {
+              "site": {
+                "type": "string"
+              },
+              "from": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "to": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "generatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "truncated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "ok",
+          "error"
+        ],
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

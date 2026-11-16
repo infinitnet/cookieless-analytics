@@ -1,0 +1,3 @@
+# Encrypts the secret settings (Search sign-in values). Generate one with: npx emdash secrets generate
+# Leave it empty to add it later; saving a Search secret fails until it is set. Keep a backup: a lost key makes stored secrets unreadable.
+EMDASH_ENCRYPTION_KEY=

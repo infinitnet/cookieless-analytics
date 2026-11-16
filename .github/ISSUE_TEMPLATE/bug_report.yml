@@ -1,0 +1,67 @@
+name: Bug report
+description: Something does not work as the docs say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Security problems go through private vulnerability reporting instead (see SECURITY.md).
+        Use example.com and invented numbers in everything you paste: no real site names, visitor data, keys or tokens.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: Shown in the admin footer, or `npm ls @infinitnet/cookieless-analytics`.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: emdash-version
+    attributes:
+      label: EmDash version
+      placeholder: "1.4.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: cloudflare-plan
+    attributes:
+      label: Cloudflare plan
+      options:
+        - Workers Free
+        - Workers Paid
+        - Not on Cloudflare (local or other runtime)
+    validations:
+      required: true
+  - type: dropdown
+    id: capacity-profile
+    attributes:
+      label: Capacity profile
+      description: Settings, Capacity profile.
+      options:
+        - Small (Workers Free)
+        - Standard
+        - Dedicated database
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you saw instead. Include the page or route and any message from the Data page.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the admin, Pages, range Last 7 days
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Worker logs or the browser console, with hosts replaced by example.com.
+      render: text

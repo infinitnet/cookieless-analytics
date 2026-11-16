@@ -1,0 +1,2139 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`revenue statement snapshots (postgres) > every raw and rollup revenue statement binds its values and joins each order to its visit by the visit key 1`] = `
+{
+  "channels withRevenue": [
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        101,
+        0,
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.channel, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0)) GROUP BY COALESCE(s.channel, '(not set)'), s.day) t GROUP BY t.key ORDER BY sessions DESC, key LIMIT ? OFFSET ?",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END",
+    },
+  ],
+  "computeRevenueDays": [
+    {
+      "params": [
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+      ],
+      "sql": "SELECT 'all' AS dim, '' AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'channel' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'source' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'utm_campaign' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'entry' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'country' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'device' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'page' AS dim, COALESCE(h.path, '(not set)') AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY COALESCE(h.path, '(not set)'), h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'event' AS dim, h.name AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) GROUP BY h.name, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        "[20260310,20260311]",
+        "purchase",
+        "Pro",
+        "default",
+        "[20260310,20260311]",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) AND ((1 = 1 AND h.name = ?)) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT CAST(jsonb_array_elements_text(CAST(? AS jsonb)) AS BIGINT))) AND ((1 = 1 AND h.name = ?) AND ((h.props::jsonb ->> 'plan') = ?)) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+  ],
+  "revenue {}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        0,
+        "default",
+      ],
+      "sql": "SELECT (SELECT 1 FROM ca_events WHERE site = ? AND day >= ? AND val IS NOT NULL LIMIT 1) AS raw, (SELECT 1 FROM ca_revenue_daily WHERE site = ? LIMIT 1) AS rolled",
+    },
+  ],
+  "revenue {} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        20260301,
+        "default",
+      ],
+      "sql": "SELECT (SELECT 1 FROM ca_events WHERE site = ? AND day >= ? AND val IS NOT NULL LIMIT 1) AS raw, (SELECT 1 FROM ca_revenue_daily WHERE site = ? LIMIT 1) AS rolled",
+    },
+  ],
+  "revenueDrift": [
+    {
+      "params": [
+        "default",
+        20260301,
+        20260309,
+        "default",
+        "2026-03-01",
+        "2026-03-09",
+      ],
+      "sql": "SELECT 'r' AS src, CAST(h.day AS TEXT) AS day, h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions, SUM(CASE WHEN h.val >= 0 AND (h.sid IS NULL OR s.sid IS NOT NULL) AND CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END = '(not set)' THEN 1 ELSE 0 END) AS unset, SUM(CASE WHEN h.val >= 0 AND h.sid IS NOT NULL AND s.sid IS NULL THEN 1 ELSE 0 END) AS orphans FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL GROUP BY h.day, h.cur
+UNION ALL SELECT CASE WHEN dim = 'all' THEN 'd' WHEN dim = 'channel' THEN 'u' ELSE 'f' END AS src, day, cur, orders, revenue, 0 AS refunds, 0 AS sessions, 0 AS unset, 0 AS orphans FROM ca_revenue_daily WHERE site = ? AND (dim IN ('all', 'refund.all') OR (dim = 'channel' AND key = '(not set)')) AND seg = '' AND day BETWEEN ? AND ?",
+    },
+  ],
+  "revenue_breakdown {"dim":"campaign"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.utm_campaign, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.utm_campaign, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"campaign"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "utm_campaign",
+        "refund.utm_campaign",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "utm_campaign",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"channel"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.channel, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.channel, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"channel"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "channel",
+        "refund.channel",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "channel",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"country"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.country, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.country, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"country"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "country",
+        "refund.country",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "country",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"device"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.device, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.device, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"device"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "device",
+        "refund.device",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "device",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"entry"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.entry_path, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.entry_path, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"entry"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "entry",
+        "refund.entry",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "entry",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"event"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT h.name AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY h.name",
+    },
+    {
+      "params": [
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT (h.value ->> 'n') AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) GROUP BY (h.value ->> 'n'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"event"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "event",
+        "refund.event",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+  ],
+  "revenue_breakdown {"dim":"goal"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+        "purchase",
+        "Pro",
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT CAST(? AS TEXT) AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND ((h.cur = ?) AND ((1 = 1 AND h.name = ?))) UNION ALL SELECT CAST(? AS TEXT) AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND ((h.cur = ?) AND ((1 = 1 AND h.name = ?) AND ((h.props::jsonb ->> 'plan') = ?)))",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+        "purchase",
+        "Pro",
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT CAST(? AS TEXT) AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) AND (((h.value ->> 'n') IS NOT NULL AND (h.value ->> 'n') = ?)) GROUP BY s.day) t GROUP BY t.key UNION ALL SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT CAST(? AS TEXT) AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) AND (((h.value ->> 'n') IS NOT NULL AND (h.value ->> 'n') = ?) AND ((h.value -> 'pr' ->> 'plan') = ?)) GROUP BY s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"goal"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "goal",
+        "refund.goal",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+  ],
+  "revenue_breakdown {"dim":"page"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT COALESCE(h.path, '(not set)') AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY COALESCE(h.path, '(not set)')",
+    },
+    {
+      "params": [
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT (h.value ->> 'p') AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((CAST((h.value ->> 't') AS BIGINT) IS NOT NULL AND (h.value ->> 'n') IS NULL)) GROUP BY (h.value ->> 'p'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"page"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "page",
+        "refund.page",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "page",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"source"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.source, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.source, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"source"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "source",
+        "refund.source",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "source",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_series {"currency":"EUR"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "EUR",
+      ],
+      "sql": "SELECT h.day AS day, 0 AS q, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY h.day",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+  ],
+  "revenue_series {"currency":"EUR"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "EUR",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.day AS day, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.day, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "runRevenue probe": [
+    {
+      "params": [
+        20260211,
+        "2026-02-11",
+      ],
+      "sql": "WITH RECURSIVE e(site) AS (SELECT MIN(site) FROM ca_events UNION ALL SELECT (SELECT MIN(site) FROM ca_events WHERE site > e.site) FROM e WHERE e.site IS NOT NULL),
+r(site) AS (SELECT MIN(site) FROM ca_revenue_daily UNION ALL SELECT (SELECT MIN(site) FROM ca_revenue_daily WHERE site > r.site) FROM r WHERE r.site IS NOT NULL)
+SELECT site FROM e WHERE site IS NOT NULL AND EXISTS (SELECT 1 FROM ca_events x WHERE x.site = e.site AND x.day >= ? AND x.val IS NOT NULL)
+UNION SELECT site FROM r WHERE site IS NOT NULL AND EXISTS (SELECT 1 FROM ca_revenue_daily x WHERE x.site = r.site AND x.dim = 'all' AND x.seg = '' AND x.day >= ?)
+ORDER BY site",
+    },
+  ],
+}
+`;
+
+exports[`revenue statement snapshots (sqlite) > every raw and rollup revenue statement binds its values and joins each order to its visit by the visit key 1`] = `
+{
+  "channels withRevenue": [
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        101,
+        0,
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.channel, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0)) GROUP BY COALESCE(s.channel, '(not set)'), s.day) t GROUP BY t.key ORDER BY sessions DESC, key LIMIT ? OFFSET ?",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END",
+    },
+  ],
+  "computeRevenueDays": [
+    {
+      "params": [
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+        "default",
+        "[20260310,20260311]",
+      ],
+      "sql": "SELECT 'all' AS dim, '' AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'channel' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'source' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'utm_campaign' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'entry' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'country' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'device' AS dim, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'page' AS dim, COALESCE(h.path, '(not set)') AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY COALESCE(h.path, '(not set)'), h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'event' AS dim, h.name AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) GROUP BY h.name, h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        "[20260310,20260311]",
+        "purchase",
+        "Pro",
+        "default",
+        "[20260310,20260311]",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) AND ((1 = 1 AND h.name = ?)) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END UNION ALL SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS channel, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS country, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS device, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.val IS NOT NULL) AND (h.day IN (SELECT value FROM json_each(?))) AND ((1 = 1 AND h.name = ?) AND (CAST(json_extract(h.props, '$.plan') AS TEXT) = ?)) GROUP BY h.day, h.cur, CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END, CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+  ],
+  "revenue {}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        0,
+        "default",
+      ],
+      "sql": "SELECT (SELECT 1 FROM ca_events WHERE site = ? AND day >= ? AND val IS NOT NULL LIMIT 1) AS raw, (SELECT 1 FROM ca_revenue_daily WHERE site = ? LIMIT 1) AS rolled",
+    },
+  ],
+  "revenue {} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        20260301,
+        "default",
+      ],
+      "sql": "SELECT (SELECT 1 FROM ca_events WHERE site = ? AND day >= ? AND val IS NOT NULL LIMIT 1) AS raw, (SELECT 1 FROM ca_revenue_daily WHERE site = ? LIMIT 1) AS rolled",
+    },
+  ],
+  "revenueDrift": [
+    {
+      "params": [
+        "default",
+        20260301,
+        20260309,
+        "default",
+        "2026-03-01",
+        "2026-03-09",
+      ],
+      "sql": "SELECT 'r' AS src, CAST(h.day AS TEXT) AS day, h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions, SUM(CASE WHEN h.val >= 0 AND (h.sid IS NULL OR s.sid IS NOT NULL) AND CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END = '(not set)' THEN 1 ELSE 0 END) AS unset, SUM(CASE WHEN h.val >= 0 AND h.sid IS NOT NULL AND s.sid IS NULL THEN 1 ELSE 0 END) AS orphans FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL GROUP BY h.day, h.cur
+UNION ALL SELECT CASE WHEN dim = 'all' THEN 'd' WHEN dim = 'channel' THEN 'u' ELSE 'f' END AS src, day, cur, orders, revenue, 0 AS refunds, 0 AS sessions, 0 AS unset, 0 AS orphans FROM ca_revenue_daily WHERE site = ? AND (dim IN ('all', 'refund.all') OR (dim = 'channel' AND key = '(not set)')) AND seg = '' AND day BETWEEN ? AND ?",
+    },
+  ],
+  "revenue_breakdown {"dim":"campaign"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.utm_campaign, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.utm_campaign, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.utm_campaign, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"campaign"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "utm_campaign",
+        "refund.utm_campaign",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "utm_campaign",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"channel"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.channel, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.channel, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"channel"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "channel",
+        "refund.channel",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "channel",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"country"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.country, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.country, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.country, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"country"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "country",
+        "refund.country",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "country",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"device"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.device, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.device, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.device, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"device"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "device",
+        "refund.device",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "device",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"entry"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.entry_path, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.entry_path, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.entry_path, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"entry"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "entry",
+        "refund.entry",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "entry",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"event"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT h.name AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY h.name",
+    },
+    {
+      "params": [
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT (h.value ->> 'n') AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) GROUP BY (h.value ->> 'n'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"event"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "event",
+        "refund.event",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+  ],
+  "revenue_breakdown {"dim":"goal"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+        "purchase",
+        "Pro",
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT CAST(? AS TEXT) AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND ((h.cur = ?) AND ((1 = 1 AND h.name = ?))) UNION ALL SELECT CAST(? AS TEXT) AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND ((h.cur = ?) AND ((1 = 1 AND h.name = ?) AND (CAST(json_extract(h.props, '$.plan') AS TEXT) = ?)))",
+    },
+    {
+      "params": [
+        "Bought",
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+        "purchase",
+        "Pro",
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+        "purchase",
+        "pro",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT CAST(? AS TEXT) AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) AND (((h.value ->> 'n') IS NOT NULL AND (h.value ->> 'n') = ?)) GROUP BY s.day) t GROUP BY t.key UNION ALL SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT CAST(? AS TEXT) AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((h.value ->> 'n') IS NOT NULL) AND (((h.value ->> 'n') IS NOT NULL AND (h.value ->> 'n') = ?) AND (CAST(json_extract(h.value, '$.pr.plan') AS TEXT) = ?)) GROUP BY s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"goal"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "goal",
+        "refund.goal",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+  ],
+  "revenue_breakdown {"dim":"page"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT COALESCE(h.path, '(not set)') AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY COALESCE(h.path, '(not set)')",
+    },
+    {
+      "params": [
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.visitors) AS visitors, SUM(t.sessions) AS sessions FROM (SELECT (h.value ->> 'p') AS key, s.day AS day, COUNT(DISTINCT s.vkey) AS visitors, COUNT(DISTINCT s.sid) AS sessions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND (((h.value ->> 't') IS NOT NULL AND (h.value ->> 'n') IS NULL)) GROUP BY (h.value ->> 'p'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"page"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "page",
+        "refund.page",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "page",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_breakdown {"dim":"source"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "USD",
+      ],
+      "sql": "SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.source, '(not set)') ELSE '(not set)' END",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT COALESCE(s.source, '(not set)') AS key, s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY COALESCE(s.source, '(not set)'), s.day) t GROUP BY t.key",
+    },
+  ],
+  "revenue_breakdown {"dim":"source"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+    {
+      "params": [
+        "default",
+        "source",
+        "refund.source",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "USD",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "source",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "revenue_series {"currency":"EUR"}": [
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+        "EUR",
+      ],
+      "sql": "SELECT h.day AS day, 0 AS q, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) AND (h.cur = ?) GROUP BY h.day",
+    },
+    {
+      "params": [
+        "default",
+        20260201,
+        20260312,
+        "Search",
+      ],
+      "sql": "SELECT h.cur AS cur, SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE (h.site = ? AND h.day BETWEEN ? AND ? AND h.val IS NOT NULL) AND ((s.pageviews > 0) AND ((s.channel = ?))) GROUP BY h.cur",
+    },
+    {
+      "params": [
+        10000,
+        "default",
+        "2026-02-01",
+        "2026-03-12",
+        "Search",
+      ],
+      "sql": "SELECT SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.bounces) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms FROM (SELECT s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
+SUM(CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END) AS bounces,
+SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged,
+SUM(CASE WHEN (s.last_seen - s.started) * 1000 > s.visible_ms THEN (s.last_seen - s.started) * 1000 ELSE s.visible_ms END) AS duration_ms
+FROM ca_sessions s WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) GROUP BY s.day) t",
+    },
+  ],
+  "revenue_series {"currency":"EUR"} rollup": [
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+        "EUR",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.day AS day, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? AND r.cur = ? GROUP BY r.key, r.segkey, r.day, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "refund.all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, r.cur AS cur, SUM(r.orders) AS orders, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN 0 ELSE r.revenue END) AS revenue, SUM(r.sessions) AS sessions, SUM(CASE WHEN r.dim LIKE 'refund.%' THEN r.revenue ELSE 0 END) AS refunds FROM ca_revenue_daily r WHERE r.site = ? AND r.dim IN (?, ?) AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey, r.cur",
+    },
+    {
+      "params": [
+        "default",
+        "all",
+        "",
+        "2026-02-01",
+        "2026-03-12",
+      ],
+      "sql": "SELECT r.key AS key, r.segkey AS segkey, SUM(r.pageviews) AS pageviews, SUM(r.sessions) AS sessions, SUM(r.visitors) AS visitors, SUM(r.bounces) AS bounces, SUM(r.engaged) AS engaged, SUM(r.engaged_ms) AS engaged_ms, SUM(r.events) AS events, SUM(r.hits) AS hits FROM ca_rollup r WHERE r.site = ? AND r.dim = ? AND r.seg = ? AND r.day BETWEEN ? AND ? GROUP BY r.key, r.segkey",
+    },
+  ],
+  "runRevenue probe": [
+    {
+      "params": [
+        20260211,
+        "2026-02-11",
+      ],
+      "sql": "WITH RECURSIVE e(site) AS (SELECT MIN(site) FROM ca_events UNION ALL SELECT (SELECT MIN(site) FROM ca_events WHERE site > e.site) FROM e WHERE e.site IS NOT NULL),
+r(site) AS (SELECT MIN(site) FROM ca_revenue_daily UNION ALL SELECT (SELECT MIN(site) FROM ca_revenue_daily WHERE site > r.site) FROM r WHERE r.site IS NOT NULL)
+SELECT site FROM e WHERE site IS NOT NULL AND EXISTS (SELECT 1 FROM ca_events x WHERE x.site = e.site AND x.day >= ? AND x.val IS NOT NULL)
+UNION SELECT site FROM r WHERE site IS NOT NULL AND EXISTS (SELECT 1 FROM ca_revenue_daily x WHERE x.site = r.site AND x.dim = 'all' AND x.seg = '' AND x.day >= ?)
+ORDER BY site",
+    },
+  ],
+}
+`;

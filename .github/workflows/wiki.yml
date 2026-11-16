@@ -1,0 +1,28 @@
+name: Wiki
+
+# Publishes docs/wiki to the GitHub wiki. The wiki must be enabled and hold one page saved by hand once,
+# because GitHub creates the wiki git repository only then.
+on:
+  push:
+    branches: [main]
+    paths: ["docs/wiki/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: node scripts/publish-wiki.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

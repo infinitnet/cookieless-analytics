@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`reports against a row-per-hit reference on traffic written by the real path > every statement reads key ranges of its tables, never a scan, and the statement count per report is small 1`] = `
+{
+  "channels filtered": 1,
+  "dimension_values page": 1,
+  "entry_pages": 1,
+  "event_props": 1,
+  "events": 2,
+  "exit_pages": 2,
+  "funnels": 2,
+  "goals": 2,
+  "journey_next": 2,
+  "journey_paths": 2,
+  "links": 3,
+  "not_found": 1,
+  "overview filtered": 2,
+  "pages": 3,
+  "pages filtered": 3,
+  "revenue": 2,
+  "revenue_breakdown goal": 4,
+  "revenue_breakdown page": 4,
+  "satisfaction": 4,
+  "scroll": 1,
+  "site_search": 1,
+}
+`;

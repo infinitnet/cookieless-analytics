@@ -1,0 +1,18 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Weekly digest",
+	"description": "Last week at a glance for a scheduled email: visitors, sessions, pageviews, bounce rate, channels, top pages, sources and countries, compared with the week before.",
+	"tiles": [
+		{ "id": "wd0001", "report": "overview", "kind": "kpi", "w": 1, "metric": "visitors" },
+		{ "id": "wd0002", "report": "overview", "kind": "kpi", "w": 1, "metric": "sessions" },
+		{ "id": "wd0003", "report": "overview", "kind": "kpi", "w": 1, "metric": "pageviews" },
+		{ "id": "wd0004", "report": "overview", "kind": "kpi", "w": 1, "metric": "bounce_rate" },
+		{ "id": "wd0005", "report": "channels", "kind": "table", "w": 2, "limit": 10, "title": "Channels" },
+		{ "id": "wd0006", "report": "pages", "kind": "table", "w": 3, "limit": 10, "title": "Top pages" },
+		{ "id": "wd0007", "report": "sources", "kind": "table", "w": 2, "limit": 10, "title": "Top sources" },
+		{ "id": "wd0008", "report": "countries", "kind": "table", "w": 1, "limit": 10, "title": "Countries" }
+	],
+	"defaults": { "range": "7d", "compare": "previous", "filters": [] },
+	"viewer": { "ranges": ["7d", "30d"], "compare": true }
+}

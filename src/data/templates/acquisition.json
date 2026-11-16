@@ -1,0 +1,77 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Acquisition",
+	"description": "Channels, referring sites, campaigns and AI assistants.",
+	"tiles": [
+		{
+			"id": "aq0001",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "sessions"
+		},
+		{
+			"id": "aq0002",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "engaged_rate"
+		},
+		{
+			"id": "aq0003",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "visitors"
+		},
+		{
+			"id": "aq0004",
+			"report": "timeseries",
+			"kind": "line",
+			"w": 3,
+			"metrics": ["sessions"],
+			"title": "Sessions over time"
+		},
+		{
+			"id": "aq0005",
+			"report": "channels",
+			"kind": "donut",
+			"w": 1
+		},
+		{
+			"id": "aq0006",
+			"report": "sources",
+			"kind": "table",
+			"w": 2,
+			"title": "Referring sites"
+		},
+		{
+			"id": "aq0007",
+			"report": "campaigns",
+			"kind": "table",
+			"w": 2
+		},
+		{
+			"id": "aq0008",
+			"report": "ai_referrals",
+			"kind": "bars",
+			"w": 1,
+			"title": "AI assistants"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}

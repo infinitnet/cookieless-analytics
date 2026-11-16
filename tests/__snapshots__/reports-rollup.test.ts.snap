@@ -1,0 +1,62 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`agent API > answers a range before the detailed window from the summaries, with the notices and the catalog rule 1`] = `
+{
+  "notices": [
+    "summary",
+    "filter_unavailable:region:not_kept",
+    "detail_from:2026-03-12",
+  ],
+  "status": 200,
+  "totals": {
+    "avg_duration": 45,
+    "bounce_rate": 0.25,
+    "engaged_rate": 0.75,
+    "pageviews": 18,
+    "sessions": 12,
+    "views_per_session": 1.5,
+    "visitors": 12,
+  },
+}
+`;
+
+exports[`agent API > answers a range before the detailed window from the summaries, with the notices and the catalog rule 2`] = `
+{
+  "notices": [
+    "summary",
+    "filter_unavailable:browser:combination",
+    "detail_from:2026-03-12",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`agent API > answers a range before the detailed window from the summaries, with the notices and the catalog rule 3`] = `
+{
+  "body": {
+    "error": "raw_only",
+    "message": "The funnels report needs detailed data, which is kept for the detailed window only. Choose a more recent range. Detailed data starts on 2026-03-12.",
+    "ok": false,
+  },
+  "status": 400,
+}
+`;
+
+exports[`agent API > answers a range before the detailed window from the summaries, with the notices and the catalog rule 4`] = `
+{
+  "errors": [
+    "raw_only",
+    "narrow_range",
+  ],
+  "filters": "Summaries apply filters on the report's own dimension. One of channel, country and device combines with page, entry, source, utm_campaign, event or goal (pair rows). Two or three of channel, country and device combine with each other (the daily cube) in overview, timeseries, channels, countries, devices, revenue and revenue_series, and revenue_breakdown by channel, country or device; next to another breakdown or another session filter only one applies. They do not apply: is_not, not_contains, not_prefix and not_regex on page, event, goal and utm_campaign, or on any dimension of a revenue read; browser, os, exit and lang on a revenue read; a filter on the own dimension of events, goals, exit_pages and of revenue_breakdown by page, event or goal. No filter is dropped silently.",
+  "notices": {
+    "compare_summary": "The compare range reads the daily summaries.",
+    "detail_from:<day>": "The first day of detailed data: a range from that day applies every filter and every report.",
+    "filter_unavailable:<dim>:<reason>": "This filter was not applied. reason not_kept: the summaries keep no such dimension (revenue summaries keep channel, source, utm_campaign, entry, page, country, device, event and goal); combination: it cannot be combined with the report's dimension or the other filters in summaries; negated: the summaries cannot answer this negated operator (page, event, goal and utm_campaign, and every dimension of a revenue read); own: a filter on the report's own dimension (events, goals, exit pages, and the revenue breakdown by page, event or goal).",
+    "summary": "The answer reads the daily summaries.",
+    "summary_behind:<from>:<to>": "These days have no stored daily summaries yet (the background runs are more than four days behind) and are missing from a summary answer until they catch up.",
+    "summary_other:<dim>": "On some days of the range the summaries hold this filtered dimension's rarer values summed into (other), which a filter cannot match: the figures may be low.",
+  },
+  "rule": "A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (small 50,000, standard 500,000, dedicated 500,000 visits). Above it the daily summaries answer when they honour every filter; otherwise the detailed visits answer up to 4 times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.",
+}
+`;

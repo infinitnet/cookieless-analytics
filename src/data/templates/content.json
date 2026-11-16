@@ -1,0 +1,78 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Content",
+	"description": "Which pages people read, where they land and where they leave.",
+	"tiles": [
+		{
+			"id": "ct0001",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pageviews"
+		},
+		{
+			"id": "ct0002",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "views_per_session"
+		},
+		{
+			"id": "ct0003",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "avg_duration"
+		},
+		{
+			"id": "ct0004",
+			"report": "pages",
+			"kind": "table",
+			"w": 3,
+			"limit": 25,
+			"title": "Pages"
+		},
+		{
+			"id": "ct0005",
+			"report": "entry_pages",
+			"kind": "table",
+			"w": 2,
+			"title": "Landing pages"
+		},
+		{
+			"id": "ct0006",
+			"report": "scroll",
+			"kind": "bars",
+			"w": 1,
+			"title": "Scroll depth"
+		},
+		{
+			"id": "ct0007",
+			"report": "exit_pages",
+			"kind": "table",
+			"w": 2
+		},
+		{
+			"id": "ct0008",
+			"report": "not_found",
+			"kind": "table",
+			"w": 1,
+			"title": "Not found"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}

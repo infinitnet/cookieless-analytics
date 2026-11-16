@@ -1,0 +1,31 @@
+{
+	"d": [
+		{
+			"__type": "QueryStats:#Microsoft.Bing.Webmaster.Api",
+			"AvgClickPosition": 3,
+			"AvgImpressionPosition": 4,
+			"Clicks": 2,
+			"Date": "/Date(1772755200000)/",
+			"Impressions": 40,
+			"Query": "https://www.example.com/widgets"
+		},
+		{
+			"__type": "QueryStats:#Microsoft.Bing.Webmaster.Api",
+			"AvgClickPosition": -1,
+			"AvgImpressionPosition": 9,
+			"Clicks": 0,
+			"Date": "/Date(1772755200000)/",
+			"Impressions": 10,
+			"Query": "https://www.example.com/widgets/blue/"
+		},
+		{
+			"__type": "QueryStats:#Microsoft.Bing.Webmaster.Api",
+			"AvgClickPosition": 5,
+			"AvgImpressionPosition": 6,
+			"Clicks": 1,
+			"Date": "/Date(1772150400000)/",
+			"Impressions": 10,
+			"Query": "https://other.example.org/widgets"
+		}
+	]
+}

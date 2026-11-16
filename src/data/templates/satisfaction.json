@@ -1,0 +1,93 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Satisfaction",
+	"description": "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages.",
+	"tiles": [
+		{
+			"id": "st0001",
+			"report": "satisfaction",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pct_long"
+		},
+		{
+			"id": "st0002",
+			"report": "satisfaction",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pct_short"
+		},
+		{
+			"id": "st0003",
+			"report": "satisfaction",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pct_bad"
+		},
+		{
+			"id": "st0004",
+			"report": "satisfaction_series",
+			"kind": "line",
+			"w": 3,
+			"metrics": ["pct_long"],
+			"title": "Long clicks over time"
+		},
+		{
+			"id": "st0005",
+			"report": "satisfaction",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pogo_stick_rate"
+		},
+		{
+			"id": "st0007",
+			"report": "satisfaction_series",
+			"kind": "line",
+			"w": 3,
+			"metrics": ["pogo_stick_rate"],
+			"title": "Pogo-sticking over time"
+		},
+		{
+			"id": "st0006",
+			"report": "satisfaction",
+			"kind": "table",
+			"w": 2,
+			"title": "Landing pages"
+		},
+		{
+			"id": "st0008",
+			"report": "satisfaction",
+			"kind": "table",
+			"w": 3,
+			"title": "Best pages",
+			"params": {
+				"rank": "best"
+			}
+		},
+		{
+			"id": "st0009",
+			"report": "satisfaction",
+			"kind": "table",
+			"w": 3,
+			"title": "Worst pages",
+			"params": {
+				"rank": "worst"
+			}
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}

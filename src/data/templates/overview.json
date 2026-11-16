@@ -1,0 +1,81 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Overview",
+	"description": "Visitors, traffic sources, top pages and audience at a glance.",
+	"tiles": [
+		{
+			"id": "ov0001",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "visitors"
+		},
+		{
+			"id": "ov0002",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pageviews"
+		},
+		{
+			"id": "ov0003",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "bounce_rate"
+		},
+		{
+			"id": "ov0004",
+			"report": "timeseries",
+			"kind": "area",
+			"w": 3,
+			"metrics": ["visitors", "sessions"]
+		},
+		{
+			"id": "ov0005",
+			"report": "channels",
+			"kind": "bars",
+			"w": 1
+		},
+		{
+			"id": "ov0006",
+			"report": "pages",
+			"kind": "table",
+			"w": 2,
+			"title": "Top pages"
+		},
+		{
+			"id": "ov0007",
+			"report": "sources",
+			"kind": "bars",
+			"w": 1
+		},
+		{
+			"id": "ov0008",
+			"report": "countries",
+			"kind": "donut",
+			"w": 1
+		},
+		{
+			"id": "ov0009",
+			"report": "devices",
+			"kind": "donut",
+			"w": 1
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}

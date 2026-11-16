@@ -1,0 +1,125 @@
+{
+  "name": "@infinitnet/cookieless-analytics",
+  "version": "1.0.0",
+  "description": "Cookieless Analytics by Infinitnet: self-hosted, privacy-first web analytics. Runs on EmDash CMS (Cloudflare Workers and D1) and tracks any site: real sessions without cookies, channels, goals, funnels, Search Console and Bing data, client sites through a snippet, custom dashboards you can share by link, revenue by source and currency, and an API for agents, inside your CMS admin.",
+  "keywords": [
+    "cookieless analytics",
+    "web analytics",
+    "privacy analytics",
+    "self hosted",
+    "emdash",
+    "emdash-plugin",
+    "search console",
+    "astro",
+    "cloudflare workers",
+    "d1",
+    "tag manager",
+    "dashboards",
+    "revenue analytics",
+    "ecommerce analytics"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Constantin Oesterling (Infinitnet)",
+    "url": "https://github.com/infinitnet"
+  },
+  "homepage": "https://infinitnet.io/cookieless-analytics/",
+  "bugs": {
+    "url": "https://github.com/infinitnet/cookieless-analytics/issues"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/infinitnet/cookieless-analytics.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./integration": {
+      "types": "./dist/integration.d.mts",
+      "default": "./dist/integration.mjs"
+    },
+    "./middleware": {
+      "types": "./dist/middleware.d.mts",
+      "default": "./dist/middleware.mjs"
+    },
+    "./contract": {
+      "types": "./dist/contract.d.mts",
+      "default": "./dist/contract.mjs"
+    },
+    "./server": {
+      "types": "./dist/server.d.mts",
+      "default": "./dist/server.mjs"
+    },
+    "./queue": {
+      "types": "./dist/queue.d.mts",
+      "default": "./dist/queue.mjs"
+    },
+    "./admin": "./src/admin/index.tsx"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "build:client": "tsdown --config tsdown.client.config.ts && node scripts/embed-client.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.core.json && tsc --noEmit -p tsconfig.tests-a.json && tsc --noEmit -p tsconfig.tests-mid.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tsconfig.admin.json && node scripts/check-panel-types.mjs",
+    "scrub": "node scripts/scrub-check.mjs --require",
+    "data:agents": "node scripts/build-agent-data.mjs",
+    "openapi": "node scripts/build-openapi.mjs",
+    "docs:settings": "node scripts/build-settings-doc.mjs",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm typecheck && pnpm scrub",
+    "lint:package": "publint && attw --pack . --profile esm-only"
+  },
+  "peerDependencies": {
+    "@cloudflare/kumo": ">=2.6.0",
+    "astro": "^7.0.0",
+    "emdash": ">=1.4.0 <2",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@cloudflare/kumo": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@testing-library/react": "^16.3.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "astro": "^7.3.2",
+    "better-sqlite3": "^12.0.0",
+    "emdash": "~1.4.0",
+    "jsdom": "^26.0.0",
+    "kysely": "^0.29.0",
+    "publint": "^0.3.25",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsdown": "0.20.3",
+    "typescript": "^6.0.3",
+    "vitest": "4.1.10"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

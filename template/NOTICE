@@ -1,0 +1,6 @@
+This site template is based on the EmDash Cloudflare starter template, https://github.com/emdash-cms/templates/tree/main/starter-cloudflare
+Copyright 2026 Cloudflare Inc. Licensed under the MIT License (see LICENSE).
+
+Changes: the Cookieless Analytics plugin (npm package @infinitnet/cookieless-analytics, Apache License 2.0,
+https://github.com/infinitnet/cookieless-analytics) is added to astro.config.mjs and package.json,
+the deploy settings describe its bindings and secret, and the page title separator is a vertical bar.

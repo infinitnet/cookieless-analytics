@@ -1,0 +1,65 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Search",
+	"description": "Clicks, impressions, queries and pages from the connected Search sources.",
+	"tiles": [
+		{
+			"id": "se0001",
+			"report": "search_overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "clicks"
+		},
+		{
+			"id": "se0002",
+			"report": "search_overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "impressions"
+		},
+		{
+			"id": "se0003",
+			"report": "search_overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "position"
+		},
+		{
+			"id": "se0004",
+			"report": "search_overview",
+			"kind": "line",
+			"w": 3,
+			"metrics": ["clicks", "impressions"],
+			"title": "Search clicks and impressions over time"
+		},
+		{
+			"id": "se0005",
+			"report": "search_queries",
+			"kind": "table",
+			"w": 2,
+			"title": "Queries"
+		},
+		{
+			"id": "se0006",
+			"report": "search_pages",
+			"kind": "table",
+			"w": 1,
+			"title": "Pages"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}
