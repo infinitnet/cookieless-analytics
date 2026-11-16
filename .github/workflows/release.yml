@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # The whole history, so the main branch is there for the ancestor check.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
