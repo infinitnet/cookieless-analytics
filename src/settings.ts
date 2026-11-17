@@ -55,7 +55,7 @@ export const settingsSchema = {
 	realtimeWindowMinutes: { type: "number", label: "Realtime window (minutes)", description: "Sessions seen within this time count as active now.", default: 5, min: 1, max: 60 },
 	maxSessionMinutes: { type: "number", label: "Maximum session length (minutes)", description: "A session older than this is closed and a new one starts. At most one day: a visit is looked up among visits started today or yesterday.", default: 1440, min: 10, max: 1440 },
 	reloadDedupeSeconds: { type: "number", label: "Reload dedupe (seconds)", description: "A reload of the same path within this time is not counted again.", default: 2, min: 0, max: 60 },
-	maxEngagedMsPerPage: { type: "number", label: "Maximum engaged time per page (ms)", description: "Cap for the active time reported for one page.", default: 1800000, min: 60000, max: 7200000 },
+	maxEngagedMsPerPage: { type: "number", label: "Maximum active time per page (ms)", description: "Cap for the active time and the visible time reported for one page.", default: 1800000, min: 60000, max: 7200000 },
 	acceptClientRevenue: { type: "boolean", label: "Accept revenue from browsers", description: "When off, values, currencies and order ids are dropped from every browser request. Server calls and the agent events route still record them. A guard against casual spoofing, not authentication.", default: true },
 	autoAnnotations: { type: "boolean", label: "Automatic annotations", description: "Add an annotation when content is published or updated. Off, the content hooks write nothing; annotations added by hand are unaffected.", default: true },
 	annotatePublish: { type: "boolean", label: "Annotate publishing", description: "Add an annotation when an item is published.", default: true },

@@ -193,7 +193,9 @@ export const METRICS: Record<string, string> = {
 	views_per_session: "pageviews / sessions.",
 	bounce_rate: "Sessions that are not engaged, divided by sessions: 1 - engaged_rate (the GA4 meaning).",
 	engaged_rate: "Sessions with active time at or above the engagement threshold, more than one page view or any event, divided by sessions.",
-	avg_duration: "Mean session duration in seconds (the longer of time between first and last page view and visible time).",
+	avg_duration: "Mean session duration in seconds: the longer of the visit span (first to last activity) and the visible time. Not interaction time.",
+	avg_time: "Mean active time per page view in seconds (pages report): time with interaction, within 60 s of the last one, so an open but untouched page counts 0 s.",
+	avg_visible: "Mean visible time per page view in seconds (pages report, detailed data only; null in summaries).",
 	realtime: "Sessions active within the realtime window (overview only).",
 	conversions: "Sessions that reached a goal.",
 	conversion_rate: "conversions / sessions of the filtered set.",
@@ -210,7 +212,7 @@ export const METRICS: Record<string, string> = {
 	pogo_sticks: "Measured search sessions with one page view, no events, a short click, and a page left for the back and forward cache.",
 	reentered: "Search sessions that a later arrival from a search engine joined.",
 	returned_from_search: "Search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache.",
-	avg_engaged: "Mean active (engaged) time per session in seconds (Search Satisfaction reports).",
+	avg_engaged: "Mean active time per session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
 	measured_rate: "measured / sessions: the share of sessions with a measurable end.",
 	score: "pct_long - pct_bad - pogo_stick_rate (pogo_stick_rate counts as 0 without measured search sessions); null without measured sessions. Ranks best and worst pages (satisfaction params.rank).",
 	pct_long: "long_clicks / measured.",
@@ -295,7 +297,7 @@ export const BEHAVIOUR_CATALOG = {
 export const CONTENT_CATALOG = {
 	collections: {
 		tile: true,
-		metrics: { pageviews: "Pageviews of the collection's pages.", visitors: "Page visitors: the sum of per-page daily visitors, so one person reading two pages counts twice.", sessions: "Sessions summed per page.", avg_time: "Average visible time on page in seconds.", pages: "Distinct paths of the collection." },
+		metrics: { pageviews: "Pageviews of the collection's pages.", visitors: "Page visitors: the sum of per-page daily visitors, so one person reading two pages counts twice.", sessions: "Sessions summed per page.", avg_time: "Average active time per page view in seconds: time with interaction, not the time the page was open.", pages: "Distinct paths of the collection." },
 		rule: "Reads the daily page summaries (ca_rollup dim page), so it covers the whole summary retention. Paths are classified by each routable collection's URL pattern; the pattern with the most literal characters wins and unmatched paths are (other). totals.coverage is the classified share of all pageviews; the rest is folded into (other) by the top 500 pages per day.",
 		cacheSeconds: COLLECTIONS_CACHE_SECONDS,
 		notices: ["filters_not_applied", "not_available_for_site"],

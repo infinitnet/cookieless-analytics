@@ -7,8 +7,8 @@
  * - session dims (`all`, `entry`, `exit`, `channel`, `source`, `utm_campaign`, `country`, `device`,
  *   `browser`, `os`, `lang`): sessions, pageviews, visitors, bounces, engaged; `engaged_ms` holds the
  *   summed session duration in ms (the value avg duration needs); `events` the summed session events.
- * - `page`: pageviews, visitors, sessions; `engaged_ms` the summed time on page, `hits` the number of
- *   pageviews with a measured time (the avg time denominator).
+ * - `page`: pageviews, visitors, sessions; `engaged_ms` the summed active time, `hits` the number of
+ *   pageviews with a measured time (the avg active time denominator).
  * - `event`: events (count), sessions, visitors. `goal`: events (completions), sessions (converting).
  * - `ca_cube`: one row per channel, country and device (`CUBE_METRICS`, `duration_ms` the summed session duration);
  *   orders per cell in `ca_revenue_daily` as dim `all`, seg `cube`, segkey the three values joined by `CELL_SEP`.

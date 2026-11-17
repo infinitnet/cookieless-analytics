@@ -21,6 +21,9 @@ export const CAVEATS = {
 	pogo: `${POGO_DEFINITION} ${SATISFACTION_CAVEAT}`,
 	returned: `${RETURNED_DEFINITION} ${SATISFACTION_CAVEAT}`,
 	satisfaction_score: SCORE_DEFINITION,
+	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
+	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
+	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
 	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions.",
 } as const;
 export type Caveat = keyof typeof CAVEATS;

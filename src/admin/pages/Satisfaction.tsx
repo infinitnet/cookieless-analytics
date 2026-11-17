@@ -61,7 +61,7 @@ export const scoreRows = (rows: TableRow[]): TableRow[] =>
 
 const RATE_COLUMNS: Column[] = [
 	{ key: "sessions", label: "Sessions", note: (r) => `${String(r.measured ?? 0)} measured` },
-	{ key: "avg_duration", label: "Avg. duration", format: "duration" },
+	{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
 	{ key: "pct_long", label: "Long clicks %", format: "percent" },
 	{ key: "pct_short", label: "Short clicks %", format: "percent" },
 	{ key: "pct_bad", label: "Bad experience %", format: "percent" },
@@ -108,10 +108,10 @@ function RawOnly({ view, error }: { view: View; error: string }) {
 	);
 }
 
-/** The figures of the page: the five rates and engaged time toggle series of one chart; the measured share is a plain figure. */
+/** The figures of the page: the five rates and active time toggle series of one chart; the measured share is a plain figure. */
 const SAT_METRICS: readonly MetricDef[] = [
 	...SAT_RATES.map(([key, label]) => ({ key, label, format: "percent" as const })),
-	{ key: "avg_engaged", label: "Avg. engaged time", format: "duration" },
+	{ key: "avg_engaged", label: "Avg. active time", format: "duration" },
 	{ key: "measured_rate", label: "Measured share", format: "percent", selectable: false },
 ];
 

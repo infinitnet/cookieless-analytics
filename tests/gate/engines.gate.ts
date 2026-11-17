@@ -133,6 +133,7 @@ function classify(report: ReportName, a: Data, b: Data, responseNotices: string[
 		const revNull = report === "revenue_breakdown";
 		const fieldsLeft = d.fields.filter((f) => {
 			if (f === "scroll_median") return !causes.add("scroll median is detailed only (docs/design-notes.md)");
+			if (f === "avg_visible") return !causes.add("visible time per page is detailed only (docs/design-notes.md)");
 			if (f === "exit_rate" && (y as Row[]).some((r) => r.exit_rate === null)) return !causes.add("exit rate of a folded or pair page is not stored");
 			if (revNull && ["visitors", "sessions", "revenue_per_visitor"].includes(f) && (y as Row[]).some((r) => r.visitors === null))
 				return !causes.add("summary revenue breakdown: goal and event rows, and keys without a traffic summary row, have no visitors (docs/revenue.md)");

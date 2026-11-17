@@ -7,7 +7,7 @@ Three views for editors and content owners: traffic per CMS collection, the word
 ### Traffic per collection
 
 1. Open Dashboards and add a tile of the report `collections` (bars, donut or table; default title "Content types"), or ask the agent API for it.
-2. Read page views, page visitors, sessions, average time on page and the number of distinct pages per collection.
+2. Read page views, page visitors, sessions, average active time and the number of distinct pages per collection.
 
 Each path is classified by the URL pattern of every routable collection. `{name}` in a pattern matches one path segment, and an optional leading locale segment (`/fr`, `/pt-br`) is allowed. A collection without a pattern uses the host default `/{collection}/{slug}`. When two patterns match, the one with more literal characters wins (`/blog/{slug}` beats `/{section}/{slug}`). Paths no pattern matches are `(other)`.
 
@@ -40,7 +40,7 @@ It shows on Behaviour, Events.
 
 1. Open any saved entry in the content editor.
 2. The Traffic panel calls the plugin once and shows the last 30 days of the entry's public page:
-   - page views with a 30 day sparkline, visitors and the average time on page;
+   - page views with a 30 day sparkline, visitors and the average active time;
    - the top five sources;
    - Search clicks, impressions and average position, when a Search source is connected;
    - the newest five annotations whose scope matches the page;

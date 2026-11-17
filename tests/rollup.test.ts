@@ -57,7 +57,7 @@ describe.each(["UTC", "America/New_York"])("rollup in %s", (tz) => {
 		else expect(ts[1]?.notices).toContain("granularity_day");
 		expect(days(ts[1]?.data.series).length).toBeGreaterThan(0);
 		const pages = [await run(raw, "pages", from as string, to as string, [], { withSearch: true }), await run(rolled, "pages", from as string, to as string, [], { withSearch: true })];
-		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, ...r }) => r);
+		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, avg_visible: _v, ...r }) => r);
 		expect(noScroll(pages[1]?.data.rows)).toEqual(noScroll(pages[0]?.data.rows));
 		expect(pages[1]?.data.rows?.every((r) => r.scroll_median === null)).toBe(true);
 	});

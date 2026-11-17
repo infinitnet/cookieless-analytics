@@ -193,7 +193,7 @@ describe("copy rules", () => {
 			"Delete matching visits",
 			"Preview matching visits",
 			"Typical bot visit",
-			"One page view, no engaged time and no scroll (combine it with a country or a browser above)",
+			"One page view, no active time and no scroll (combine it with a country or a browser above)",
 			"Top values of the matches",
 			"Check that this is the traffic you mean to delete.",
 			"What is removed",
@@ -212,7 +212,7 @@ describe("copy rules", () => {
 			"Desktop, 1200 px and wider",
 		];
 		const spec = DeleteSpecSchema.parse({ from: "2026-03-01", to: "2026-03-07", filters: [{ dim: "browser", op: "not_regex", values: ["^Head"] }], screen: ["xs"], hours: { from: 22, to: 3 }, shape: "single_view_idle", oldDays: true });
-		expect(describeSpec(spec)).toBe("2026-03-01 to 2026-03-07: browser not regex ^Head; screen xs; hour 22 to 3; one page view, no engaged time, no scroll; whole summaries of older days");
+		expect(describeSpec(spec)).toBe("2026-03-01 to 2026-03-07: browser not regex ^Head; screen xs; hour 22 to 3; one page view, no active time, no scroll; whole summaries of older days");
 		for (const t of [...strings, describeSpec(spec)]) {
 			if (strings.includes(t)) expect(src.includes(t), t).toBe(true);
 			expect(DASHES.some((d) => t.includes(d)), t).toBe(false);

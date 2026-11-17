@@ -58,7 +58,7 @@ describe("settings sections", () => {
 
 	it("draws a field with its unit out of the label, help and more, and the stored ms in minutes", () => {
 		expect(fieldMeta("sessionWindowMinutes")).toMatchObject({ label: "Session window", unit: "minutes", min: 1, max: 240, default: 30 });
-		expect(fieldMeta("maxEngagedMsPerPage", true)).toMatchObject({ label: "Maximum engaged time per page", unit: "minutes", min: 1, max: 120, default: 30, advanced: true });
+		expect(fieldMeta("maxEngagedMsPerPage", true)).toMatchObject({ label: "Maximum active time per page", unit: "minutes", min: 1, max: 120, default: 30, advanced: true });
 		const tz = fieldMeta("siteTimezone");
 		expect(tz.help).not.toContain(HOST_FORM_POINTER);
 		expect(tz.help).toBe("IANA timezone used for days and hours in reports, for example Europe/Berlin.");

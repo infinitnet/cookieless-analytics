@@ -134,6 +134,7 @@ export function entryCols(dialect: Dialect, a = "h") {
 		query: field(dialect, a, "qs"),
 		name,
 		dur: field(dialect, a, "d", "int"),
+		vis: field(dialect, a, "e", "int"),
 		nav: field(dialect, a, "nt", "int"),
 		exit: field(dialect, a, "x", "int"),
 		scroll: field(dialect, a, "s", "int"),

@@ -6,7 +6,7 @@ Three content facing views. None of them adds a table; site search adds one sett
 
 ## 1. Per-collection report
 
-Report `collections` (dashboard tile: bars, donut or table; agent API): pageviews, page visitors, sessions, average time on page and the number of distinct pages per CMS collection.
+Report `collections` (dashboard tile: bars, donut or table; agent API): pageviews, page visitors, sessions, average active time and the number of distinct pages per CMS collection.
 
 - It reads the daily page summaries (`ca_rollup`, dimension `page`), so it covers the whole summary retention, not only the raw window.
 - Each path is classified by the URL pattern of every routable collection (`ctx.schema.listCollections()`, capability `schema:read`). A pattern becomes an anchored expression: `{name}` matches one path segment, and an optional leading locale segment (`/fr`, `/pt-br`) is allowed. A collection without a pattern uses the host default `/{collection}/{slug}`. When two patterns match, the one with the most literal characters wins (`/blog/{slug}` beats `/{section}/{slug}`). Paths no pattern matches are `(other)`.
@@ -43,7 +43,7 @@ Privacy receipt line: "If a site search parameter is configured, the words searc
 
 The content editor shows a **Traffic** panel for every collection (EmDash `contentEditorPanels`, saved entries only). It needs the Editor role, the role that holds `plugins:read`; Authors and Contributors do not see it. When it opens it calls the private route `editor/traffic` once and shows the last 30 days of the entry's public page:
 
-- pageviews with a 30 day sparkline, visitors and the average time on page;
+- pageviews with a 30 day sparkline, visitors and the average active time;
 - the top five sources;
 - Search clicks, impressions and average position, when a Search source is connected;
 - the newest five annotations whose scope matches the page;

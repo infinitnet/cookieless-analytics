@@ -105,7 +105,7 @@ export const MONEY_KEYS: ReadonlySet<string> = new Set(["revenue", "aov", "reven
 
 /** Display format of a metric key. */
 export function metricFormat(key: string): Format {
-	if (key === "avg_duration" || key === "avg_time") return "duration";
+	if (key === "avg_duration" || key === "avg_time" || key === "avg_visible" || key === "avg_engaged") return "duration";
 	if (key === "position" || key === "views_per_session") return "decimal";
 	if (key === "ctr" || key === "share" || key.endsWith("_rate") || key.startsWith("pct_") || key.endsWith("_share") || key.endsWith("_pct") || key.startsWith("share_") || key.startsWith("ctr_") || key.startsWith("ctr")) return "percent";
 	if (key.startsWith("position")) return "decimal";

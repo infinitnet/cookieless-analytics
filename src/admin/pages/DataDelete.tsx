@@ -191,7 +191,7 @@ export function FilteredDelete({ view }: { view: View }) {
 				<fieldset className="ca-fd-checks">
 					<legend>Typical bot visit</legend>
 					<label>
-						<input type="checkbox" checked={shape} onChange={(e) => edit(setShape)(e.target.checked)} /> One page view, no engaged time and no scroll (combine it with a country or a browser above)
+						<input type="checkbox" checked={shape} onChange={(e) => edit(setShape)(e.target.checked)} /> One page view, no active time and no scroll (combine it with a country or a browser above)
 					</label>
 				</fieldset>
 				<div className="ca-actions">

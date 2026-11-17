@@ -87,12 +87,26 @@ This error opens no report: the id is only a continuity token, and the session r
 ## Session metrics
 
 - **Sessions**: session rows with at least one page view.
-- **Engaged session**: active time of at least `engagedThresholdSeconds` (default 10), or more than one page view, or at least one event.
+- **Active time**: time with interaction. The script counts a page view's time only while the page is visible and the visitor interacted (pointer down, key press, scroll or touch) within the last 60 seconds. It is stored per page view (`d`) and per session (`engaged_ms`), capped per page by `maxEngagedMsPerPage`. The Pages report shows it as **Avg. active time** per page view, Search Satisfaction as **Avg. active time** per session.
+- **Visible time**: time the page was visible in the browser, interaction or not. It is stored per page view (`e`) and per session (`visible_ms`). The Pages report shows it as **Avg. visible time** per page view, from detailed data only (the daily summaries do not keep it, so a summary range leaves the column blank).
+- **Duration** (session duration, **Avg. duration**): the longer of the visit span (from the start of the visit to its last recorded update) and the visible time. For a one page session that is usually the visible time. It is not interaction time.
+- **Engaged session**: active time of at least `engagedThresholdSeconds` (default 10), or more than one page view, or at least one event (the GA4 meaning).
 - **Bounce**: a session that is not engaged, so bounce rate is 1 minus engaged rate (the GA4 meaning). A one page visit read for five minutes is engaged, not a bounce.
-- **Session duration**: the longer of the time between the first and last page view, and the time the pages were visible. For a one-page session that is the visible time.
-- **Time on page**: the active time of the page view.
 - **Views per session**: page views divided by sessions.
 - **Visitors**: distinct visitor keys per day, summed over the range.
+
+Active time can be 0 s while duration is several seconds. A page that is open and visible but never touched collects visible time and no active time. Link scanners, link previews and visitors who glance at a page and leave look exactly like that, so a report can show an Avg. duration of 6 s next to an Avg. active time of 0 s for the same visits. Neither number is wrong: duration says how long the page was in view, active time how long someone worked with it.
+
+### How other tools measure it
+
+Cookieless Analytics by Infinitnet reports active time and duration as two separate figures and never calls active time the time a page was open. Other tools use one figure, and most of them mean time in view:
+
+- **Plausible**: its page time and its visit duration count engagement time while the tab is visible and in focus (plausible.io/docs/metrics-definitions, plausible.io/blog/time-on-page-ga-vs-plausible).
+- **Google Analytics 4**: average engagement time is the time the page is in focus in the foreground (support.google.com/analytics/answer/11109416).
+- **Matomo**: its average page time is the gap to the next page view, so the last page of a visit is left out unless a heartbeat timer is set (matomo.org/faq/how-to/faq_21824/).
+- **Fathom**: measures time on site and per page with departure pings; it used to take the gap between page views (usefathom.com/changelog/mar2026-analytics-rebuild).
+
+So the common meaning of a page time is time in view. Our closest figures to it are Avg. visible time per page and Avg. duration per session. Active time is stricter: it is the time with interaction, which is why it carries its own name.
 
 ## Search Satisfaction metrics
 
@@ -153,7 +167,7 @@ There is no rollup of these numbers. A table of daily summaries would either fix
 
 Search Satisfaction has its own sidebar entry, right after Pages. The page reads the header's range, comparison, segment and filters and shows:
 
-- Seven cards with the comparison to the previous period: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average engaged time and the measured share. The estimates and the measured share carry an info marker with their definition. A line under the cards says how many sessions have no measured end, once.
+- Seven cards with the comparison to the previous period: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average active time and the measured share. The estimates and the measured share carry an info marker with their definition. A line under the cards says how many sessions have no measured end, once.
 - A trend chart of the rates with a switch between them (a card click picks the rate too) and annotation markers.
 - "Best pages" and "Worst pages": the five landing pages with the highest and lowest score, each with sessions, long click, bad experience and pogo-sticking rates and the score change in points against the previous period.
 - Breakdown tabs: landing pages (searchable, sortable and paged), channels, sources, devices, countries and browsers, each with every rate and the score (`params.by` of the `satisfaction` report).

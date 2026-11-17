@@ -1,4 +1,4 @@
-import { p as SITE_ID_RE } from "./queue-sink-BMGmPScQ.mjs";
+import { p as SITE_ID_RE } from "./queue-sink-CENHpQGt.mjs";
 
 //#region src/multisite/config.ts
 /**

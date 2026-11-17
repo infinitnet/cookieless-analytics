@@ -97,7 +97,7 @@ describe("Settings page", () => {
 		window.history.replaceState(null, "", "?tab=sessions");
 		render(<Settings />);
 		fireEvent.click(await screen.findByRole("button", { name: "Advanced" }));
-		fireEvent.change(screen.getByLabelText("Maximum engaged time per page"), { target: { value: "500" } });
+		fireEvent.change(screen.getByLabelText("Maximum active time per page"), { target: { value: "500" } });
 		fireEvent.click(screen.getByRole("button", { name: "Advanced" }));
 		fireEvent.change(screen.getByLabelText("Long click"), { target: { value: "20" } });
 		fireEvent.change(screen.getByLabelText("Bad experience"), { target: { value: "30" } });
@@ -105,7 +105,7 @@ describe("Settings page", () => {
 		expect(await screen.findByText(SETTINGS_TEXT.refused(2))).toBeTruthy();
 		expect(screen.getByText("Use a whole number from 1 to 120.")).toBeTruthy();
 		expect(screen.getByText("Not above the long click time (20 seconds).")).toBeTruthy();
-		expect(screen.getByLabelText("Maximum engaged time per page").getAttribute("aria-invalid")).toBe("true");
+		expect(screen.getByLabelText("Maximum active time per page").getAttribute("aria-invalid")).toBe("true");
 		expect(stored.maxEngagedMsPerPage).toBeUndefined();
 		expect(stored.badExperienceSeconds).toBeUndefined();
 		expect(stored.longClickSeconds).toBeUndefined();

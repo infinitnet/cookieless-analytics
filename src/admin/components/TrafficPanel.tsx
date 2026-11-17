@@ -18,7 +18,7 @@ export const PANEL_TEXT = {
 	noData: "No visits to this page in the last 30 days yet.",
 	pageviews: "Pageviews",
 	visitors: "Visitors",
-	avgTime: "Avg. time on page",
+	avgTime: "Avg. active time",
 	sources: "Top sources",
 	search: "Search",
 	annotations: "Annotations",

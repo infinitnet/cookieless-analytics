@@ -127,7 +127,7 @@ describe("closed-day writer on generated traffic", () => {
 		}
 		const ov = [await run(raw, "overview", day, day), await run(rolled, "overview", day, day)];
 		expect(ov[1]?.data.totals).toEqual(ov[0]?.data.totals);
-		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, ...r }) => r);
+		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, avg_visible: _v, ...r }) => r);
 		const pages = [await run(raw, "pages", day, day), await run(rolled, "pages", day, day)];
 		expect(noScroll(pages[1]?.data.rows)).toEqual(noScroll(pages[0]?.data.rows));
 		const rev = [await run(raw, "revenue", day, day, { currency: "USD" }), await run(rolled, "revenue", day, day, { currency: "USD" })];

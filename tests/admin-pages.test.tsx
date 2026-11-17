@@ -52,7 +52,7 @@ function rows(report: string): Array<Record<string, unknown>> {
 	if (empty) return [];
 	switch (report) {
 		case "pages":
-			return [{ key: "/a", pageviews: 9, visitors: 5, avg_time: 30, exit_rate: 0.5, scroll_median: 50, ...SEARCH }];
+			return [{ key: "/a", pageviews: 9, visitors: 5, avg_time: 30, avg_visible: 45, exit_rate: 0.5, scroll_median: 50, ...SEARCH }];
 		case "entry_pages": {
 			const { sessions: _s, ...rest } = SESSION;
 			return [{ key: "/entry", ...rest, entries: 6 }];
@@ -325,6 +325,17 @@ describe("Site search tab", () => {
 	});
 });
 
+describe("Pages time columns", () => {
+	it("label active time and visible time, each with its definition", async () => {
+		const { findAllByRole, findByRole } = render(<Pages />);
+		await findByRole("button", { name: "/a" });
+		const headers = (await findAllByRole("columnheader")).map((h) => h.querySelector("button")?.textContent).filter(Boolean);
+		expect(headers.slice(0, 5)).toEqual(["Page", "Pageviews", "Visitors", "Avg. active time", "Avg. visible time"]);
+		const active = (await findAllByRole("columnheader")).find((h) => h.querySelector("button")?.textContent === "Avg. active time");
+		expect(active?.querySelector(".ca-info-btn")?.getAttribute("title")).toBe(CAVEATS.active_time);
+	});
+});
+
 describe("Pages search columns", () => {
 	it("are hidden when search/status is missing", async () => {
 		const { findByRole, queryByRole } = render(<Pages />);
@@ -423,8 +434,8 @@ describe("Search Satisfaction page", () => {
 		fireEvent.click(getByRole("button", { name: /^Returned from search \(estimate\) / }));
 		expect(await findByRole("img", { name: /^Long clicks and Returned from search \(estimate\) per day, / })).toBeTruthy();
 		// Engaged time is a duration: a second scale, on the right axis.
-		fireEvent.click(getByRole("button", { name: /^Avg\. engaged time / }));
-		expect(await findByRole("img", { name: /^Long clicks, Returned from search \(estimate\) and Avg\. engaged time per day, / })).toBeTruthy();
+		fireEvent.click(getByRole("button", { name: /^Avg\. active time / }));
+		expect(await findByRole("img", { name: /^Long clicks, Returned from search \(estimate\) and Avg\. active time per day, / })).toBeTruthy();
 		expect(decodeURIComponent(window.location.search)).toContain("m=pct_long,returned_from_search_rate,avg_engaged");
 		// The measured share is a figure, not a line.
 		expect(getByRole("region", { name: "Key figures" }).querySelector('[data-metric="measured_rate"] button.ca-kpi-btn')).toBeNull();

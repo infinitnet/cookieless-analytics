@@ -35,7 +35,7 @@ import { budgetState, dailyRowsApply } from "./storage.js";
 export const DELETE_DIMS = (Object.keys(TRAFFIC_DIMS) as Array<keyof typeof TRAFFIC_DIMS>).filter((k) => TRAFFIC_DIMS[k].scope === "session") as Dim[];
 /** Screen width classes (`screenBucket`). */
 export const SCREENS = ["xs", "sm", "md", "lg", "xl"] as const;
-/** Visit shapes: `single_view_idle` is one page view with no engaged time and no scroll. */
+/** Visit shapes: `single_view_idle` is one page view with no active time and no scroll. */
 export const SHAPES = ["single_view_idle"] as const;
 /** Longest range of one delete, so the preview reads a bounded number of visits. */
 export const DELETE_MAX_DAYS = 400;
@@ -81,7 +81,7 @@ export function describeSpec(s: DeleteSpec): string {
 	const parts = s.filters.map((f) => `${f.dim} ${f.op.replace("_", " ")} ${f.values.join(", ")}`);
 	if (s.screen) parts.push(`screen ${s.screen.join(", ")}`);
 	if (s.hours) parts.push(`hour ${s.hours.from} to ${s.hours.to}`);
-	if (s.shape) parts.push("one page view, no engaged time, no scroll");
+	if (s.shape) parts.push("one page view, no active time, no scroll");
 	if (s.oldDays) parts.push("whole summaries of older days");
 	return `${s.from} to ${s.to}${parts.length ? `: ${parts.join("; ")}` : ": every visit"}`;
 }

@@ -7,7 +7,7 @@ The Search Satisfaction page shows whether landing pages answered the visit: how
 ## How to use it
 
 1. Open **Search Satisfaction** in the sidebar (right after Pages). It uses the range, comparison, segment and filters of the header.
-2. Read the cards: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average engaged time and the measured share. A card click also picks the rate shown on the trend chart.
+2. Read the cards: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average active time and the measured share. A card click also picks the rate shown on the trend chart.
 3. Check **Best pages** and **Worst pages**: the five landing pages with the highest and lowest score, with the score change against the previous period.
 4. Use the breakdown tabs (landing pages, channels, sources, devices, countries, browsers) to see where a rate is high.
 5. Open a landing page (a ranked row, or Details in the table) for its drawer: its trend, pogo-sticking by search engine and the same breakdowns.
@@ -89,7 +89,7 @@ Primary sources from the trial record:
 - A tab or app switch is not an exit. On mobile, a page left through the app switcher and later closed by the system never reports an exit.
 - A page restored from the browser's Back and Forward cache is not a new page load, so the back/forward load share is a lower bound.
 - Search re-entry also counts two results opened in tabs at once, and two people behind the same network address (see [How Visits Are Counted](How-Visits-Are-Counted)).
-- Active time accrues only within 60 seconds of an interaction, so a long passive read (a video) can be a long click by visible time with low engaged time.
+- Active time accrues only within 60 seconds of an interaction, so a long passive read (a video) can be a long click by visible time with low active time.
 
 Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/sessions.md
 

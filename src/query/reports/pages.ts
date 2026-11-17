@@ -45,13 +45,13 @@ function median(hist: Array<[number, number]>): number | null {
 	return null;
 }
 
-/** Top pages: pageviews, visitors, avg time on page, exit rate, scroll median; optional search columns. */
+/** Top pages: pageviews, visitors, avg active time, avg visible time, exit rate, scroll median; optional search columns. */
 export async function pages(rc: ReportCtx, input: RunInput): Promise<ReportData> {
 	const h = entryCols(rc.db.dialect);
 	const j = hitJoin(rc, input, "pv");
 	const rows = await rc.db.all(
-		`SELECT t.key AS key, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.dur_sum) AS dur_sum, SUM(t.dur_n) AS dur_n FROM (
-SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(${h.dur}) AS dur_sum, COUNT(${h.dur}) AS dur_n ${j.sql} GROUP BY ${h.path}, s.day
+		`SELECT t.key AS key, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.dur_sum) AS dur_sum, SUM(t.dur_n) AS dur_n, SUM(t.vis_sum) AS vis_sum, SUM(t.vis_n) AS vis_n FROM (
+SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(${h.dur}) AS dur_sum, COUNT(${h.dur}) AS dur_n, SUM(${h.vis}) AS vis_sum, COUNT(${h.vis}) AS vis_n ${j.sql} GROUP BY ${h.path}, s.day
 ) t GROUP BY t.key ORDER BY pageviews DESC, key LIMIT ? OFFSET ?`,
 		[...j.params, input.limit + 1, input.offset],
 	);
@@ -80,6 +80,7 @@ SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.v
 			pageviews,
 			visitors: num(r.visitors),
 			avg_time: round(ratio(num(r.dur_sum) / 1000, num(r.dur_n)), 1),
+			avg_visible: round(ratio(num(r.vis_sum) / 1000, num(r.vis_n)), 1),
 			// A visit opened by an event can exit on a path it never viewed (more exits than views): capped at 1, as in the summaries.
 			exit_rate: capped(round(ratio(exits.get(key) ?? 0, pageviews))),
 			scroll_median: median(scroll.get(key) ?? []),

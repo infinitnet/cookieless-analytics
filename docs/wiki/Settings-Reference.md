@@ -87,7 +87,7 @@ Keys marked Advanced sit under the closed Advanced disclosure of the section.
 | `realtimeWindowMinutes` | number | `5` | 1 to 60 | Realtime window (minutes): Sessions seen within this time count as active now. |
 | `maxSessionMinutes` (Advanced) | number | `1440` | 10 to 1440 | Maximum session length (minutes): A session older than this is closed and a new one starts. At most one day: a visit is looked up among visits started today or yesterday. |
 | `reloadDedupeSeconds` (Advanced) | number | `2` | 0 to 60 | Reload dedupe (seconds): A reload of the same path within this time is not counted again. |
-| `maxEngagedMsPerPage` (Advanced) | number | `1800000` | 60000 to 7200000 | Maximum engaged time per page (ms): Cap for the active time reported for one page. |
+| `maxEngagedMsPerPage` (Advanced) | number | `1800000` | 60000 to 7200000 | Maximum active time per page (ms): Cap for the active time and the visible time reported for one page. |
 
 ## Revenue
 

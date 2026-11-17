@@ -483,7 +483,7 @@ describe("open days merged from computeDay", () => {
 			expect(b.data.rows, report).toEqual(a.data.rows);
 			expect(b.data.totals, report).toEqual(a.data.totals);
 		}
-		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, ...r }) => r);
+		const noScroll = (rows: Row[] | undefined) => (rows ?? []).map(({ scroll_median: _s, avg_visible: _v, ...r }) => r);
 		expect(noScroll((await run(sum, "pages", D0, TODAY)).data.rows)).toEqual(noScroll((await run(raw, "pages", D0, TODAY)).data.rows));
 		expect((await run(sum, "timeseries", D0, TODAY)).data.series).toEqual((await run(raw, "timeseries", D0, TODAY)).data.series);
 		expect((await run(sum, "overview", TODAY, TODAY)).data.totals).toEqual((await run(raw, "overview", TODAY, TODAY)).data.totals);

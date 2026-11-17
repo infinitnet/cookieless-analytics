@@ -157,6 +157,20 @@ window.addEventListener("__ec:ready", (e) => {
 ```
 
 The script also sends three built-in events: `_outbound` for a click on a link to another host, `_download` for links ending in one of the `downloadExtensions`, and `_form` for a form submit. Each can be switched off in the settings.
+### What counts as a form submit
+
+Cookieless Analytics by Infinitnet sends `_form` when the browser fires its native `submit` event on a form. The event means the visitor submitted the form, not that the submission succeeded.
+
+The label is the form's `id`, else its `name`, else its target path, up to 128 characters. The submit button's `formaction` wins over the form's `action`.
+
+Some submits never fire the event, so they send no `_form`:
+
+- forms sent with `fetch` or XHR from a click handler, which many form builders and single page apps use,
+- a script that calls `form.submit()`,
+- a submit that the browser blocks because validation failed.
+
+To record a real success for those forms, call `window.__ec.event("signup")` after your own success check. A goal on the event `_form` can match the form label, and `data-ec-ignore` on a form switches its `_form` event off.
+
 
 **Link rules.** The `linkRules` setting sends a named event for clicks on chosen links, one rule per line: `<pattern> <event> [label]`, for example `/go/ out`. The pattern is matched against the path of a same-host link, host and path of another http(s) host, or the link without its query for anything else (`mailto:`, `tel:`); `~` starts a case-insensitive safe regular expression. The event carries one property, `slug`: the label, else the first group of the regular expression or its whole match, else the rest after the prefix (one trailing slash removed). The event `-` sends nothing. Order: `data-ec-ignore` sends nothing; a click on a `data-ec-event` element sends that event and skips the rules; a same-host link under `ignorePathPrefixes` skips the rules; then the first matching rule sends its one event and stops, so that click gets no `_outbound` and no `_download`; with no match the built-in events apply. At most 20 rules and 2,048 characters; config key `r` in `clientConfig`. Details: [settings.md](settings.md).
 

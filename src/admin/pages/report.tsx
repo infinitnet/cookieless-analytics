@@ -45,7 +45,7 @@ export function sessionColumns(label: string, dim?: Dim): Column[] {
 		{ key: "visitors", label: "Visitors" },
 		{ key: "sessions", label: "Sessions" },
 		{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
-		{ key: "avg_duration", label: "Avg. duration", format: "duration" },
+		{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
 	];
 }
 

@@ -143,6 +143,7 @@ interface Hit {
 	name: string | null;
 	props: Record<string, unknown> | null;
 	dur: number | null;
+	vis: number | null;
 	nav: number | null;
 	exit: number | null;
 	scroll: number | null;
@@ -165,7 +166,7 @@ function load(raw: Database.Database) {
 		for (const [key, e] of Object.entries(JSON.parse(v.doc) as Record<string, Record<string, unknown>>)) {
 			if (e.t === undefined) continue;
 			const n = (f: string) => (e[f] === undefined ? null : Number(e[f]));
-			hits.push({ v, key, ts: v.started + Number(e.t), kind: e.n === undefined ? "pv" : "ev", path: (e.p as string) ?? null, query: (e.qs as string) ?? null, name: (e.n as string) ?? null, props: (e.pr as Record<string, unknown>) ?? null, dur: n("d"), nav: n("nt"), exit: n("x"), scroll: n("s") });
+			hits.push({ v, key, ts: v.started + Number(e.t), kind: e.n === undefined ? "pv" : "ev", path: (e.p as string) ?? null, query: (e.qs as string) ?? null, name: (e.n as string) ?? null, props: (e.pr as Record<string, unknown>) ?? null, dur: n("d"), vis: n("e"), nav: n("nt"), exit: n("x"), scroll: n("s") });
 		}
 	const iso = (d: unknown) => (d == null ? null : String(d).replace(/^(\d{4})(\d{2})(\d{2})$/, "$1-$2-$3"));
 	const orders = (raw.prepare("SELECT * FROM ca_events WHERE val IS NOT NULL").all() as Array<Record<string, unknown>>).map(
@@ -228,19 +229,21 @@ describe("reports against a row-per-hit reference on traffic written by the real
 		expect(counted().length).toBeGreaterThan(100);
 	});
 
-	it("pages: pageviews, visitors, time, exit rate and scroll median", async () => {
+	it("pages: pageviews, visitors, active and visible time, exit rate and scroll median", async () => {
 		const check = async (filters: Filter[], keep: (h: Hit) => boolean, sessionOk: (v: Visit) => boolean) => {
 			const vs = counted().filter(sessionOk);
 			const pvs = hitsOf("pv", vs).filter(keep);
 			const exits = by(vs, (v) => String(v.exit_path));
 			const rows = [...by(pvs, (h) => String(h.path))].map(([key, hs]): Row => {
 				const durs = hs.flatMap((h) => (h.dur === null ? [] : [h.dur]));
+				const viss = hs.flatMap((h) => (h.vis === null ? [] : [h.vis]));
 				const sc = hs.flatMap((h) => (h.scroll === null ? [] : [h.scroll])).sort((a, b) => a - b);
 				return {
 					key,
 					pageviews: hs.length,
 					visitors: visitorsOfHits(hs),
 					avg_time: durs.length ? rnd(durs.reduce((a, b) => a + b, 0) / 1000 / durs.length, 1) : null,
+					avg_visible: viss.length ? rnd(viss.reduce((a, b) => a + b, 0) / 1000 / viss.length, 1) : null,
 					exit_rate: rnd(rate(exits.get(key)?.length ?? 0, hs.length)),
 					scroll_median: sc.length ? (sc[Math.ceil(sc.length / 2) - 1] as number) : null,
 				};

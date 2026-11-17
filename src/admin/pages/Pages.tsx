@@ -55,7 +55,8 @@ export function PagesTab({ view }: { view: View }) {
 					{ key: "key", label: "Page", format: "text", dim: "page" },
 					{ key: "pageviews", label: "Pageviews" },
 					{ key: "visitors", label: "Visitors" },
-					{ key: "avg_time", label: "Avg. time on page", format: "duration" },
+					{ key: "avg_time", label: "Avg. active time", format: "duration", caveat: "active_time" },
+					{ key: "avg_visible", label: "Avg. visible time", format: "duration", caveat: "visible_time" },
 					{ key: "exit_rate", label: "Exit rate", format: "percent" },
 					{ key: "scroll_median", label: "Median scroll (%)", format: "number", optional: true },
 					...(search ? SEARCH_COLUMNS : []),
@@ -118,7 +119,7 @@ export default function Pages() {
 								{ key: "entries", label: "Entries" },
 								{ key: "visitors", label: "Visitors" },
 								{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
-								{ key: "avg_duration", label: "Avg. duration", format: "duration" },
+								{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
 							]}
 						/>
 					),

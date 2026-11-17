@@ -1,9 +1,9 @@
 import { CONTRACT_VERSION, LINK_EVENTS, PLUGIN_ID, SID_RE } from "./contract.mjs";
-import { $ as clearEstimateDay, $t as pgStatementLimit, A as MAX_VISIT_MINUTES, At as isPath, C as newSiteKey, Ct as MAPPING_FIELD, Dt as OID_RE, E as drops, Et as ThrottledError, F as classifyChannel, Ft as eachDatabase, G as budgetTargetOf, Gt as statePrefix, Ht as pluginFactsOrNull, I as CLICK_IDS, J as KV_CURSOR, Jt as INGEST_STATEMENT_MS, K as dailyRowsApply, Kt as CACHE_ON_MESSAGE, L as SITE_SEARCH_TERM_MAX, M as BUILTIN_CHANNEL_RULES, Mt as isSid, Nt as validateIngest, O as MAX_DOC_BYTES, Ot as cleanProps, Pt as validateRevenue, R as UTM_KEYS, S as markHostSeen, St as BudgetExhausted, T as siteProblem, Tt as SourceError, U as KV_WRITE_BUDGET, V as normalizeUrl, W as budgetState, Wt as stateKv, X as MAX_CHUNKS, Xt as isHyperdrive, Y as KV_DELETE_ROWS, Yt as fromPg, Z as SALT_KEEP_DAYS, _ as hostnameOf, _n as randomId, _t as SYNC_BUDGET, at as COPY_DAY_ROWS, b as linkedHostsOf, bn as truncateIp, bt as nextUtcDay, c as ClientSiteSchema, cn as schemaVersion, ct as copyRowsLeft, d as MAX_HOSTS, dn as fromD1, dt as PLANNING_ROWS_PER_DAY, en as redact, et as effectiveRawDays, f as MAX_SITES, fn as isD1, ft as PROVIDER_DAYS, g as bindSite, gt as RowsPaused, h as SiteField, hn as getOrCreateSalt, ht as ROWS_PER_ROW_BOUND, i as ingestStatus, in as TABLES$1, it as sitesInTables, j as isActive$1, jt as isReservedEvent, k as readVisits, kt as isEventName, l as HOST_SEEN_PREFIX, lt as nextUtcMidnight, m as SITE_KEY_RE, mn as base64url, mt as ROWS_PER_INSERT, nn as SCHEMA_VERSION, nt as runChunk, on as ensureSchemaOnce, ot as chargeCopyRows, p as SITE_ID_RE, pn as workerEnv, pt as ROWS_PER_DELETE, q as CHUNK_ROWS, qt as queryCacheOn, rn as SCHEMA_VERSION_KEY, rt as runRetention, sn as isOwnDatabase, st as copiedToday, tt as rawFromDay, u as LINKED_HOSTS_KEY, un as selfCheck, ut as KV_SYNC_ROWS, v as invalidateRegistry, vn as sha256, vt as SyncRows, w as registry, wt as SOURCE_IDS, x as loadSites, xn as vkey, xt as utcDay, y as linkedHosts, yn as timingSafeEqual, yt as backfillRange, z as cleanHost, zt as factsTargets } from "./queue-sink-BMGmPScQ.mjs";
-import { $n as samePeriodLastYear, $t as budgetMb, A as currencyList, At as validateFilters, B as bucketSeries, Bn as visitDayKey, Bt as OPS, C as journeyPaths, Ct as compileSearch, D as RECENT_ORDERS_CAP, Dn as docObject, Dt as entryProp, E as journeysUnavailable, En as docJson, Et as entryCols, F as revenueBreakdown, Fn as paramRows, Ft as GoalSchema, Gn as dayInZone, Gt as REVENUE_VALUE_RE, H as timeseries, Hn as chunk, Ht as QuerySchema, I as revenueOrders, In as q, It as LINK_BY, J as clearOpenDays, Jn as hourInZone, Jt as DEFAULT_SETTINGS, Kn as daysBetween, Kt as SEARCH_DIMS, L as revenuePlan, Lt as MAX_FILTERS, M as hasRevenue, Mn as isoDay, Mt as FUNNEL_MODES, N as metaOf, Nt as FilterSchema, O as REVENUE_REPORTS, On as docPut, Ot as goalPredicate, P as revenue, Pn as likeEscape, Pt as FunnelStepsSchema, Q as planFilters, Qn as saltDay, R as revenueSeries, Rn as upsertChanged, Rt as NEGATED, S as journeyNext, Sn as dayInt, St as and, T as journeysFromSummary, Tt as entriesOf, U as weekStart, Un as ident, Ut as REVENUE_BREAKDOWN_DIMS, V as resolveGranularity, Vn as MAX_PARAMS, Vt as PROP_KEY_RE, W as CUBE_SEG, Wn as addDays, Wt as REVENUE_DIMS, Xn as previousPeriod, Xt as PROFILES, Y as clearScanCache, Yn as lastClosedDay, Yt as HOST_FORM_POINTER, Z as openDay, Zn as saltBoundary, Zt as SITE_SEARCH_MAX_PARAMS, _ as linksPlan, _n as normalizeCurrency, _t as sessionTotals, a as OTHER, an as parseSiteSearchParams, at as ORDER_SUMS, b as JOURNEY_MIN_SESSIONS, bt as QueryError, c as counted$1, cn as parseLinkRules, ct as hitJoin, dn as validateSafeRegex, dt as num$2, en as budgetRange, er as zonedToEpoch, et as readSummary, fn as MAX_CURRENCIES_LISTED, ft as ratio, g as linksFromSummary, gn as isCurrency, h as links, hn as formatAmount, ht as sessionBreakdown, i as KV_WATERMARK, in as normalizeSettings, it as DURATION_MS, j as currencyOf, jt as DIM_NAMES, k as WITH_REVENUE, kn as docRead, kt as inList, l as dayStatements, ln as publicNames, lt as keysIn, m as sitesOfDay, mn as REVENUE_MAX_VALUE, mt as round, n as KV_REVENUE_CURSOR, nt as storedSessions, o as SEGS, on as settingsSchema, ot as annotationsIn, p as runRollup, pt as refundDim, q as behindNotice, qn as eachDay, qt as TRAFFIC_DIMS, r as KV_ROLLUP_CURSOR, rn as d1CapMb, rt as storedThrough, s as SUMMARY_DIMS, st as goalGroups, t as CUBE_CAP, tn as budgetWarning, tt as splitRange, u as rollupDay, un as compileSafeRegex, v as JOURNEY_MAX_RANGE_DAYS, vn as roundMinor, vt as sessionWhere, w as journeyPrev, wt as compileTraffic, x as JOURNEY_SESSION_CAP, xt as TRUE, y as JOURNEY_MAX_ROWS, yn as LIKE_ESCAPE, yt as visitDays, z as withRevenue, zt as NUM_OPS } from "./rollup-5m7yqwf4.mjs";
-import { A as uaNorm, C as bump, D as requestInfo, F as AGENT_CATEGORIES, I as MAX_RULE_PATTERN, L as MAX_USER_REGEX_RULES, M as classifyUa, N as createClassifier, O as sinkOf, P as AGENTS, R as MAX_USER_RULES, S as SHARE_LOCK_MINUTES, T as recordClientEvent, _ as MAX_SHARES_PER_DASHBOARD, a as scriptBody, b as SHARE_COMPARE_MAX_REQUESTS, d as MAIL_MAX_RECIPIENTS, f as MAIL_MAX_RETRIES, g as MAX_SCHEDULED_PER_SITE, h as MAX_RECORD_BYTES, i as middlewareLiveAt, j as siteSetting, k as parseUa, l as MAIL_MAX_DISTINCT_REQUESTS, m as MAX_DASHBOARDS_PER_SITE, o as AGENT_RULES_KEY, p as MAIL_STATEMENT_BUDGET, r as currentAudience, t as MW_SEEN_KEY, u as MAIL_MAX_HTML_BYTES, v as MAX_SHARES_PER_SITE, w as orderHitId, x as SHARE_LOCK_FAILURES, y as MAX_TILES, z as compileUserRules } from "./middleware-core-E4b_UHR9.mjs";
-import { a as runRollupReport, c as SATISFACTION_BY, d as SCORE_DEFINITION, f as entryPages, g as overview, h as pages, l as SATISFACTION_CAVEAT, m as notFound$1, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as exitPages, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SATISFACTION_MIN_MEASURED } from "./rollup-DR7ov-xz.mjs";
-import { t as BINDING_RE } from "./config-DhtQp92f.mjs";
+import { $ as clearEstimateDay, $t as pgStatementLimit, A as MAX_VISIT_MINUTES, At as isPath, C as newSiteKey, Ct as MAPPING_FIELD, Dt as OID_RE, E as drops, Et as ThrottledError, F as classifyChannel, Ft as eachDatabase, G as budgetTargetOf, Gt as statePrefix, Ht as pluginFactsOrNull, I as CLICK_IDS, J as KV_CURSOR, Jt as INGEST_STATEMENT_MS, K as dailyRowsApply, Kt as CACHE_ON_MESSAGE, L as SITE_SEARCH_TERM_MAX, M as BUILTIN_CHANNEL_RULES, Mt as isSid, Nt as validateIngest, O as MAX_DOC_BYTES, Ot as cleanProps, Pt as validateRevenue, R as UTM_KEYS, S as markHostSeen, St as BudgetExhausted, T as siteProblem, Tt as SourceError, U as KV_WRITE_BUDGET, V as normalizeUrl, W as budgetState, Wt as stateKv, X as MAX_CHUNKS, Xt as isHyperdrive, Y as KV_DELETE_ROWS, Yt as fromPg, Z as SALT_KEEP_DAYS, _ as hostnameOf, _n as randomId, _t as SYNC_BUDGET, at as COPY_DAY_ROWS, b as linkedHostsOf, bn as truncateIp, bt as nextUtcDay, c as ClientSiteSchema, cn as schemaVersion, ct as copyRowsLeft, d as MAX_HOSTS, dn as fromD1, dt as PLANNING_ROWS_PER_DAY, en as redact, et as effectiveRawDays, f as MAX_SITES, fn as isD1, ft as PROVIDER_DAYS, g as bindSite, gt as RowsPaused, h as SiteField, hn as getOrCreateSalt, ht as ROWS_PER_ROW_BOUND, i as ingestStatus, in as TABLES$1, it as sitesInTables, j as isActive$1, jt as isReservedEvent, k as readVisits, kt as isEventName, l as HOST_SEEN_PREFIX, lt as nextUtcMidnight, m as SITE_KEY_RE, mn as base64url, mt as ROWS_PER_INSERT, nn as SCHEMA_VERSION, nt as runChunk, on as ensureSchemaOnce, ot as chargeCopyRows, p as SITE_ID_RE, pn as workerEnv, pt as ROWS_PER_DELETE, q as CHUNK_ROWS, qt as queryCacheOn, rn as SCHEMA_VERSION_KEY, rt as runRetention, sn as isOwnDatabase, st as copiedToday, tt as rawFromDay, u as LINKED_HOSTS_KEY, un as selfCheck, ut as KV_SYNC_ROWS, v as invalidateRegistry, vn as sha256, vt as SyncRows, w as registry, wt as SOURCE_IDS, x as loadSites, xn as vkey, xt as utcDay, y as linkedHosts, yn as timingSafeEqual, yt as backfillRange, z as cleanHost, zt as factsTargets } from "./queue-sink-CENHpQGt.mjs";
+import { $n as samePeriodLastYear, $t as budgetMb, A as currencyList, At as validateFilters, B as bucketSeries, Bn as visitDayKey, Bt as OPS, C as journeyPaths, Ct as compileSearch, D as RECENT_ORDERS_CAP, Dn as docObject, Dt as entryProp, E as journeysUnavailable, En as docJson, Et as entryCols, F as revenueBreakdown, Fn as paramRows, Ft as GoalSchema, Gn as dayInZone, Gt as REVENUE_VALUE_RE, H as timeseries, Hn as chunk, Ht as QuerySchema, I as revenueOrders, In as q, It as LINK_BY, J as clearOpenDays, Jn as hourInZone, Jt as DEFAULT_SETTINGS, Kn as daysBetween, Kt as SEARCH_DIMS, L as revenuePlan, Lt as MAX_FILTERS, M as hasRevenue, Mn as isoDay, Mt as FUNNEL_MODES, N as metaOf, Nt as FilterSchema, O as REVENUE_REPORTS, On as docPut, Ot as goalPredicate, P as revenue, Pn as likeEscape, Pt as FunnelStepsSchema, Q as planFilters, Qn as saltDay, R as revenueSeries, Rn as upsertChanged, Rt as NEGATED, S as journeyNext, Sn as dayInt, St as and, T as journeysFromSummary, Tt as entriesOf, U as weekStart, Un as ident, Ut as REVENUE_BREAKDOWN_DIMS, V as resolveGranularity, Vn as MAX_PARAMS, Vt as PROP_KEY_RE, W as CUBE_SEG, Wn as addDays, Wt as REVENUE_DIMS, Xn as previousPeriod, Xt as PROFILES, Y as clearScanCache, Yn as lastClosedDay, Yt as HOST_FORM_POINTER, Z as openDay, Zn as saltBoundary, Zt as SITE_SEARCH_MAX_PARAMS, _ as linksPlan, _n as normalizeCurrency, _t as sessionTotals, a as OTHER, an as parseSiteSearchParams, at as ORDER_SUMS, b as JOURNEY_MIN_SESSIONS, bt as QueryError, c as counted$1, cn as parseLinkRules, ct as hitJoin, dn as validateSafeRegex, dt as num$2, en as budgetRange, er as zonedToEpoch, et as readSummary, fn as MAX_CURRENCIES_LISTED, ft as ratio, g as linksFromSummary, gn as isCurrency, h as links, hn as formatAmount, ht as sessionBreakdown, i as KV_WATERMARK, in as normalizeSettings, it as DURATION_MS, j as currencyOf, jt as DIM_NAMES, k as WITH_REVENUE, kn as docRead, kt as inList, l as dayStatements, ln as publicNames, lt as keysIn, m as sitesOfDay, mn as REVENUE_MAX_VALUE, mt as round, n as KV_REVENUE_CURSOR, nt as storedSessions, o as SEGS, on as settingsSchema, ot as annotationsIn, p as runRollup, pt as refundDim, q as behindNotice, qn as eachDay, qt as TRAFFIC_DIMS, r as KV_ROLLUP_CURSOR, rn as d1CapMb, rt as storedThrough, s as SUMMARY_DIMS, st as goalGroups, t as CUBE_CAP, tn as budgetWarning, tt as splitRange, u as rollupDay, un as compileSafeRegex, v as JOURNEY_MAX_RANGE_DAYS, vn as roundMinor, vt as sessionWhere, w as journeyPrev, wt as compileTraffic, x as JOURNEY_SESSION_CAP, xt as TRUE, y as JOURNEY_MAX_ROWS, yn as LIKE_ESCAPE, yt as visitDays, z as withRevenue, zt as NUM_OPS } from "./rollup-BfzZghBT.mjs";
+import { A as uaNorm, C as bump, D as requestInfo, F as AGENT_CATEGORIES, I as MAX_RULE_PATTERN, L as MAX_USER_REGEX_RULES, M as classifyUa, N as createClassifier, O as sinkOf, P as AGENTS, R as MAX_USER_RULES, S as SHARE_LOCK_MINUTES, T as recordClientEvent, _ as MAX_SHARES_PER_DASHBOARD, a as scriptBody, b as SHARE_COMPARE_MAX_REQUESTS, d as MAIL_MAX_RECIPIENTS, f as MAIL_MAX_RETRIES, g as MAX_SCHEDULED_PER_SITE, h as MAX_RECORD_BYTES, i as middlewareLiveAt, j as siteSetting, k as parseUa, l as MAIL_MAX_DISTINCT_REQUESTS, m as MAX_DASHBOARDS_PER_SITE, o as AGENT_RULES_KEY, p as MAIL_STATEMENT_BUDGET, r as currentAudience, t as MW_SEEN_KEY, u as MAIL_MAX_HTML_BYTES, v as MAX_SHARES_PER_SITE, w as orderHitId, x as SHARE_LOCK_FAILURES, y as MAX_TILES, z as compileUserRules } from "./middleware-core-DxaGZCZq.mjs";
+import { a as runRollupReport, c as SATISFACTION_BY, d as SCORE_DEFINITION, f as entryPages, g as overview, h as pages, l as SATISFACTION_CAVEAT, m as notFound$1, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as exitPages, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SATISFACTION_MIN_MEASURED } from "./rollup-DyHG9hKu.mjs";
+import { t as BINDING_RE } from "./config-CH-S7WdJ.mjs";
 import { PluginRouteError, pluginResponse } from "emdash";
 import { z } from "zod";
 
@@ -5268,7 +5268,7 @@ const MONEY_KEYS = new Set([
 ]);
 /** Display format of a metric key. */
 function metricFormat(key) {
-	if (key === "avg_duration" || key === "avg_time") return "duration";
+	if (key === "avg_duration" || key === "avg_time" || key === "avg_visible" || key === "avg_engaged") return "duration";
 	if (key === "position" || key === "views_per_session") return "decimal";
 	if (key === "ctr" || key === "share" || key.endsWith("_rate") || key.startsWith("pct_") || key.endsWith("_share") || key.endsWith("_pct") || key.startsWith("share_") || key.startsWith("ctr_") || key.startsWith("ctr")) return "percent";
 	if (key.startsWith("position")) return "decimal";
@@ -5863,7 +5863,9 @@ const METRICS = {
 	views_per_session: "pageviews / sessions.",
 	bounce_rate: "Sessions that are not engaged, divided by sessions: 1 - engaged_rate (the GA4 meaning).",
 	engaged_rate: "Sessions with active time at or above the engagement threshold, more than one page view or any event, divided by sessions.",
-	avg_duration: "Mean session duration in seconds (the longer of time between first and last page view and visible time).",
+	avg_duration: "Mean session duration in seconds: the longer of the visit span (first to last activity) and the visible time. Not interaction time.",
+	avg_time: "Mean active time per page view in seconds (pages report): time with interaction, within 60 s of the last one, so an open but untouched page counts 0 s.",
+	avg_visible: "Mean visible time per page view in seconds (pages report, detailed data only; null in summaries).",
 	realtime: "Sessions active within the realtime window (overview only).",
 	conversions: "Sessions that reached a goal.",
 	conversion_rate: "conversions / sessions of the filtered set.",
@@ -5880,7 +5882,7 @@ const METRICS = {
 	pogo_sticks: "Measured search sessions with one page view, no events, a short click, and a page left for the back and forward cache.",
 	reentered: "Search sessions that a later arrival from a search engine joined.",
 	returned_from_search: "Search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache.",
-	avg_engaged: "Mean active (engaged) time per session in seconds (Search Satisfaction reports).",
+	avg_engaged: "Mean active time per session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
 	measured_rate: "measured / sessions: the share of sessions with a measurable end.",
 	score: "pct_long - pct_bad - pogo_stick_rate (pogo_stick_rate counts as 0 without measured search sessions); null without measured sessions. Ranks best and worst pages (satisfaction params.rank).",
 	pct_long: "long_clicks / measured.",
@@ -6062,7 +6064,7 @@ const CONTENT_CATALOG = {
 			pageviews: "Pageviews of the collection's pages.",
 			visitors: "Page visitors: the sum of per-page daily visitors, so one person reading two pages counts twice.",
 			sessions: "Sessions summed per page.",
-			avg_time: "Average visible time on page in seconds.",
+			avg_time: "Average active time per page view in seconds: time with interaction, not the time the page was open.",
 			pages: "Distinct paths of the collection."
 		},
 		rule: "Reads the daily page summaries (ca_rollup dim page), so it covers the whole summary retention. Paths are classified by each routable collection's URL pattern; the pattern with the most literal characters wins and unmatched paths are (other). totals.coverage is the classified share of all pageviews; the rest is folded into (other) by the top 500 pages per day.",
@@ -7153,7 +7155,7 @@ function receiptMarkdown(s, rawDays) {
 		"",
 		"- Nothing is stored on your device. A visit is recognised by a random id that lives only in the open page.",
 		"- Visits are counted per day with a key made from a shortened IP address and the browser family, mixed with a random salt that is deleted after two days. The key cannot be turned back into an IP address and cannot link visits across days.",
-		"- Stored per visit: pages viewed, time on page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language.",
+		"- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language.",
 		`- ${SATISFACTION_LINE}`,
 		`- ${SHARING_LINE}`,
 		`- ${REVENUE_LINE}`,
@@ -8524,7 +8526,7 @@ const SCREENS = [
 	"lg",
 	"xl"
 ];
-/** Visit shapes: `single_view_idle` is one page view with no engaged time and no scroll. */
+/** Visit shapes: `single_view_idle` is one page view with no active time and no scroll. */
 const SHAPES = ["single_view_idle"];
 /** Longest range of one delete, so the preview reads a bounded number of visits. */
 const DELETE_MAX_DAYS = 400;
@@ -8573,7 +8575,7 @@ function describeSpec(s) {
 	const parts = s.filters.map((f) => `${f.dim} ${f.op.replace("_", " ")} ${f.values.join(", ")}`);
 	if (s.screen) parts.push(`screen ${s.screen.join(", ")}`);
 	if (s.hours) parts.push(`hour ${s.hours.from} to ${s.hours.to}`);
-	if (s.shape) parts.push("one page view, no engaged time, no scroll");
+	if (s.shape) parts.push("one page view, no active time, no scroll");
 	if (s.oldDays) parts.push("whole summaries of older days");
 	return `${s.from} to ${s.to}${parts.length ? `: ${parts.join("; ")}` : ": every visit"}`;
 }
@@ -11330,6 +11332,9 @@ const CAVEATS = {
 	pogo: `${POGO_DEFINITION} ${SATISFACTION_CAVEAT}`,
 	returned: `${RETURNED_DEFINITION} ${SATISFACTION_CAVEAT}`,
 	satisfaction_score: SCORE_DEFINITION,
+	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
+	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
+	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
 	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions."
 };
 /** Notices of the collections and site search reports. */
@@ -11467,7 +11472,9 @@ const LABELS = {
 	key: "Name",
 	ctr: "CTR",
 	avg_duration: "Avg. session duration",
-	avg_time: "Avg. time on page",
+	avg_time: "Avg. active time",
+	avg_visible: "Avg. visible time",
+	avg_engaged: "Avg. active time",
 	converting: "Conversions",
 	scroll_median: "Median scroll (%)",
 	aov: "Average order value",

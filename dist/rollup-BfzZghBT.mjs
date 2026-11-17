@@ -1727,8 +1727,8 @@ const settingsSchema = {
 	},
 	maxEngagedMsPerPage: {
 		type: "number",
-		label: "Maximum engaged time per page (ms)",
-		description: "Cap for the active time reported for one page.",
+		label: "Maximum active time per page (ms)",
+		description: "Cap for the active time and the visible time reported for one page.",
 		default: 18e5,
 		min: 6e4,
 		max: 72e5
@@ -2607,6 +2607,7 @@ function entryCols(dialect, a = "h") {
 		query: field(dialect, a, "qs"),
 		name,
 		dur: field(dialect, a, "d", "int"),
+		vis: field(dialect, a, "e", "int"),
 		nav: field(dialect, a, "nt", "int"),
 		exit: field(dialect, a, "x", "int"),
 		scroll: field(dialect, a, "s", "int"),
@@ -4623,7 +4624,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DR7ov-xz.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DyHG9hKu.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,

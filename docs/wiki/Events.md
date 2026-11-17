@@ -27,6 +27,20 @@ This page lists every kind of event the plugin records, the ways to send each on
 | Site search | (query parameter kept on the page view) | page view, nothing extra to send | `siteSearchParams` |
 
 The three automatic events keep only their one property; extra properties are dropped and they never carry revenue. Any other name that starts with `_` is dropped. Add `data-ec-ignore` to a link to switch off its `_outbound` and `_download` event, or to a form to switch off its `_form` event. Links and form targets under a prefix in `ignorePathPrefixes` get no `_download`, `_form` or link rule event. A click that a link rule matches gets the rule's event instead of `_outbound` or `_download` (see Link rules below).
+### What counts as a form submit
+
+Cookieless Analytics by Infinitnet sends `_form` when the browser fires its native `submit` event on a form. The event means the visitor submitted the form, not that the submission succeeded.
+
+The label is the form's `id`, else its `name`, else its target path, up to 128 characters. The submit button's `formaction` wins over the form's `action`.
+
+Some submits never fire the event, so they send no `_form`:
+
+- forms sent with `fetch` or XHR from a click handler, which many form builders and single page apps use,
+- a script that calls `form.submit()`,
+- a submit that the browser blocks because validation failed.
+
+To record a real success for those forms, call `window.__ec.event("signup")` after your own success check. A goal on the event `_form` can match the form label, and `data-ec-ignore` on a form switches its `_form` event off.
+
 
 Error pages are human requests that end with status 400 or above, recorded by the server that serves the page. They appear on the Pages page, Not found tab. A client site sends page views only, so it has no error pages.
 

@@ -1,5 +1,5 @@
 import { t as __exportAll } from "./rolldown-runtime-95iHPtFO.mjs";
-import { $ as planRows, B as bucketSeries, Et as entryCols, G as FILTER_DIMS, K as SEGMENTS, Q as planFilters, Sn as dayInt, St as and, V as resolveGranularity, X as matchKey, _t as sessionTotals, a as OTHER, bt as QueryError, ct as hitJoin, dt as num, et as readSummary, ft as ratio, gt as sessionMetrics, ht as sessionBreakdown, lt as keysIn, mt as round, ot as annotationsIn, ut as liveVisits, vt as sessionWhere, xt as TRUE } from "./rollup-5m7yqwf4.mjs";
+import { $ as planRows, B as bucketSeries, Et as entryCols, G as FILTER_DIMS, K as SEGMENTS, Q as planFilters, Sn as dayInt, St as and, V as resolveGranularity, X as matchKey, _t as sessionTotals, a as OTHER, bt as QueryError, ct as hitJoin, dt as num, et as readSummary, ft as ratio, gt as sessionMetrics, ht as sessionBreakdown, lt as keysIn, mt as round, ot as annotationsIn, ut as liveVisits, vt as sessionWhere, xt as TRUE } from "./rollup-BfzZghBT.mjs";
 
 //#region src/query/reports/overview.ts
 /** KPI strip: totals plus realtime sessions (current run only). */
@@ -78,12 +78,12 @@ function median(hist) {
 	}
 	return null;
 }
-/** Top pages: pageviews, visitors, avg time on page, exit rate, scroll median; optional search columns. */
+/** Top pages: pageviews, visitors, avg active time, avg visible time, exit rate, scroll median; optional search columns. */
 async function pages(rc, input) {
 	const h = entryCols(rc.db.dialect);
 	const j = hitJoin(rc, input, "pv");
-	const rows = await rc.db.all(`SELECT t.key AS key, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.dur_sum) AS dur_sum, SUM(t.dur_n) AS dur_n FROM (
-SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(${h.dur}) AS dur_sum, COUNT(${h.dur}) AS dur_n ${j.sql} GROUP BY ${h.path}, s.day
+	const rows = await rc.db.all(`SELECT t.key AS key, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.dur_sum) AS dur_sum, SUM(t.dur_n) AS dur_n, SUM(t.vis_sum) AS vis_sum, SUM(t.vis_n) AS vis_n FROM (
+SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(${h.dur}) AS dur_sum, COUNT(${h.dur}) AS dur_n, SUM(${h.vis}) AS vis_sum, COUNT(${h.vis}) AS vis_n ${j.sql} GROUP BY ${h.path}, s.day
 ) t GROUP BY t.key ORDER BY pageviews DESC, key LIMIT ? OFFSET ?`, [
 		...j.params,
 		input.limit + 1,
@@ -115,6 +115,7 @@ SELECT ${h.path} AS key, s.day AS day, COUNT(*) AS pageviews, COUNT(DISTINCT s.v
 				pageviews,
 				visitors: num(r.visitors),
 				avg_time: round(ratio(num(r.dur_sum) / 1e3, num(r.dur_n)), 1),
+				avg_visible: round(ratio(num(r.vis_sum) / 1e3, num(r.vis_n)), 1),
 				exit_rate: capped(round(ratio(exits.get(key) ?? 0, pageviews))),
 				scroll_median: median(scroll.get(key) ?? [])
 			};
@@ -354,6 +355,7 @@ const ROLLUP_REPORTS = {
 					pageviews,
 					visitors: num(r.visitors),
 					avg_time: round(ratio(num(r.engaged_ms) / 1e3, num(r.hits)), 1),
+					avg_visible: null,
 					exit_rate: exits?.rates.get(r.key) ?? null,
 					scroll_median: null
 				};

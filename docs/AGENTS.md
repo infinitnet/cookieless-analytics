@@ -132,7 +132,7 @@ Changing a threshold reclassifies every stored session at once; there is no job 
 - A tab or app switch is not an exit. On mobile a page left through the app switcher and later killed never fires `pagehide`.
 - A restore from the back and forward cache is not a page load, so the back/forward load share is a lower bound.
 - Search re-entry counts any second arrival from a search engine within the session window for the same daily visitor key, including two results opened in tabs at once and two people behind the same network address.
-- Active time accrues only within 60 s of an interaction, so a long passive read can be a long click by visible time with low engagement.
+- Active time accrues only within 60 s of an interaction, so a long passive read can be a long click by visible time with low active time.
 
 ## 8. Dashboards
 

@@ -58,7 +58,7 @@ With "All sites" selected in the site select, the Overview shows the All sites t
 
 ![Pages report](images/pages.png)
 
-A trend chart with cards for pageviews and visitors per day, above the tabs **Pages**, **Entry pages**, **Exit pages**, **Not found** and **Changes** (pages rising and declining by page views). A page row opens its Search queries when a Search source is connected and mapped. The Pages table has a column picker in the panel menu: Search columns (impressions, clicks, CTR, position) and Revenue columns are hidden unless a source is connected or orders exist, and one click adds them.
+A trend chart with cards for pageviews and visitors per day, above the tabs **Pages**, **Entry pages**, **Exit pages**, **Not found** and **Changes** (pages rising and declining by page views). The Pages table shows pageviews, visitors, **Avg. active time** (time with interaction, so an open but untouched page counts 0 s), **Avg. visible time** (time the page was in view, from detailed data only), exit rate and median scroll; see [Definitions](Definitions#active-time-and-duration). A page row opens its Search queries when a Search source is connected and mapped. The Pages table has a column picker in the panel menu: Search columns (impressions, clicks, CTR, position) and Revenue columns are hidden unless a source is connected or orders exist, and one click adds them.
 
 ### Sources
 

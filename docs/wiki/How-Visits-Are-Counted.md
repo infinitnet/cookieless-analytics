@@ -42,14 +42,26 @@ A session never changes its first touch fields (entry page, referrer, campaign t
 | Metric | Meaning |
 |---|---|
 | Sessions | sessions with at least one page view |
+| Active time | time with interaction: the page is visible and the visitor interacted within the last 60 seconds; shown as Avg. active time per page view (Pages) and per session (Search Satisfaction) |
+| Visible time | time the page was visible, interaction or not; shown as Avg. visible time per page view (Pages, detailed data only) |
+| Duration | the longer of the visit span and the visible time; shown as Avg. duration; not interaction time |
 | Engaged session | active time of at least `engagedThresholdSeconds`, or more than one page view, or at least one event |
 | Bounce | a session that is not engaged; bounce rate is 1 minus engaged rate |
-| Session duration | the longer of the time between first and last page view, and the time the pages were visible |
-| Time on page | active time of the page view |
 | Views per session | page views divided by sessions |
 | Visitors | distinct visitor keys per day, summed over the range |
 
-Active time accrues only while the visitor interacts with the page (within 60 seconds of an interaction). It is capped per page by `maxEngagedMsPerPage`.
+Active time accrues only while the visitor interacts with the page (pointer down, key press, scroll or touch, then up to 60 seconds). It is capped per page by `maxEngagedMsPerPage`. A page that is open but untouched shows 0 s of active time while its duration is several seconds: link scanners, link previews and quick glances look like that.
+
+### How other tools measure it
+
+Cookieless Analytics by Infinitnet reports active time and duration as two figures and never calls active time the time a page was open. Other tools use one figure, and most of them mean time in view:
+
+- **Plausible**: its page time and its visit duration count engagement time while the tab is visible and in focus ([metrics definitions](https://plausible.io/docs/metrics-definitions), [GA compared with Plausible](https://plausible.io/blog/time-on-page-ga-vs-plausible)).
+- **Google Analytics 4**: average engagement time is the time the page is in focus in the foreground ([GA4 help](https://support.google.com/analytics/answer/11109416)).
+- **Matomo**: its average page time is the gap to the next page view, so the last page of a visit is left out unless a heartbeat timer is set ([Matomo FAQ](https://matomo.org/faq/how-to/faq_21824/)).
+- **Fathom**: measures time on site and per page with departure pings; it used to take the gap between page views ([Fathom changelog](https://usefathom.com/changelog/mar2026-analytics-rebuild)).
+
+The common meaning of a page time is time in view. Our closest figures are Avg. visible time per page and Avg. duration per session; active time is stricter and keeps its own name.
 
 ### Channels
 

@@ -45,7 +45,7 @@ Every setting is edited on the plugin's Settings page in the admin (Analytics, S
 | `realtimeWindowMinutes` | number | `5` | 1 to 60 | Realtime window (minutes): Sessions seen within this time count as active now. |
 | `maxSessionMinutes` | number | `1440` | 10 to 1440 | Maximum session length (minutes): A session older than this is closed and a new one starts. At most one day: a visit is looked up among visits started today or yesterday. |
 | `reloadDedupeSeconds` | number | `2` | 0 to 60 | Reload dedupe (seconds): A reload of the same path within this time is not counted again. |
-| `maxEngagedMsPerPage` | number | `1800000` | 60000 to 7200000 | Maximum engaged time per page (ms): Cap for the active time reported for one page. |
+| `maxEngagedMsPerPage` | number | `1800000` | 60000 to 7200000 | Maximum active time per page (ms): Cap for the active time and the visible time reported for one page. |
 | `acceptClientRevenue` | boolean | `true` |  | Accept revenue from browsers: When off, values, currencies and order ids are dropped from every browser request. Server calls and the agent events route still record them. A guard against casual spoofing, not authentication. |
 | `autoAnnotations` | boolean | `true` |  | Automatic annotations: Add an annotation when content is published or updated. Off, the content hooks write nothing; annotations added by hand are unaffected. |
 | `annotatePublish` | boolean | `true` |  | Annotate publishing: Add an annotation when an item is published. |

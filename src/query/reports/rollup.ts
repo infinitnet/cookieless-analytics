@@ -123,8 +123,9 @@ export const ROLLUP_REPORTS: Record<string, [RollupDim | null, Runner]> = {
 					pageviews,
 					visitors: num(r.visitors),
 					avg_time: round(ratio(num(r.engaged_ms) / 1000, num(r.hits)), 1),
-					exit_rate: exits?.rates.get(r.key) ?? null,
 					// Not kept in the summaries.
+					avg_visible: null,
+					exit_rate: exits?.rates.get(r.key) ?? null,
 					scroll_median: null,
 				};
 				if (search) {

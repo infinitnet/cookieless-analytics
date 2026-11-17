@@ -33,7 +33,7 @@ export const IMPACT_OPTIONS: readonly Option[] = [
 	["Traffic", "overview", "engaged_rate", "Engaged rate", "percent"],
 	["Traffic", "overview", "avg_duration", "Avg. duration", "duration"],
 	["Traffic", "overview", "views_per_session", "Views per session", "decimal"],
-	["Pages", "pages", "avg_time", "Avg. time on page", "duration", "page"],
+	["Pages", "pages", "avg_time", "Avg. active time", "duration", "page"],
 	["Pages", "pages", "exit_rate", "Exit rate", "percent", "page"],
 	["Channels", "channels", "sessions", "Sessions of one channel", "number", "channel"],
 	["Goals", "goals", "completions", "Goal completions", "number", "goal"],
@@ -54,7 +54,7 @@ export const IMPACT_OPTIONS: readonly Option[] = [
 /** One line per group on what its metrics measure (the hint under the picker). */
 export const GROUP_HINTS: Record<string, string> = {
 	Traffic: "Visits inside the annotation's scope.",
-	Pages: "One page: the time spent on it and the share of visits that left from it.",
+	Pages: "One page: its active time and the share of visits that left from it.",
 	Channels: "Sessions from one channel, inside the scope.",
 	Goals: "Completions of one goal, inside the scope.",
 	Events: "How often one event was sent, inside the scope.",

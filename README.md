@@ -157,7 +157,7 @@ A native plugin runs inside your site's process with the same access as the site
 
 #### Reports
 
-- **Overview and comparison.** The Overview shows pageviews, visitors per day, sessions, bounce, duration, scroll depth, time on page and a realtime count. It compares them with the previous period or the year before. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)
+- **Overview and comparison.** The Overview shows pageviews, visitors per day, sessions, bounce, duration, scroll depth, active time and a realtime count. It compares them with the previous period or the year before. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)
 - **Pages.** The Pages report lists top, entry, exit and not found pages. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)
 - **Sources.** The Sources report shows channels, sources, campaigns and AI assistants. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)
 - **Audience.** The Audience report shows country, region, device, browser, OS and language. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)

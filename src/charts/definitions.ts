@@ -7,7 +7,7 @@ import { CAVEATS } from "./caveats.js";
 import type { ReportName } from "../query/reports/index.js";
 import { POGO_DEFINITION, RETURNED_DEFINITION, SATISFACTION_CAVEAT, SCORE_DEFINITION } from "../query/reports/satisfaction-copy.js";
 
-const BOUNCE = "Share of sessions that were not engaged: under the engaged time, one page view and no event. Equal to 1 minus engaged rate.";
+const BOUNCE = "Share of sessions that were not engaged: active time under the engaged threshold, one page view and no event. Equal to 1 minus engaged rate.";
 
 /** Figures by metric key. Position band keys (`queries_1_3`, `band_51_plus`) are read by `metricDefinition`. */
 export const METRIC_DEFINITIONS: Readonly<Record<string, string>> = {
@@ -16,10 +16,11 @@ export const METRIC_DEFINITIONS: Readonly<Record<string, string>> = {
 	pageviews: "Pages viewed by people in the range.",
 	views_per_session: "Page views divided by sessions.",
 	bounce_rate: BOUNCE,
-	engaged_rate: "Share of sessions with at least the engaged time of activity, two or more page views, or any event.",
-	avg_duration: "Average session length: the longer of first to last page view and the time the pages were visible.",
+	engaged_rate: "Share of sessions with active time of at least the engaged threshold, two or more page views, or any event.",
+	avg_duration: CAVEATS.duration,
 	entries: "Sessions that started on this page.",
-	avg_time: "Average active time on the page per page view.",
+	avg_time: CAVEATS.active_time,
+	avg_visible: CAVEATS.visible_time,
 	exit_rate: "Share of the page's views that were the last view of their session.",
 	realtime: "Sessions active within the realtime window.",
 	completions: "Times the goal was reached in the range.",
@@ -30,7 +31,7 @@ export const METRIC_DEFINITIONS: Readonly<Record<string, string>> = {
 	rate: "Share of sessions that sent this event.",
 	measured: "Sessions with a measurable end, where at least one engagement update arrived.",
 	measured_rate: CAVEATS.satisfaction_measured,
-	avg_engaged: "Average active time per session.",
+	avg_engaged: "Average active time per session: time with interaction, not the time the page was open.",
 	long_clicks: "Measured sessions longer than the long click time.",
 	short_clicks: "Measured sessions at or under the long click time.",
 	bad_experiences: "Measured single page sessions without interaction, shorter than the bad experience time.",
@@ -116,7 +117,7 @@ export type PanelId =
 export const PANEL_DEFINITIONS: Readonly<Record<ReportName | PanelId, string>> = {
 	overview: "Visitors, sessions and engagement of the site over the selected range.",
 	timeseries: "The chosen figures per hour, day or week over the selected range.",
-	pages: "Page views, visitors and average time on page for each page.",
+	pages: "Page views, visitors, average active time and average visible time for each page.",
 	entry_pages: "Sessions by the page they started on, with their bounce rate and duration.",
 	exit_pages: "Sessions by the page they ended on, and the share of the page's views that were the last one.",
 	not_found: "Requests from people that got a page not found (404) response, by path and referring page.",
