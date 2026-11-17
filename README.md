@@ -26,7 +26,7 @@ Cookieless Analytics needs 2 setup steps: deploy, then complete the EmDash setup
 
 ## Why this one
 
-Most cookieless tools count page views and stop there. Cookieless Analytics keeps real sessions without writing anything to the visitor's device.
+Most cookieless tools count page views and stop there. Cookieless Analytics is a Plausible alternative for self hosted analytics and Astro analytics that keeps real sessions without writing anything to the visitor's device, inside your own EmDash site.
 
 - **Cookieless by design.** Cookieless Analytics sets no cookie and uses no local storage, session storage or IndexedDB. A daily salted hash joins the page views of a visit and cannot link days. [Privacy](docs/privacy.md)
 - **Real sessions.** Cookieless Analytics reports entry and exit pages, pages per session, bounce, duration and first-touch source, not only page views. [Sessions](docs/sessions.md)
@@ -46,20 +46,8 @@ Most cookieless tools count page views and stop there. Cookieless Analytics keep
 - **Dashboards you can share.** A share link opens a read-only plain HTML page with no script, no cookie and an optional password. Any dashboard can also go out by scheduled email. [Dashboards](docs/dashboards.md)
 - **Built for agents.** Cookieless Analytics offers scoped API keys, an OpenAPI description and MCP tools through your EmDash site. [Agent API](docs/AGENTS.md)
 - **Many sites, one admin.** One admin reads client sites in the same database and connected EmDash installs through their agent API. [Multi-site](docs/multi-site.md)
+- **Deliberately small.** Cookieless Analytics has no heatmaps, session replay, user profiles or cross-day returning visitors.
 - **Open source.** Cookieless Analytics is licensed under Apache-2.0, with the TypeScript source in the repository and in the npm package.
-
-### Compared with Plausible
-
-Cookieless Analytics is a Plausible alternative for self hosted analytics and Astro analytics that lives inside your CMS.
-
-Like Plausible, Cookieless Analytics is cookieless and shows a compact set of reports. Unlike a separate analytics service, Cookieless Analytics runs inside your EmDash site on your own Cloudflare account and adds:
-
-- its data in your own database,
-- real sessions across pages,
-- Search Console and Bing data next to your traffic,
-- an API for agents.
-
-Cookieless Analytics does not offer heatmaps, session replay, user profiles or cross-day returning visitors, by design.
 
 ## Install
 
