@@ -4,7 +4,7 @@
 
 Self-hosted, cookieless web analytics for EmDash and any site. A 2.5 KB script, no extra service, your own database.
 
-[![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![npm downloads](https://img.shields.io/npm/dm/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
+[![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
 
 [Install](#install) · [Docs](#documentation) · [Wiki](https://github.com/infinitnet/cookieless-analytics/wiki)
 
