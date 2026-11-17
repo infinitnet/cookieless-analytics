@@ -1,0 +1,221 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`journey statement snapshots (postgres) > use LEAD or LAG and bind every value 1`] = `
+{
+  "journey_next {"path":"/pricing"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/pricing",
+        "/pricing",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + CAST((h.value ->> 't') AS BIGINT)) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + CAST((h.value ->> 't') AS BIGINT)), h.key) AS prior
+FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((CAST((h.value ->> 't') AS BIGINT) IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT COALESCE(t.next, '(exit)') AS key, COUNT(DISTINCT t.sid) AS sessions, (SELECT COUNT(DISTINCT x.sid) FROM seq x WHERE x.path = ?) AS page_sessions
+FROM seq t WHERE t.path = ? AND COALESCE(t.next, '') <> t.path GROUP BY COALESCE(t.next, '(exit)') ORDER BY sessions DESC, key LIMIT 5000",
+    },
+  ],
+  "journey_paths {"entry":"/blog"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/blog",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + CAST((h.value ->> 't') AS BIGINT)) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + CAST((h.value ->> 't') AS BIGINT)), h.key) AS prior
+FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((CAST((h.value ->> 't') AS BIGINT) IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT t.path AS path1, COALESCE(t.next, '(exit)') AS path2, CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END AS path3, COUNT(*) AS sessions FROM seq t WHERE t.n = 1 AND t.path = ?
+GROUP BY t.path, COALESCE(t.next, '(exit)'), CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END ORDER BY sessions DESC, path1, path2, path3 LIMIT 5000",
+    },
+  ],
+  "journey_paths {}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + CAST((h.value ->> 't') AS BIGINT)) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + CAST((h.value ->> 't') AS BIGINT)), h.key) AS prior
+FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((CAST((h.value ->> 't') AS BIGINT) IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT t.path AS path1, COALESCE(t.next, '(exit)') AS path2, CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END AS path3, COUNT(*) AS sessions FROM seq t WHERE t.n = 1
+GROUP BY t.path, COALESCE(t.next, '(exit)'), CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END ORDER BY sessions DESC, path1, path2, path3 LIMIT 5000",
+    },
+  ],
+  "journey_prev {"path":"/pricing"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/pricing",
+        "/pricing",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + CAST((h.value ->> 't') AS BIGINT)) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + CAST((h.value ->> 't') AS BIGINT)), h.key) AS prior
+FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND ((CAST((h.value ->> 't') AS BIGINT) IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT COALESCE(t.prev, '(entry)') AS key, COUNT(DISTINCT t.sid) AS sessions, (SELECT COUNT(DISTINCT x.sid) FROM seq x WHERE x.path = ?) AS page_sessions
+FROM seq t WHERE t.path = ? AND COALESCE(t.prev, '') <> t.path GROUP BY COALESCE(t.prev, '(entry)') ORDER BY sessions DESC, key LIMIT 5000",
+    },
+  ],
+}
+`;
+
+exports[`journey statement snapshots (sqlite) > use LEAD or LAG and bind every value 1`] = `
+{
+  "journey_next {"path":"/pricing"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/pricing",
+        "/pricing",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + (h.value ->> 't')) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + (h.value ->> 't')), h.key) AS prior
+FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND (((h.value ->> 't') IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT COALESCE(t.next, '(exit)') AS key, COUNT(DISTINCT t.sid) AS sessions, (SELECT COUNT(DISTINCT x.sid) FROM seq x WHERE x.path = ?) AS page_sessions
+FROM seq t WHERE t.path = ? AND COALESCE(t.next, '') <> t.path GROUP BY COALESCE(t.next, '(exit)') ORDER BY sessions DESC, key LIMIT 5000",
+    },
+  ],
+  "journey_paths {"entry":"/blog"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/blog",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + (h.value ->> 't')) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + (h.value ->> 't')), h.key) AS prior
+FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND (((h.value ->> 't') IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT t.path AS path1, COALESCE(t.next, '(exit)') AS path2, CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END AS path3, COUNT(*) AS sessions FROM seq t WHERE t.n = 1 AND t.path = ?
+GROUP BY t.path, COALESCE(t.next, '(exit)'), CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END ORDER BY sessions DESC, path1, path2, path3 LIMIT 5000",
+    },
+  ],
+  "journey_paths {}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + (h.value ->> 't')) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + (h.value ->> 't')), h.key) AS prior
+FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND (((h.value ->> 't') IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT t.path AS path1, COALESCE(t.next, '(exit)') AS path2, CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END AS path3, COUNT(*) AS sessions FROM seq t WHERE t.n = 1
+GROUP BY t.path, COALESCE(t.next, '(exit)'), CASE WHEN t.next IS NULL THEN '' ELSE COALESCE(t.next2, '(exit)') END ORDER BY sessions DESC, path1, path2, path3 LIMIT 5000",
+    },
+  ],
+  "journey_prev {"path":"/pricing"}": [
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+      ],
+      "sql": "SELECT COUNT(*) AS n FROM ca_sessions s WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-10",
+        "2026-03-10",
+        "Search",
+        "/pricing",
+        "/pricing",
+      ],
+      "sql": "WITH v AS (SELECT s.day AS day, s.sid AS sid, (h.value ->> 'p') AS path, (s.started + (h.value ->> 't')) AS ts, h.key AS id, LAG((h.value ->> 'p')) OVER (PARTITION BY s.day, s.sid ORDER BY (s.started + (h.value ->> 't')), h.key) AS prior
+FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE ((s.site = ? AND s.day BETWEEN ? AND ?) AND (s.pageviews > 0) AND ((s.channel = ?))) AND (((h.value ->> 't') IS NOT NULL AND (h.value ->> 'n') IS NULL))),
+p AS (SELECT v.day AS day, v.sid AS sid, v.path AS path, v.ts AS ts, v.id AS id FROM v WHERE v.prior IS NULL OR v.prior <> v.path),
+seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS prev, LEAD(p.path) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next, LEAD(p.path, 2) OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS next2, ROW_NUMBER() OVER (PARTITION BY p.day, p.sid ORDER BY p.ts, p.id) AS n FROM p)
+SELECT COALESCE(t.prev, '(entry)') AS key, COUNT(DISTINCT t.sid) AS sessions, (SELECT COUNT(DISTINCT x.sid) FROM seq x WHERE x.path = ?) AS page_sessions
+FROM seq t WHERE t.path = ? AND COALESCE(t.prev, '') <> t.path GROUP BY COALESCE(t.prev, '(entry)') ORDER BY sessions DESC, key LIMIT 5000",
+    },
+  ],
+}
+`;

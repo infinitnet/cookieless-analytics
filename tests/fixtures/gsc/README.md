@@ -1,0 +1,1 @@
+Trimmed Search Console API answers in the documented shapes (`webmasters/v3/sites`, `searchAnalytics/query`, the OAuth token endpoint). Hosts are reserved example domains; the access token is a placeholder. Tests serve them through a fake `ctx.http`; no test opens a network connection.

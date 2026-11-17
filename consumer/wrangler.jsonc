@@ -1,0 +1,29 @@
+{
+	// Queue consumer for Cookieless Analytics. Replace the two database values with those of the site's database.
+	"name": "analytics-queue-consumer",
+	"main": "index.js",
+	"compatibility_date": "2026-11-01",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "YOUR_DATABASE_NAME",
+			"database_id": "YOUR_DATABASE_ID"
+		}
+	],
+	"queues": {
+		"consumers": [
+			{
+				"queue": "ca-ingest",
+				// Up to 100 messages per batch, or what arrived within 2 seconds.
+				"max_batch_size": 100,
+				"max_batch_timeout": 2,
+				// One batch at a time keeps the messages of one visit in order across batches.
+				"max_concurrency": 1,
+				// A failed write is retried with a growing delay (30 s doubling to 10 minutes), about 2.5 hours in total.
+				"max_retries": 20,
+				"retry_delay": 30,
+				"dead_letter_queue": "ca-ingest-dlq"
+			}
+		]
+	}
+}

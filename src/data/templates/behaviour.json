@@ -1,0 +1,76 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Behaviour",
+	"description": "Events, outbound links, downloads and forms.",
+	"tiles": [
+		{
+			"id": "bh0001",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "engaged_rate"
+		},
+		{
+			"id": "bh0002",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "avg_duration"
+		},
+		{
+			"id": "bh0003",
+			"report": "overview",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "bounce_rate"
+		},
+		{
+			"id": "bh0004",
+			"report": "events",
+			"kind": "table",
+			"w": 3,
+			"title": "Events"
+		},
+		{
+			"id": "bh0005",
+			"report": "outbound",
+			"kind": "bars",
+			"w": 2,
+			"title": "Outbound links"
+		},
+		{
+			"id": "bh0006",
+			"report": "downloads",
+			"kind": "bars",
+			"w": 1
+		},
+		{
+			"id": "bh0007",
+			"report": "forms",
+			"kind": "table",
+			"w": 2
+		},
+		{
+			"id": "bh0008",
+			"report": "scroll",
+			"kind": "bars",
+			"w": 1,
+			"title": "Scroll depth"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "previous",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d",
+			"12m"
+		],
+		"compare": true
+	}
+}

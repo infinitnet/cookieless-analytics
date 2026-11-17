@@ -1,0 +1,113 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Impact of last changes",
+	"description": "The 28 days after the newest annotation against the 28 days before it.",
+	"tiles": [
+		{
+			"id": "im0001",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "sessions",
+			"title": "Sessions",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "overview"
+			}
+		},
+		{
+			"id": "im0002",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "sessions",
+			"title": "Organic Search sessions",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "channels",
+				"key": "Organic Search"
+			}
+		},
+		{
+			"id": "im0003",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "clicks",
+			"title": "Search clicks",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "search_overview"
+			}
+		},
+		{
+			"id": "im0004",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "position",
+			"title": "Search position",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "search_overview"
+			}
+		},
+		{
+			"id": "im0005",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pct_long",
+			"title": "Long click rate",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "satisfaction"
+			}
+		},
+		{
+			"id": "im0006",
+			"report": "impact",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "pct_bad",
+			"title": "Bad experience rate",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "satisfaction"
+			}
+		},
+		{
+			"id": "im0007",
+			"report": "impact",
+			"kind": "line",
+			"w": 3,
+			"metrics": ["sessions"],
+			"title": "Sessions before and after",
+			"params": {
+				"annotation": "latest",
+				"window": 28,
+				"report": "overview"
+			}
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "none",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d"
+		],
+		"compare": false
+	}
+}

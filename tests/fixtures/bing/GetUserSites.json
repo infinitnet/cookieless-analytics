@@ -1,0 +1,25 @@
+{
+	"d": [
+		{
+			"__type": "Site:#Microsoft.Bing.Webmaster.Api",
+			"AuthenticationCode": "",
+			"DnsVerificationCode": "",
+			"IsVerified": true,
+			"Url": "https://www.example.com/"
+		},
+		{
+			"__type": "Site:#Microsoft.Bing.Webmaster.Api",
+			"AuthenticationCode": "",
+			"DnsVerificationCode": "",
+			"IsVerified": true,
+			"Url": "https://example.org/"
+		},
+		{
+			"__type": "Site:#Microsoft.Bing.Webmaster.Api",
+			"AuthenticationCode": "",
+			"DnsVerificationCode": "",
+			"IsVerified": false,
+			"Url": "https://unverified.example.net/"
+		}
+	]
+}

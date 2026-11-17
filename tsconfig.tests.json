@@ -1,0 +1,5 @@
+{
+	"extends": "./tsconfig.json",
+	"include": ["tests/r*", "tests/s*", "tests/t*", "tests/u*", "tests/v*", "tests/w*", "tests/x*", "tests/y*", "tests/z*", "tests/fixtures"],
+	"exclude": ["src/admin", "tests/**/*.tsx"]
+}

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    # The job name is the required status check on main.
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          # Node 24 as in release.yml; the generators need Node type stripping (22.18 or later).
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tests run against the emdash 1.4.0 peer floor
+        run: test "$(node -p 'require("./node_modules/emdash/package.json").version')" = "1.4.0"
+      - name: Typecheck (five projects and the panel types)
+        run: pnpm typecheck
+      - run: pnpm test
+      # Offline: the Deploy to Cloudflare site in template/ installs the plugin from npm and declares what Cloudflare reads.
+      - name: Template (Deploy to Cloudflare site)
+        run: pnpm exec vitest run tests/template.test.ts
+      - run: pnpm build
+      - name: Generated files are current
+        run: |
+          node scripts/build-openapi.mjs --check
+          node scripts/build-settings-doc.mjs --check
+      # A dependency bump changes the bundled bytes of dist, so a Dependabot pull request must not fail on it:
+      # the build above still has to succeed and every test has to pass. dist is rebuilt and checked at release.
+      - name: dist is current
+        if: github.actor != 'dependabot[bot]'
+        run: git diff --exit-code -- dist
+      - name: publint and attw on the packed tarball
+        run: |
+          pnpm pack --pack-destination "$RUNNER_TEMP"
+          tarball="$RUNNER_TEMP/infinitnet-cookieless-analytics-$(node -p 'require("./package.json").version').tgz"
+          pnpm exec publint "$tarball"
+          pnpm exec attw --profile esm-only "$tarball"
+      # Built-in patterns over the tree and file names (credentials, author hostnames): the private denylist
+      # is not available in CI, and older commits hold reviewed false positives of the patterns.

@@ -1,0 +1,195 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`links statement snapshot (postgres) > binds every value and reads the visits of the range by key, plus the visitless rows of ca_events without a session filter 1`] = `
+{
+  "{"by":"channel","withRevenue":true,"currency":"EUR"}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "conv",
+        "EUR",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, SUM(CASE WHEN (h.value ->> 'n') = ? AND r.cur = ? THEN r.val ELSE 0 END) AS revenue FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) LEFT JOIN ca_events r ON r.site = s.site AND r.id = h.key WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value), jsonb_each_text(h.value -> 'pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND p.value <> '')) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "conv",
+      ],
+      "sql": "SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (SELECT r.cur AS cur, COUNT(*) AS orders, SUM(r.val) AS revenue FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) JOIN ca_events r ON r.site = s.site AND r.id = h.key WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND r.val IS NOT NULL AND r.cur IS NOT NULL)) GROUP BY r.cur) t GROUP BY t.cur",
+    },
+  ],
+  "{"by":"place","slug":"alpha-offer"}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+        "alpha-offer",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT COALESCE(NULLIF((h.value -> 'pr' ->> 'place'), ''), '(none)') AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, 0 AS revenue FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?)) AND (COALESCE((h.value -> 'pr' ->> 'slug'), '(not set)') = ?)) GROUP BY COALESCE(NULLIF((h.value -> 'pr' ->> 'place'), ''), '(none)')) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+        "alpha-offer",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN strpos(p.value, '@') > 0 THEN substr(p.value, strpos(p.value, '@') + 1) ELSE '(none)' END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value), jsonb_each_text(h.value -> 'pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND p.value <> '') AND (CASE WHEN strpos(p.value, '@') > 0 THEN substr(p.value, 1, strpos(p.value, '@') - 1) ELSE p.value END = ?)) GROUP BY CASE WHEN strpos(p.value, '@') > 0 THEN substr(p.value, strpos(p.value, '@') + 1) ELSE '(none)' END) t GROUP BY t.key",
+    },
+  ],
+  "{}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT COALESCE((h.value -> 'pr' ->> 'slug'), '(not set)') AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, 0 AS revenue FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value) WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?))) GROUP BY COALESCE((h.value -> 'pr' ->> 'slug'), '(not set)')) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN strpos(p.value, '@') > 0 THEN substr(p.value, 1, strpos(p.value, '@') - 1) ELSE p.value END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN jsonb_each(s.hits) AS h(key, value), jsonb_each_text(h.value -> 'pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND p.value <> '')) GROUP BY CASE WHEN strpos(p.value, '@') > 0 THEN substr(p.value, 1, strpos(p.value, '@') - 1) ELSE p.value END) t GROUP BY t.key",
+    },
+  ],
+}
+`;
+
+exports[`links statement snapshot (sqlite) > binds every value and reads the visits of the range by key, plus the visitless rows of ca_events without a session filter 1`] = `
+{
+  "{"by":"channel","withRevenue":true,"currency":"EUR"}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "conv",
+        "EUR",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, SUM(CASE WHEN (h.value ->> 'n') = ? AND r.cur = ? THEN r.val ELSE 0 END) AS revenue FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h LEFT JOIN ca_events r ON r.site = s.site AND r.id = h.key WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?))) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h, json_each(h.value, '$.pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND CAST(p.value AS TEXT) <> '')) GROUP BY CASE WHEN s.pageviews > 0 THEN COALESCE(s.channel, '(not set)') ELSE '(not set)' END) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "conv",
+      ],
+      "sql": "SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (SELECT r.cur AS cur, COUNT(*) AS orders, SUM(r.val) AS revenue FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h JOIN ca_events r ON r.site = s.site AND r.id = h.key WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND r.val IS NOT NULL AND r.cur IS NOT NULL)) GROUP BY r.cur) t GROUP BY t.cur",
+    },
+  ],
+  "{"by":"place","slug":"alpha-offer"}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+        "alpha-offer",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT COALESCE(NULLIF(CAST(json_extract(h.value, '$.pr.place') AS TEXT), ''), '(none)') AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, 0 AS revenue FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?)) AND (COALESCE(CAST(json_extract(h.value, '$.pr.slug') AS TEXT), '(not set)') = ?)) GROUP BY COALESCE(NULLIF(CAST(json_extract(h.value, '$.pr.place') AS TEXT), ''), '(none)')) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+        "alpha-offer",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN instr(CAST(p.value AS TEXT), '@') > 0 THEN substr(CAST(p.value AS TEXT), instr(CAST(p.value AS TEXT), '@') + 1) ELSE '(none)' END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h, json_each(h.value, '$.pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND CAST(p.value AS TEXT) <> '') AND (CASE WHEN instr(CAST(p.value AS TEXT), '@') > 0 THEN substr(CAST(p.value AS TEXT), 1, instr(CAST(p.value AS TEXT), '@') - 1) ELSE CAST(p.value AS TEXT) END = ?)) GROUP BY CASE WHEN instr(CAST(p.value AS TEXT), '@') > 0 THEN substr(CAST(p.value AS TEXT), instr(CAST(p.value AS TEXT), '@') + 1) ELSE '(none)' END) t GROUP BY t.key",
+    },
+  ],
+  "{}": [
+    {
+      "params": [
+        "out",
+        "out",
+        "conv",
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "out",
+        "conv",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.clicks) AS clicks, SUM(t.sessions) AS sessions, SUM(t.conversions) AS conversions, SUM(t.revenue) AS revenue FROM (SELECT COALESCE(CAST(json_extract(h.value, '$.pr.slug') AS TEXT), '(not set)') AS key, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN (h.value ->> 'n') = ? THEN s.sid END) AS sessions, SUM(CASE WHEN (h.value ->> 'n') = ? THEN 1 ELSE 0 END) AS conversions, 0 AS revenue FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') IN (?, ?))) GROUP BY COALESCE(CAST(json_extract(h.value, '$.pr.slug') AS TEXT), '(not set)')) t GROUP BY t.key",
+    },
+    {
+      "params": [
+        "default",
+        "2026-03-01",
+        "2026-03-12",
+        "DE",
+        "seen",
+      ],
+      "sql": "SELECT t.key AS key, SUM(t.impressions) AS impressions FROM (SELECT CASE WHEN instr(CAST(p.value AS TEXT), '@') > 0 THEN substr(CAST(p.value AS TEXT), 1, instr(CAST(p.value AS TEXT), '@') - 1) ELSE CAST(p.value AS TEXT) END AS key, COUNT(*) AS impressions FROM ca_sessions s CROSS JOIN json_each(s.hits) AS h, json_each(h.value, '$.pr') AS p WHERE (s.site = ? AND s.day BETWEEN ? AND ?) AND ((h.value ->> 'n') IS NOT NULL) AND ((s.pageviews > 0) AND ((s.country = ?))) AND (((h.value ->> 'n') = ? AND p.key IN ('s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9') AND CAST(p.value AS TEXT) <> '')) GROUP BY CASE WHEN instr(CAST(p.value AS TEXT), '@') > 0 THEN substr(CAST(p.value AS TEXT), 1, instr(CAST(p.value AS TEXT), '@') - 1) ELSE CAST(p.value AS TEXT) END) t GROUP BY t.key",
+    },
+  ],
+}
+`;

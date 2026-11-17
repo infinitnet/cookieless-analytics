@@ -1,0 +1,9 @@
+{
+  "rows": [
+    { "keys": ["https://example.com/blog/"], "clicks": 20, "impressions": 400, "ctr": 0.05, "position": 4.0 },
+    { "keys": ["http://example.com/blog"], "clicks": 1, "impressions": 10, "ctr": 0.1, "position": 6.0 },
+    { "keys": ["https://example.com/"], "clicks": 15, "impressions": 500, "ctr": 0.03, "position": 9.2 },
+    { "keys": ["https://other.example.net/page"], "clicks": 5, "impressions": 90, "ctr": 0.0556, "position": 12.0 }
+  ],
+  "responseAggregationType": "byPage"
+}

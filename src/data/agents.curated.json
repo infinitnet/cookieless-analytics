@@ -1,0 +1,1523 @@
+[
+	{
+		"id": "googlebot-image",
+		"name": "Googlebot-Image",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "googlebot-image"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "googlebot-video",
+		"name": "Googlebot-Video",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "googlebot-video"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "googlebot-news",
+		"name": "Googlebot-News",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "googlebot-news"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "googlebot",
+		"name": "Googlebot",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "googlebot"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "storebot-google",
+		"name": "Storebot-Google",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "storebot-google"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "google-inspectiontool",
+		"name": "Google-InspectionTool",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "google-inspectiontool"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "googleother",
+		"name": "GoogleOther",
+		"operator": "Google",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "googleother"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "google-cloudvertexbot",
+		"name": "Google-CloudVertexBot",
+		"operator": "Google",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "google-cloudvertexbot"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+	},
+	{
+		"id": "adsbot-google",
+		"name": "AdsBot-Google",
+		"operator": "Google",
+		"category": "ads_verification",
+		"match": {
+			"mode": "contains",
+			"pattern": "adsbot-google"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-special-case-crawlers"
+	},
+	{
+		"id": "mediapartners-google",
+		"name": "Mediapartners-Google",
+		"operator": "Google",
+		"category": "ads_verification",
+		"match": {
+			"mode": "contains",
+			"pattern": "mediapartners-google"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-special-case-crawlers"
+	},
+	{
+		"id": "apis-google",
+		"name": "APIs-Google",
+		"operator": "Google",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "apis-google"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-special-case-crawlers"
+	},
+	{
+		"id": "google-read-aloud",
+		"name": "Google-Read-Aloud",
+		"operator": "Google",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "google-read-aloud"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-user-triggered-fetchers"
+	},
+	{
+		"id": "google-site-verification",
+		"name": "Google-Site-Verification",
+		"operator": "Google",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "google-site-verification"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-user-triggered-fetchers"
+	},
+	{
+		"id": "google-favicon",
+		"name": "Google Favicon",
+		"operator": "Google",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "google favicon"
+		}
+	},
+	{
+		"id": "google-pagespeed",
+		"name": "Google PageSpeed Insights",
+		"operator": "Google",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "google page speed insights"
+		}
+	},
+	{
+		"id": "chrome-lighthouse",
+		"name": "Chrome Lighthouse",
+		"operator": "Google",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "chrome-lighthouse"
+		}
+	},
+	{
+		"id": "bingbot",
+		"name": "Bingbot",
+		"operator": "Microsoft",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "bingbot"
+		},
+		"docs": "https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0"
+	},
+	{
+		"id": "adidxbot",
+		"name": "AdIdxBot",
+		"operator": "Microsoft",
+		"category": "ads_verification",
+		"match": {
+			"mode": "contains",
+			"pattern": "adidxbot"
+		},
+		"docs": "https://www.bing.com/webmasters/help/which-crawlers-does-bing-use-8c184ec0"
+	},
+	{
+		"id": "bingpreview",
+		"name": "BingPreview",
+		"operator": "Microsoft",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "bingpreview"
+		}
+	},
+	{
+		"id": "microsoftpreview",
+		"name": "MicrosoftPreview",
+		"operator": "Microsoft",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "microsoftpreview"
+		}
+	},
+	{
+		"id": "msnbot",
+		"name": "msnbot",
+		"operator": "Microsoft",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "msnbot"
+		}
+	},
+	{
+		"id": "applebot",
+		"name": "Applebot",
+		"operator": "Apple",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "applebot"
+		},
+		"docs": "https://support.apple.com/en-us/119829"
+	},
+	{
+		"id": "duckassistbot",
+		"name": "DuckAssistBot",
+		"operator": "DuckDuckGo",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "duckassistbot"
+		}
+	},
+	{
+		"id": "duckduckbot",
+		"name": "DuckDuckBot",
+		"operator": "DuckDuckGo",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "duckduckbot"
+		}
+	},
+	{
+		"id": "yandexadditional",
+		"name": "YandexAdditional",
+		"operator": "Yandex",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "yandexadditional"
+		}
+	},
+	{
+		"id": "yandeximages",
+		"name": "YandexImages",
+		"operator": "Yandex",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "yandeximages"
+		}
+	},
+	{
+		"id": "yandexbot",
+		"name": "YandexBot",
+		"operator": "Yandex",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "yandexbot"
+		}
+	},
+	{
+		"id": "yandex-bots",
+		"name": "Yandex bots",
+		"operator": "Yandex",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "yandex.com/bots"
+		}
+	},
+	{
+		"id": "baiduspider",
+		"name": "Baiduspider",
+		"operator": "Baidu",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "baiduspider"
+		}
+	},
+	{
+		"id": "sogou",
+		"name": "Sogou web spider",
+		"operator": "Sogou",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "sogou web spider"
+		}
+	},
+	{
+		"id": "360spider",
+		"name": "360Spider",
+		"operator": "Qihoo 360",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "360spider"
+		}
+	},
+	{
+		"id": "petalbot",
+		"name": "PetalBot",
+		"operator": "Huawei",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "petalbot"
+		}
+	},
+	{
+		"id": "seznambot",
+		"name": "SeznamBot",
+		"operator": "Seznam",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "seznambot"
+		}
+	},
+	{
+		"id": "qwant",
+		"name": "Qwantbot",
+		"operator": "Qwant",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "qwantbot"
+		}
+	},
+	{
+		"id": "naver-yeti",
+		"name": "Yeti",
+		"operator": "Naver",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "naver.me/spd"
+		}
+	},
+	{
+		"id": "yahoo-slurp",
+		"name": "Yahoo Slurp",
+		"operator": "Yahoo",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "slurp"
+		}
+	},
+	{
+		"id": "mojeekbot",
+		"name": "MojeekBot",
+		"operator": "Mojeek",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "mojeekbot"
+		}
+	},
+	{
+		"id": "exabot",
+		"name": "Exabot",
+		"operator": "Exalead",
+		"category": "search_engine",
+		"match": {
+			"mode": "contains",
+			"pattern": "exabot"
+		}
+	},
+	{
+		"id": "gptbot",
+		"name": "GPTBot",
+		"operator": "OpenAI",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "gptbot"
+		},
+		"docs": "https://developers.openai.com/api/docs/bots"
+	},
+	{
+		"id": "oai-searchbot",
+		"name": "OAI-SearchBot",
+		"operator": "OpenAI",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "oai-searchbot"
+		},
+		"docs": "https://developers.openai.com/api/docs/bots"
+	},
+	{
+		"id": "oai-adsbot",
+		"name": "OAI-AdsBot",
+		"operator": "OpenAI",
+		"category": "ads_verification",
+		"match": {
+			"mode": "contains",
+			"pattern": "oai-adsbot"
+		},
+		"docs": "https://developers.openai.com/api/docs/bots"
+	},
+	{
+		"id": "chatgpt-user",
+		"name": "ChatGPT-User",
+		"operator": "OpenAI",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "chatgpt-user"
+		},
+		"docs": "https://developers.openai.com/api/docs/bots"
+	},
+	{
+		"id": "claude-searchbot",
+		"name": "Claude-SearchBot",
+		"operator": "Anthropic",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "claude-searchbot"
+		},
+		"docs": "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler"
+	},
+	{
+		"id": "claude-user",
+		"name": "Claude-User",
+		"operator": "Anthropic",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "claude-user"
+		},
+		"docs": "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler"
+	},
+	{
+		"id": "claudebot",
+		"name": "ClaudeBot",
+		"operator": "Anthropic",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "claudebot"
+		},
+		"docs": "https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler"
+	},
+	{
+		"id": "claude-web",
+		"name": "Claude-Web (legacy)",
+		"operator": "Anthropic",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "claude-web"
+		}
+	},
+	{
+		"id": "anthropic-ai",
+		"name": "anthropic-ai (legacy)",
+		"operator": "Anthropic",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "anthropic-ai"
+		}
+	},
+	{
+		"id": "perplexity-user",
+		"name": "Perplexity-User",
+		"operator": "Perplexity",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "perplexity-user"
+		},
+		"docs": "https://docs.perplexity.ai/docs/resources/perplexity-crawlers"
+	},
+	{
+		"id": "perplexitybot",
+		"name": "PerplexityBot",
+		"operator": "Perplexity",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "perplexitybot"
+		},
+		"docs": "https://docs.perplexity.ai/docs/resources/perplexity-crawlers"
+	},
+	{
+		"id": "meta-externalagent",
+		"name": "Meta-ExternalAgent",
+		"operator": "Meta",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "meta-externalagent"
+		},
+		"docs": "https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers"
+	},
+	{
+		"id": "meta-externalfetcher",
+		"name": "Meta-ExternalFetcher",
+		"operator": "Meta",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "meta-externalfetcher"
+		},
+		"docs": "https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers"
+	},
+	{
+		"id": "meta-webindexer",
+		"name": "Meta-WebIndexer",
+		"operator": "Meta",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "meta-webindexer"
+		},
+		"docs": "https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers"
+	},
+	{
+		"id": "meta-externalads",
+		"name": "Meta-ExternalAds",
+		"operator": "Meta",
+		"category": "ads_verification",
+		"match": {
+			"mode": "contains",
+			"pattern": "meta-externalads"
+		},
+		"docs": "https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers"
+	},
+	{
+		"id": "facebookexternalhit",
+		"name": "facebookexternalhit",
+		"operator": "Meta",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "facebookexternalhit"
+		},
+		"docs": "https://developers.facebook.com/documentation/sharing/webmasters/web-crawlers"
+	},
+	{
+		"id": "facebookcatalog",
+		"name": "facebookcatalog",
+		"operator": "Meta",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "facebookcatalog"
+		}
+	},
+	{
+		"id": "facebookbot",
+		"name": "FacebookBot",
+		"operator": "Meta",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "facebookbot"
+		}
+	},
+	{
+		"id": "amzn-searchbot",
+		"name": "Amzn-SearchBot",
+		"operator": "Amazon",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "amzn-searchbot"
+		}
+	},
+	{
+		"id": "amzn-user",
+		"name": "Amzn-User",
+		"operator": "Amazon",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "amzn-user"
+		}
+	},
+	{
+		"id": "amazonbot",
+		"name": "Amazonbot",
+		"operator": "Amazon",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "amazonbot"
+		}
+	},
+	{
+		"id": "ccbot",
+		"name": "CCBot",
+		"operator": "Common Crawl",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "ccbot"
+		}
+	},
+	{
+		"id": "bytespider",
+		"name": "Bytespider",
+		"operator": "ByteDance",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "bytespider"
+		}
+	},
+	{
+		"id": "diffbot",
+		"name": "Diffbot",
+		"operator": "Diffbot",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "diffbot"
+		}
+	},
+	{
+		"id": "cohere-ai",
+		"name": "cohere-ai",
+		"operator": "Cohere",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "cohere-ai"
+		}
+	},
+	{
+		"id": "mistralai-user",
+		"name": "MistralAI-User",
+		"operator": "Mistral AI",
+		"category": "ai_assistant",
+		"match": {
+			"mode": "contains",
+			"pattern": "mistralai-user"
+		}
+	},
+	{
+		"id": "ai2bot",
+		"name": "AI2Bot",
+		"operator": "Allen Institute for AI",
+		"category": "ai_training",
+		"match": {
+			"mode": "contains",
+			"pattern": "ai2bot"
+		}
+	},
+	{
+		"id": "youbot",
+		"name": "YouBot",
+		"operator": "You.com",
+		"category": "ai_search",
+		"match": {
+			"mode": "contains",
+			"pattern": "youbot"
+		}
+	},
+	{
+		"id": "ahrefssiteaudit",
+		"name": "AhrefsSiteAudit",
+		"operator": "Ahrefs",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "ahrefssiteaudit"
+		}
+	},
+	{
+		"id": "ahrefsbot",
+		"name": "AhrefsBot",
+		"operator": "Ahrefs",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "ahrefsbot"
+		}
+	},
+	{
+		"id": "semrushbot",
+		"name": "SemrushBot",
+		"operator": "Semrush",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "semrushbot"
+		}
+	},
+	{
+		"id": "mj12bot",
+		"name": "MJ12bot",
+		"operator": "Majestic",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "mj12bot"
+		}
+	},
+	{
+		"id": "dotbot",
+		"name": "DotBot",
+		"operator": "Moz",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "dotbot"
+		}
+	},
+	{
+		"id": "rogerbot",
+		"name": "rogerbot",
+		"operator": "Moz",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "rogerbot"
+		}
+	},
+	{
+		"id": "screaming-frog",
+		"name": "Screaming Frog SEO Spider",
+		"operator": "Screaming Frog",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "screaming frog"
+		}
+	},
+	{
+		"id": "blexbot",
+		"name": "BLEXBot",
+		"operator": "WebMeUp",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "blexbot"
+		}
+	},
+	{
+		"id": "dataforseobot",
+		"name": "DataForSeoBot",
+		"operator": "DataForSEO",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "dataforseobot"
+		}
+	},
+	{
+		"id": "barkrowler",
+		"name": "Barkrowler",
+		"operator": "Babbar",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "barkrowler"
+		}
+	},
+	{
+		"id": "serpstatbot",
+		"name": "serpstatbot",
+		"operator": "Serpstat",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "serpstatbot"
+		}
+	},
+	{
+		"id": "seokicks",
+		"name": "SEOkicks",
+		"operator": "SEOkicks",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "seokicks"
+		}
+	},
+	{
+		"id": "sistrix",
+		"name": "SISTRIX",
+		"operator": "SISTRIX",
+		"category": "seo_tool",
+		"match": {
+			"mode": "contains",
+			"pattern": "sistrix"
+		}
+	},
+	{
+		"id": "telegrambot",
+		"name": "TelegramBot",
+		"operator": "Telegram",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "telegrambot"
+		}
+	},
+	{
+		"id": "twitterbot",
+		"name": "Twitterbot",
+		"operator": "X",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "twitterbot"
+		}
+	},
+	{
+		"id": "linkedinbot",
+		"name": "LinkedInBot",
+		"operator": "LinkedIn",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "linkedinbot"
+		}
+	},
+	{
+		"id": "slack-imgproxy",
+		"name": "Slack-ImgProxy",
+		"operator": "Slack",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "slack-imgproxy"
+		}
+	},
+	{
+		"id": "slackbot",
+		"name": "Slackbot",
+		"operator": "Slack",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "slackbot"
+		}
+	},
+	{
+		"id": "discordbot",
+		"name": "Discordbot",
+		"operator": "Discord",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "discordbot"
+		}
+	},
+	{
+		"id": "whatsapp",
+		"name": "WhatsApp link preview",
+		"operator": "Meta",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "whatsapp/"
+		}
+	},
+	{
+		"id": "pinterestbot",
+		"name": "Pinterestbot",
+		"operator": "Pinterest",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "pinterestbot"
+		}
+	},
+	{
+		"id": "redditbot",
+		"name": "redditbot",
+		"operator": "Reddit",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "redditbot"
+		}
+	},
+	{
+		"id": "skypeuripreview",
+		"name": "SkypeUriPreview",
+		"operator": "Microsoft",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "skypeuripreview"
+		}
+	},
+	{
+		"id": "embedly",
+		"name": "Embedly",
+		"operator": "Embedly",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "embedly"
+		}
+	},
+	{
+		"id": "iframely",
+		"name": "Iframely",
+		"operator": "Iframely",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "iframely"
+		}
+	},
+	{
+		"id": "mastodon",
+		"name": "Mastodon",
+		"operator": "Mastodon",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "mastodon/"
+		}
+	},
+	{
+		"id": "bluesky-cardyb",
+		"name": "Bluesky Cardyb",
+		"operator": "Bluesky",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "cardyb"
+		}
+	},
+	{
+		"id": "vkshare",
+		"name": "vkShare",
+		"operator": "VK",
+		"category": "social_preview",
+		"match": {
+			"mode": "contains",
+			"pattern": "vkshare"
+		}
+	},
+	{
+		"id": "uptimerobot",
+		"name": "UptimeRobot",
+		"operator": "UptimeRobot",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "uptimerobot"
+		}
+	},
+	{
+		"id": "pingdom",
+		"name": "Pingdom",
+		"operator": "Pingdom",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "pingdom"
+		}
+	},
+	{
+		"id": "statuscake",
+		"name": "StatusCake",
+		"operator": "StatusCake",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "statuscake"
+		}
+	},
+	{
+		"id": "betteruptime",
+		"name": "Better Stack",
+		"operator": "Better Stack",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "better uptime"
+		}
+	},
+	{
+		"id": "site24x7",
+		"name": "Site24x7",
+		"operator": "Zoho",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "site24x7"
+		}
+	},
+	{
+		"id": "datadog-synthetics",
+		"name": "Datadog Synthetics",
+		"operator": "Datadog",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "datadogsynthetics"
+		}
+	},
+	{
+		"id": "newrelicpinger",
+		"name": "NewRelicPinger",
+		"operator": "New Relic",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "newrelicpinger"
+		}
+	},
+	{
+		"id": "checkly",
+		"name": "Checkly",
+		"operator": "Checkly",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "checkly"
+		}
+	},
+	{
+		"id": "uptime-kuma",
+		"name": "Uptime Kuma",
+		"operator": "Uptime Kuma",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "uptime-kuma"
+		}
+	},
+	{
+		"id": "freshping",
+		"name": "Freshping",
+		"operator": "Freshworks",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "freshping"
+		}
+	},
+	{
+		"id": "hetrixtools",
+		"name": "HetrixTools",
+		"operator": "HetrixTools",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "hetrixtools"
+		}
+	},
+	{
+		"id": "cloudflare-healthchecks",
+		"name": "Cloudflare-Healthchecks",
+		"operator": "Cloudflare",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "cloudflare-healthchecks"
+		}
+	},
+	{
+		"id": "zabbix",
+		"name": "Zabbix",
+		"operator": "Zabbix",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "zabbix"
+		}
+	},
+	{
+		"id": "nagios",
+		"name": "Nagios check_http",
+		"operator": "Nagios",
+		"category": "monitoring",
+		"match": {
+			"mode": "contains",
+			"pattern": "check_http/"
+		}
+	},
+	{
+		"id": "feedly",
+		"name": "Feedly",
+		"operator": "Feedly",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "feedly"
+		}
+	},
+	{
+		"id": "feedbin",
+		"name": "Feedbin",
+		"operator": "Feedbin",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "feedbin"
+		}
+	},
+	{
+		"id": "newsblur",
+		"name": "NewsBlur",
+		"operator": "NewsBlur",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "newsblur"
+		}
+	},
+	{
+		"id": "inoreader",
+		"name": "Inoreader",
+		"operator": "Inoreader",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "inoreader"
+		}
+	},
+	{
+		"id": "tiny-tiny-rss",
+		"name": "Tiny Tiny RSS",
+		"operator": "Tiny Tiny RSS",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "tiny tiny rss"
+		}
+	},
+	{
+		"id": "freshrss",
+		"name": "FreshRSS",
+		"operator": "FreshRSS",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "freshrss"
+		}
+	},
+	{
+		"id": "miniflux",
+		"name": "Miniflux",
+		"operator": "Miniflux",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "miniflux"
+		}
+	},
+	{
+		"id": "netnewswire",
+		"name": "NetNewsWire",
+		"operator": "NetNewsWire",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "netnewswire"
+		}
+	},
+	{
+		"id": "feedfetcher-google",
+		"name": "FeedFetcher-Google",
+		"operator": "Google",
+		"category": "feed_reader",
+		"match": {
+			"mode": "contains",
+			"pattern": "feedfetcher-google"
+		},
+		"docs": "https://developers.google.com/search/docs/crawling-indexing/google-user-triggered-fetchers"
+	},
+	{
+		"id": "nmap",
+		"name": "Nmap Scripting Engine",
+		"operator": "Nmap",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "nmap scripting engine"
+		}
+	},
+	{
+		"id": "nikto",
+		"name": "Nikto",
+		"operator": "Nikto",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "nikto"
+		}
+	},
+	{
+		"id": "sqlmap",
+		"name": "sqlmap",
+		"operator": "sqlmap",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "sqlmap"
+		}
+	},
+	{
+		"id": "wpscan",
+		"name": "WPScan",
+		"operator": "WPScan",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "wpscan"
+		}
+	},
+	{
+		"id": "nuclei",
+		"name": "Nuclei",
+		"operator": "ProjectDiscovery",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "nuclei"
+		}
+	},
+	{
+		"id": "masscan",
+		"name": "masscan",
+		"operator": "masscan",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "masscan"
+		}
+	},
+	{
+		"id": "zgrab",
+		"name": "zgrab",
+		"operator": "ZMap",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "zgrab"
+		}
+	},
+	{
+		"id": "censysinspect",
+		"name": "CensysInspect",
+		"operator": "Censys",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "censysinspect"
+		}
+	},
+	{
+		"id": "expanse",
+		"name": "Expanse",
+		"operator": "Palo Alto Networks",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "expanse, a palo alto"
+		}
+	},
+	{
+		"id": "netcraft",
+		"name": "Netcraft",
+		"operator": "Netcraft",
+		"category": "security_scanner",
+		"match": {
+			"mode": "contains",
+			"pattern": "netcraft"
+		}
+	},
+	{
+		"id": "ia-archiver",
+		"name": "ia_archiver",
+		"operator": "Internet Archive",
+		"category": "archiver",
+		"match": {
+			"mode": "contains",
+			"pattern": "ia_archiver"
+		}
+	},
+	{
+		"id": "archive-org-bot",
+		"name": "archive.org_bot",
+		"operator": "Internet Archive",
+		"category": "archiver",
+		"match": {
+			"mode": "contains",
+			"pattern": "archive.org_bot"
+		}
+	},
+	{
+		"id": "headlesschrome",
+		"name": "HeadlessChrome",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "headlesschrome"
+		}
+	},
+	{
+		"id": "phantomjs",
+		"name": "PhantomJS",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "phantomjs"
+		}
+	},
+	{
+		"id": "python-requests",
+		"name": "python-requests",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "python-requests"
+		}
+	},
+	{
+		"id": "python-httpx",
+		"name": "python-httpx",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "python-httpx"
+		}
+	},
+	{
+		"id": "python-urllib",
+		"name": "Python-urllib",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "python-urllib"
+		}
+	},
+	{
+		"id": "aiohttp",
+		"name": "aiohttp",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "aiohttp"
+		}
+	},
+	{
+		"id": "go-http-client",
+		"name": "Go-http-client",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "go-http-client"
+		}
+	},
+	{
+		"id": "curl",
+		"name": "curl",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "curl/"
+		}
+	},
+	{
+		"id": "wget",
+		"name": "Wget",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "wget/"
+		}
+	},
+	{
+		"id": "libwww-perl",
+		"name": "libwww-perl",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "libwww-perl"
+		}
+	},
+	{
+		"id": "apache-httpclient",
+		"name": "Apache-HttpClient",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "apache-httpclient"
+		}
+	},
+	{
+		"id": "okhttp",
+		"name": "okhttp",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "okhttp"
+		}
+	},
+	{
+		"id": "java-client",
+		"name": "Java HTTP client",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "java/"
+		}
+	},
+	{
+		"id": "node-fetch",
+		"name": "node-fetch",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "node-fetch"
+		}
+	},
+	{
+		"id": "axios",
+		"name": "axios",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "axios/"
+		}
+	},
+	{
+		"id": "undici",
+		"name": "undici",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "undici"
+		}
+	},
+	{
+		"id": "scrapy",
+		"name": "Scrapy",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "scrapy"
+		}
+	},
+	{
+		"id": "httrack",
+		"name": "HTTrack",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "httrack"
+		}
+	},
+	{
+		"id": "postman",
+		"name": "PostmanRuntime",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "postmanruntime"
+		}
+	},
+	{
+		"id": "guzzle",
+		"name": "GuzzleHttp",
+		"operator": "Generic",
+		"category": "headless_automation",
+		"match": {
+			"mode": "contains",
+			"pattern": "guzzlehttp"
+		}
+	}
+]

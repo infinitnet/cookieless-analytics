@@ -1,0 +1,166 @@
+/** Repository automation: every YAML file under .github parses, and the workflows keep their agreed shape. */
+import { readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { settingsSchema } from "../src/settings.js";
+
+// shortcut: `yaml` is not a direct dependency; it is resolved through astro's install (pnpm's hoisted copy). Add it as a devDependency if this breaks.
+const YAML = createRequire(realpathSync("node_modules/astro/package.json"))("yaml") as typeof import("yaml");
+
+const walk = (dir: string): string[] => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
+type Step = { name?: string; uses?: string; run?: string; if?: string; with?: Record<string, unknown> };
+type Job = { name?: string; "runs-on": string; if?: string; strategy?: unknown; steps: Step[] };
+type Workflow = { on: unknown; permissions: Record<string, string>; concurrency?: { group: string; "cancel-in-progress": boolean }; jobs: Record<string, Job> };
+const load = <T>(f: string) => YAML.parse(readFileSync(f, "utf8"), { uniqueKeys: true, strict: true }) as T;
+
+describe(".github YAML", () => {
+	const files = walk(".github").filter((f) => /\.ya?ml$/.test(f));
+
+	it("finds the workflows, Dependabot, the funding file and the issue forms", () => {
+		expect(files.map((f) => f.replace(/\\/g, "/")).sort()).toEqual([
+			".github/FUNDING.yml",
+			".github/ISSUE_TEMPLATE/bug_report.yml",
+			".github/ISSUE_TEMPLATE/config.yml",
+			".github/ISSUE_TEMPLATE/feature_request.yml",
+			".github/dependabot.yml",
+			".github/workflows/ci.yml",
+			".github/workflows/dependabot-automerge.yml",
+			".github/workflows/release.yml",
+			".github/workflows/wiki.yml",
+		]);
+	});
+
+	it.each(files)("%s parses without errors or warnings", (f) => {
+		const doc = YAML.parseDocument(readFileSync(f, "utf8"), { uniqueKeys: true, strict: true });
+		expect(doc.errors.map(String)).toEqual([]);
+		expect(doc.warnings.map(String)).toEqual([]);
+	});
+
+	it("every action is pinned to a major version", () => {
+		const uses = files.filter((f) => f.includes("workflows")).flatMap((f) => Object.values(load<Workflow>(f).jobs).flatMap((j) => j.steps.flatMap((s) => (s.uses ? [s.uses] : []))));
+		expect(uses.length).toBeGreaterThan(5);
+		for (const u of uses) expect(u).toMatch(/^[\w-]+\/[\w-]+@v\d+$/);
+	});
+});
+
+describe("CI workflow", () => {
+	const ci = load<Workflow>(".github/workflows/ci.yml");
+	const job = Object.values(ci.jobs);
+	const runs = job[0]?.steps.map((s) => s.run ?? "").join("\n") ?? "";
+
+	it("is one job on Node 24, no matrix, read only, superseded runs cancelled", () => {
+		expect(job).toHaveLength(1);
+		expect(job[0]?.name).toBe("CI");
+		expect(job[0]?.strategy).toBeUndefined();
+		expect(job[0]?.steps.find((s) => s.uses?.startsWith("actions/setup-node"))?.with).toMatchObject({ "node-version": "24", cache: "pnpm" });
+		expect(ci.permissions).toEqual({ contents: "read" });
+		expect(ci.concurrency?.["cancel-in-progress"]).toBe(true);
+	});
+
+	it("installs from the lockfile, typechecks, tests, builds and checks dist and the package, and needs no secret", () => {
+		const order = ["pnpm install --frozen-lockfile", "pnpm typecheck", "pnpm test", "vitest run tests/template.test.ts", "pnpm build", "git diff --exit-code -- dist", "publint", "attw"];
+		const at = order.map((s) => runs.indexOf(s));
+		expect(at.every((i) => i >= 0), JSON.stringify(at)).toBe(true);
+		expect([...at].sort((a, b) => a - b)).toEqual(at);
+		// A dependency bump changes the bundled bytes of dist: the dist check must not fail a Dependabot pull request.
+		const distStep = ci.jobs ? Object.values(ci.jobs)[0]?.steps.find((s) => s.run?.includes("git diff --exit-code -- dist")) : undefined;
+		expect(distStep?.if).toBe("github.actor != 'dependabot[bot]'");
+		// The private denylist is never available in CI.
+		expect(runs).not.toContain("--require");
+		expect(readFileSync(".github/workflows/ci.yml", "utf8")).not.toContain("secrets.");
+		// pnpm typecheck runs the five tsc projects and the panel type check.
+		const tc = (JSON.parse(readFileSync("package.json", "utf8")) as { scripts: Record<string, string> }).scripts.typecheck ?? "";
+		expect(tc.match(/tsc --noEmit -p/g)).toHaveLength(5);
+		expect(tc).toContain("check-panel-types.mjs");
+	});
+
+	it("the release workflow uses the same Node and publishes the checked tarball on a version tag", () => {
+		const rel = load<Workflow>(".github/workflows/release.yml");
+		expect(rel.on).toEqual({ push: { tags: ["v*.*.*"] } });
+		const steps = Object.values(rel.jobs)[0]?.steps ?? [];
+		expect(steps.find((s) => s.uses?.startsWith("actions/setup-node"))?.with).toMatchObject({ "node-version": "24" });
+		expect(rel.concurrency?.["cancel-in-progress"]).toBe(false);
+		expect(steps.map((s) => s.run ?? "").join("\n")).not.toContain("--require");
+	});
+
+	it("the release publishes only a commit on main, and a re-run skips what is already done", () => {
+		const steps = Object.values(load<Workflow>(".github/workflows/release.yml").jobs)[0]?.steps ?? [];
+		const at = (f: (s: Step) => boolean) => steps.findIndex(f);
+		expect(steps.find((s) => s.uses?.startsWith("actions/checkout"))?.with).toMatchObject({ "fetch-depth": 0 });
+		const ancestor = at((s) => !!s.run?.includes('git merge-base --is-ancestor "$GITHUB_SHA" origin/main'));
+		const check = at((s) => (s as { id?: string }).id === "npm");
+		const publish = at((s) => !!s.run?.startsWith("npm publish"));
+		const release = at((s) => !!s.run?.includes("gh release create"));
+		expect(ancestor).toBeGreaterThan(-1);
+		expect(ancestor).toBeLessThan(check);
+		expect(check).toBeLessThan(publish);
+		expect(publish).toBeLessThan(release);
+		expect(steps[check]?.run).toContain('npm view "@infinitnet/cookieless-analytics@${GITHUB_REF_NAME#v}" version');
+		expect(steps[publish]?.if).toBe("steps.npm.outputs.published != 'true'");
+		expect(steps[release]?.if).toBeUndefined();
+		expect(steps[release]?.run).toContain('gh release view "$GITHUB_REF_NAME"');
+	});
+
+	it("publishes through npm trusted publishing: OIDC, no npm token anywhere, npm 11.5.1 or later, no cache", () => {
+		const rel = load<Workflow>(".github/workflows/release.yml");
+		expect(rel.permissions).toEqual({ contents: "write", "id-token": "write" });
+		for (const f of walk(".github")) expect(readFileSync(f, "utf8"), f).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);
+		const steps = Object.values(rel.jobs)[0]?.steps ?? [];
+		expect(steps.find((s) => s.uses?.startsWith("actions/setup-node"))?.with).toEqual({ "node-version": "24", "registry-url": "https://registry.npmjs.org", "package-manager-cache": false });
+		const guard = steps.findIndex((s) => !!s.run?.includes("npm install -g npm@^11.5.1"));
+		expect(steps[guard]?.run).toContain("printf '%s\\n' 11.5.1 \"$(npm --version)\" | sort -V -C ||");
+		expect(guard).toBeLessThan(steps.findIndex((s) => !!s.run?.startsWith("npm publish")));
+		expect(steps.find((s) => s.run?.startsWith("npm publish"))?.run).toBe('npm publish "$TARBALL" --provenance --access public --ignore-scripts');
+		expect(steps.find((s) => (s as { id?: string }).id === "npm")?.run).toContain("@infinitnet/cookieless-analytics@");
+	});
+});
+
+describe("Dependabot and auto-merge", () => {
+	type Update = { "package-ecosystem": string; schedule: { interval: string }; groups: Record<string, { "applies-to": string; "update-types": string[] }> };
+	const dep = load<{ version: number; updates: Update[] }>(".github/dependabot.yml");
+
+	it("weekly npm and actions updates, minor and patch grouped, majors left out of every group", () => {
+		expect(dep.version).toBe(2);
+		expect(dep.updates.map((u) => u["package-ecosystem"]).sort()).toEqual(["github-actions", "npm"]);
+		for (const u of dep.updates) {
+			expect(u.schedule.interval).toBe("weekly");
+			const groups = Object.values(u.groups);
+			expect(groups.some((g) => g["applies-to"] === "version-updates")).toBe(true);
+			for (const g of groups) expect([...g["update-types"]].sort()).toEqual(["minor", "patch"]);
+		}
+		expect(Object.values(dep.updates.find((u) => u["package-ecosystem"] === "npm")?.groups ?? {}).some((g) => g["applies-to"] === "security-updates")).toBe(true);
+	});
+
+	it("auto-merge runs for dependabot[bot] only, with minimal permissions, and never for a major", () => {
+		const text = readFileSync(".github/workflows/dependabot-automerge.yml", "utf8");
+		const wf = load<Workflow>(".github/workflows/dependabot-automerge.yml");
+		expect(wf.on).toBe("pull_request");
+		expect(wf.permissions).toEqual({ contents: "write", "pull-requests": "write" });
+		const job = Object.values(wf.jobs);
+		expect(job).toHaveLength(1);
+		expect(job[0]?.if).toContain("github.event.pull_request.user.login == 'dependabot[bot]'");
+		expect(job[0]?.steps[0]?.uses).toBe("dependabot/fetch-metadata@v2");
+		const merge = job[0]?.steps.find((s) => s.run?.includes("gh pr merge"));
+		expect(merge?.run).toContain("gh pr merge --auto --squash");
+		expect(merge?.if).toContain("version-update:semver-patch");
+		expect(merge?.if).toContain("version-update:semver-minor");
+		expect(text).not.toContain("semver-major");
+		expect(text).not.toContain("actions/checkout");
+	});
+});
+
+describe("issue forms", () => {
+	type Field = { type: string; id?: string; attributes: { label?: string; options?: string[] }; validations?: { required: boolean } };
+	const bug = load<{ body: Field[] }>(".github/ISSUE_TEMPLATE/bug_report.yml");
+	const field = (id: string) => bug.body.find((f) => f.id === id);
+
+	it("the bug form requires the plugin version, the Cloudflare plan and the capacity profile", () => {
+		for (const id of ["plugin-version", "emdash-version", "cloudflare-plan", "capacity-profile", "what-happened"]) expect(field(id)?.validations?.required, id).toBe(true);
+	});
+
+	it("the capacity profile choices are the setting's own labels", () => {
+		const opts = (settingsSchema.capacityProfile as { options: { label: string }[] }).options.map((o) => o.label);
+		expect(field("capacity-profile")?.attributes.options).toEqual(opts);
+	});
+});

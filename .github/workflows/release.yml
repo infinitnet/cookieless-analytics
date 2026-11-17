@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+# A release is never cancelled half way.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # The whole history, so the main branch is there for the ancestor check.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      # No dependency cache in the release job: a publish never restores state another run wrote.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      # Trusted publishing (OIDC) needs npm 11.5.1 or later; Node 24 usually ships it already.
+      - name: npm 11.5.1 or later
+        run: |
+          npm --version
+          printf '%s\n' 11.5.1 "$(npm --version)" | sort -V -C || npm install -g npm@^11.5.1
+          npm --version
+      - run: pnpm install --frozen-lockfile
+      - name: Tag matches package.json
+        run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
+      # Only a reviewed commit is published: the tagged commit must be on main.
+      - name: Tagged commit is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: dist is current
+        run: git diff --exit-code -- dist
+      - name: Pack the tarball
+        run: |
+          pnpm pack --pack-destination "$RUNNER_TEMP"
+          echo "TARBALL=$RUNNER_TEMP/infinitnet-cookieless-analytics-${GITHUB_REF_NAME#v}.tgz" >> "$GITHUB_ENV"
+      # A re-run after a late failure skips the publish when the version is already on npm.
+      - name: Version already on npm
+        id: npm
+        # Anonymous read: the .npmrc of setup-node holds a placeholder token, never a real one.
+        env:
+          NPM_CONFIG_USERCONFIG: /dev/null
+        run: echo "published=$(test -n "$(npm view "@infinitnet/cookieless-analytics@${GITHUB_REF_NAME#v}" version 2>/dev/null)" && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      # The checks of prepublishOnly ran in the steps above; npm publishes the tarball that was checked.
+      # Trusted publishing: npm exchanges the job's OIDC token (id-token: write) for a one-time publish credential; no npm token exists.
+      - name: Publish @infinitnet/cookieless-analytics with provenance
+        if: steps.npm.outputs.published != 'true'
+        run: npm publish "$TARBALL" --provenance --access public --ignore-scripts
+      - name: GitHub release with generated notes and the tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" --repo infinitnet/cookieless-analytics > /dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" "$TARBALL" --repo infinitnet/cookieless-analytics --title "$GITHUB_REF_NAME" --generate-notes

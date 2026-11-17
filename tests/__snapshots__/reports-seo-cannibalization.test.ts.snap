@@ -1,0 +1,279 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SEO statements (postgres) > snapshot per statement: window functions present, every value bound, LIKE patterns under 50 bytes 1`] = `
+{
+  "search_cannibalization": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, split_part(d.page_key, '#', 1) AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, split_part(d.page_key, '#', 1)),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ? ORDER BY SUM(pqf.impressions) DESC, pqf.query LIMIT ?),
+ranked AS (SELECT pqf.query AS query, pqf.page AS page, pqf.clicks AS clicks, pqf.impressions AS impressions, pqf.pos_sum AS pos_sum, ROW_NUMBER() OVER (PARTITION BY pqf.query ORDER BY pqf.impressions DESC, pqf.page) AS rn FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT r.query AS query, r.page AS page, r.clicks AS clicks, r.impressions AS impressions, r.pos_sum AS pos_sum, qs.pages AS q_pages, qs.impressions AS q_impressions, qs.clicks AS q_clicks, qs.q_total AS q_total FROM ranked r JOIN qs ON qs.query = r.query WHERE r.rn <= ? ORDER BY qs.impressions DESC, r.query, r.rn",
+    },
+    {
+      "params": 9,
+      "sql": "WITH pq AS (SELECT d.query AS query, split_part(d.page_key, '#', 1) AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, split_part(d.page_key, '#', 1)),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?) SELECT COUNT(*) AS n, SUM(qs.impressions) AS impressions FROM qs",
+    },
+    {
+      "params": 4,
+      "sql": "SELECT SUM(CASE WHEN d.page_key <> '' AND d.query <> '' THEN d.impressions ELSE 0 END) AS visible, SUM(CASE WHEN d.page_key = '' AND d.query = '' THEN d.impressions ELSE 0 END) AS total FROM ca_search_daily d WHERE d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.country = '' AND d.device = ''",
+    },
+  ],
+  "search_cannibalization_page": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, split_part(d.page_key, '#', 1) AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, split_part(d.page_key, '#', 1)),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?),
+cp AS (SELECT pqf.query AS query, pqf.page AS page, pqf.impressions AS impressions, pqf.pos_sum AS pos_sum FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT a.query AS query, a.impressions AS impressions_this, a.pos_sum AS pos_this, b.page AS other_page, b.impressions AS impressions_other, b.pos_sum AS pos_other FROM cp a JOIN cp b ON b.query = a.query AND b.page <> a.page WHERE a.page = ? ORDER BY a.impressions DESC, a.query, b.impressions DESC, b.page LIMIT ?",
+    },
+  ],
+  "search_cannibalization_pages": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, split_part(d.page_key, '#', 1) AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, split_part(d.page_key, '#', 1)),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?),
+cp AS (SELECT pqf.query AS query, pqf.page AS page FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT pq.page AS page, COUNT(*) AS queries, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE 1 END) AS overlapping_queries, SUM(pq.impressions) AS impressions, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE pq.impressions END) AS overlapping_impressions, SUM(pq.clicks) AS clicks, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE pq.clicks END) AS overlapping_clicks
+FROM pq LEFT JOIN cp ON cp.query = pq.query AND cp.page = pq.page GROUP BY pq.page HAVING SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE 1 END) > 0 ORDER BY overlapping_impressions DESC, page LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_cannibalization_query": [
+    {
+      "params": 7,
+      "sql": "SELECT split_part(d.page_key, '#', 1) AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE ((d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?))) AND (d.query = ?) GROUP BY split_part(d.page_key, '#', 1) ORDER BY impressions DESC, page LIMIT ?",
+    },
+  ],
+  "search_decay": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 15,
+      "sql": "WITH a AS (SELECT d.page_key AS key, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS c1, SUM(CASE WHEN d.day >= ? AND d.day < ? THEN d.clicks ELSE 0 END) AS c2, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS c3, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS i1, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS i3, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS p1, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS p3 FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query = '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.page_key)
+SELECT a.key AS key, a.c1 AS c1, a.c2 AS c2, a.c3 AS c3, a.i1 AS i1, a.i3 AS i3, a.p1 AS p1, a.p3 AS p3, a.c1 - a.c3 AS loss FROM a WHERE a.c1 > a.c2 AND a.c2 > a.c3 AND a.i1 >= ? ORDER BY loss DESC, key LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_movers": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 14,
+      "sql": "WITH a AS (SELECT d.page_key AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query = '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.page_key)
+SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN (a.cc - a.cp) * (a.cc - a.cp) > 4 * (a.cc + a.cp) THEN 1 ELSE 0 END AS notable FROM a WHERE (a.ic >= ? OR a.ip >= ?) AND a.cc - a.cp < 0 ORDER BY ABS(a.cc - a.cp) DESC, a.key LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_position_bands": [
+    {
+      "params": 4,
+      "sql": "SELECT k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions, SUM(k.clicks) AS clicks FROM (SELECT d.query AS key, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.band",
+    },
+  ],
+  "search_position_bands_series": [
+    {
+      "params": 4,
+      "sql": "SELECT k.bucket AS bucket, k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions FROM (SELECT d.day AS bucket, d.query AS key, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.day, d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.bucket, k.band",
+    },
+  ],
+  "search_position_bands_series weekly": [
+    {
+      "params": 4,
+      "sql": "SELECT k.bucket AS bucket, k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions FROM (SELECT to_char(date_trunc('week', CAST(d.day AS date)), 'YYYY-MM-DD') AS bucket, d.query AS key, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY to_char(date_trunc('week', CAST(d.day AS date)), 'YYYY-MM-DD'), d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.bucket, k.band",
+    },
+  ],
+  "search_position_moves": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 14,
+      "sql": "WITH a AS (SELECT d.query AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query),
+m AS (SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN a.ip >= ? THEN CASE WHEN a.pp / NULLIF(a.ip, 0) < 4 THEN 0 WHEN a.pp / NULLIF(a.ip, 0) < 11 THEN 1 WHEN a.pp / NULLIF(a.ip, 0) < 21 THEN 2 WHEN a.pp / NULLIF(a.ip, 0) < 51 THEN 3 ELSE 4 END ELSE -1 END AS bf, CASE WHEN a.ic >= ? THEN CASE WHEN a.pc / NULLIF(a.ic, 0) < 4 THEN 0 WHEN a.pc / NULLIF(a.ic, 0) < 11 THEN 1 WHEN a.pc / NULLIF(a.ic, 0) < 21 THEN 2 WHEN a.pc / NULLIF(a.ic, 0) < 51 THEN 3 ELSE 4 END ELSE -2 END AS bt FROM a WHERE a.ic >= ? OR a.ip >= ?) SELECT m.bf AS bf, m.bt AS bt, COUNT(*) AS n, SUM(CASE WHEN m.bt = -2 THEN m.ip ELSE m.ic END) AS impressions FROM m GROUP BY m.bf, m.bt",
+    },
+    {
+      "params": 15,
+      "sql": "WITH a AS (SELECT d.query AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query),
+m AS (SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN a.ip >= ? THEN CASE WHEN a.pp / NULLIF(a.ip, 0) < 4 THEN 0 WHEN a.pp / NULLIF(a.ip, 0) < 11 THEN 1 WHEN a.pp / NULLIF(a.ip, 0) < 21 THEN 2 WHEN a.pp / NULLIF(a.ip, 0) < 51 THEN 3 ELSE 4 END ELSE -1 END AS bf, CASE WHEN a.ic >= ? THEN CASE WHEN a.pc / NULLIF(a.ic, 0) < 4 THEN 0 WHEN a.pc / NULLIF(a.ic, 0) < 11 THEN 1 WHEN a.pc / NULLIF(a.ic, 0) < 21 THEN 2 WHEN a.pc / NULLIF(a.ic, 0) < 51 THEN 3 ELSE 4 END ELSE -2 END AS bt FROM a WHERE a.ic >= ? OR a.ip >= ?),
+v AS (SELECT m.key AS key, m.cc AS cc, m.ic AS ic, m.pc AS pc, m.cp AS cp, m.ip AS ip, m.pp AS pp, m.bf AS bf, m.bt AS bt, CASE WHEN m.bf = -1 THEN 'new' WHEN m.bt = -2 THEN 'lost' WHEN m.bt < m.bf THEN 'up' WHEN m.bt > m.bf THEN 'down' ELSE 'same' END AS mv FROM m),
+r AS (SELECT v.key AS key, v.cc AS cc, v.ic AS ic, v.pc AS pc, v.cp AS cp, v.ip AS ip, v.pp AS pp, v.bf AS bf, v.bt AS bt, v.mv AS mv, ROW_NUMBER() OVER (PARTITION BY v.mv ORDER BY CASE WHEN v.mv = 'lost' THEN v.ip ELSE v.ic END DESC, v.key) AS rn FROM v WHERE v.mv <> 'same')
+SELECT r.key AS key, r.cc AS cc, r.ic AS ic, r.pc AS pc, r.cp AS cp, r.ip AS ip, r.pp AS pp, r.bf AS bf, r.bt AS bt, r.mv AS mv FROM r WHERE r.rn <= ? ORDER BY r.mv, r.rn",
+    },
+  ],
+  "search_striking_distance": [
+    {
+      "params": 10,
+      "sql": "SELECT d.query AS query, d.page_key AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, d.page_key HAVING SUM(d.impressions) >= ? AND SUM(d.pos_sum) >= 4 * SUM(d.impressions) AND SUM(d.pos_sum) < 21 * SUM(d.impressions) ORDER BY impressions DESC, query, page LIMIT ? OFFSET ?",
+    },
+    {
+      "params": 4,
+      "sql": "SELECT SUM(t.clicks) AS clicks, SUM(t.impressions) AS impressions FROM (SELECT SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '' GROUP BY d.query, d.page_key) t WHERE t.impressions > 0 AND t.pos_sum < 4 * t.impressions",
+    },
+  ],
+  "traffic_decay": [
+    {
+      "params": 11,
+      "sql": "WITH a AS (SELECT r.key AS key, SUM(CASE WHEN r.day < ? THEN r.pageviews ELSE 0 END) AS c1, SUM(CASE WHEN r.day >= ? AND r.day < ? THEN r.pageviews ELSE 0 END) AS c2, SUM(CASE WHEN r.day >= ? THEN r.pageviews ELSE 0 END) AS c3 FROM ca_rollup r WHERE r.site = ? AND r.dim = 'page' AND r.seg = '' AND r.key <> ? AND r.day BETWEEN ? AND ? GROUP BY r.key)
+SELECT a.key AS key, a.c1 AS c1, a.c2 AS c2, a.c3 AS c3, a.c1 - a.c3 AS loss FROM a WHERE a.c1 > a.c2 AND a.c2 > a.c3 AND a.c1 >= ? ORDER BY loss DESC, key LIMIT ? OFFSET ?",
+    },
+  ],
+  "traffic_movers": [
+    {
+      "params": 10,
+      "sql": "WITH a AS (SELECT r.key AS key, SUM(CASE WHEN r.day >= ? THEN r.pageviews ELSE 0 END) AS c, SUM(CASE WHEN r.day < ? THEN r.pageviews ELSE 0 END) AS p FROM ca_rollup r WHERE r.site = ? AND r.dim = 'page' AND r.seg = '' AND r.key <> ? AND r.day BETWEEN ? AND ? GROUP BY r.key)
+SELECT a.key AS key, a.c AS c, a.p AS p, CASE WHEN (a.c - a.p) * (a.c - a.p) > 4 * (a.c + a.p) THEN 1 ELSE 0 END AS notable FROM a WHERE (a.c >= ? OR a.p >= ?) AND a.c - a.p < 0 ORDER BY ABS(a.c - a.p) DESC, a.key LIMIT ? OFFSET ?",
+    },
+  ],
+}
+`;
+
+exports[`SEO statements (sqlite) > snapshot per statement: window functions present, every value bound, LIKE patterns under 50 bytes 1`] = `
+{
+  "search_cannibalization": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ? ORDER BY SUM(pqf.impressions) DESC, pqf.query LIMIT ?),
+ranked AS (SELECT pqf.query AS query, pqf.page AS page, pqf.clicks AS clicks, pqf.impressions AS impressions, pqf.pos_sum AS pos_sum, ROW_NUMBER() OVER (PARTITION BY pqf.query ORDER BY pqf.impressions DESC, pqf.page) AS rn FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT r.query AS query, r.page AS page, r.clicks AS clicks, r.impressions AS impressions, r.pos_sum AS pos_sum, qs.pages AS q_pages, qs.impressions AS q_impressions, qs.clicks AS q_clicks, qs.q_total AS q_total FROM ranked r JOIN qs ON qs.query = r.query WHERE r.rn <= ? ORDER BY qs.impressions DESC, r.query, r.rn",
+    },
+    {
+      "params": 9,
+      "sql": "WITH pq AS (SELECT d.query AS query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?) SELECT COUNT(*) AS n, SUM(qs.impressions) AS impressions FROM qs",
+    },
+    {
+      "params": 4,
+      "sql": "SELECT SUM(CASE WHEN d.page_key <> '' AND d.query <> '' THEN d.impressions ELSE 0 END) AS visible, SUM(CASE WHEN d.page_key = '' AND d.query = '' THEN d.impressions ELSE 0 END) AS total FROM ca_search_daily d WHERE d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.country = '' AND d.device = ''",
+    },
+  ],
+  "search_cannibalization_page": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?),
+cp AS (SELECT pqf.query AS query, pqf.page AS page, pqf.impressions AS impressions, pqf.pos_sum AS pos_sum FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT a.query AS query, a.impressions AS impressions_this, a.pos_sum AS pos_this, b.page AS other_page, b.impressions AS impressions_other, b.pos_sum AS pos_other FROM cp a JOIN cp b ON b.query = a.query AND b.page <> a.page WHERE a.page = ? ORDER BY a.impressions DESC, a.query, b.impressions DESC, b.page LIMIT ?",
+    },
+  ],
+  "search_cannibalization_pages": [
+    {
+      "params": 11,
+      "sql": "WITH pq AS (SELECT d.query AS query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END),
+qs0 AS (SELECT pq.query AS query, SUM(pq.impressions) AS impressions FROM pq GROUP BY pq.query),
+pqf AS (SELECT pq.query AS query, pq.page AS page, pq.clicks AS clicks, pq.impressions AS impressions, pq.pos_sum AS pos_sum, qs0.impressions AS q_total FROM pq JOIN qs0 ON qs0.query = pq.query WHERE pq.impressions > 0 AND pq.impressions * 100 >= ? * qs0.impressions),
+qs AS (SELECT pqf.query AS query, COUNT(*) AS pages, SUM(pqf.impressions) AS impressions, SUM(pqf.clicks) AS clicks, MAX(pqf.q_total) AS q_total FROM pqf GROUP BY pqf.query HAVING COUNT(*) >= 2 AND SUM(pqf.impressions) >= ?),
+cp AS (SELECT pqf.query AS query, pqf.page AS page FROM pqf JOIN qs ON qs.query = pqf.query)
+SELECT pq.page AS page, COUNT(*) AS queries, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE 1 END) AS overlapping_queries, SUM(pq.impressions) AS impressions, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE pq.impressions END) AS overlapping_impressions, SUM(pq.clicks) AS clicks, SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE pq.clicks END) AS overlapping_clicks
+FROM pq LEFT JOIN cp ON cp.query = pq.query AND cp.page = pq.page GROUP BY pq.page HAVING SUM(CASE WHEN cp.page IS NULL THEN 0 ELSE 1 END) > 0 ORDER BY overlapping_impressions DESC, page LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_cannibalization_query": [
+    {
+      "params": 7,
+      "sql": "SELECT CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE ((d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?))) AND (d.query = ?) GROUP BY CASE WHEN instr(d.page_key, '#') > 0 THEN substr(d.page_key, 1, instr(d.page_key, '#') - 1) ELSE d.page_key END ORDER BY impressions DESC, page LIMIT ?",
+    },
+  ],
+  "search_decay": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 15,
+      "sql": "WITH a AS (SELECT d.page_key AS key, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS c1, SUM(CASE WHEN d.day >= ? AND d.day < ? THEN d.clicks ELSE 0 END) AS c2, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS c3, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS i1, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS i3, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS p1, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS p3 FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query = '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.page_key)
+SELECT a.key AS key, a.c1 AS c1, a.c2 AS c2, a.c3 AS c3, a.i1 AS i1, a.i3 AS i3, a.p1 AS p1, a.p3 AS p3, a.c1 - a.c3 AS loss FROM a WHERE a.c1 > a.c2 AND a.c2 > a.c3 AND a.i1 >= ? ORDER BY loss DESC, key LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_movers": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 14,
+      "sql": "WITH a AS (SELECT d.page_key AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query = '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.page_key)
+SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN (a.cc - a.cp) * (a.cc - a.cp) > 4 * (a.cc + a.cp) THEN 1 ELSE 0 END AS notable FROM a WHERE (a.ic >= ? OR a.ip >= ?) AND a.cc - a.cp < 0 ORDER BY ABS(a.cc - a.cp) DESC, a.key LIMIT ? OFFSET ?",
+    },
+  ],
+  "search_position_bands": [
+    {
+      "params": 4,
+      "sql": "SELECT k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions, SUM(k.clicks) AS clicks FROM (SELECT d.query AS key, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.band",
+    },
+  ],
+  "search_position_bands_series": [
+    {
+      "params": 4,
+      "sql": "SELECT k.bucket AS bucket, k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions FROM (SELECT d.day AS bucket, d.query AS key, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.day, d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.bucket, k.band",
+    },
+  ],
+  "search_position_bands_series weekly": [
+    {
+      "params": 4,
+      "sql": "SELECT k.bucket AS bucket, k.band AS band, COUNT(*) AS n, SUM(k.impressions) AS impressions FROM (SELECT date(d.day, '-6 days', 'weekday 1') AS bucket, d.query AS key, SUM(d.impressions) AS impressions, CASE WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 4 THEN 0 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 11 THEN 1 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 21 THEN 2 WHEN SUM(d.pos_sum) / NULLIF(SUM(d.impressions), 0) < 51 THEN 3 ELSE 4 END AS band FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY date(d.day, '-6 days', 'weekday 1'), d.query HAVING SUM(d.impressions) > 0) k GROUP BY k.bucket, k.band",
+    },
+  ],
+  "search_position_moves": [
+    {
+      "params": 1,
+      "sql": "SELECT d.source AS source, MAX(d.day) AS day FROM ca_search_daily d WHERE (d.site = ? AND d.provisional = 0) GROUP BY d.source",
+    },
+    {
+      "params": 14,
+      "sql": "WITH a AS (SELECT d.query AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query),
+m AS (SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN a.ip >= ? THEN CASE WHEN a.pp / NULLIF(a.ip, 0) < 4 THEN 0 WHEN a.pp / NULLIF(a.ip, 0) < 11 THEN 1 WHEN a.pp / NULLIF(a.ip, 0) < 21 THEN 2 WHEN a.pp / NULLIF(a.ip, 0) < 51 THEN 3 ELSE 4 END ELSE -1 END AS bf, CASE WHEN a.ic >= ? THEN CASE WHEN a.pc / NULLIF(a.ic, 0) < 4 THEN 0 WHEN a.pc / NULLIF(a.ic, 0) < 11 THEN 1 WHEN a.pc / NULLIF(a.ic, 0) < 21 THEN 2 WHEN a.pc / NULLIF(a.ic, 0) < 51 THEN 3 ELSE 4 END ELSE -2 END AS bt FROM a WHERE a.ic >= ? OR a.ip >= ?) SELECT m.bf AS bf, m.bt AS bt, COUNT(*) AS n, SUM(CASE WHEN m.bt = -2 THEN m.ip ELSE m.ic END) AS impressions FROM m GROUP BY m.bf, m.bt",
+    },
+    {
+      "params": 15,
+      "sql": "WITH a AS (SELECT d.query AS key, SUM(CASE WHEN d.day >= ? THEN d.clicks ELSE 0 END) AS cc, SUM(CASE WHEN d.day >= ? THEN d.impressions ELSE 0 END) AS ic, SUM(CASE WHEN d.day >= ? THEN d.pos_sum ELSE 0 END) AS pc, SUM(CASE WHEN d.day < ? THEN d.clicks ELSE 0 END) AS cp, SUM(CASE WHEN d.day < ? THEN d.impressions ELSE 0 END) AS ip, SUM(CASE WHEN d.day < ? THEN d.pos_sum ELSE 0 END) AS pp FROM ca_search_daily d WHERE (d.site = ? AND d.day BETWEEN ? AND ?) AND (d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) GROUP BY d.query),
+m AS (SELECT a.key AS key, a.cc AS cc, a.ic AS ic, a.pc AS pc, a.cp AS cp, a.ip AS ip, a.pp AS pp, CASE WHEN a.ip >= ? THEN CASE WHEN a.pp / NULLIF(a.ip, 0) < 4 THEN 0 WHEN a.pp / NULLIF(a.ip, 0) < 11 THEN 1 WHEN a.pp / NULLIF(a.ip, 0) < 21 THEN 2 WHEN a.pp / NULLIF(a.ip, 0) < 51 THEN 3 ELSE 4 END ELSE -1 END AS bf, CASE WHEN a.ic >= ? THEN CASE WHEN a.pc / NULLIF(a.ic, 0) < 4 THEN 0 WHEN a.pc / NULLIF(a.ic, 0) < 11 THEN 1 WHEN a.pc / NULLIF(a.ic, 0) < 21 THEN 2 WHEN a.pc / NULLIF(a.ic, 0) < 51 THEN 3 ELSE 4 END ELSE -2 END AS bt FROM a WHERE a.ic >= ? OR a.ip >= ?),
+v AS (SELECT m.key AS key, m.cc AS cc, m.ic AS ic, m.pc AS pc, m.cp AS cp, m.ip AS ip, m.pp AS pp, m.bf AS bf, m.bt AS bt, CASE WHEN m.bf = -1 THEN 'new' WHEN m.bt = -2 THEN 'lost' WHEN m.bt < m.bf THEN 'up' WHEN m.bt > m.bf THEN 'down' ELSE 'same' END AS mv FROM m),
+r AS (SELECT v.key AS key, v.cc AS cc, v.ic AS ic, v.pc AS pc, v.cp AS cp, v.ip AS ip, v.pp AS pp, v.bf AS bf, v.bt AS bt, v.mv AS mv, ROW_NUMBER() OVER (PARTITION BY v.mv ORDER BY CASE WHEN v.mv = 'lost' THEN v.ip ELSE v.ic END DESC, v.key) AS rn FROM v WHERE v.mv <> 'same')
+SELECT r.key AS key, r.cc AS cc, r.ic AS ic, r.pc AS pc, r.cp AS cp, r.ip AS ip, r.pp AS pp, r.bf AS bf, r.bt AS bt, r.mv AS mv FROM r WHERE r.rn <= ? ORDER BY r.mv, r.rn",
+    },
+  ],
+  "search_striking_distance": [
+    {
+      "params": 10,
+      "sql": "SELECT d.query AS query, d.page_key AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE (d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '') AND ((d.page_key = ?)) AND (lower(d.query) NOT LIKE ? ESCAPE '\\' AND lower(d.query) NOT LIKE ? ESCAPE '\\') GROUP BY d.query, d.page_key HAVING SUM(d.impressions) >= ? AND SUM(d.pos_sum) >= 4 * SUM(d.impressions) AND SUM(d.pos_sum) < 21 * SUM(d.impressions) ORDER BY impressions DESC, query, page LIMIT ? OFFSET ?",
+    },
+    {
+      "params": 4,
+      "sql": "SELECT SUM(t.clicks) AS clicks, SUM(t.impressions) AS impressions FROM (SELECT SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE d.site = ? AND d.source = ? AND d.day BETWEEN ? AND ? AND d.page_key <> '' AND d.query <> '' AND d.country = '' AND d.device = '' GROUP BY d.query, d.page_key) t WHERE t.impressions > 0 AND t.pos_sum < 4 * t.impressions",
+    },
+  ],
+  "traffic_decay": [
+    {
+      "params": 11,
+      "sql": "WITH a AS (SELECT r.key AS key, SUM(CASE WHEN r.day < ? THEN r.pageviews ELSE 0 END) AS c1, SUM(CASE WHEN r.day >= ? AND r.day < ? THEN r.pageviews ELSE 0 END) AS c2, SUM(CASE WHEN r.day >= ? THEN r.pageviews ELSE 0 END) AS c3 FROM ca_rollup r WHERE r.site = ? AND r.dim = 'page' AND r.seg = '' AND r.key <> ? AND r.day BETWEEN ? AND ? GROUP BY r.key)
+SELECT a.key AS key, a.c1 AS c1, a.c2 AS c2, a.c3 AS c3, a.c1 - a.c3 AS loss FROM a WHERE a.c1 > a.c2 AND a.c2 > a.c3 AND a.c1 >= ? ORDER BY loss DESC, key LIMIT ? OFFSET ?",
+    },
+  ],
+  "traffic_movers": [
+    {
+      "params": 10,
+      "sql": "WITH a AS (SELECT r.key AS key, SUM(CASE WHEN r.day >= ? THEN r.pageviews ELSE 0 END) AS c, SUM(CASE WHEN r.day < ? THEN r.pageviews ELSE 0 END) AS p FROM ca_rollup r WHERE r.site = ? AND r.dim = 'page' AND r.seg = '' AND r.key <> ? AND r.day BETWEEN ? AND ? GROUP BY r.key)
+SELECT a.key AS key, a.c AS c, a.p AS p, CASE WHEN (a.c - a.p) * (a.c - a.p) > 4 * (a.c + a.p) THEN 1 ELSE 0 END AS notable FROM a WHERE (a.c >= ? OR a.p >= ?) AND a.c - a.p < 0 ORDER BY ABS(a.c - a.p) DESC, a.key LIMIT ? OFFSET ?",
+    },
+  ],
+}
+`;

@@ -1,0 +1,51 @@
+[
+	{ "id": "paid_search", "channel": "Paid Search", "any": [
+		{ "list": "search", "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" },
+		{ "click": ["gclid", "msclkid", "gbraid", "wbraid", "yclid"] },
+		{ "adsSource": "search" }
+	] },
+	{ "id": "paid_social", "channel": "Paid Social", "any": [
+		{ "list": "social", "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" },
+		{ "click": ["ttclid", "twclid"] },
+		{ "adsSource": "social" }
+	] },
+	{ "id": "paid_video", "channel": "Paid Video", "any": [
+		{ "list": "video", "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" },
+		{ "adsSource": "video" }
+	] },
+	{ "id": "paid_shopping", "channel": "Paid Shopping", "any": [
+		{ "list": "shopping", "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" },
+		{ "campaign": "^(.*(([^a-df-z]|^)shop|shopping).*)$", "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" }
+	] },
+	{ "id": "paid_other", "channel": "Paid Other", "any": [
+		{ "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" }
+	] },
+	{ "id": "display", "channel": "Display", "any": [
+		{ "mediumIn": ["display", "banner", "expandable", "interstitial", "cpm"] }
+	] },
+	{ "id": "affiliates", "channel": "Affiliates", "any": [ { "mediumIn": ["affiliate"] } ] },
+	{ "id": "cross_network", "channel": "Cross-network", "any": [ { "mediumIn": ["cross-network"] } ] },
+	{ "id": "audio", "channel": "Audio", "any": [ { "mediumIn": ["audio"] } ] },
+	{ "id": "sms", "channel": "SMS", "any": [ { "sourceIn": ["sms"] }, { "mediumIn": ["sms"] } ] },
+	{ "id": "mobile_push", "channel": "Mobile Push", "any": [
+		{ "sourceIn": ["firebase"] },
+		{ "medium": "^(mobile|notification)$|push$" }
+	] },
+	{ "id": "email", "channel": "Email", "any": [
+		{ "sourceIn": ["gmail", "email", "e-mail", "e_mail", "e mail", "newsletter"] },
+		{ "mediumIn": ["gmail", "email", "e-mail", "e_mail", "e mail", "newsletter"] },
+		{ "refList": "webmail" }
+	] },
+	{ "id": "ai_assistants", "channel": "AI Assistants", "any": [ { "list": "ai" } ] },
+	{ "id": "organic_search", "channel": "Organic Search", "any": [ { "list": "search" }, { "mediumIn": ["organic"] } ] },
+	{ "id": "organic_social", "channel": "Organic Social", "any": [
+		{ "list": "social" },
+		{ "mediumIn": ["social", "social-network", "social-media", "sm", "social network", "social media"] },
+		{ "click": ["fbclid"] }
+	] },
+	{ "id": "organic_video", "channel": "Organic Video", "any": [ { "list": "video" }, { "medium": "^(.*video.*)$" } ] },
+	{ "id": "organic_shopping", "channel": "Organic Shopping", "any": [ { "list": "shopping" }, { "campaign": "^(.*(([^a-df-z]|^)shop|shopping).*)$" } ] },
+	{ "id": "referral", "channel": "Referral", "any": [ { "mediumIn": ["referral", "app", "link"] }, { "referrer": true } ] },
+	{ "id": "direct", "channel": "Direct", "any": [ { "direct": true } ] },
+	{ "id": "unknown", "channel": "Unknown", "any": [ { "utm": true } ] }
+]

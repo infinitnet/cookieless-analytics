@@ -1,0 +1,9 @@
+{
+	"search": ["google.*", "bing.com", "duckduckgo.com", "ecosia.org", "yahoo.*", "baidu.com", "yandex.*", "search.brave.com", "startpage.com", "qwant.com", "naver.com", "seznam.cz", "kagi.com", "ask.com", "aol.com", "mojeek.com", "sogou.com", "so.com", "daum.net"],
+	"social": ["facebook.com", "fb.com", "m.facebook.com", "l.facebook.com", "lm.facebook.com", "instagram.com", "l.instagram.com", "x.com", "t.co", "twitter.com", "linkedin.com", "lnkd.in", "reddit.com", "pinterest.*", "tiktok.com", "threads.net", "threads.com", "bsky.app", "mastodon.*", "news.ycombinator.com", "vk.com", "telegram.org", "t.me", "whatsapp.com", "wa.me", "snapchat.com", "tumblr.com", "quora.com", "discord.com", "weibo.com", "xing.com"],
+	"video": ["youtube.com", "youtu.be", "m.youtube.com", "vimeo.com", "twitch.tv", "dailymotion.com", "rumble.com"],
+	"shopping": ["shopping.google.com", "amazon.*", "ebay.*", "etsy.com", "aliexpress.com", "walmart.com", "idealo.*", "shopify.com"],
+	"ai": ["chatgpt.com", "chat.openai.com", "perplexity.ai", "claude.ai", "gemini.google.com", "copilot.microsoft.com", "you.com", "phind.com", "meta.ai", "grok.com", "deepseek.com", "chat.deepseek.com", "chat.mistral.ai", "poe.com", "duck.ai"],
+	"webmail": ["mail.google.com", "outlook.live.com", "outlook.office.com", "outlook.office365.com", "mail.yahoo.com", "mail.proton.me", "proton.me", "mail.aol.com", "mail.yandex.ru", "web.de", "gmx.net", "gmx.de", "icloud.com"],
+	"ignore": ["paypal.com", "stripe.com", "klarna.com", "adyen.com", "mollie.com", "checkout.com", "accounts.google.com", "login.microsoftonline.com", "login.live.com", "appleid.apple.com", "auth0.com", "okta.com", "3dsecure.io"]
+}

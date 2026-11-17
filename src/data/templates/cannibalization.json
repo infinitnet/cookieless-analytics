@@ -1,0 +1,59 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Cannibalization",
+	"description": "Queries where several pages of the site compete, and the pages involved.",
+	"tiles": [
+		{
+			"id": "ca0001",
+			"report": "search_cannibalization",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "cannibalized_queries",
+			"title": "Cannibalized queries"
+		},
+		{
+			"id": "ca0002",
+			"report": "search_cannibalization",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "cannibalized_impressions",
+			"title": "Their impressions"
+		},
+		{
+			"id": "ca0003",
+			"report": "search_cannibalization",
+			"kind": "kpi",
+			"w": 1,
+			"metric": "visible_share",
+			"title": "Visible share"
+		},
+		{
+			"id": "ca0004",
+			"report": "search_cannibalization",
+			"kind": "table",
+			"w": 3,
+			"title": "Queries with competing pages"
+		},
+		{
+			"id": "ca0005",
+			"report": "search_cannibalization_pages",
+			"kind": "table",
+			"w": 3,
+			"title": "Competing pages"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "none",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d"
+		],
+		"compare": false
+	}
+}

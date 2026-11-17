@@ -1,0 +1,17 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Links",
+	"description": "Impressions, clicks and click-through rate of short links by link, placement, page and channel, with the Link clicks goal.",
+	"tiles": [
+		{ "id": "lk0001", "report": "goals", "kind": "kpi", "w": 1, "metric": "completions", "params": { "goal": "Link clicks" }, "title": "Link clicks" },
+		{ "id": "lk0002", "report": "goals", "kind": "kpi", "w": 1, "metric": "conversion_rate", "params": { "goal": "Link clicks" }, "title": "Sessions with a link click" },
+		{ "id": "lk0003", "report": "links", "kind": "bars", "w": 1, "metric": "clicks", "params": { "by": "channel" }, "title": "Clicks by channel" },
+		{ "id": "lk0004", "report": "links", "kind": "table", "w": 3, "params": { "by": "link" }, "title": "Links" },
+		{ "id": "lk0005", "report": "links", "kind": "table", "w": 2, "params": { "by": "place" }, "title": "Placements" },
+		{ "id": "lk0006", "report": "links", "kind": "bars", "w": 1, "metric": "clicks", "params": { "by": "page" }, "title": "Clicks by page" }
+	],
+	"defaults": { "range": "30d", "compare": "previous", "filters": [] },
+	"viewer": { "ranges": ["7d", "30d", "90d"], "compare": true },
+	"dependencies": { "goals": [{ "name": "Link clicks", "type": "event", "match": "is", "value": "out" }] }
+}

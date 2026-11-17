@@ -1,0 +1,57 @@
+{
+	"kind": "dashboard-template",
+	"v": 1,
+	"name": "Position bands",
+	"description": "Queries per position band, the trend, movement between bands and pairs in striking distance.",
+	"tiles": [
+		{
+			"id": "pb0001",
+			"report": "search_position_bands",
+			"kind": "bars",
+			"w": 1,
+			"title": "Queries by band"
+		},
+		{
+			"id": "pb0002",
+			"report": "search_position_bands",
+			"kind": "table",
+			"w": 2,
+			"title": "Bands"
+		},
+		{
+			"id": "pb0003",
+			"report": "search_position_bands_series",
+			"kind": "stacked",
+			"w": 3,
+			"metric": "queries",
+			"title": "Queries per band over time"
+		},
+		{
+			"id": "pb0004",
+			"report": "search_position_moves",
+			"kind": "table",
+			"w": 3,
+			"title": "Movement between bands"
+		},
+		{
+			"id": "pb0005",
+			"report": "search_striking_distance",
+			"kind": "table",
+			"w": 3,
+			"title": "Striking distance"
+		}
+	],
+	"defaults": {
+		"range": "30d",
+		"compare": "none",
+		"filters": []
+	},
+	"viewer": {
+		"ranges": [
+			"7d",
+			"30d",
+			"90d"
+		],
+		"compare": false
+	}
+}

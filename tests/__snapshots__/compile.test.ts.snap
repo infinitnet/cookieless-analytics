@@ -1,0 +1,3593 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`compileTraffic snapshots (postgres) > every op on one dim per scope, and is on every dim 1`] = `
+{
+  "browser is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.browser IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.channel IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.channel IS NULL OR NOT (s.channel IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(s.channel IS NULL OR NOT ((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(s.channel IS NULL OR NOT ((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(s.channel IS NULL OR NOT (s.channel = ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(s.channel IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "country is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.country IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "device is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.device IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "entry is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.entry_path IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event is": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'n') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value ->> 'n') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop contains": {
+    "ev": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop is": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop is_not": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IS NULL OR NOT ((h.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_contains": {
+    "ev": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IS NULL OR NOT ((lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_prefix": {
+    "ev": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IS NULL OR NOT ((lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_regex": {
+    "ev": {
+      "params": [
+        "/a",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IS NULL OR NOT ((h.value -> 'pr' ->> 'plan') = ?))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value -> 'pr' ->> 'plan') = ?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop prefix": {
+    "ev": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value -> 'pr' ->> 'plan')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop regex": {
+    "ev": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "((h.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value -> 'pr' ->> 'plan') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "exit is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.exit_path IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "goal is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/pricing%",
+        "signup",
+        "pro",
+        "%example%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE (((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\')) OR (((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = ?) AND ((x.value -> 'pr' ->> 'plan') = ?)) OR (((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = '_outbound') AND (lower((x.value -> 'pr' ->> 'url')) LIKE ? ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "goal is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "signup",
+        "pro",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = ?) AND ((x.value -> 'pr' ->> 'plan') = ?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "host is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.host IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "lang is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.lang IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "os is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.os IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "page contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(h.path IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "page is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((h.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(h.path IS NULL OR NOT (h.path IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "page not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(h.path IS NULL OR NOT ((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(h.path IS NULL OR NOT ((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((h.value ->> 'p') = ?))",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') = ?)))",
+    },
+    "srv": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(h.path IS NULL OR NOT (h.path = ?))",
+    },
+  },
+  "page prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "((h.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM jsonb_each(s.hits) AS x(key, value) WHERE ((CAST((x.value ->> 't') AS BIGINT) IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(h.path IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "ref_host is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.ref_host IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "region is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.region IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "source is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.source IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_campaign is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_campaign IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_content is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_content IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_medium is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_medium IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_source is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_source IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_term is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_term IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+}
+`;
+
+exports[`compileTraffic snapshots (postgres) > search dims on every op 1`] = `
+{
+  "country contains": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "country is": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.country IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "country is_not": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.country IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "country not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "country not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "country not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.country = ?))",
+    },
+  },
+  "country prefix": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "country regex": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.country IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "device contains": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "device is": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.device IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "device is_not": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.device IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "device not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "device not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "device not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.device = ?))",
+    },
+  },
+  "device prefix": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "device regex": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.device IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "page contains": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page is": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.page_key IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "page is_not": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.page_key IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "page not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.page_key = ?))",
+    },
+  },
+  "page prefix": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page regex": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.page_key IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "query contains": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "query is": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.query IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "query is_not": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.query IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "query not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "query not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "query not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.query = ?))",
+    },
+  },
+  "query prefix": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "query regex": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.query IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "source contains": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "source is": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.source IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+  "source is_not": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.source IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+  },
+  "source not_contains": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "source not_prefix": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "source not_regex": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.source = ?))",
+    },
+  },
+  "source prefix": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "source regex": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.source IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb))))",
+    },
+  },
+}
+`;
+
+exports[`compileTraffic snapshots (sqlite) > every op on one dim per scope, and is on every dim 1`] = `
+{
+  "browser is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.browser IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.channel IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.channel IS NULL OR NOT (s.channel IN (SELECT value FROM json_each(?))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(s.channel IS NULL OR NOT ((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(s.channel IS NULL OR NOT ((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(s.channel IS NULL OR NOT (s.channel = ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(s.channel) LIKE lower(?) ESCAPE '\\') OR (lower(s.channel) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "channel regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(s.channel IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "country is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.country IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "device is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.device IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "entry is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.entry_path IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event is": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'n') IN (SELECT value FROM json_each(?)))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND ((x.value ->> 'n') IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop contains": {
+    "ev": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop is": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?)))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop is_not": {
+    "ev": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IS NULL OR NOT (CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?))))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_contains": {
+    "ev": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IS NULL OR NOT ((lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_prefix": {
+    "ev": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IS NULL OR NOT ((lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop not_regex": {
+    "ev": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IS NULL OR NOT (CAST(json_extract(h.value, '$.pr.plan') AS TEXT) = ?))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) = ?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop prefix": {
+    "ev": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(h.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND ((lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\') OR (lower(CAST(json_extract(x.value, '$.pr.plan') AS TEXT)) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "event_prop regex": {
+    "ev": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(CAST(json_extract(h.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?)))",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "exit is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.exit_path IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "goal is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "/pricing%",
+        "signup",
+        "pro",
+        "%example%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\')) OR (((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = ?) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) = ?)) OR (((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = '_outbound') AND (lower(CAST(json_extract(x.value, '$.pr.url') AS TEXT)) LIKE ? ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "goal is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "signup",
+        "pro",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE ((x.value ->> 'n') IS NOT NULL AND (x.value ->> 'n') = ?) AND (CAST(json_extract(x.value, '$.pr.plan') AS TEXT) = ?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "host is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.host IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "lang is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.lang IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "os is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.os IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "page contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'p') IN (SELECT value FROM json_each(?)))",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(h.path IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "page is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((h.value ->> 'p') IN (SELECT value FROM json_each(?))))",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(h.path IS NULL OR NOT (h.path IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "page not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "session": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(h.path IS NULL OR NOT ((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\')))",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(h.path IS NULL OR NOT ((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a",
+      ],
+      "sql": "((h.value ->> 'p') IS NULL OR NOT ((h.value ->> 'p') = ?))",
+    },
+    "session": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') = ?)))",
+    },
+    "srv": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(h.path IS NULL OR NOT (h.path = ?))",
+    },
+  },
+  "page prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))",
+    },
+    "session": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\') OR (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\'))))",
+    },
+    "srv": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(h.path) LIKE lower(?) ESCAPE '\\') OR (lower(h.path) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "((h.value ->> 'p') IN (SELECT value FROM json_each(?)))",
+    },
+    "session": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND ((x.value ->> 'p') IN (SELECT value FROM json_each(?)))))",
+    },
+    "srv": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(h.path IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "ref_host is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.ref_host IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "region is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.region IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "source is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.source IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status is_not": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_contains": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status not_regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status prefix": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "status regex": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [
+      "status",
+    ],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_campaign is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_campaign IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_content is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_content IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_medium is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_medium IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_source is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_source IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "utm_term is": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(s.utm_term IN (SELECT value FROM json_each(?)))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+}
+`;
+
+exports[`compileTraffic snapshots (sqlite) > search dims on every op 1`] = `
+{
+  "country contains": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "country is": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.country IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "country is_not": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.country IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "country not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "country not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "country not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.country = ?))",
+    },
+  },
+  "country prefix": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.country) LIKE lower(?) ESCAPE '\\') OR (lower(d.country) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "country regex": {
+    "ignored": [],
+    "needs": Set {
+      "country",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.country IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "device contains": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "device is": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.device IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "device is_not": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.device IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "device not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "device not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "device not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.device = ?))",
+    },
+  },
+  "device prefix": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.device) LIKE lower(?) ESCAPE '\\') OR (lower(d.device) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "device regex": {
+    "ignored": [],
+    "needs": Set {
+      "device",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.device IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "page contains": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page is": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.page_key IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "page is_not": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.page_key IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "page not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "page not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.page_key = ?))",
+    },
+  },
+  "page prefix": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.page_key) LIKE lower(?) ESCAPE '\\') OR (lower(d.page_key) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "page regex": {
+    "ignored": [],
+    "needs": Set {
+      "page",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.page_key IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "query contains": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "query is": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.query IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "query is_not": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.query IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "query not_contains": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "query not_prefix": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "query not_regex": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.query = ?))",
+    },
+  },
+  "query prefix": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.query) LIKE lower(?) ESCAPE '\\') OR (lower(d.query) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "query regex": {
+    "ignored": [],
+    "needs": Set {
+      "query",
+    },
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.query IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "source contains": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "source is": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(d.source IN (SELECT value FROM json_each(?)))",
+    },
+  },
+  "source is_not": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","x_y%"]",
+      ],
+      "sql": "(NOT (d.source IN (SELECT value FROM json_each(?))))",
+    },
+  },
+  "source not_contains": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "%/a%",
+        "%x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "source not_prefix": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "(NOT ((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\')))",
+    },
+  },
+  "source not_regex": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a",
+      ],
+      "sql": "(NOT (d.source = ?))",
+    },
+  },
+  "source prefix": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "/a%",
+        "x\\_y\\%%",
+      ],
+      "sql": "((lower(d.source) LIKE lower(?) ESCAPE '\\') OR (lower(d.source) LIKE lower(?) ESCAPE '\\'))",
+    },
+  },
+  "source regex": {
+    "ignored": [],
+    "needs": Set {},
+    "pred": {
+      "params": [
+        "["/a","DE"]",
+      ],
+      "sql": "(d.source IN (SELECT value FROM json_each(?)))",
+    },
+  },
+}
+`;
+
+exports[`revenue filter snapshots (postgres) > currency and revenue compile to semi-joins with sid IS NOT NULL and no inlined value 1`] = `
+{
+  "currency is EUR": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "EUR",
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "currency is_not EUR,USD": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "["EUR","USD"]",
+      ],
+      "sql": "((s.day, s.sid) NOT IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur IN (SELECT jsonb_array_elements_text(CAST(? AS jsonb)))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue gt 50": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "EUR",
+        50,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) > ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue gte 50": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        50,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) >= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue lt 49.9": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        49.9,
+      ],
+      "sql": "((s.day, s.sid) NOT IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) >= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue lte 0": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        0,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) <= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+}
+`;
+
+exports[`revenue filter snapshots (sqlite) > currency and revenue compile to semi-joins with sid IS NOT NULL and no inlined value 1`] = `
+{
+  "currency is EUR": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "EUR",
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "currency is_not EUR,USD": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "["EUR","USD"]",
+      ],
+      "sql": "((s.day, s.sid) NOT IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur IN (SELECT value FROM json_each(?))))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue gt 50": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "EUR",
+        50,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) > ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue gte 50": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        50,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) >= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue lt 49.9": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        49.9,
+      ],
+      "sql": "((s.day, s.sid) NOT IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) >= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+  "revenue lte 0": {
+    "ev": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "ignoredTraffic": [],
+    "pv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+    "session": {
+      "params": [
+        "default",
+        20260310,
+        20260312,
+        "USD",
+        0,
+      ],
+      "sql": "((s.day, s.sid) IN (SELECT x.sday, x.sid FROM ca_events x WHERE x.site = ? AND x.day BETWEEN ? AND ? AND x.val >= 0 AND x.sid IS NOT NULL AND x.sday IS NOT NULL AND x.cur = ? GROUP BY x.sday, x.sid HAVING SUM(x.val) <= ?))",
+    },
+    "srv": {
+      "params": [],
+      "sql": "1 = 1",
+    },
+  },
+}
+`;

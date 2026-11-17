@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scopeSummary and escapeRegex > summaries 1`] = `
+{
+  "empty": "Site-wide",
+  "host": "Host shop.example.com",
+  "hosts": "Hosts matching ^shop\\.",
+  "joined": "Host a.org and Pages starting with /blog/",
+  "none": "Site-wide",
+  "page": "Page /blog/x",
+  "prefix": "Pages starting with /blog/",
+  "queries": "Queries matching ^how to",
+  "query": "Query how to x",
+  "regex": "Pages matching ^/blog/\\d+",
+  "rules": "Pages: 4 rules",
+  "terms": "Queries: 3 terms",
+  "two": "Page /a or Page /b",
+}
+`;
+
+exports[`scopeToFilters > compiles to the same SQL as hand-written filters 1`] = `
+{
+  "ev": {
+    "params": [],
+    "sql": "1 = 1",
+  },
+  "ignoredTraffic": [],
+  "pv": {
+    "params": [
+      "/blog/%",
+    ],
+    "sql": "(lower((h.value ->> 'p')) LIKE lower(?) ESCAPE '\\')",
+  },
+  "session": {
+    "params": [
+      "a.org",
+      "/blog/%",
+    ],
+    "sql": "(s.host = ?) AND (EXISTS (SELECT 1 FROM json_each(s.hits) AS x WHERE (((x.value ->> 't') IS NOT NULL AND (x.value ->> 'n') IS NULL)) AND (lower((x.value ->> 'p')) LIKE lower(?) ESCAPE '\\')))",
+  },
+  "srv": {
+    "params": [
+      "/blog/%",
+    ],
+    "sql": "(lower(h.path) LIKE lower(?) ESCAPE '\\')",
+  },
+}
+`;
