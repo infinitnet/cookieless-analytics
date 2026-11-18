@@ -171,7 +171,7 @@ export const PANEL_DEFINITIONS: Readonly<Record<ReportName | PanelId, string>> =
 	journey_paths: "The most common sequences of pages viewed in one session.",
 	collections: "Page views grouped by the CMS content type of the page.",
 	site_search: "Searches made with the site's own search box, by search term.",
-	sites_summary: "One row per site with sessions, page views, visitors, bounce rate, engaged rate and revenue.",
+	sites_summary: "One row per site with sessions, page views, visitors, bounce rate and revenue.",
 	links: "Views, clicks and click-through rate of the site's short links, by link or by the chosen grouping.",
 	best_pages: `Landing pages with the highest score. Score: ${SCORE_DEFINITION.charAt(0).toLowerCase()}${SCORE_DEFINITION.slice(1)}`,
 	worst_pages: `Landing pages with the lowest score. Score: ${SCORE_DEFINITION.charAt(0).toLowerCase()}${SCORE_DEFINITION.slice(1)}`,

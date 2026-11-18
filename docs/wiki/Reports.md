@@ -37,7 +37,7 @@ Every view is also a link: the range, filters, comparison, segment and site are 
 
 ![Overview with metric cards, chart and panels](images/overview.png)
 
-- **Metric cards**: Visitors, Sessions, Pageviews, Views per session, Bounce rate, Engaged rate and Avg. duration, each with the change against the comparison. A click on a card turns its line on the chart on or off.
+- **Metric cards**: Visitors, Sessions, Pageviews, Views per session, Bounce rate and Avg. duration, each with the change against the comparison. A click on a card turns its line on the chart on or off.
 - **Info markers**: the small "i" on a card or panel opens the definition of its number.
 - **Active now**: a live badge in the page head with the sessions seen within the realtime window (`realtimeWindowMinutes`, default 5).
 - **Revenue strip**: revenue, orders, average order value and revenue per visitor, shown only when the site has recorded orders. See [Revenue and Refunds](Revenue-and-Refunds).

@@ -16,6 +16,19 @@ updates:
       npm-security:
         applies-to: security-updates
         update-types: [minor, patch]
+  # The registry companion: its own importer in the root lockfile, exact pins kept as written.
+  - package-ecosystem: npm
+    directory: /packages/companion
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      companion-minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+      companion-security:
+        applies-to: security-updates
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -6,11 +6,47 @@
 export const PLUGIN_ID = "cookieless-analytics";
 export const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-export const VERSION = "1.0.1";
+export const VERSION = "1.1.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 export const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
 export const PRODUCT_URL = "https://infinitnet.io/cookieless-analytics/";
+
+/**
+ * Cookieless Analytics Companion, the sandboxed setup helper in the EmDash plugin registry (docs/integration.md).
+ * A registry install runs under an id derived from publisher and slug, so the admin finds it by both.
+ */
+export const COMPANION_SLUG = "cookieless-analytics-companion";
+export const COMPANION_NAME = "Cookieless Analytics Companion";
+/** DID of the registry publisher; equal to `publisher` in `packages/companion/emdash-plugin.jsonc`. */
+export const COMPANION_PUBLISHER_DID = "did:plc:htzvomqz4z63po3if3uejz43";
+
+/** Body of `POST /_emdash/api/plugins/<companion id>/hello`, sent by the admin once per browser session. */
+export interface CompanionHello {
+	v: 1;
+	product: typeof PLUGIN_ID;
+	/** Package version of this plugin, `x.y.z`. */
+	pluginVersion: string;
+	contractVersion: number;
+}
+
+const SEMVER_RE = /^\d{1,4}\.\d{1,4}\.\d{1,4}(?:-[0-9A-Za-z.-]{1,32})?$/;
+
+/** True when `body` is exactly a `CompanionHello`: no other key, a semver `pluginVersion`, an integer `contractVersion` from 1 to 999. */
+export function isCompanionHello(body: unknown): body is CompanionHello {
+	if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+	const b = body as Record<string, unknown>;
+	return (
+		Object.keys(b).length === 4 &&
+		b.v === 1 &&
+		b.product === PLUGIN_ID &&
+		typeof b.pluginVersion === "string" &&
+		SEMVER_RE.test(b.pluginVersion) &&
+		Number.isInteger(b.contractVersion) &&
+		(b.contractVersion as number) >= 1 &&
+		(b.contractVersion as number) <= 999
+	);
+}
 
 /** Route names under `/_emdash/api/plugins/<PLUGIN_ID>/`. */
 export const ROUTES = {

@@ -16,7 +16,7 @@
 			"report": "overview",
 			"kind": "kpi",
 			"w": 1,
-			"metric": "engaged_rate"
+			"metric": "bounce_rate"
 		},
 		{
 			"id": "aq0003",

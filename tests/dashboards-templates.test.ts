@@ -1,6 +1,6 @@
 /** Templates: export, import with dependency resolution, the built-in gallery. */
 import { describe, expect, it } from "vitest";
-import { DashboardError, TemplateSchema } from "../src/dashboards/schema.js";
+import { DashboardError, TemplateSchema, TILE_METRICS } from "../src/dashboards/schema.js";
 import { getDashboard, saveDashboard } from "../src/dashboards/store.js";
 import { BUILTIN_GROUPS, BUILTIN_NAMES, BUILTIN_TEMPLATES, type DepKind, fromTemplate, type Item, type Lookups, readTemplate, toTemplate } from "../src/dashboards/templates.js";
 import { FORBIDDEN_PUBLIC_WORDS } from "../src/contract.js";
@@ -68,6 +68,13 @@ describe("built-in gallery", () => {
 			["sources", "table", null],
 			["countries", "table", null],
 		]);
+		// One engagement figure per template: bounce rate. Engaged rate stays a tile metric for saved and new tiles.
+		const kpis = (name: string) => readTemplate({ builtin: name }).tiles.filter((t) => t.kind === "kpi").map((t) => t.metric);
+		expect(kpis("behaviour")).toEqual(["views_per_session", "avg_duration", "bounce_rate"]);
+		expect(kpis("acquisition")).toContain("bounce_rate");
+		for (const name of BUILTIN_NAMES) expect(kpis(name)).not.toContain("engaged_rate");
+		expect(TILE_METRICS.overview).toContain("engaged_rate");
+		expect(TILE_METRICS.timeseries).toContain("engaged_rate");
 		expect((readTemplate({ builtin: "search" }).tiles.map((t) => t.report))).toEqual(expect.arrayContaining(["search_overview", "search_queries", "search_pages"]));
 		// SEO templates stay inside the 93 day cap and never ask for compare.
 		for (const n of BUILTIN_NAMES.filter((x) => BUILTIN_GROUPS[x] === "SEO")) {

@@ -201,5 +201,18 @@ describe("remote satellite proxy", () => {
 			expect(out.totals.previous.pageviews).toBe(36);
 			expect(out.totals.delta.pageviews).toBe(-0.5);
 		});
+
+		it("derives a satellite's bounce rate from its engaged rate, for both periods, and keeps its delta as sent", async () => {
+			const fetch = vi.fn(
+				async () =>
+					new Response(
+						JSON.stringify({ ok: true, data: { data: { totals: { sessions: 10, pageviews: 20, visitors: 8, bounce_rate: 0.6, engaged_rate: 0.5 }, compareTotals: { sessions: 10, pageviews: 20, visitors: 8, bounce_rate: 0.9, engaged_rate: 0.3 }, delta: { bounce_rate: -0.3333 } } } }),
+						{ status: 200 },
+					),
+			);
+			const out = await summary(remote(), { fetch });
+			const row = out.rows.find((r: { id: string }) => r.id === "blog");
+			expect(row).toMatchObject({ bounce_rate: 0.5, engaged_rate: 0.5, previous: { bounce_rate: 0.7, engaged_rate: 0.3 }, delta: { bounce_rate: -0.3333 } });
+		});
 	});
 });

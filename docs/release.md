@@ -23,6 +23,10 @@ node scripts/build-openapi.mjs --check
 - README image links are relative (`docs/readme/<name>.png`) and `docs/readme` is not in the tarball. On npmjs.com they render because npm rewrites relative links against the `repository` field of `package.json` (`git+https://github.com/infinitnet/cookieless-analytics.git`), so they show the files on the default branch of GitHub.
 - Protect `v*` tags in the repository settings (a tag ruleset limited to maintainers): anyone who can push a version tag starts a publish.
 
+## Registry companion
+
+The registry companion is released separately from `packages/companion`, through its own tag pattern `cookieless-analytics-companion@X.Y.Z`, with the version taken from `packages/companion/package.json`. The native package keeps its `v*` tags, and `release.yml` does not run for a companion tag. Before tagging, the companion's `validate`, `typecheck`, `test` and `bundle` scripts pass (see [CONTRIBUTING.md](../CONTRIBUTING.md#registry-companion)), and the bundled tarball lists only the files the registry expects.
+
 ## Repository settings (once, after the repository is public)
 
 - Settings, General, Pull Requests: enable Allow auto-merge. Only `.github/workflows/dependabot-automerge.yml` uses it, and only for Dependabot patch, minor and security updates.

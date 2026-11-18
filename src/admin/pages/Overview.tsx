@@ -2,6 +2,7 @@
 import { Button } from "@cloudflare/kumo";
 import { useEffect, useState } from "react";
 import type { HostEntry } from "../../routes/sites.js";
+import { CompanionNotice } from "../companion.js";
 import { annotationAction } from "../components/AnnotationPopover.js";
 import { call, useReport, useSearchStatus } from "../api.js";
 import { Donut } from "../components/Chart.js";
@@ -16,7 +17,7 @@ import { adminHref, ErrorScope, ReportNotices, SETTINGS_HREF, usePageError } fro
 import { allNotices, ReportPanel, useRevenue } from "./report.js";
 import { SitesSummary } from "./SitesSummary.js";
 
-const KPIS = ["visitors", "sessions", "pageviews", "views_per_session", "bounce_rate", "engaged_rate", "avg_duration"] as const;
+const KPIS = ["visitors", "sessions", "pageviews", "views_per_session", "bounce_rate", "avg_duration"] as const;
 
 /** Overview panels: the first 8 rows each, so the grid is even; notices once at the top of the page. */
 const ROWS = 8;
@@ -204,5 +205,14 @@ export function FirstRun({ view, reload }: { view: View; reload: () => void }) {
 }
 
 export default function Overview() {
-	return <Shell allSites title="Overview" docs={({ all }) => (all ? "Multi-Site-and-Sites-View" : "Reports")}>{(v) => (v.all ? <SitesSummary {...v} /> : <OverviewBody {...v} />)}</Shell>;
+	return (
+		<Shell allSites title="Overview" docs={({ all }) => (all ? "Multi-Site-and-Sites-View" : "Reports")}>
+			{(v) => (
+				<>
+					<CompanionNotice />
+					{v.all ? <SitesSummary {...v} /> : <OverviewBody {...v} />}
+				</>
+			)}
+		</Shell>
+	);
 }

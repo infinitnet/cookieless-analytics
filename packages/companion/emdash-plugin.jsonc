@@ -1,0 +1,39 @@
+{
+	"$schema": "./node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
+
+	"slug": "cookieless-analytics-companion",
+	"publisher": "did:plc:htzvomqz4z63po3if3uejz43",
+
+	"license": "Apache-2.0",
+	"author": { "name": "Constantin Oesterling (Infinitnet)", "url": "https://github.com/infinitnet" },
+	"security": { "url": "https://github.com/infinitnet/cookieless-analytics/security/advisories/new" },
+
+	"name": "Cookieless Analytics Companion",
+	"description": "Guided setup for Cookieless Analytics by Infinitnet, the cookieless web analytics plugin for EmDash. No permissions, no page script.",
+	// The registry has no category field; keywords are the only tagging.
+	"keywords": ["analytics", "cookieless analytics", "web analytics", "privacy", "setup"],
+	"repo": "https://github.com/infinitnet/cookieless-analytics",
+
+	"release": {
+		"requires": { "env:emdash": ">=1.5.0" },
+		// Listing media, kept in images/ so they stay out of the bundle.
+		"artifacts": {
+			"icon": { "file": "images/icon.png" },
+			"screenshots": [
+				{ "file": "images/screenshot-1.png" },
+				{ "file": "images/screenshot-2.png" },
+				{ "file": "images/screenshot-3.png" },
+				{ "file": "images/screenshot-4.png" },
+			],
+		},
+	},
+
+	// Trust contract: no permissions.
+	"capabilities": [],
+	"allowedHosts": [],
+	"storage": {},
+
+	"admin": {
+		"pages": [{ "path": "/setup", "label": "Analytics setup", "group": "Analytics" }],
+	},
+}

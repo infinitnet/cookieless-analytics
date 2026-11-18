@@ -23,7 +23,6 @@ const COLUMNS: ReadonlyArray<readonly [keyof SummaryRow & string, string, Format
 	["pageviews", "Pageviews", "number"],
 	["visitors", "Visitors", "number"],
 	["bounce_rate", "Bounce rate", "percent"],
-	["engaged_rate", "Engaged rate", "percent"],
 ];
 
 /** Revenue as one line per currency, never one number. */
@@ -116,7 +115,6 @@ export function SitesSummary({ state, update }: Pick<View, "state" | "update">) 
 						<td className="ca-num" title="A visitor of two sites is two visitors; cross-site uniques are never counted.">
 							not summed
 						</td>
-						<td />
 						<td />
 						<td className="ca-num">
 							<Revenue list={res.totals.revenue} />

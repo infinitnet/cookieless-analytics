@@ -83,7 +83,7 @@ const GROUPS = [...new Set(IMPACT_OPTIONS.map((o) => o[0]))];
 const LOW_IMPRESSIONS = 50;
 const LOW_SESSIONS = 50;
 /** The fixed strip of standard KPIs under an expanded row (same scope and windows). */
-const CONTEXT_KPIS = ["visitors", "sessions", "pageviews", "bounce_rate", "engaged_rate", "avg_duration"] as const;
+const CONTEXT_KPIS = ["visitors", "sessions", "pageviews", "bounce_rate", "avg_duration"] as const;
 
 export const IMPACT_TEXT = {
 	incomplete: (n: number, w: number) => `The after window has ${n} of ${w} days; numbers will change.`,

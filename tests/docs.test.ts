@@ -184,6 +184,70 @@ describe("docs set", () => {
 	});
 });
 
+describe("registry companion docs", () => {
+	const DIR = "packages/companion";
+	const SECTIONS = ["description", "installation", "faq", "security", "changelog"];
+	const graphemes = (s: string) => [...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(s)].length;
+	const files = [`${DIR}/README.md`, ...SECTIONS.map((s) => `${DIR}/listing/${s}.md`), "docs/wiki/Registry-Companion.md"];
+	const companionReadme = read(`${DIR}/README.md`);
+
+	it("the manifest description fits 140 graphemes and each listing section 2,000 graphemes and 20,000 bytes", () => {
+		const description = read(`${DIR}/emdash-plugin.jsonc`).match(/^\t"description": "([^"]+)"/m)?.[1] ?? "";
+		expect(description).toMatch(/^Guided setup for Cookieless Analytics by Infinitnet/);
+		expect(graphemes(description)).toBeLessThanOrEqual(140);
+		for (const s of SECTIONS) {
+			const md = read(`${DIR}/listing/${s}.md`);
+			expect(graphemes(md), s).toBeLessThan(2000);
+			expect(Buffer.byteLength(md), s).toBeLessThan(20000);
+		}
+	});
+
+	it("the companion README stays under 20 KB because it is packed into the bundle", () => {
+		expect(Buffer.byteLength(companionReadme)).toBeLessThan(20 * 1024);
+	});
+
+	it("the companion README opens with the definition and the honest second paragraph", () => {
+		const paras = companionReadme.split("\n\n");
+		expect(paras[0]).toBe("# Cookieless Analytics Companion");
+		expect(paras[1]).toBe(
+			"Cookieless Analytics Companion is a sandboxed EmDash plugin that guides and confirms the install of Cookieless Analytics by Infinitnet, the full cookieless web analytics plugin for EmDash.",
+		);
+		expect(paras[2]).toBe("It does not count visits. Installing it from the registry does not install or trust the npm package.");
+		expect(companionReadme).toContain("https://www.npmjs.com/package/@infinitnet/cookieless-analytics");
+	});
+
+	it("both READMEs link each other with relative paths that resolve", () => {
+		expect(read("README.md")).toContain("](packages/companion/README.md)");
+		expect(companionReadme).toContain("](../../README.md)");
+		const broken = [...companionReadme.matchAll(/\]\(([^)#\s]+)(#[^)]*)?\)/g)]
+			.map((m) => m[1] ?? "")
+			.filter((t) => !/^[a-z]+:/i.test(t) && !existsSync(`${DIR}/${t}`));
+		expect(broken).toEqual([]);
+	});
+
+	it("listing sections use absolute links only, since the registry shows them outside the repository", () => {
+		for (const s of SECTIONS) expect([...read(`${DIR}/listing/${s}.md`).matchAll(/\]\((?!https:\/\/)([^)]+)\)/g)].map((m) => m[1]), s).toEqual([]);
+	});
+
+	it("installation says first that a site without a sandbox installs the full plugin from npm", () => {
+		expect(read(`${DIR}/listing/installation.md`).split("\n")[0]).toMatch(/^A site without a plugin sandbox does not need the companion\..*from npm/);
+	});
+
+	it("the companion text has no dash, no hedging tag, no empty table header, no image and no publisher handle", () => {
+		const emptyHeader = (md: string) => md.split("\n").some((l, i, ls) => /^\s*\|(\s*\|)+\s*$/.test(l) && /^\s*\|(\s*:?-+:?\s*\|)+\s*$/.test(ls[i + 1] ?? ""));
+		for (const f of files) {
+			const md = read(f);
+			expect(md, f).not.toMatch(/[\u2013\u2014]|UNVERIFIED|!\[/);
+			expect(md, f).not.toMatch(/@[a-z0-9-]+\.[a-z0-9.-]+\/cookieless-analytics-companion|did:plc:/);
+			expect(emptyHeader(md), f).toBe(false);
+			expect(md, f).toMatch(/Cookieless Analytics (Companion|by Infinitnet)/);
+		}
+		for (const f of ["README.md", `${DIR}/README.md`, `${DIR}/listing/installation.md`, "docs/wiki/Registry-Companion.md"]) {
+			expect(read(f), f).toContain("search the Registry for Cookieless Analytics Companion");
+		}
+	});
+});
+
 describe("features outside the scope", () => {
 	it("crawler or robots appear only in the exclusion data, the bots doc, header names and exclusion sentences", () => {
 		const allowedFile = /^(src\/data\/agents(\.curated)?\.json|src\/agents\/rules\.ts|docs\/bots\.md|docs\/design-notes\.md):/;

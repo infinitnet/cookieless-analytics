@@ -61,7 +61,7 @@ The plugin then declares exactly the host names of these origins in its `allowed
 - Every report page works for the selected connected site with the same filters, segments of that site, comparisons and report names, Search included. The admin sends the same request body to `data/query`; this install forwards it to `<origin>/_emdash/api/plugins/cookieless-analytics/agent/v1/query` without the `site` field, so the connected site answers for its own local site.
 - Dashboards saved for a connected site render through the same route, one request per tile. They cannot be shared by link or scheduled by email.
 - Definitions and Data show a notice with a link to the connected site's own admin instead of forms.
-- The All sites table on the Overview lists each connected site as a row from its `agent/v1/summary`: sessions, pageviews, visitors, bounce rate, engaged rate and revenue per currency, with the change against the header's comparison. At most 10 connected sites are read per page, three at a time. A site that does not answer shows an error row and the rest of the table still loads.
+- The All sites table on the Overview lists each connected site as a row from its `agent/v1/summary`: sessions, pageviews, visitors, bounce rate and revenue per currency (engaged rate is in the API), with the change against the header's comparison. At most 10 connected sites are read per page, three at a time. A site that does not answer shows an error row and the rest of the table still loads.
 - MCP: `analytics_query` serves a connected site the same way ([mcp.md](mcp.md)).
 
 Cross-site uniques are never summed: one person who visits two sites is a visitor of each, so the All sites total reads "not summed" for visitors.

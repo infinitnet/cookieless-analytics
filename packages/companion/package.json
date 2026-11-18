@@ -1,0 +1,24 @@
+{
+	"name": "@infinitnet/cookieless-analytics-companion",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Guided setup for Cookieless Analytics by Infinitnet, the cookieless web analytics plugin for EmDash. No permissions, no page script.",
+	"license": "Apache-2.0",
+	"type": "module",
+	"scripts": {
+		"validate": "emdash-plugin validate",
+		"build": "emdash-plugin build",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"bundle": "emdash-plugin bundle"
+	},
+	"devDependencies": {
+		"@emdash-cms/blocks": "1.5.0",
+		"@emdash-cms/plugin-cli": "0.13.6",
+		"@emdash-cms/plugin-test": "0.2.12",
+		"emdash": "1.5.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.0",
+		"vitest": "4.1.10"
+	}
+}

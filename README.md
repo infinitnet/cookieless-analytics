@@ -12,7 +12,7 @@ Self-hosted, cookieless web analytics for EmDash and any site. A 2.5 KB script, 
 
 <sub>Free and open source. If it saves you time, you can support its development.</sub>
 
-<a href="https://github.com/infinitnet/cookieless-analytics/wiki/Reports"><img src="docs/readme/overview.png" alt="The Overview page: visitors, sessions, pageviews, bounce rate, engaged rate and session duration compared with the previous period, above a visitors per day chart with annotation markers" width="880"></a>
+<a href="https://github.com/infinitnet/cookieless-analytics/wiki/Reports"><img src="docs/readme/overview.png" alt="The Overview page: visitors, sessions, pageviews, views per session, bounce rate and session duration compared with the previous period, above a visitors per day chart with annotation markers" width="880"></a>
 
 <sub>All screenshots show synthetic data for example.com.</sub>
 
@@ -70,6 +70,8 @@ Cookieless Analytics is a native EmDash plugin, distributed on npm as `@infinitn
 - keep its facts in SQL tables.
 
 There is therefore no listing in the EmDash plugin registry, which lists sandboxed plugins only.
+
+Cookieless Analytics Companion is a sandboxed helper in the EmDash plugin registry. It guides the install of this plugin and confirms it. It counts nothing and is not required.
 
 ### A) New site: Deploy to Cloudflare
 
@@ -131,6 +133,12 @@ A native plugin runs inside your site's process with the same access as the site
 - **Telemetry.** Cookieless Analytics sends no telemetry.
 - **Network calls.** Cookieless Analytics calls only the Search providers you configure (Google and Bing) and the connected sites you declare. Every call goes through EmDash's `ctx.http` with exact allowed hosts, never a wildcard.
 - **Email.** Cookieless Analytics sends email only when you schedule a dashboard email, and only through the mail provider your EmDash site already has configured. It never talks to a mail service itself.
+
+### Registry companion
+
+Cookieless Analytics Companion is a setup assistant in the EmDash plugin registry for sites that run the plugin sandbox. It asks four questions, shows the install steps above for your site, estimates capacity and confirms once this plugin runs. It requests no permissions and holds no analytics data. To find it, search the Registry for Cookieless Analytics Companion in the EmDash admin.
+
+Details: [packages/companion/README.md](packages/companion/README.md) and the wiki page [Registry companion](https://github.com/infinitnet/cookieless-analytics/wiki/Registry-Companion).
 
 ## Features
 

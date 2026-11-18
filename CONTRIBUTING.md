@@ -38,6 +38,19 @@ NODE_OPTIONS=--max-old-space-size=512 pnpm test
 
 Before you open a pull request run `pnpm typecheck`, `pnpm test`, `pnpm build` and the two `--check` commands. CI runs the same steps on every pull request, plus `git diff --exit-code -- dist` (commit the rebuilt `dist` when `src` changed) and the package checks. The full list for a release is in [docs/release.md](docs/release.md).
 
+## Registry companion
+
+`packages/companion` holds Cookieless Analytics Companion, a sandboxed EmDash plugin for the plugin registry. It is a private workspace package with its own version, tests and dependencies, installed by the same `pnpm install` at the root. Its commits use the scope `companion`. Run its checks from the root:
+
+```sh
+pnpm --filter @infinitnet/cookieless-analytics-companion run validate
+pnpm --filter @infinitnet/cookieless-analytics-companion run typecheck
+pnpm --filter @infinitnet/cookieless-analytics-companion run test
+pnpm --filter @infinitnet/cookieless-analytics-companion run bundle
+```
+
+CI runs the same four in the `CI` job. The repository rules below apply to it as well.
+
 ## Tests
 
 - New logic comes with a test: a parser, a branch, a limit, a report column, a route. A fix comes with a test that fails without it.

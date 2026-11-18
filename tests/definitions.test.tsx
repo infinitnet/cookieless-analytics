@@ -42,6 +42,7 @@ describe("definitions", () => {
 
 	it("bounce rate is defined as the share of sessions that were not engaged", () => {
 		expect(metricDefinition("bounce_rate")).toMatch(/not engaged.*1 minus engaged rate/);
+		expect(PANEL_DEFINITIONS.sites_summary).toBe("One row per site with sessions, page views, visitors, bounce rate and revenue.");
 	});
 
 	it("a KPI card shows its definition in the info mark, keyboard reachable", () => {

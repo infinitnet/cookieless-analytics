@@ -13,7 +13,7 @@ import { pluginFactsOrNull, stateKv } from "../../db/facts.js";
 import { MAX_SITES } from "../../multisite/registry.js";
 import { inList, QueryError } from "../compile.js";
 import { KV_WATERMARK } from "../rollup.js";
-import { num, type ReportCtx, type ReportData, type Row, type RunInput, ratio, round, type SitesDb } from "./base.js";
+import { bounceRate, num, type ReportCtx, type ReportData, type Row, type RunInput, ratio, round, type SitesDb } from "./base.js";
 import { openDay, splitRange } from "./summary.js";
 
 export interface RevenueEntry {
@@ -93,13 +93,14 @@ export async function sitesSummary(rc: ReportCtx, input: RunInput): Promise<Repo
 	const all: Row[] = sites.map((key) => {
 		const r = bySite.get(key) ?? {};
 		const sessions = num(r.sessions);
+		const engaged_rate = round(ratio(num(r.engaged), sessions));
 		return {
 			key,
 			sessions,
 			pageviews: num(r.pageviews),
 			visitors: num(r.visitors),
-			bounce_rate: round(ratio(num(r.bounces), sessions)),
-			engaged_rate: round(ratio(num(r.engaged), sessions)),
+			bounce_rate: bounceRate(engaged_rate),
+			engaged_rate,
 			revenue: revenueList(revenue.get(key)),
 		};
 	});

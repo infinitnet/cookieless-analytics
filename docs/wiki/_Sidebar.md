@@ -4,6 +4,7 @@
 - [Quick install](Quick-Install)
 - [How visits are counted](How-Visits-Are-Counted)
 - [Upgrade](Upgrade)
+- [Registry companion](Registry-Companion)
 
 **Reports**
 - [Reports](Reports)

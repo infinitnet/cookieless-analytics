@@ -63,7 +63,7 @@ The site select in the header appears once a client or connected site exists. It
 
 ![All sites table on the Overview](images/sites-all.png)
 
-With **All sites** selected, the Overview shows one table: a row per site with sessions, pageviews, visitors, bounce rate, engaged rate and revenue per currency, each with the change against the header's comparison, sorted by pageviews.
+With **All sites** selected, the Overview shows one table: a row per site with sessions, pageviews, visitors, bounce rate and revenue per currency, each with the change against the header's comparison, sorted by pageviews. Engaged rate (1 minus bounce rate) is in the API.
 
 - Click a row to open that site.
 - The totals row sums sessions, pageviews and revenue per currency. Visitors read "not summed": one person who visits two sites is a visitor of each.

@@ -21,7 +21,7 @@ const spans = (md: string) => [...md.replace(/```[\s\S]*?```/g, "").matchAll(/`(
 
 describe("wiki", () => {
 	it("has the home, sidebar and footer and one page per feature", () => {
-		for (const f of ["Home.md", "_Sidebar.md", "_Footer.md", "Quick-Install.md", "Events.md", "Settings-Reference.md"]) expect(pages, f).toContain(f);
+		for (const f of ["Home.md", "_Sidebar.md", "_Footer.md", "Quick-Install.md", "Events.md", "Settings-Reference.md", "Registry-Companion.md"]) expect(pages, f).toContain(f);
 		expect(pages.length).toBeGreaterThan(20);
 	});
 

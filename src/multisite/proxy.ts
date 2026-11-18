@@ -5,6 +5,7 @@
  * `process.env[keyEnv]` at call time and never returned, stored or logged.
  */
 import { PLUGIN_ID } from "../contract.js";
+import { bounceRate } from "../query/reports/base.js";
 import type { RevenueEntry } from "../query/reports/sites-summary.js";
 import type { SummaryRow } from "../routes/sites.js";
 import type { Http } from "../sources/types.js";
@@ -125,7 +126,10 @@ type RemoteRow = SummaryRow;
 
 const pick = (o: unknown) => {
 	const r = (o && typeof o === "object" ? o : {}) as Record<string, unknown>;
-	return Object.fromEntries(ROW_METRICS.map((k) => [k, typeof r[k] === "number" ? (r[k] as number) : null])) as Record<(typeof ROW_METRICS)[number], number | null>;
+	const m = Object.fromEntries(ROW_METRICS.map((k) => [k, typeof r[k] === "number" ? (r[k] as number) : null])) as Record<(typeof ROW_METRICS)[number], number | null>;
+	// A satellite on an older version may send a bounce rate under the old rule; derive it like a local read.
+	if (m.engaged_rate !== null) m.bounce_rate = bounceRate(m.engaged_rate);
+	return m;
 };
 const revenueOf = (v: unknown): RevenueEntry[] =>
 	(Array.isArray(v) ? v : []).flatMap((e) =>

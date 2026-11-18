@@ -132,6 +132,8 @@ describe("Overview", () => {
 		expect(getByRole("note").textContent).toBe(CAVEATS.visitors);
 		expect(container.querySelector("select[aria-label='Site']")).toBeNull();
 		expect((container.querySelector("select[aria-label='Compare']") as HTMLSelectElement).value).toBe("previous");
+		// Six cards: bounce rate is the one engagement figure (engaged rate is 1 minus it, in the chart pickers and the API).
+		expect([...container.querySelectorAll(".ca-kpis .ca-kpi")].map((k) => k.getAttribute("data-metric"))).toEqual(["visitors", "sessions", "pageviews", "views_per_session", "bounce_rate", "avg_duration"]);
 		// "Active now" is a live badge in the page head, not a card.
 		expect((await findByText("3 active now")).closest(".ca-page-head")).not.toBeNull();
 		expect(container.querySelector('.ca-kpis [data-metric="realtime"]')).toBeNull();

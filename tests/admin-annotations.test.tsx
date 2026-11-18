@@ -256,6 +256,8 @@ describe("expanded row", () => {
 		await waitFor(() => expect(queries("impact").at(-1)?.params).toMatchObject({ annotation: "b1", context: true, window: 14, report: "overview", metric: "bounce_rate" }));
 		const strip = await within(panel).findByLabelText("Same scope and windows");
 		expect(within(strip).getByText("Visitors")).toBeTruthy();
+		expect(within(strip).getByText("Bounce rate")).toBeTruthy();
+		expect(within(strip).queryByText("Engaged rate")).toBeNull();
 		expect(within(panel).queryByRole("group", { name: "Window" })).toBeNull();
 		expect(screen.getByText(ANNOTATIONS_TEXT.overlapHint, { selector: "div *" })).toBeTruthy();
 		fireEvent.click(within(rowOf("New hero")).getByRole("button", { name: "Hide" }));
@@ -301,6 +303,9 @@ describe("editor and target", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Add annotation" }));
 		expect(optgroups()).not.toContain("Search");
 		expect(optgroups()).toEqual(expect.arrayContaining(["Traffic", "Goals", "Events", "Revenue", "Channels", "Pages"]));
+		// Engaged rate left the default views but stays a target, so saved annotations keep theirs.
+		const traffic = (screen.getByRole("combobox", { name: "Target KPI" }) as HTMLSelectElement).querySelector('optgroup[label="Traffic"]');
+		expect([...(traffic?.querySelectorAll("option") ?? [])].map((o) => o.textContent)).toEqual(expect.arrayContaining(["Bounce rate", "Engaged rate"]));
 	});
 
 	it("shows Search targets with a connected source", async () => {

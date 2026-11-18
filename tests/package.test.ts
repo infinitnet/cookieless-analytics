@@ -27,7 +27,7 @@ const DESCRIPTION =
 describe("package metadata", () => {
 	it("name, version, author, licence and repository", () => {
 		expect(pkg.name).toBe("@infinitnet/cookieless-analytics");
-		expect(pkg.version).toBe("1.0.1");
+		expect(pkg.version).toBe("1.1.0");
 		expect(VERSION).toBe(pkg.version);
 		// The credit line in the admin footer shows the version with a v prefix (Header and Settings).
 		for (const f of ["src/admin/components/Header.tsx", "src/admin/pages/Settings.tsx"]) expect(readFileSync(f, "utf8"), f).toContain("{PRODUCT_NAME}</a> v{VERSION}");
@@ -79,9 +79,10 @@ describe("package metadata", () => {
 		// npm 10 prints an array, npm 11 an object keyed by package name.
 		const raw = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })) as Packed[] | Record<string, Packed>;
 		const info = Array.isArray(raw) ? raw[0] : Object.values(raw)[0];
-		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.0.1.tgz");
+		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.1.0.tgz");
 		const top = new Set(info?.files.map((f) => f.path.split("/")[0]));
 		expect([...top].sort()).toEqual(["LICENSE", "NOTICE", "README.md", "THIRD_PARTY_NOTICES.md", "dist", "package.json", "scripts", "src"]);
+		expect(info?.files.filter((f) => f.path.startsWith("packages/"))).toEqual([]);
 	}, 30_000);
 
 	it("declares exactly the expected capabilities", () => {
@@ -189,6 +190,18 @@ describe("README", () => {
 		expect(readme).toMatch(/### Trust model[\s\S]*mail provider/);
 		expect(readme).toContain("no telemetry");
 		expect(readme).toMatch(/no listing in the EmDash plugin registry/);
+	});
+
+	it("Install names the registry companion and links its README and wiki page", () => {
+		const install = readme.slice(readme.indexOf("## Install"), readme.indexOf("## Features"));
+		const subs = [...install.matchAll(/^### (.+)$/gm)].map((m) => m[1]);
+		expect(subs).toEqual(["Why a native plugin", "A) New site: Deploy to Cloudflare", "B) Existing EmDash site: npm", "Requirements", "Trust model", "Registry companion"]);
+		expect(install).toContain(
+			"Cookieless Analytics Companion is a sandboxed helper in the EmDash plugin registry. It guides the install of this plugin and confirms it. It counts nothing and is not required.",
+		);
+		expect(install).toContain("](packages/companion/README.md)");
+		expect(install).toContain("](https://github.com/infinitnet/cookieless-analytics/wiki/Registry-Companion)");
+		expect(install).toContain("search the Registry for Cookieless Analytics Companion");
 	});
 
 	it("the README keeps no roadmap and no list of declined features", () => {

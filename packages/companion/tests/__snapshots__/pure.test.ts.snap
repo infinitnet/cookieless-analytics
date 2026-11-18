@@ -1,0 +1,2098 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`steps per answer set > 'cloudflare', 'npm', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "note": "Small is for a site on the Workers Free plan only. A site that runs this companion on Cloudflare is on Workers Paid.",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default. It fits Workers Paid with the analytics tables in the EmDash database.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'npm', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "npx wrangler d1 create site-analytics",
+        "language": "bash",
+      },
+      {
+        "code": ""d1_databases": [
+  { "binding": "DB", "database_name": "site", "database_id": "..." },
+  { "binding": "CA_DB", "database_name": "site-analytics", "database_id": "..." }
+]",
+        "language": "jsonc",
+      },
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_DB" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "note": "Create a D1 database for the analytics tables, add it to your wrangler config next to the EmDash database with the database_id the command printed, and name the binding in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'npm', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_PG", engine: "postgres" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "link": {
+      "label": "Open the Hyperdrive section",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/install.md#postgres-through-hyperdrive",
+    },
+    "note": "Follow the Hyperdrive section of the install guide first: it creates the Hyperdrive configuration with caching disabled and installs the pg driver. Then name the binding and the engine in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'pnpm', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "note": "Small is for a site on the Workers Free plan only. A site that runs this companion on Cloudflare is on Workers Paid.",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default. It fits Workers Paid with the analytics tables in the EmDash database.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'pnpm', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "npx wrangler d1 create site-analytics",
+        "language": "bash",
+      },
+      {
+        "code": ""d1_databases": [
+  { "binding": "DB", "database_name": "site", "database_id": "..." },
+  { "binding": "CA_DB", "database_name": "site-analytics", "database_id": "..." }
+]",
+        "language": "jsonc",
+      },
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_DB" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "note": "Create a D1 database for the analytics tables, add it to your wrangler config next to the EmDash database with the database_id the command printed, and name the binding in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'pnpm', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_PG", engine: "postgres" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "link": {
+      "label": "Open the Hyperdrive section",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/install.md#postgres-through-hyperdrive",
+    },
+    "note": "Follow the Hyperdrive section of the install guide first: it creates the Hyperdrive configuration with caching disabled and installs the pg driver. Then name the binding and the engine in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'yarn', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "note": "Small is for a site on the Workers Free plan only. A site that runs this companion on Cloudflare is on Workers Paid.",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default. It fits Workers Paid with the analytics tables in the EmDash database.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'yarn', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "npx wrangler d1 create site-analytics",
+        "language": "bash",
+      },
+      {
+        "code": ""d1_databases": [
+  { "binding": "DB", "database_name": "site", "database_id": "..." },
+  { "binding": "CA_DB", "database_name": "site-analytics", "database_id": "..." }
+]",
+        "language": "jsonc",
+      },
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_DB" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "note": "Create a D1 database for the analytics tables, add it to your wrangler config next to the EmDash database with the database_id the command printed, and name the binding in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'cloudflare', 'yarn', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics({ database: { binding: "CA_PG", engine: "postgres" } })],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "link": {
+      "label": "Open the Hyperdrive section",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/install.md#postgres-through-hyperdrive",
+    },
+    "note": "Follow the Hyperdrive section of the install guide first: it creates the Hyperdrive configuration with caching disabled and installs the pg driver. Then name the binding and the engine in the plugin options.",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [
+      {
+        "code": "// wrangler.jsonc
+{
+  "triggers": { "crons": ["* * * * *"] }
+}",
+        "language": "jsonc",
+      },
+    ],
+    "id": "cron",
+    "text": "The full plugin builds daily summaries and deletes expired rows and old salts on a schedule, through the scheduled() handler EmDash already uses for scheduled publishing. Add the trigger to wrangler.jsonc. Every minute is recommended; every 15 minutes also works.",
+    "title": "Add a Cron Trigger",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, set Capacity profile to Dedicated. It is meant for analytics tables in a database of your own.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate
+wrangler secret put EMDASH_ENCRYPTION_KEY",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, store it as a Worker secret and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'npm', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'npm', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'npm', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "npm install @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'pnpm', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'pnpm', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'pnpm', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "pnpm add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'yarn', 'emdash' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'yarn', 'own' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;
+
+exports[`steps per answer set > 'node', 'yarn', 'postgres' 1`] = `
+[
+  {
+    "code": [
+      {
+        "code": "yarn add @infinitnet/cookieless-analytics",
+        "language": "bash",
+      },
+    ],
+    "id": "install",
+    "text": "Add the full plugin from npm to your site.",
+    "title": "Install the package",
+  },
+  {
+    "code": [
+      {
+        "code": "// astro.config.mjs
+import { defineConfig } from "astro/config";
+import emdash from "emdash/astro";
+import cookielessAnalytics from "@infinitnet/cookieless-analytics";
+import cookielessAnalyticsIntegration from "@infinitnet/cookieless-analytics/integration";
+
+export default defineConfig({
+  integrations: [
+    emdash({
+      // database, storage and the rest of your EmDash config
+      plugins: [cookielessAnalytics()],
+    }),
+    cookielessAnalyticsIntegration(),
+  ],
+});",
+        "language": "ts",
+      },
+    ],
+    "id": "config",
+    "text": "In astro.config.mjs the plugin goes into the plugins option of emdash(), and the integration goes after emdash(). Both are needed.",
+    "title": "Add the plugin and the integration",
+  },
+  {
+    "code": [
+      {
+        "code": "---
+import { EmDashHead } from "emdash/ui";
+import { createPublicPageContext } from "emdash/page";
+
+const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props.title });
+---
+<html>
+  <head>
+    <EmDashHead page={page} />
+  </head>
+  <body><slot /></body>
+</html>",
+        "language": "tsx",
+      },
+    ],
+    "id": "layout",
+    "text": "The page script reaches your pages only through EmDashHead. Open your layout and check that its head renders it. Without it nothing is counted.",
+    "title": "Render EmDashHead in your layout",
+  },
+  {
+    "code": [],
+    "id": "profile",
+    "text": "In Settings, section Data and capacity, keep Capacity profile on Standard, the default.",
+    "title": "Choose the capacity profile",
+  },
+  {
+    "code": [
+      {
+        "code": "npx emdash secrets generate",
+        "language": "bash",
+      },
+    ],
+    "id": "encryption",
+    "text": "Search Console and Bing credentials are stored as encrypted settings. Without this key, saving them fails. Generate a key, set it as the environment variable EMDASH_ENCRYPTION_KEY of the server and keep a backup. It can wait until you connect Search.",
+    "title": "Set EMDASH_ENCRYPTION_KEY",
+  },
+  {
+    "code": [],
+    "id": "deploy",
+    "text": "Redeploy the site, then check four things:
+1. The admin sidebar has a folder Analytics.
+2. The source of a public page holds one script tag for /_/e.js in its head.
+3. /_/e.js on your domain answers 200 with JavaScript.
+4. In a private window, the network panel shows one POST to /_/e answered with 204.",
+    "title": "Deploy and check",
+  },
+  {
+    "code": [],
+    "id": "waf",
+    "text": "Add a rate limiting rule in front of the site (on Cloudflare a WAF rate limiting rule) for the path /_/e with method POST. Set the threshold well over what a visitor sends: a page view sends two or three small requests. If you change collectPath, change the rule.",
+    "title": "Add a rate rule for the event path",
+  },
+  {
+    "code": [],
+    "id": "privacy",
+    "link": {
+      "label": "Open the privacy guide",
+      "url": "https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md",
+    },
+    "text": "The privacy guide of the full plugin has the text to publish.",
+    "title": "Update your privacy page",
+  },
+]
+`;

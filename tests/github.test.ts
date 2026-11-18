@@ -75,6 +75,18 @@ describe("CI workflow", () => {
 		expect(tc).toContain("check-panel-types.mjs");
 	});
 
+	it("then validates, typechecks, tests and bundles the companion through scripts its package defines", () => {
+		const scripts = JSON.parse(readFileSync("packages/companion/package.json", "utf8")) as { name: string; scripts: Record<string, string> };
+		const steps = ["validate", "typecheck", "test", "bundle"].map((s) => `pnpm --filter ${scripts.name} run ${s}`);
+		for (const s of ["validate", "typecheck", "test", "bundle"]) expect(scripts.scripts[s], s).toBeDefined();
+		const at = steps.map((s) => runs.indexOf(s));
+		expect(at.every((i) => i > runs.indexOf("attw")), JSON.stringify(at)).toBe(true);
+		expect([...at].sort((a, b) => a - b)).toEqual(at);
+		expect(runs).toContain("tar tzvf packages/companion/dist/*.tar.gz");
+		// The companion steps never skip on Dependabot: a bump that breaks it must not merge.
+		for (const s of job[0]?.steps.filter((x) => x.name?.startsWith("Companion")) ?? []) expect(s.if, s.name).toBeUndefined();
+	});
+
 	it("the release workflow uses the same Node and publishes the checked tarball on a version tag", () => {
 		const rel = load<Workflow>(".github/workflows/release.yml");
 		expect(rel.on).toEqual({ push: { tags: ["v*.*.*"] } });
@@ -82,6 +94,16 @@ describe("CI workflow", () => {
 		expect(steps.find((s) => s.uses?.startsWith("actions/setup-node"))?.with).toMatchObject({ "node-version": "24" });
 		expect(rel.concurrency?.["cancel-in-progress"]).toBe(false);
 		expect(steps.map((s) => s.run ?? "").join("\n")).not.toContain("--require");
+	});
+
+	it("a companion tag never starts the native release, a version tag does", () => {
+		const tags = (load<Workflow>(".github/workflows/release.yml").on as { push: { tags: string[] } }).push.tags;
+		// GitHub filter glob: `*` matches any character except `/`.
+		const match = (ref: string) => tags.some((t) => new RegExp(`^${t.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*")}$`).test(ref));
+		const { version } = JSON.parse(readFileSync("packages/companion/package.json", "utf8")) as { version: string };
+		expect(match("v1.2.3")).toBe(true);
+		expect(match(`cookieless-analytics-companion@${version}`)).toBe(false);
+		expect(match("cookieless-analytics-companion@v1.2.3")).toBe(false);
 	});
 
 	it("the release publishes only a commit on main, and a re-run skips what is already done", () => {
@@ -117,19 +139,25 @@ describe("CI workflow", () => {
 });
 
 describe("Dependabot and auto-merge", () => {
-	type Update = { "package-ecosystem": string; schedule: { interval: string }; groups: Record<string, { "applies-to": string; "update-types": string[] }> };
+	type Update = { "package-ecosystem": string; directory: string; ignore?: { "dependency-name": string }[]; schedule: { interval: string }; groups: Record<string, { "applies-to": string; "update-types": string[] }> };
 	const dep = load<{ version: number; updates: Update[] }>(".github/dependabot.yml");
+	const npm = dep.updates.filter((u) => u["package-ecosystem"] === "npm");
 
 	it("weekly npm and actions updates, minor and patch grouped, majors left out of every group", () => {
 		expect(dep.version).toBe(2);
-		expect(dep.updates.map((u) => u["package-ecosystem"]).sort()).toEqual(["github-actions", "npm"]);
+		expect(dep.updates.map((u) => `${u["package-ecosystem"]} ${u.directory}`).sort()).toEqual(["github-actions /", "npm /", "npm /packages/companion"]);
 		for (const u of dep.updates) {
 			expect(u.schedule.interval).toBe("weekly");
 			const groups = Object.values(u.groups);
 			expect(groups.some((g) => g["applies-to"] === "version-updates")).toBe(true);
 			for (const g of groups) expect([...g["update-types"]].sort()).toEqual(["minor", "patch"]);
 		}
-		expect(Object.values(dep.updates.find((u) => u["package-ecosystem"] === "npm")?.groups ?? {}).some((g) => g["applies-to"] === "security-updates")).toBe(true);
+		for (const u of npm) expect(Object.values(u.groups).some((g) => g["applies-to"] === "security-updates"), u.directory).toBe(true);
+	});
+
+	it("the root keeps emdash on the peer floor; the companion follows the emdash its test host pins", () => {
+		expect(npm.find((u) => u.directory === "/")?.ignore).toEqual([{ "dependency-name": "emdash" }]);
+		expect(npm.find((u) => u.directory === "/packages/companion")?.ignore).toBeUndefined();
 	});
 
 	it("auto-merge runs for dependabot[bot] only, with minimal permissions, and never for a major", () => {

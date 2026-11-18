@@ -2975,8 +2975,9 @@ function liveVisits(rc) {
 }
 /**
 * Engaged sessions over `ca_sessions s`: active time at or above the threshold (its one parameter, in ms), two
-* or more pageviews, or any event. A bounce is a session that is not engaged (the GA4 meaning), so bounces are
-* always sessions minus engaged.
+* or more pageviews, or any event. A bounce is a session that is not engaged (the GA4 meaning). The bounce rate is
+* derived from the engaged rate on read (`bounceRate`), so summary rows written under the older bounce rule and
+* satellites on an older version read the same way.
 */
 const ENGAGED_SQL = "SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged";
 /** Base predicate: sessions of the site in range with at least one pageview, plus filters. */
@@ -3008,17 +3009,20 @@ FROM ca_sessions s WHERE ${where.sql} GROUP BY ${g}s.day`;
 		params: [rc.settings.engagedThresholdSeconds * 1e3, ...where.params]
 	};
 }
+/** Bounce rate from the rounded engaged rate, so the two rounded rates always sum to 1. */
+const bounceRate = (engagedRate) => engagedRate === null ? null : round(1 - engagedRate);
 /** Derived session metrics from raw sums. */
 function sessionMetrics(r) {
 	const sessions = num(r.sessions);
 	const pageviews = num(r.pageviews);
+	const engaged_rate = round(ratio(num(r.engaged), sessions));
 	return {
 		visitors: num(r.visitors),
 		sessions,
 		pageviews,
 		views_per_session: round(ratio(pageviews, sessions)),
-		bounce_rate: round(ratio(num(r.bounces), sessions)),
-		engaged_rate: round(ratio(num(r.engaged), sessions)),
+		bounce_rate: bounceRate(engaged_rate),
+		engaged_rate,
 		avg_duration: round(ratio(num(r.duration_ms) / 1e3, sessions), 1)
 	};
 }
@@ -4624,7 +4628,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DyHG9hKu.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-CrqIFQsa.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -5929,4 +5933,4 @@ async function runRevenue(rc, kv, now, rawFrom, o = {}) {
 }
 
 //#endregion
-export { planRows as $, samePeriodLastYear as $n, budgetMb as $t, currencyList as A, docSet as An, validateFilters as At, bucketSeries as B, visitDayKey as Bn, OPS as Bt, journeyPaths as C, ddl as Cn, compileSearch as Ct, RECENT_ORDERS_CAP as D, docObject as Dn, entryProp as Dt, journeysUnavailable as E, docJson as En, entryCols as Et, revenueBreakdown as F, paramRows as Fn, GoalSchema as Ft, FILTER_DIMS as G, dayInZone as Gn, REVENUE_VALUE_RE as Gt, timeseries as H, chunk as Hn, QuerySchema as Ht, revenueOrders as I, q as In, LINK_BY as It, clearOpenDays as J, hourInZone as Jn, DEFAULT_SETTINGS as Jt, SEGMENTS$1 as K, daysBetween as Kn, SEARCH_DIMS as Kt, revenuePlan as L, raw as Ln, MAX_FILTERS as Lt, hasRevenue as M, isoDay as Mn, FUNNEL_MODES as Mt, metaOf as N, join as Nn, FilterSchema as Nt, REVENUE_REPORTS as O, docPut as On, goalPredicate as Ot, revenue as P, likeEscape as Pn, FunnelStepsSchema as Pt, planFilters as Q, saltDay as Qn, SUMMARY_SHARE as Qt, revenueSeries as R, upsertChanged as Rn, NEGATED as Rt, journeyNext as S, dayInt as Sn, and as St, journeysFromSummary as T, docGet as Tn, entriesOf as Tt, weekStart as U, ident as Un, REVENUE_BREAKDOWN_DIMS as Ut, resolveGranularity as V, MAX_PARAMS as Vn, PROP_KEY_RE as Vt, CUBE_SEG as W, addDays as Wn, REVENUE_DIMS$1 as Wt, matchKey as X, previousPeriod as Xn, PROFILES as Xt, clearScanCache as Y, lastClosedDay as Yn, HOST_FORM_POINTER as Yt, openDay as Z, saltBoundary as Zn, SITE_SEARCH_MAX_PARAMS as Zt, linksPlan as _, normalizeCurrency as _n, sessionTotals as _t, OTHER as a, parseSiteSearchParams as an, ORDER_SUMS as at, JOURNEY_MIN_SESSIONS as b, SID_SLICES as bn, QueryError as bt, counted as c, parseLinkRules as cn, hitJoin as ct, rollup_exports as d, validateSafeRegex as dn, num as dt, budgetRange as en, zonedToEpoch as er, readSummary as et, runRevenue as f, MAX_CURRENCIES_LISTED as fn, ratio as ft, linksFromSummary as g, isCurrency as gn, sessionMetrics as gt, links as h, formatAmount as hn, sessionBreakdown as ht, KV_WATERMARK as i, normalizeSettings as in, DURATION_MS as it, currencyOf as j, field as jn, DIM_NAMES as jt, WITH_REVENUE as k, docRead as kn, inList as kt, dayStatements as l, publicNames as ln, keysIn as lt, sitesOfDay as m, REVENUE_MAX_VALUE as mn, round as mt, KV_REVENUE_CURSOR as n, cachedSettings as nn, storedSessions as nt, SEGS as o, settingsSchema as on, annotationsIn as ot, runRollup as p, REVENUE_MAX_OID as pn, refundDim as pt, behindNotice as q, eachDay as qn, TRAFFIC_DIMS as qt, KV_ROLLUP_CURSOR as r, d1CapMb as rn, storedThrough as rt, SUMMARY_DIMS as s, storageBudget as sn, goalGroups as st, CUBE_CAP as t, budgetWarning as tn, splitRange as tt, rollupDay as u, compileSafeRegex as un, liveVisits as ut, JOURNEY_MAX_RANGE_DAYS as v, roundMinor as vn, sessionWhere as vt, journeyPrev as w, deleteDaySlice as wn, compileTraffic as wt, JOURNEY_SESSION_CAP as x, VISIT_DAY_TYPE as xn, TRUE as xt, JOURNEY_MAX_ROWS as y, LIKE_ESCAPE as yn, visitDays as yt, withRevenue as z, upsertClause as zn, NUM_OPS as zt };
+export { planRows as $, saltDay as $n, SUMMARY_SHARE as $t, currencyList as A, docRead as An, inList as At, bucketSeries as B, upsertClause as Bn, NUM_OPS as Bt, journeyPaths as C, dayInt as Cn, and as Ct, RECENT_ORDERS_CAP as D, docJson as Dn, entryCols as Dt, journeysUnavailable as E, docGet as En, entriesOf as Et, revenueBreakdown as F, likeEscape as Fn, FunnelStepsSchema as Ft, FILTER_DIMS as G, addDays as Gn, REVENUE_DIMS$1 as Gt, timeseries as H, MAX_PARAMS as Hn, PROP_KEY_RE as Ht, revenueOrders as I, paramRows as In, GoalSchema as It, clearOpenDays as J, eachDay as Jn, TRAFFIC_DIMS as Jt, SEGMENTS$1 as K, dayInZone as Kn, REVENUE_VALUE_RE as Kt, revenuePlan as L, q as Ln, LINK_BY as Lt, hasRevenue as M, field as Mn, DIM_NAMES as Mt, metaOf as N, isoDay as Nn, FUNNEL_MODES as Nt, REVENUE_REPORTS as O, docObject as On, entryProp as Ot, revenue as P, join as Pn, FilterSchema as Pt, planFilters as Q, saltBoundary as Qn, SITE_SEARCH_MAX_PARAMS as Qt, revenueSeries as R, raw as Rn, MAX_FILTERS as Rt, journeyNext as S, VISIT_DAY_TYPE as Sn, TRUE as St, journeysFromSummary as T, deleteDaySlice as Tn, compileTraffic as Tt, weekStart as U, chunk as Un, QuerySchema as Ut, resolveGranularity as V, visitDayKey as Vn, OPS as Vt, CUBE_SEG as W, ident as Wn, REVENUE_BREAKDOWN_DIMS as Wt, matchKey as X, lastClosedDay as Xn, HOST_FORM_POINTER as Xt, clearScanCache as Y, hourInZone as Yn, DEFAULT_SETTINGS as Yt, openDay as Z, previousPeriod as Zn, PROFILES as Zt, linksPlan as _, isCurrency as _n, sessionMetrics as _t, OTHER as a, normalizeSettings as an, ORDER_SUMS as at, JOURNEY_MIN_SESSIONS as b, LIKE_ESCAPE as bn, visitDays as bt, counted as c, storageBudget as cn, goalGroups as ct, rollup_exports as d, compileSafeRegex as dn, liveVisits as dt, budgetMb as en, samePeriodLastYear as er, readSummary as et, runRevenue as f, validateSafeRegex as fn, num as ft, linksFromSummary as g, formatAmount as gn, sessionBreakdown as gt, links as h, REVENUE_MAX_VALUE as hn, round as ht, KV_WATERMARK as i, d1CapMb as in, DURATION_MS as it, currencyOf as j, docSet as jn, validateFilters as jt, WITH_REVENUE as k, docPut as kn, goalPredicate as kt, dayStatements as l, parseLinkRules as ln, hitJoin as lt, sitesOfDay as m, REVENUE_MAX_OID as mn, refundDim as mt, KV_REVENUE_CURSOR as n, budgetWarning as nn, storedSessions as nt, SEGS as o, parseSiteSearchParams as on, annotationsIn as ot, runRollup as p, MAX_CURRENCIES_LISTED as pn, ratio as pt, behindNotice as q, daysBetween as qn, SEARCH_DIMS as qt, KV_ROLLUP_CURSOR as r, cachedSettings as rn, storedThrough as rt, SUMMARY_DIMS as s, settingsSchema as sn, bounceRate as st, CUBE_CAP as t, budgetRange as tn, zonedToEpoch as tr, splitRange as tt, rollupDay as u, publicNames as un, keysIn as ut, JOURNEY_MAX_RANGE_DAYS as v, normalizeCurrency as vn, sessionTotals as vt, journeyPrev as w, ddl as wn, compileSearch as wt, JOURNEY_SESSION_CAP as x, SID_SLICES as xn, QueryError as xt, JOURNEY_MAX_ROWS as y, roundMinor as yn, sessionWhere as yt, withRevenue as z, upsertChanged as zn, NEGATED as zt };

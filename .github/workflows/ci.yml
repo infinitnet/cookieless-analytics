@@ -52,5 +52,16 @@ jobs:
           tarball="$RUNNER_TEMP/infinitnet-cookieless-analytics-$(node -p 'require("./package.json").version').tgz"
           pnpm exec publint "$tarball"
           pnpm exec attw --profile esm-only "$tarball"
+      # The registry companion in packages/companion: same job, so a broken companion blocks a merge.
+      - name: Companion validate
+        run: pnpm --filter @infinitnet/cookieless-analytics-companion run validate
+      - name: Companion typecheck
+        run: pnpm --filter @infinitnet/cookieless-analytics-companion run typecheck
+      - name: Companion tests
+        run: pnpm --filter @infinitnet/cookieless-analytics-companion run test
+      - name: Companion bundle and its size
+        run: |
+          pnpm --filter @infinitnet/cookieless-analytics-companion run bundle
+          tar tzvf packages/companion/dist/*.tar.gz
       # Built-in patterns over the tree and file names (credentials, author hostnames): the private denylist
       # is not available in CI, and older commits hold reviewed false positives of the patterns.

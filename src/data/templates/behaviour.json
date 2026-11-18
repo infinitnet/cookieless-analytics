@@ -9,7 +9,7 @@
 			"report": "overview",
 			"kind": "kpi",
 			"w": 1,
-			"metric": "engaged_rate"
+			"metric": "views_per_session"
 		},
 		{
 			"id": "bh0002",

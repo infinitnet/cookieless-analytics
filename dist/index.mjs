@@ -1,10 +1,10 @@
 import { PLUGIN_ID, PRODUCT_NAME, ROUTES, VERSION } from "./contract.mjs";
-import { Bt as missingDb, E as drops, It as eachTarget, Lt as ensureHostSchema, P as buildChannelRules, Q as cleanSalts, Qt as pgScope, Rt as factsDb, Ut as setPluginFacts, Zt as pgOwnScope, an as ensureSchema, ln as fromKysely, o as routedSink, on as ensureSchemaOnce, rt as runRetention, tt as rawFromDay } from "./queue-sink-CENHpQGt.mjs";
-import { Xt as PROFILES, f as runRevenue, nn as cachedSettings, on as settingsSchema, p as runRollup } from "./rollup-BfzZghBT.mjs";
-import { R as MAX_USER_RULES, s as resetStoredAgentRules } from "./middleware-core-DxaGZCZq.mjs";
-import { A as MOVE_CRON, B as dataQueryRoute, C as annotate, D as agentRoutes, E as createRateLimiter, F as KV_PLATFORM_LIMIT, I as inRoute, L as platformLimitKind, M as openBinding, N as runMoveJob, O as runDeleteJob, P as privacyRoute, R as dataCatalogRoute, S as runSearchTick, T as pageFragments, V as loadGoals, _ as runMailTick, a as toolRoutes, b as previewRoute, c as settingsRoutes, d as sessionRoute, f as keyRoutes, g as mailDeps, h as dashboardRoutes, i as refuseWhileMoving, j as isMoving, k as KV_MOVE_JOB, l as shareRoutes, m as siteRoutes, n as remoteSummaryRows, o as searchRoutes, p as MCP_TOOLS, r as moveRoutes, s as searchService, t as createRemote, u as shareViewRoute, v as contractRoute, w as configRoutes, x as CONTINUE_JOBS, y as editorRoutes, z as dataExportRoute } from "./proxy-BhRF9H5N.mjs";
-import "./rollup-DyHG9hKu.mjs";
-import { i as parseOptions, n as allowedHostsFor, r as engineOf } from "./config-CH-S7WdJ.mjs";
+import { Bt as missingDb, E as drops, It as eachTarget, Lt as ensureHostSchema, P as buildChannelRules, Q as cleanSalts, Qt as pgScope, Rt as factsDb, Ut as setPluginFacts, Zt as pgOwnScope, an as ensureSchema, ln as fromKysely, o as routedSink, on as ensureSchemaOnce, rt as runRetention, tt as rawFromDay } from "./queue-sink-BOtlgr5B.mjs";
+import { Zt as PROFILES, f as runRevenue, p as runRollup, rn as cachedSettings, sn as settingsSchema } from "./rollup-DahnNaAs.mjs";
+import { R as MAX_USER_RULES, s as resetStoredAgentRules } from "./middleware-core-DwvXAIlw.mjs";
+import { A as MOVE_CRON, B as dataQueryRoute, C as annotate, D as agentRoutes, E as createRateLimiter, F as KV_PLATFORM_LIMIT, I as inRoute, L as platformLimitKind, M as openBinding, N as runMoveJob, O as runDeleteJob, P as privacyRoute, R as dataCatalogRoute, S as runSearchTick, T as pageFragments, V as loadGoals, _ as runMailTick, a as toolRoutes, b as previewRoute, c as settingsRoutes, d as sessionRoute, f as keyRoutes, g as mailDeps, h as dashboardRoutes, i as refuseWhileMoving, j as isMoving, k as KV_MOVE_JOB, l as shareRoutes, m as siteRoutes, n as remoteSummaryRows, o as searchRoutes, p as MCP_TOOLS, r as moveRoutes, s as searchService, t as createRemote, u as shareViewRoute, v as contractRoute, w as configRoutes, x as CONTINUE_JOBS, y as editorRoutes, z as dataExportRoute } from "./proxy-Dc0H5RXI.mjs";
+import "./rollup-CrqIFQsa.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf } from "./config-D7Pvk1K6.mjs";
 import { after, definePlugin, getPluginSettings } from "emdash";
 import { getDb } from "emdash/runtime";
 

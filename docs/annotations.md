@@ -39,7 +39,7 @@ The Annotations page (Analytics, Annotations) is where annotations are written a
 - While the after window is not complete the row shows "Day 5 of 14" and no verdict. Windows end at the last complete day, and for Search targets at the newest final Search day; when Search lags behind, a notice names that day.
 - The Window selector above the list offers 7, 14 and 28 days (default 14). The choice is kept in the address as `win` and in this browser as a preference.
 - A row whose windows contain another annotation of an overlapping scope (either is site-wide, or both name the same rule) says "Overlaps with ..." because the two effects cannot be separated.
-- Details opens the full impact panel of the row (kept in the address as `a=<id>`): the chart, before and after, the measured base, another metric or row to compare, the annotation scope or site-wide, and a fixed strip of the standard KPIs (visitors, sessions, pageviews, bounce rate, engaged rate, average duration) for the same scope and windows. "Impact of a date" opens the same panel for any date (`a=date`).
+- Details opens the full impact panel of the row (kept in the address as `a=<id>`): the chart, before and after, the measured base, another metric or row to compare, the annotation scope or site-wide, and a fixed strip of the standard KPIs (visitors, sessions, pageviews, bounce rate, average duration) for the same scope and windows. "Impact of a date" opens the same panel for any date (`a=date`).
 - A marker on any chart opens its group; "Open in Annotations" goes to the annotation's row.
 - With no annotation in the range the page explains annotations in two lines and offers "Add annotation".
 

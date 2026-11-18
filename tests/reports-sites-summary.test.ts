@@ -79,7 +79,8 @@ describe("sites/summary", () => {
 			["default", "This site", "local"],
 			["blog", "Blog", "client"],
 		]);
-		expect(r.rows[1]).toMatchObject({ sessions: 60, pageviews: 150, visitors: 45, bounce_rate: 0.3333, engaged_rate: 0.5, revenue: [{ currency: "USD", revenue: 10.25, orders: 1 }] });
+		// The stored bounces (20 of 60) follow the older rule and are ignored: bounce rate is 1 minus engaged rate.
+		expect(r.rows[1]).toMatchObject({ sessions: 60, pageviews: 150, visitors: 45, bounce_rate: 0.5, engaged_rate: 0.5, revenue: [{ currency: "USD", revenue: 10.25, orders: 1 }] });
 		expect(r.rows.some((x: SummaryRow) => x.id === "ghost")).toBe(false);
 		// The bound site list holds the three registry ids, as one JSON parameter.
 		const ids = s.log.map((l) => l.params[0]);

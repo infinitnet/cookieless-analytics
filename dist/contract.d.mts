@@ -6,11 +6,29 @@
 declare const PLUGIN_ID = "cookieless-analytics";
 declare const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-declare const VERSION = "1.0.1";
+declare const VERSION = "1.1.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 declare const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
 declare const PRODUCT_URL = "https://infinitnet.io/cookieless-analytics/";
+/**
+ * Cookieless Analytics Companion, the sandboxed setup helper in the EmDash plugin registry (docs/integration.md).
+ * A registry install runs under an id derived from publisher and slug, so the admin finds it by both.
+ */
+declare const COMPANION_SLUG = "cookieless-analytics-companion";
+declare const COMPANION_NAME = "Cookieless Analytics Companion";
+/** DID of the registry publisher; equal to `publisher` in `packages/companion/emdash-plugin.jsonc`. */
+declare const COMPANION_PUBLISHER_DID = "did:plc:htzvomqz4z63po3if3uejz43";
+/** Body of `POST /_emdash/api/plugins/<companion id>/hello`, sent by the admin once per browser session. */
+interface CompanionHello {
+  v: 1;
+  product: typeof PLUGIN_ID;
+  /** Package version of this plugin, `x.y.z`. */
+  pluginVersion: string;
+  contractVersion: number;
+}
+/** True when `body` is exactly a `CompanionHello`: no other key, a semver `pluginVersion`, an integer `contractVersion` from 1 to 999. */
+declare function isCompanionHello(body: unknown): body is CompanionHello;
 /** Route names under `/_emdash/api/plugins/<PLUGIN_ID>/`. */
 declare const ROUTES: {
   readonly in: "in";
@@ -122,4 +140,4 @@ interface ContractResponse {
   namespace: string;
 }
 //#endregion
-export { CONTRACT_VERSION, ContractResponse, DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, IngestBody, IngestEngagement, IngestEvent, IngestPageview, LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, PRODUCT_URL, PropValue, Props, RESERVED_EVENTS, ROUTES, ReservedEventName, SID_RE, SessionReadResponse, VERSION };
+export { COMPANION_NAME, COMPANION_PUBLISHER_DID, COMPANION_SLUG, CONTRACT_VERSION, CompanionHello, ContractResponse, DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, IngestBody, IngestEngagement, IngestEvent, IngestPageview, LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, PRODUCT_URL, PropValue, Props, RESERVED_EVENTS, ROUTES, ReservedEventName, SID_RE, SessionReadResponse, VERSION, isCompanionHello };

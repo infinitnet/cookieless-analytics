@@ -48,6 +48,7 @@ Self-hosted, cookieless web analytics for EmDash CMS sites and any other site, w
 | [Privacy model](Privacy-Model) | What is stored, what is not, privacy signals |
 | [Troubleshooting](Troubleshooting) | Symptoms, causes and fixes |
 | [Upgrade](Upgrade) | Updating the package |
+| [Registry companion](Registry-Companion) | Cookieless Analytics Companion: the setup assistant in the EmDash plugin registry |
 
 ## Screenshots
 

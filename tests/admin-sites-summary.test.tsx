@@ -95,6 +95,11 @@ describe("All sites", () => {
 		expect((container.querySelector("select[aria-label='Site']") as HTMLSelectElement).value).toBe("all");
 		const rows = [...container.querySelectorAll("tbody tr")].map((tr) => tr.querySelector("th")?.textContent);
 		expect(rows).toEqual(["Shop", "This site", "Blog"]);
+		const head = container.querySelector("thead")?.textContent ?? "";
+		expect(head).toContain("Bounce rate");
+		expect(head).not.toContain("Engaged rate");
+		const headCells = container.querySelectorAll("thead tr:first-child > *").length;
+		for (const tr of container.querySelectorAll("tbody tr, tfoot tr")) expect(tr.children.length).toBe(headCells);
 		const shop = container.querySelector("tbody tr") as HTMLElement;
 		expect(shop.textContent).toContain("120.50 USD");
 		expect(shop.textContent).toContain("80.00 EUR");

@@ -215,12 +215,23 @@ Rules:
 
 The `links` report (scope `read:analytics`, tile kinds `bars` and `table`) answers per key: `impressions` (link keys of `seen` events), `clicks` (`out` events), `ctr` (clicks / impressions from the sums, 0 without impressions), `sessions` (distinct sessions with a click) and `conversions` (`conv` events). `params.by` is `link` (default), `place`, `page`, `channel`, `source`, `campaign`, `entry`, `country` or `device`; `params.slug` narrows to one link. A key without a placement counts under `(none)`. With `params.withRevenue` the rows add `revenue` and `revenue_currency` in one currency (`params.currency`, default the site's), and `data.currencies` lists every currency of the `conv` events; amounts of two currencies are never added. A range that starts before the raw window (`rawRetentionDays`) reads the daily link summaries (notices `summary` and `detail_from:<day>`), as does a range inside it whose stored days hold more visits than the scan budget when every filter applies ([filters.md](filters.md#filters-on-summary-data)): by link (all links, one link, or one filter on channel, country or device: the daily cube of channel, country and device does not hold links, so a second of them is `filter_unavailable:<dim>:combination`, and link revenue then answers `revenue_not_available`) and by place; other breakdowns answer `raw_only` before the window, other filters are named in `filter_unavailable:<dim>:<reason>`, and each day keeps its top 200 links and places (the rest is `(other)`).
 
+## The registry companion
+
+Cookieless Analytics Companion (slug `cookieless-analytics-companion`) is a sandboxed plugin in the EmDash plugin registry that guides the install of this plugin. It counts nothing and is not required. Sandboxed and native plugins share no storage and cannot call each other, so this plugin's admin, which runs in the browser with the editor's session, tells the companion that it is installed.
+
+- On each Overview load the admin calls `GET /_emdash/api/admin/plugins` (permission `plugins:read`, Editor and above). It picks the enabled item whose `registrySlug` is `COMPANION_SLUG` and whose `registryPublisherDid` is `COMPANION_PUBLISHER_DID`, or, for a config-managed install, the enabled item with `source: "config"` and `id` equal to the slug. A registry install runs under an id derived from publisher and slug (`r_` and 16 characters), never under the slug, so the route path always comes from the item's `id`.
+- Once per browser session it then sends `POST /_emdash/api/plugins/<id>/hello` with `X-EmDash-Request: 1` and the body `{ "v": 1, "product": "cookieless-analytics", "pluginVersion": VERSION, "contractVersion": CONTRACT_VERSION }` (type `CompanionHello`, guard `isCompanionHello`: exactly these four keys, a semver `pluginVersion`, an integer `contractVersion` from 1 to 999).
+- No API key, no secret, no network call from the server. A missing permission, a failed list call and a disabled or absent companion end silently, and nothing is sent. A failed post is also silent and is sent again on the next Overview load; after one accepted post the session sends no more.
+- While the companion is installed and enabled, the Overview shows: "Cookieless Analytics Companion is still installed. Setup is complete, so you can remove it under Plugins." with Open Plugins and Hide. It goes once the companion is removed or disabled. Hide keeps the notice hidden in this browser; the hello is still sent.
+- The payload holds two version strings. A signed-in user who forges it changes only what the companion displays.
+
 ## What the contract module exports
 
-`@infinitnet/cookieless-analytics/contract` holds only constants and types, so another plugin may also copy them. Changing a value is a breaking change.
+`@infinitnet/cookieless-analytics/contract` holds only constants, types and the `isCompanionHello` guard, so another plugin may also copy them. Changing a value is a breaking change.
 
-- Constants: `PLUGIN_ID`, `CONTRACT_VERSION` (1), `VERSION`, `PRODUCT_NAME`, `PRODUCT_URL`, `ROUTES`, `DEFAULT_SCRIPT_PATH`, `DEFAULT_COLLECT_PATH`, `DEFAULT_SHARE_PATH`, `DEFAULT_NAMESPACE`, `SID_RE`, `HIT_RE`, `RESERVED_EVENTS`, `LINK_EVENTS`, `FORBIDDEN_PUBLIC_WORDS`.
-- Types: `IngestBody`, `IngestPageview`, `IngestEngagement`, `IngestEvent`, `PropValue`, `Props`, `ReservedEventName`, `SessionReadResponse`, `ContractResponse`.
+- Constants: `PLUGIN_ID`, `CONTRACT_VERSION` (1), `VERSION`, `PRODUCT_NAME`, `PRODUCT_URL`, `ROUTES`, `DEFAULT_SCRIPT_PATH`, `DEFAULT_COLLECT_PATH`, `DEFAULT_SHARE_PATH`, `DEFAULT_NAMESPACE`, `SID_RE`, `HIT_RE`, `RESERVED_EVENTS`, `LINK_EVENTS`, `FORBIDDEN_PUBLIC_WORDS`, `COMPANION_SLUG`, `COMPANION_NAME`, `COMPANION_PUBLISHER_DID`.
+- Function: `isCompanionHello`.
+- Types: `IngestBody`, `IngestPageview`, `IngestEngagement`, `IngestEvent`, `PropValue`, `Props`, `ReservedEventName`, `SessionReadResponse`, `ContractResponse`, `CompanionHello`.
 
 `@infinitnet/cookieless-analytics/server` exports `recordEvent` and the type `ServerEvent`.
 

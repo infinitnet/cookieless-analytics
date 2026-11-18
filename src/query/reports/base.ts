@@ -184,8 +184,9 @@ export function liveVisits(rc: Pick<ReportCtx, "site" | "now" | "settings">): Fr
 
 /**
  * Engaged sessions over `ca_sessions s`: active time at or above the threshold (its one parameter, in ms), two
- * or more pageviews, or any event. A bounce is a session that is not engaged (the GA4 meaning), so bounces are
- * always sessions minus engaged.
+ * or more pageviews, or any event. A bounce is a session that is not engaged (the GA4 meaning). The bounce rate is
+ * derived from the engaged rate on read (`bounceRate`), so summary rows written under the older bounce rule and
+ * satellites on an older version read the same way.
  */
 export const ENGAGED_SQL = "SUM(CASE WHEN s.engaged_ms >= ? OR s.pageviews > 1 OR s.events > 0 THEN 1 ELSE 0 END) AS engaged";
 
@@ -213,17 +214,21 @@ FROM ca_sessions s WHERE ${where.sql} GROUP BY ${g}s.day`;
 	};
 }
 
+/** Bounce rate from the rounded engaged rate, so the two rounded rates always sum to 1. */
+export const bounceRate = (engagedRate: number | null): number | null => (engagedRate === null ? null : round(1 - engagedRate));
+
 /** Derived session metrics from raw sums. */
 export function sessionMetrics(r: Record<string, unknown>): Metrics {
 	const sessions = num(r.sessions);
 	const pageviews = num(r.pageviews);
+	const engaged_rate = round(ratio(num(r.engaged), sessions));
 	return {
 		visitors: num(r.visitors),
 		sessions,
 		pageviews,
 		views_per_session: round(ratio(pageviews, sessions)),
-		bounce_rate: round(ratio(num(r.bounces), sessions)),
-		engaged_rate: round(ratio(num(r.engaged), sessions)),
+		bounce_rate: bounceRate(engaged_rate),
+		engaged_rate,
 		avg_duration: round(ratio(num(r.duration_ms) / 1000, sessions), 1),
 	};
 }
