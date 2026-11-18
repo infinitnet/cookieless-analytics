@@ -36,7 +36,7 @@ curl -s -X POST "https://example.com/_emdash/api/plugins/cookieless-analytics/ag
   -d '{"text":"Release 2.1","scope":{"v":1,"host":[{"op":"is","value":"shop.example.com"}]}}'
 ```
 
-- **Published** and **Updated**, added by the plugin when a content item is published or updated (see [Automatic annotations](#automatic-annotations)): one per item, kind and day, with the item's title as text and its public path as scope. When the path cannot be resolved the annotation is site-wide; set the path by hand. Client sites get no automatic annotations.
+- **Published** and **Updated**, added by the plugin when a content item is published or updated (see [Automatic annotations](#automatic-annotations)): one per item, kind and day, with the item's title as text and its public path as scope. An item without a public page (a data record of a collection that is not routable) is not annotated. Until the site URL is set no path can be resolved, and the annotation is site-wide; set the path by hand. Client sites get no automatic annotations.
 
 ## Automatic annotations
 

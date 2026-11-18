@@ -18,6 +18,8 @@ export type AnnotateSettings = Pick<Settings, "siteId" | "siteTimezone" | "autoA
 
 export interface AnnotateCtx {
 	content?: { getPublicUrl?(collection: string, id: string): Promise<string | null> };
+	/** The host's site info: `url` is empty until the site URL is set. */
+	site?: { url?: string };
 	storage: { annotations?: { put(id: string, data: unknown): Promise<void> } };
 	kv: Pick<KvLike, "get" | "set">;
 }
@@ -39,13 +41,19 @@ export async function annotate(
 	const ids = prev?.day === day ? prev.ids : [];
 	const repeat = ids.includes(key);
 	if (!repeat && ids.length >= s.autoAnnotationsPerDay) return;
-	// Counted before the slower path lookup and write. shortcut: hooks running at the same moment can read the same list and
+	const path = await derivePath(ctx, collection, content);
+	// With the site URL known the host resolves a public path for every published page. No path then means the item
+	// has no page (a data record of a collection that is not routable): nothing to scope an annotation to, and a
+	// site-wide one would be read as a change to the whole site. It is skipped before it counts against the daily cap,
+	// so a bulk import of records cannot use up the cap the real pages need. Without a site URL no item can resolve,
+	// so those keep the site-wide record and the editor sets the path by hand.
+	if (!path && ctx.site?.url) return;
+	// Counted before the slower write. shortcut: hooks running at the same moment can read the same list and
 	// each pass the cap, so a parallel burst may overshoot it; a strict cap needs compareAndSet.
 	if (!repeat) await ctx.kv.set(KV_AUTO_ANNOTATIONS, { day, ids: [...ids, key] } satisfies Today);
 	const data = (content.data ?? {}) as Record<string, unknown>;
 	const slug = typeof content.slug === "string" ? content.slug : undefined;
 	const title = typeof data.title === "string" ? data.title : (slug ?? id);
-	const path = await derivePath(ctx, collection, content);
 	const scope: Scope | undefined = path ? { v: 1, path: [{ op: "is", value: path }] } : undefined;
 	await ctx.storage.annotations?.put(key, {
 		site: s.siteId,

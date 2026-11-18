@@ -10061,6 +10061,8 @@ async function annotate(ctx, kind, content, collection, s, ts = Math.floor(Date.
 	const ids = prev?.day === day ? prev.ids : [];
 	const repeat = ids.includes(key);
 	if (!repeat && ids.length >= s.autoAnnotationsPerDay) return;
+	const path = await derivePath(ctx, collection, content);
+	if (!path && ctx.site?.url) return;
 	if (!repeat) await ctx.kv.set(KV_AUTO_ANNOTATIONS, {
 		day,
 		ids: [...ids, key]
@@ -10068,7 +10070,6 @@ async function annotate(ctx, kind, content, collection, s, ts = Math.floor(Date.
 	const data = content.data ?? {};
 	const slug = typeof content.slug === "string" ? content.slug : void 0;
 	const title = typeof data.title === "string" ? data.title : slug ?? id;
-	const path = await derivePath(ctx, collection, content);
 	const scope = path ? {
 		v: 1,
 		path: [{

@@ -47,6 +47,22 @@ describe("annotate hook", () => {
 		}
 	});
 
+	it("skips an item with no public page once the site URL is known, and it does not use the daily cap", async () => {
+		const puts: unknown[] = [];
+		let kvWrites = 0;
+		const base = { kv: { get: async () => null, set: async () => void kvWrites++ }, storage: { annotations: { put: async (_id: string, data: unknown) => void puts.push(data) } } };
+		// A data record of a collection that is not routable: the host answers null although the site URL is set.
+		await annotate({ ...base, site: { url: "https://example.com" }, content: url(null) }, "publish", item, "products", S, TS);
+		expect(puts).toEqual([]);
+		expect(kvWrites).toBe(0);
+		// The same answer without a site URL is a host that cannot resolve anything: the site-wide record stays.
+		await annotate({ ...base, site: { url: "" }, content: url(null) }, "publish", item, "products", S, TS);
+		expect(puts).toHaveLength(1);
+		// A page with a path is annotated whatever the site URL.
+		await annotate({ ...base, site: { url: "https://example.com" }, content: url("https://example.com/a") }, "publish", { ...item, id: "p2" }, "posts", S, TS);
+		expect(puts).toHaveLength(2);
+	});
+
 	it("skips items without an id", async () => {
 		expect(await run(url("https://example.com/a"), { slug: "x" })).toEqual([]);
 	});

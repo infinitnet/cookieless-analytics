@@ -79,7 +79,7 @@ The scope is a path `is` rule with the item's public path, derived the way the s
 2. Any other placeholder the host leaves open, such as `{category}`, is filled from the entry's own data, but only with a string or number made of letters, digits, `.`, `_` and `-` (at most 128 characters).
 3. The path of the resulting URL is stored (at most 512 characters).
 
-When the path cannot be resolved (the collection is not routable, the entry is a draft, no site URL is configured, a placeholder stays empty or the read fails) the annotation is site-wide and keeps `slug` and `collection`, so the path can be set by hand on the Annotations page. The derivation never fails a publish. Client sites get no automatic annotations.
+When the site URL is known and the path still cannot be resolved (the collection is not routable, a placeholder stays empty or the read fails) the item has no public page, so no annotation is added: it has nothing to scope to, and it does not count against the daily limit. Without a site URL no item can resolve, so the annotation is site-wide and keeps `slug` and `collection`, so the path can be set by hand on the Annotations page. The derivation never fails a publish. Client sites get no automatic annotations.
 
 ### Settings
 
