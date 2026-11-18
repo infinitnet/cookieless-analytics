@@ -27,7 +27,7 @@ const DESCRIPTION =
 describe("package metadata", () => {
 	it("name, version, author, licence and repository", () => {
 		expect(pkg.name).toBe("@infinitnet/cookieless-analytics");
-		expect(pkg.version).toBe("1.1.0");
+		expect(pkg.version).toBe("1.1.1");
 		expect(VERSION).toBe(pkg.version);
 		// The credit line in the admin footer shows the version with a v prefix (Header and Settings).
 		for (const f of ["src/admin/components/Header.tsx", "src/admin/pages/Settings.tsx"]) expect(readFileSync(f, "utf8"), f).toContain("{PRODUCT_NAME}</a> v{VERSION}");
@@ -79,7 +79,7 @@ describe("package metadata", () => {
 		// npm 10 prints an array, npm 11 an object keyed by package name.
 		const raw = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })) as Packed[] | Record<string, Packed>;
 		const info = Array.isArray(raw) ? raw[0] : Object.values(raw)[0];
-		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.1.0.tgz");
+		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.1.1.tgz");
 		const top = new Set(info?.files.map((f) => f.path.split("/")[0]));
 		expect([...top].sort()).toEqual(["LICENSE", "NOTICE", "README.md", "THIRD_PARTY_NOTICES.md", "dist", "package.json", "scripts", "src"]);
 		expect(info?.files.filter((f) => f.path.startsWith("packages/"))).toEqual([]);
