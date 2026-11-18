@@ -1,28 +1,11 @@
-import { CONTRACT_VERSION, LINK_EVENTS, PLUGIN_ID, SID_RE } from "./contract.mjs";
-import { $ as clearEstimateDay, $t as pgStatementLimit, A as MAX_VISIT_MINUTES, At as isPath, C as newSiteKey, Ct as MAPPING_FIELD, Dt as OID_RE, E as drops, Et as ThrottledError, F as classifyChannel, Ft as eachDatabase, G as budgetTargetOf, Gt as statePrefix, Ht as pluginFactsOrNull, I as CLICK_IDS, J as KV_CURSOR, Jt as INGEST_STATEMENT_MS, K as dailyRowsApply, Kt as CACHE_ON_MESSAGE, L as SITE_SEARCH_TERM_MAX, M as BUILTIN_CHANNEL_RULES, Mt as isSid, Nt as validateIngest, O as MAX_DOC_BYTES, Ot as cleanProps, Pt as validateRevenue, R as UTM_KEYS, S as markHostSeen, St as BudgetExhausted, T as siteProblem, Tt as SourceError, U as KV_WRITE_BUDGET, V as normalizeUrl, W as budgetState, Wt as stateKv, X as MAX_CHUNKS, Xt as isHyperdrive, Y as KV_DELETE_ROWS, Yt as fromPg, Z as SALT_KEEP_DAYS, _ as hostnameOf, _n as randomId, _t as SYNC_BUDGET, at as COPY_DAY_ROWS, b as linkedHostsOf, bn as truncateIp, bt as nextUtcDay, c as ClientSiteSchema, cn as schemaVersion, ct as copyRowsLeft, d as MAX_HOSTS, dn as fromD1, dt as PLANNING_ROWS_PER_DAY, en as redact, et as effectiveRawDays, f as MAX_SITES, fn as isD1, ft as PROVIDER_DAYS, g as bindSite, gt as RowsPaused, h as SiteField, hn as getOrCreateSalt, ht as ROWS_PER_ROW_BOUND, i as ingestStatus, in as TABLES$1, it as sitesInTables, j as isActive$1, jt as isReservedEvent, k as readVisits, kt as isEventName, l as HOST_SEEN_PREFIX, lt as nextUtcMidnight, m as SITE_KEY_RE, mn as base64url, mt as ROWS_PER_INSERT, nn as SCHEMA_VERSION, nt as runChunk, on as ensureSchemaOnce, ot as chargeCopyRows, p as SITE_ID_RE, pn as workerEnv, pt as ROWS_PER_DELETE, q as CHUNK_ROWS, qt as queryCacheOn, rn as SCHEMA_VERSION_KEY, rt as runRetention, sn as isOwnDatabase, st as copiedToday, tt as rawFromDay, u as LINKED_HOSTS_KEY, un as selfCheck, ut as KV_SYNC_ROWS, v as invalidateRegistry, vn as sha256, vt as SyncRows, w as registry, wt as SOURCE_IDS, x as loadSites, xn as vkey, xt as utcDay, y as linkedHosts, yn as timingSafeEqual, yt as backfillRange, z as cleanHost, zt as factsTargets } from "./queue-sink-BOtlgr5B.mjs";
-import { $n as saltDay, A as currencyList, An as docRead, At as inList, B as bucketSeries, Bt as NUM_OPS, C as journeyPaths, Cn as dayInt, Ct as and, D as RECENT_ORDERS_CAP, Dn as docJson, Dt as entryCols, E as journeysUnavailable, Et as entriesOf, F as revenueBreakdown, Fn as likeEscape, Ft as FunnelStepsSchema, Gn as addDays, Gt as REVENUE_DIMS, H as timeseries, Hn as MAX_PARAMS, Ht as PROP_KEY_RE, I as revenueOrders, In as paramRows, It as GoalSchema, J as clearOpenDays, Jn as eachDay, Jt as TRAFFIC_DIMS, Kn as dayInZone, Kt as REVENUE_VALUE_RE, L as revenuePlan, Ln as q, Lt as LINK_BY, M as hasRevenue, Mt as DIM_NAMES, N as metaOf, Nn as isoDay, Nt as FUNNEL_MODES, O as REVENUE_REPORTS, On as docObject, Ot as entryProp, P as revenue, Pt as FilterSchema, Q as planFilters, Qn as saltBoundary, Qt as SITE_SEARCH_MAX_PARAMS, R as revenueSeries, Rt as MAX_FILTERS, S as journeyNext, St as TRUE, T as journeysFromSummary, Tt as compileTraffic, U as weekStart, Un as chunk, Ut as QuerySchema, V as resolveGranularity, Vn as visitDayKey, Vt as OPS, W as CUBE_SEG, Wn as ident, Wt as REVENUE_BREAKDOWN_DIMS, Xn as lastClosedDay, Xt as HOST_FORM_POINTER, Y as clearScanCache, Yn as hourInZone, Yt as DEFAULT_SETTINGS, Z as openDay, Zn as previousPeriod, Zt as PROFILES, _ as linksPlan, _n as isCurrency, a as OTHER, an as normalizeSettings, at as ORDER_SUMS, b as JOURNEY_MIN_SESSIONS, bn as LIKE_ESCAPE, bt as visitDays, c as counted$1, ct as goalGroups, dn as compileSafeRegex, en as budgetMb, er as samePeriodLastYear, et as readSummary, fn as validateSafeRegex, ft as num$2, g as linksFromSummary, gn as formatAmount, gt as sessionBreakdown, h as links, hn as REVENUE_MAX_VALUE, ht as round, i as KV_WATERMARK, in as d1CapMb, it as DURATION_MS, j as currencyOf, jt as validateFilters, k as WITH_REVENUE, kn as docPut, kt as goalPredicate, l as dayStatements, ln as parseLinkRules, lt as hitJoin, m as sitesOfDay, mt as refundDim, n as KV_REVENUE_CURSOR, nn as budgetWarning, nt as storedSessions, o as SEGS, on as parseSiteSearchParams, ot as annotationsIn, p as runRollup, pn as MAX_CURRENCIES_LISTED, pt as ratio, q as behindNotice, qn as daysBetween, qt as SEARCH_DIMS, r as KV_ROLLUP_CURSOR, rt as storedThrough, s as SUMMARY_DIMS, sn as settingsSchema, st as bounceRate, t as CUBE_CAP, tn as budgetRange, tr as zonedToEpoch, tt as splitRange, u as rollupDay, un as publicNames, ut as keysIn, v as JOURNEY_MAX_RANGE_DAYS, vn as normalizeCurrency, vt as sessionTotals, w as journeyPrev, wt as compileSearch, x as JOURNEY_SESSION_CAP, xt as QueryError, y as JOURNEY_MAX_ROWS, yn as roundMinor, yt as sessionWhere, z as withRevenue, zn as upsertChanged, zt as NEGATED } from "./rollup-DahnNaAs.mjs";
-import { A as uaNorm, C as bump, D as requestInfo, F as AGENT_CATEGORIES, I as MAX_RULE_PATTERN, L as MAX_USER_REGEX_RULES, M as classifyUa, N as createClassifier, O as sinkOf, P as AGENTS, R as MAX_USER_RULES, S as SHARE_LOCK_MINUTES, T as recordClientEvent, _ as MAX_SHARES_PER_DASHBOARD, a as scriptBody, b as SHARE_COMPARE_MAX_REQUESTS, d as MAIL_MAX_RECIPIENTS, f as MAIL_MAX_RETRIES, g as MAX_SCHEDULED_PER_SITE, h as MAX_RECORD_BYTES, i as middlewareLiveAt, j as siteSetting, k as parseUa, l as MAIL_MAX_DISTINCT_REQUESTS, m as MAX_DASHBOARDS_PER_SITE, o as AGENT_RULES_KEY, p as MAIL_STATEMENT_BUDGET, r as currentAudience, t as MW_SEEN_KEY, u as MAIL_MAX_HTML_BYTES, v as MAX_SHARES_PER_SITE, w as orderHitId, x as SHARE_LOCK_FAILURES, y as MAX_TILES, z as compileUserRules } from "./middleware-core-DwvXAIlw.mjs";
-import { a as runRollupReport, c as SATISFACTION_BY, d as SCORE_DEFINITION, f as entryPages, g as overview, h as pages, l as SATISFACTION_CAVEAT, m as notFound$1, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as exitPages, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SATISFACTION_MIN_MEASURED } from "./rollup-CrqIFQsa.mjs";
-import { t as BINDING_RE } from "./config-D7Pvk1K6.mjs";
-import { PluginRouteError, pluginResponse } from "emdash";
+import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION } from "./contract.mjs";
+import { $ as sitesInTables, $n as nextUtcDay, $r as redact, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as eachDay, An as GoalSchema, Ar as formatAmount, At as revenueOrders, B as KV_WRITE_BUDGET, Bn as SEARCH_DIMS, C as siteProblem, Ci as upsertChanged, Cn as goalPredicate, Cr as isEventName, Ct as WITH_REVENUE, D as readVisits, Di as addDays, Dn as FUNNEL_MODES, Dr as validateIngest, Dt as metaOf, E as MAX_DOC_BYTES, Ei as ident, En as DIM_NAMES, Er as isSid, Et as hasRevenue, F as UTM_KEYS, Fi as saltDay, Fn as PROP_KEY_RE, Fr as eachTarget, Ft as resolveGranularity, G as KV_CURSOR, Gi as vkey, Gn as copyRowsLeft, Gt as openDay, H as budgetTargetOf, Hi as sha256, Hn as COPY_DAY_ROWS, Hr as setPluginFacts, Ht as clearOpenDays, I as cleanHost, Ii as samePeriodLastYear, In as QuerySchema, Ir as ensureHostSchema, It as timeseries, J as clearEstimateDay, Jn as PROVIDER_DAYS, Jr as fromPg, Jt as readSummary, K as KV_DELETE_ROWS, Kn as nextUtcMidnight, Kr as queryCacheOn, Kt as planFilters, Li as zonedToEpoch, Ln as REVENUE_BREAKDOWN_DIMS, Lr as factsDb, Lt as weekStart, M as buildChannelRules, Mi as lastClosedDay, Mn as NEGATED, Mr as normalizeCurrency, Mt as revenueSeries, N as classifyChannel, Ni as previousPeriod, Nn as NUM_OPS, Nr as roundMinor, Nt as withRevenue, Oi as dayInZone, On as FilterSchema, Or as validateRevenue, Ot as revenue, P as CLICK_IDS, Pi as saltBoundary, Pn as OPS, Pr as eachDatabase, Pt as bucketSeries, Q as runRetention, Qn as backfillRange, Qr as pgStatementLimit, Qt as DURATION_MS, R as normalizeUrl, Ri as base64url, Rn as REVENUE_DIMS, Rr as factsTargets, Rt as CUBE_SEG, S as registry, Si as q, Sn as entryProp, Sr as cleanProps, St as REVENUE_REPORTS, Ti as chunk, Tn as validateFilters, Tr as isReservedEvent, Tt as currencyOf, U as dailyRowsApply, Ui as timingSafeEqual, Un as chargeCopyRows, Ur as stateKv, Ut as clearScanCache, V as budgetState, Vi as randomId, Vn as TRAFFIC_DIMS, Vr as pluginFactsOrNull, Vt as behindNotice, Wi as truncateIp, Wn as copiedToday, Wr as statePrefix, X as rawFromDay, Xn as SYNC_BUDGET, Xr as pgOwnScope, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yr as isHyperdrive, Yt as splitRange, Z as runChunk, Zn as SyncRows, Zr as pgScope, Zt as storedThrough, _ as linkedHosts, _i as docPut, _n as and, _r as parseLinkRules, _t as journeyNext, ai as ensureSchemaOnce, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as likeEscape, bn as entriesOf, br as validateSafeRegex, bt as journeysFromSummary, c as ClientSiteSchema, ci as fromKysely, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as isD1, dr as budgetWarning, dt as runRollup, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as workerEnv, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as docObject, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as docJson, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as ensureSchema, in as keysIn, ir as SourceError, it as OTHER, ji as hourInZone, jn as LINK_BY, jr as isCurrency, jt as revenuePlan, k as isActive$1, ki as daysBetween, kn as FunnelStepsSchema, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, li as selfCheck, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as dayInt, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as SCHEMA_VERSION_KEY, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as isOwnDatabase, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as LIKE_ESCAPE, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qn as KV_SYNC_ROWS, qr as INGEST_STATEMENT_MS, ri as TABLES$1, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as schemaVersion, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as SCHEMA_VERSION, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as fromD1, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as docRead, vn as compileSearch, vr as publicNames, vt as journeyPaths, w as drops, wi as visitDayKey, wn as inList, wr as isPath, wt as currencyList, x as newSiteKey, xi as paramRows, xn as entryCols, xr as OID_RE, xt as journeysUnavailable, y as loadSites, yi as isoDay, yn as compileTraffic, yr as compileSafeRegex, yt as journeyPrev, zi as getOrCreateSalt, zn as REVENUE_VALUE_RE, zr as missingDb } from "./queue-sink-CsXeLpUE.mjs";
+import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-q85kV3_A.mjs";
+import { a as runRollupReport, c as SATISFACTION_BY, d as entryPages, f as exitPages, h as overview, l as SATISFACTION_CAVEAT, m as pages, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as notFound$1, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SCORE_DEFINITION } from "./rollup-rJWazoto.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-C42AfJsx.mjs";
+import { PluginRouteError, after, definePlugin, getPluginSettings, pluginResponse } from "emdash";
+import { getDb } from "emdash/runtime";
 import { z } from "zod";
-
-//#region src/core/agent-events.ts
-/**
-* Server side event ingestion for `POST agent/v1/events`: the site's own backend reports
-* events, typically orders, with an optional `sid` taken from the page. One row each in `ca_events`, the
-* table browser orders go to as well, so one order is one row whatever its origin. An event attached to a
-* visit is also an entry of that visit's document (keyed like its `ca_events` row: `t`, `n`, `p`, `pr`), so
-* the hit-level reports see it like a browser event. Set based: three reads (order ids, sessions, aliases),
-* one insert per 9 events and one document update per attached visit, so a call of 20 events costs at most
-* 26 statements (6 plus one per distinct visit), plus one read when it holds refunds and one update per void.
-*
-* A refund (`{ name, oid, rid, refund }`) is one more `ca_events` row: the order's attribution (`sday`, `sid`,
-* `name`, `path`, `cur`) with `val` the negative amount, on the refund's own day, keyed `<order row id>.r<hash of
-* rid>` so a retry is stored once and the refunds of an order are one key range. It never touches the visit.
-*/
-const AGENT_EVENTS_MAX_PER_CALL = 20;
-const AGENT_EVENT_MAX_AGE_DAYS = 30;
 /** Accepted clock skew of a `ts` in the future. */
 const FUTURE_SKEW_S = 60;
 const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
@@ -49,10 +32,10 @@ function check(raw, index, now, firstDay, tz) {
 		};
 	}
 	const ts = raw.ts === void 0 ? now : raw.ts;
-	const badTs = typeof ts !== "number" || !Number.isInteger(ts) || ts < now - AGENT_EVENT_MAX_AGE_DAYS * 86400 || ts > now + FUTURE_SKEW_S || dayInZone(ts, tz) < firstDay;
+	const badTs = typeof ts !== "number" || !Number.isInteger(ts) || ts < now - 2592e3 || ts > now + FUTURE_SKEW_S || dayInZone(ts, tz) < firstDay;
 	if (raw.refund !== void 0) {
 		const amount = raw.refund;
-		if (raw.val !== void 0 || typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > REVENUE_MAX_VALUE) return "invalid_value";
+		if (raw.val !== void 0 || typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > 1e9) return "invalid_value";
 		if (typeof raw.oid !== "string" || !OID_RE.test(raw.oid) || typeof raw.rid !== "string" || !OID_RE.test(raw.rid)) return "invalid_id";
 		const cur = raw.cur === void 0 ? null : normalizeCurrency(raw.cur);
 		if (raw.cur !== void 0 && !cur) return "invalid_currency";
@@ -98,8 +81,6 @@ async function refundRowId(orderId, rid) {
 }
 /** The key range of an order's refund rows. */
 const refundRange = (orderId) => [`${orderId}.`, `${orderId}/`];
-/** Visits a server event can attach to: started in the last 7 days, a key range of `(site, day, sid)`. */
-const AGENT_ATTACH_DAYS = 7;
 /**
 * Resolve client sids to stored sessions of the site started in the last `AGENT_ATTACH_DAYS` days,
 * directly or through the alias table joined to its canonical session. Two reads at most; none without sids.
@@ -166,7 +147,7 @@ async function recordAgentEvents(deps, site, events) {
 	const rejected = [];
 	const items = [];
 	const firstDay = addDays(await rawFromDay(deps.kv, s, now), 1);
-	events.slice(0, AGENT_EVENTS_MAX_PER_CALL).forEach((raw, i) => {
+	events.slice(0, 20).forEach((raw, i) => {
 		const r = check(raw, i, now, firstDay, s.siteTimezone);
 		if (typeof r === "string") rejected.push({
 			index: i,
@@ -174,7 +155,7 @@ async function recordAgentEvents(deps, site, events) {
 		});
 		else items.push(r);
 	});
-	const since = visitDayKey(addDays(dayInZone(now, s.siteTimezone), -AGENT_ATTACH_DAYS));
+	const since = visitDayKey(addDays(dayInZone(now, s.siteTimezone), -7));
 	const sessions = await sessionsFor(db, site, [...new Set(items.flatMap((x) => x.sid ? [x.sid] : []))], since);
 	const attached = [];
 	for (const x of items) {
@@ -236,7 +217,8 @@ async function recordAgentEvents(deps, site, events) {
 				index: x.index,
 				reason: "invalid_value"
 			});
-			if (roundMinor([...done.values()].reduce((a, b) => a + b, 0) + amount, o.cur) > roundMinor(Number(o.val), o.cur)) return void rejected.push({
+			const total = [...done.values()].reduce((a, b) => a + b, 0) + amount;
+			if (roundMinor(total, o.cur) > roundMinor(Number(o.val), o.cur)) return void rejected.push({
 				index: x.index,
 				reason: "refund_exceeds_order"
 			});
@@ -326,14 +308,12 @@ async function recordAgentEvents(deps, site, events) {
 		rejected: rejected.sort((a, b) => a.index - b.index)
 	};
 }
-
-//#endregion
-//#region src/keys/token.ts
+// src/keys/token.ts
 /** API key tokens: `<8 char prefix>.<secret>`, the secret is 32 random bytes in base64url. */
 const TOKEN_RE = /^([a-z0-9]{8})\.([A-Za-z0-9_-]{43})$/;
 function generateToken() {
 	const prefix = randomId(8);
-	const secret = base64url(crypto.getRandomValues(new Uint8Array(32)));
+	const secret = base64url(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
 	return {
 		prefix,
 		secret,
@@ -352,13 +332,6 @@ function parseToken(raw) {
 async function hashSecret(secret) {
 	return [...await sha256(secret)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-
-//#endregion
-//#region src/keys/store.ts
-/** API keys over the `api_keys` storage collection: SHA-256 of the secret, lookup by the `prefix` index. */
-/** `last_used` is written at most once per this many seconds per key. */
-const TOUCH_SECONDS = 600;
-const MAX_KEYS = 100;
 const view = (id, k) => {
 	const { hash: _h, ...rest } = k;
 	return {
@@ -391,7 +364,7 @@ async function createKey(coll, input, now) {
 	};
 }
 async function listKeys(coll) {
-	const { items } = await coll.query({ limit: MAX_KEYS });
+	const { items } = await coll.query({ limit: 100 });
 	return items.map((i) => view(i.id, i.data)).sort((a, b) => b.created - a.created);
 }
 async function revokeKey(coll, id) {
@@ -417,7 +390,7 @@ async function verifyKey(coll, header, now) {
 	const hash = await hashSecret(parsed.secret);
 	const key = hit?.data;
 	if (!hit || !key || !timingSafeEqual(hash, key.hash) || key.revoked || key.expires !== null && key.expires <= now) return null;
-	if (key.last_used === null || now - key.last_used >= TOUCH_SECONDS) await coll.updateIf(hit.id, {
+	if (key.last_used === null || now - key.last_used >= 600) await coll.updateIf(hit.id, {
 		where: {},
 		set: { last_used: now }
 	});
@@ -427,9 +400,7 @@ async function verifyKey(coll, header, now) {
 		sites: key.sites
 	};
 }
-
-//#endregion
-//#region src/query/reports/audience.ts
+// src/query/reports/audience.ts
 const by = (col) => (rc, input) => sessionBreakdown(rc, input, `COALESCE(s.${col}, '(not set)')`);
 const countries = by("country");
 const regions = by("region");
@@ -437,9 +408,7 @@ const devices = by("device");
 const browsers = by("browser");
 const os = by("os");
 const languages = by("lang");
-
-//#endregion
-//#region src/query/reports/behaviour.ts
+// src/query/reports/behaviour.ts
 /** Funnels read at most this many sessions per query. */
 const FUNNEL_SESSION_CAP = 5e4;
 const EV_KEYS_MAX = 10;
@@ -479,8 +448,9 @@ async function events(rc, input) {
 async function eventProps(rc, input) {
 	const name = input.params.event;
 	if (!name) throw new QueryError("invalid_params", "event_props needs params.event.");
+	const h = entryCols(rc.db.dialect);
 	const j = hitJoin(rc, input, "ev", {
-		sql: `${entryCols(rc.db.dialect).name} = ?`,
+		sql: `${h.name} = ?`,
 		params: [name]
 	});
 	const each = rc.db.dialect === "postgres" ? {
@@ -567,8 +537,8 @@ async function funnels(rc, input) {
 	if (!def) throw new QueryError(input.params.funnel ? "unknown_funnel" : "invalid_params", "funnels needs params.funnel or params.steps.");
 	const mode = def.mode ?? "sequential";
 	const total = (await sessionTotals(rc, input)).sessions ?? 0;
-	if (mode === "strict" && total > FUNNEL_STRICT_SESSION_CAP) throw new QueryError("funnel_cap", `Strict funnels read at most ${FUNNEL_STRICT_SESSION_CAP} sessions; this range has ${total}. Narrow the range, add filters or use the sequential mode.`);
-	if (total > FUNNEL_SESSION_CAP) throw new QueryError("funnel_cap", `Funnels read at most ${FUNNEL_SESSION_CAP} sessions; this range has ${total}. Narrow the range or add filters.`);
+	if (mode === "strict" && total > 1e4) throw new QueryError("funnel_cap", `Strict funnels read at most ${FUNNEL_STRICT_SESSION_CAP} sessions; this range has ${total}. Narrow the range, add filters or use the sequential mode.`);
+	if (total > 5e4) throw new QueryError("funnel_cap", `Funnels read at most ${FUNNEL_SESSION_CAP} sessions; this range has ${total}. Narrow the range or add filters.`);
 	const cur = input.params.withRevenue ? currencyOf(rc, input) : null;
 	const depth = cur !== null && await ordersInRange(rc, input) ? /* @__PURE__ */ new Map() : void 0;
 	const cc = compileCtx(rc, input);
@@ -602,7 +572,7 @@ async function ordersInRange(rc, input) {
 /** Visit keys per bound JSON parameter of the funnel revenue lookup. */
 const FUNNEL_SIDS_PER_PARAM = 1e3;
 /** Visit keys per revenue statement: the site and two days leave the rest of the D1 limit to the key lists (97,000, above the session cap, so one statement). */
-const funnelSidStatements = (keys, perParam = FUNNEL_SIDS_PER_PARAM) => chunk(keys, perParam * (MAX_PARAMS - 3));
+const funnelSidStatements = (keys, perParam = FUNNEL_SIDS_PER_PARAM) => chunk(keys, perParam * 97);
 /**
 * Revenue per step: every order and refund in the range (each on its own day) of the sessions that reached the step,
 * in one currency, whether the order came before or after the step. One statement over the visit keys that reached
@@ -830,9 +800,7 @@ async function scroll(rc, input) {
 		share: round(ratio(counts.get(b) ?? 0, total))
 	})) };
 }
-
-//#endregion
-//#region src/query/reports/satisfaction.ts
+// src/query/reports/satisfaction.ts
 /**
 * Satisfaction reports: long and short clicks, bad experience, estimated pogo-sticking, returns to
 * search, search re-entry and the back/forward load share. Classified at query time from `ca_sessions` and the page view
@@ -973,7 +941,7 @@ async function satisfaction(rc, input) {
 	const limit = rank && input.isCompare ? 1e3 : input.limit;
 	const rows = ranked ? await rc.db.all(`SELECT g.* FROM (${by.sql}) g WHERE g.measured >= ? ORDER BY ${SCORE_SQL} ${rank === "best" ? "DESC" : "ASC"}, g.sessions DESC, g.key LIMIT ? OFFSET ?`, [
 		...by.params,
-		SATISFACTION_MIN_MEASURED,
+		30,
 		limit + 1,
 		input.offset
 	]) : await rc.db.all(`${by.sql} ORDER BY sessions DESC, key LIMIT ? OFFSET ?`, [
@@ -1003,7 +971,7 @@ async function satisfaction(rc, input) {
 			long_click_seconds: long,
 			bad_experience_seconds: bad
 		},
-		...rank ? { min_measured: SATISFACTION_MIN_MEASURED } : {}
+		...rank ? { min_measured: 30 } : {}
 	};
 }
 /** Daily (or weekly) rates, zero-filled; `hour` is answered per day with a notice. */
@@ -1055,9 +1023,7 @@ async function satisfactionSeries(rc, input) {
 		notices: asked === "hour" ? ["granularity_day"] : []
 	};
 }
-
-//#endregion
-//#region src/query/reports/search.ts
+// src/query/reports/search.ts
 /** Search reports over `ca_search_daily`. Position is `SUM(pos_sum) / SUM(impressions)`. */
 const GRAIN_DIMS = [
 	"page",
@@ -1188,7 +1154,7 @@ async function searchPageQueries(rc, input) {
 		search: {
 			pred: input.search?.pred ?? TRUE,
 			ignored: input.search?.ignored ?? [],
-			needs: new Set([...input.search?.needs ?? [], "page"])
+			needs: /* @__PURE__ */ new Set([...input.search?.needs ?? [], "page"])
 		}
 	};
 	const stored = breakdown("query", () => ({
@@ -1238,11 +1204,7 @@ async function searchPageQueries(rc, input) {
 		notices: filtered ? ["filters_not_applied"] : []
 	};
 }
-
-//#endregion
-//#region src/query/reports/seo-copy.ts
-/** Fixed texts of the SEO views and the impact view. No SQL, so the admin bundle and the share renderer import it. */
-const SEO_MAX_RANGE_DAYS = 93;
+// src/query/reports/seo-copy.ts
 const POSITION_BANDS = [
 	"1-3",
 	"4-10",
@@ -1316,7 +1278,7 @@ const IMPACT_REPORTS = [
 	"revenue"
 ];
 /** Count metrics get `notable`; everything else shows its denominators. */
-const COUNT_METRICS = new Set([
+const COUNT_METRICS = /* @__PURE__ */ new Set([
 	"sessions",
 	"visitors",
 	"pageviews",
@@ -1353,12 +1315,6 @@ const SEARCH = [
 	"ctr",
 	"position"
 ];
-const BAND_TOTALS = POSITION_BANDS.flatMap((b) => [
-	"queries",
-	"impressions",
-	"share",
-	"ctr"
-].map((m) => `${m}_${bandSuffix(b)}`));
 /** Metric keys `impact` accepts per target report; the panel's pickers read the same list. */
 const IMPACT_METRICS = {
 	overview: SESSION,
@@ -1416,7 +1372,12 @@ const IMPACT_METRICS = {
 	search_countries: SEARCH,
 	search_devices: SEARCH,
 	search_position_bands: [
-		...BAND_TOTALS,
+		...POSITION_BANDS.flatMap((b) => [
+			"queries",
+			"impressions",
+			"share",
+			"ctr"
+		].map((m) => `${m}_${bandSuffix(b)}`)),
 		"queries",
 		"pages",
 		"impressions",
@@ -1448,30 +1409,13 @@ const IMPACT_KEY_DIM = {
 	search_countries: "country",
 	search_devices: "device"
 };
-
-//#endregion
-//#region src/query/reports/seo.ts
-/**
-* SEO views over the stored Search data: cannibalization, position bands with movement and
-* striking distance, rising and declining pages and queries, content decay. Every number is a query-time
-* aggregate of `ca_search_daily` or `ca_rollup` (dim `page`); filtering and capping happen in SQL so the
-* Worker never receives tens of thousands of grouped pairs. Values are always bound; only the constants of
-* this file (band bounds, grain predicates) are part of the SQL text.
-*/
-const OVERLAP_MAX_QUERIES = 200;
-const OVERLAP_MAX_PAGES_PER_QUERY = 10;
-const STRIKING_MIN = 4;
-const STRIKING_MAX_EXCLUSIVE = 21;
-const TOP3_MIN_IMPRESSIONS_FOR_ESTIMATE = 1e3;
-const DOMINANT_SHARE = 70;
-const SPLIT_SHARE = 50;
 /** Rows of the page drill-down and of the query drill-down. */
 const DRILL_MAX = 1e3;
 const sourceOf = (input) => input.params.source ?? "all";
 /** Days of the range; more than 93 is the typed error `range_too_long`. */
 function seoRange(input) {
 	const n = daysBetween(input.from, input.to);
-	if (n > SEO_MAX_RANGE_DAYS) throw new QueryError("range_too_long", SEO_TEXT.rangeTooLong);
+	if (n > 93) throw new QueryError("range_too_long", SEO_TEXT.rangeTooLong);
 	return n;
 }
 /** Floors and brand terms: request params override the settings. */
@@ -1609,7 +1553,7 @@ async function coverage(rc, input) {
 }
 /** Best page: most clicks, then better position, then more impressions. */
 function bestPage(pages) {
-	return [...pages].sort((a, b) => b.clicks - a.clicks || (a.position ?? Infinity) - (b.position ?? Infinity) || b.impressions - a.impressions || (a.page < b.page ? -1 : 1))[0];
+	return [...pages].sort((a, b) => b.clicks - a.clicks || (a.position ?? 1e400) - (b.position ?? 1e400) || b.impressions - a.impressions || (a.page < b.page ? -1 : 1))[0];
 }
 /**
 * Pattern label of a cannibalized query: `dominant`, `split`, `inverted`, else `shared`. Shares are of the
@@ -1619,12 +1563,12 @@ function bestPage(pages) {
 function overlapPattern(pages, total) {
 	const best = bestPage(pages);
 	if (!best) return "shared";
-	const top = Math.min(...pages.map((p) => p.position ?? Infinity));
+	const top = Math.min(...pages.map((p) => p.position ?? 1e400));
 	const share = (p) => (total ? p.impressions / total : p.impressions_share ?? 0) * 100;
-	if (share(best) >= DOMINANT_SHARE && (best.position ?? Infinity) <= top) return "dominant";
-	if (pages.every((p) => share(p) < SPLIT_SHARE)) return "split";
+	if (share(best) >= 70 && (best.position ?? 1e400) <= top) return "dominant";
+	if (pages.every((p) => share(p) < 50)) return "split";
 	const most = pages.reduce((a, b) => b.impressions > a.impressions ? b : a);
-	if (pages.some((p) => p !== most && (p.position ?? Infinity) < (most.position ?? Infinity))) return "inverted";
+	if (pages.some((p) => p !== most && (p.position ?? 1e400) < (most.position ?? 1e400))) return "inverted";
 	return "shared";
 }
 const noCompare = (input) => {
@@ -1635,10 +1579,10 @@ async function searchCannibalization(rc, input) {
 	seoRange(input);
 	const f = floors(rc, input);
 	const { where, notices } = await pairWhere(rc, input, f.brand);
-	const c = overlapCtes(rc.db, where, f.minShare, f.minImpressions, OVERLAP_MAX_QUERIES);
+	const c = overlapCtes(rc.db, where, f.minShare, f.minImpressions, 200);
 	const rows = await rc.db.all(`${c.sql},
 ranked AS (SELECT pqf.query AS query, pqf.page AS page, pqf.clicks AS clicks, pqf.impressions AS impressions, pqf.pos_sum AS pos_sum, ROW_NUMBER() OVER (PARTITION BY pqf.query ORDER BY pqf.impressions DESC, pqf.page) AS rn FROM pqf JOIN qs ON qs.query = pqf.query)
-SELECT r.query AS query, r.page AS page, r.clicks AS clicks, r.impressions AS impressions, r.pos_sum AS pos_sum, qs.pages AS q_pages, qs.impressions AS q_impressions, qs.clicks AS q_clicks, qs.q_total AS q_total FROM ranked r JOIN qs ON qs.query = r.query WHERE r.rn <= ? ORDER BY qs.impressions DESC, r.query, r.rn`, [...c.params, OVERLAP_MAX_PAGES_PER_QUERY]);
+SELECT r.query AS query, r.page AS page, r.clicks AS clicks, r.impressions AS impressions, r.pos_sum AS pos_sum, qs.pages AS q_pages, qs.impressions AS q_impressions, qs.clicks AS q_clicks, qs.q_total AS q_total FROM ranked r JOIN qs ON qs.query = r.query WHERE r.rn <= ? ORDER BY qs.impressions DESC, r.query, r.rn`, [...c.params, 10]);
 	const byQuery = /* @__PURE__ */ new Map();
 	for (const r of rows) {
 		const q = String(r.query);
@@ -1690,7 +1634,7 @@ SELECT r.query AS query, r.page AS page, r.clicks AS clicks, r.impressions AS im
 		notices: [
 			...notices,
 			"coverage",
-			...out.length >= OVERLAP_MAX_QUERIES ? ["capped"] : []
+			...out.length >= 200 ? ["capped"] : []
 		]
 	};
 }
@@ -2014,7 +1958,7 @@ async function searchStrikingDistance(rc, input) {
 	seoRange(input);
 	const f = floors(rc, input);
 	const { where, notices } = await pairWhere(rc, input, f.brand);
-	const rows = await rc.db.all(`SELECT d.query AS query, d.page_key AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE ${where.sql} GROUP BY d.query, d.page_key HAVING SUM(d.impressions) >= ? AND SUM(d.pos_sum) >= ${STRIKING_MIN} * SUM(d.impressions) AND SUM(d.pos_sum) < ${STRIKING_MAX_EXCLUSIVE} * SUM(d.impressions) ORDER BY impressions DESC, query, page LIMIT ? OFFSET ?`, [
+	const rows = await rc.db.all(`SELECT d.query AS query, d.page_key AS page, SUM(d.clicks) AS clicks, SUM(d.impressions) AS impressions, SUM(d.pos_sum) AS pos_sum FROM ca_search_daily d WHERE ${where.sql} GROUP BY d.query, d.page_key HAVING SUM(d.impressions) >= ? AND SUM(d.pos_sum) >= 4 * SUM(d.impressions) AND SUM(d.pos_sum) < 21 * SUM(d.impressions) ORDER BY impressions DESC, query, page LIMIT ? OFFSET ?`, [
 		...where.params,
 		Math.max(1, f.minImpressions),
 		input.limit + 1,
@@ -2027,7 +1971,7 @@ async function searchStrikingDistance(rc, input) {
 		input.to
 	]);
 	const topImp = num$2(top?.impressions);
-	const ctr13 = topImp >= TOP3_MIN_IMPRESSIONS_FOR_ESTIMATE ? num$2(top?.clicks) / topImp : null;
+	const ctr13 = topImp >= 1e3 ? num$2(top?.clicks) / topImp : null;
 	return {
 		rows: rows.slice(0, input.limit).map((r) => {
 			const impressions = num$2(r.impressions);
@@ -2238,12 +2182,6 @@ SELECT a.key AS key, a.c1 AS c1, a.c2 AS c2, a.c3 AS c3, a.c1 - a.c3 AS loss FRO
 		notices: [...notices, ...input.filters.length ? ["filters_not_applied"] : []]
 	};
 }
-
-//#endregion
-//#region src/charts/geometry.ts
-/** Pure chart geometry and number formatting shared by the admin chart kit and the server renderer. No DOM, no React. */
-/** Width of every chart's view box. */
-const W = 600;
 const COLORS = [
 	"#2563eb",
 	"#16a34a",
@@ -2282,7 +2220,7 @@ function lineScale(n, values, height, unit = 1, inset = {}) {
 	const bottom = height - 20 * unit;
 	const max = Math.max(1, ...values.map((v) => v ?? 0));
 	const l = inset.left ?? 0;
-	const w = W - l - (inset.right ?? 0);
+	const w = 600 - l - (inset.right ?? 0);
 	return {
 		top,
 		bottom,
@@ -2398,11 +2336,11 @@ function linePath(vals, s) {
 /** Closed area under a line path of `n` points (only drawn when no value is null). */
 const areaPath = (line, n, s) => `${line} L${s.x(n - 1)} ${s.bottom} L${s.x(0)} ${s.bottom} Z`;
 /** Bar length of `value` scaled to the largest value (at least 1) over `width`. */
-const barWidth = (value, max, width = W) => r1(value / Math.max(1, max) * width);
+const barWidth = (value, max, width = 600) => r1(value / Math.max(1, max) * width);
 /** Vertical stacked bars: per entry, one rect per part from the bottom up. */
 function stackedRects(data, height) {
 	const max = Math.max(1, ...data.map((d) => d.parts.reduce((a, b) => a + b, 0)));
-	const bw = data.length ? W / data.length : W;
+	const bw = data.length ? 600 / data.length : 600;
 	const plot = height - 4;
 	return data.map((d, i) => {
 		let acc = 0;
@@ -2418,12 +2356,11 @@ function stackedRects(data, height) {
 		});
 	});
 }
-const DONUT_R = 40;
 /** Donut slices as circle stroke dashes (radius DONUT_R in a 100 by 100 box); empty when the total is 0. */
 function donutArcs(slices) {
 	const total = slices.reduce((a, s) => a + s.value, 0);
 	if (total <= 0) return [];
-	const c = 2 * Math.PI * DONUT_R;
+	const c = 2 * Math.PI * 40;
 	let off = 0;
 	return slices.map((s) => {
 		const len = s.value / total * c;
@@ -2446,13 +2383,11 @@ function foldSlices(rows, max = 8) {
 		value: rest
 	}];
 }
-/** Marker groups closer than this many view box units merge into one cluster. */
-const MARKER_MIN_GAP = 10;
 /**
 * Markers grouped per bucket, then adjacent buckets closer than `gap` merged into one cluster drawn at
 * their mean x. Markers whose bucket is not on the chart (`xOf` undefined) are dropped.
 */
-function markerGroups(markers, xOf, gap = MARKER_MIN_GAP) {
+function markerGroups(markers, xOf, gap = 10) {
 	const buckets = /* @__PURE__ */ new Map();
 	for (const m of markers) {
 		const x = xOf(m.t);
@@ -2487,9 +2422,7 @@ function markerGroups(markers, xOf, gap = MARKER_MIN_GAP) {
 /** "2026-03-10" or "2026-03-10 to 2026-03-12" for a cluster. */
 const groupDate = (g) => g.ts.length > 1 ? `${g.ts[0]} to ${g.ts[g.ts.length - 1]}` : g.ts[0] ?? "";
 const annotationCount = (n) => `${n} annotation${n === 1 ? "" : "s"}`;
-
-//#endregion
-//#region src/charts/change.ts
+// src/charts/change.ts
 /**
 * One change description for every figure with a comparison: admin KPI cards, table change cells, the chart
 * tooltip, dashboard tiles, the share page and the email. Pure, no DOM: the server renderers import it too.
@@ -2505,7 +2438,7 @@ const annotationCount = (n) => `${n} annotation${n === 1 ? "" : "s"}`;
 * `NO_JUDGEMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
 */
 /** Metrics where a fall is good news. */
-const LOWER_IS_BETTER = new Set([
+const LOWER_IS_BETTER = /* @__PURE__ */ new Set([
 	"bounce_rate",
 	"exit_rate",
 	"position",
@@ -2523,13 +2456,8 @@ const LOWER_IS_BETTER = new Set([
 * Metrics with no better or worse: a live count ("Active now" is not a period figure) and the measured share
 * of Satisfaction (how much of the traffic the rates rest on, a coverage figure, not an outcome).
 */
-const NO_JUDGEMENT = new Set(["realtime", "measured_rate"]);
-/** A count whose previous value is under this is small numbers: the change shows muted. */
-const SMALL_COUNT = 30;
-/** A rate, average or amount resting on fewer sessions (or impressions) than this is small numbers. */
-const SMALL_BASE = 100;
-const SMALL_NOTE = `Small numbers: the comparison rests on under ${SMALL_COUNT} for a count or under ${SMALL_BASE} sessions for a rate or average, so a large change can be chance.`;
-const MISSING_NOTE = "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected).";
+const NO_JUDGEMENT = /* @__PURE__ */ new Set(["realtime", "measured_rate"]);
+const SMALL_NOTE = `Small numbers: the comparison rests on under 30 for a count or under 100 sessions for a rate or average, so a large change can be chance.`;
 const ARROW = {
 	up: "↑",
 	down: "↓",
@@ -2572,7 +2500,7 @@ function describeChange(metric, current, previous, opts) {
 		label: "No comparison",
 		detail: "",
 		muted: true,
-		note: opts.reason ?? MISSING_NOTE,
+		note: opts.reason ?? "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected).",
 		words: "no comparison"
 	};
 	const abs = cur - prev;
@@ -2580,7 +2508,7 @@ function describeChange(metric, current, previous, opts) {
 	const direction = Math.abs(shown) < .05 ? "flat" : abs > 0 ? "up" : "down";
 	const lower = opts.lowerIsBetter ?? LOWER_IS_BETTER.has(metric);
 	const judgement = direction === "flat" || NO_JUDGEMENT.has(metric) ? "neutral" : direction === "up" !== lower ? "better" : "worse";
-	const small = unit === "count" ? Math.abs(prev) < SMALL_COUNT : opts.base != null && opts.base < SMALL_BASE;
+	const small = unit === "count" ? Math.abs(prev) < 30 : opts.base != null && opts.base < 100;
 	const from = `from ${fmt(prev, f)}`;
 	const base = {
 		direction,
@@ -2654,7 +2582,7 @@ function describeChange(metric, current, previous, opts) {
 }
 /** The change as one plain line (email, share page, tooltip): `↑ +12.0% better, +231, from 1,925`; `short` leaves out the detail. */
 function changeText(c, short = false) {
-	if (c.kind === "none") return short ? c.label : `${c.label}: ${c.note ?? MISSING_NOTE}`;
+	if (c.kind === "none") return short ? c.label : `${c.label}: ${c.note ?? "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected)."}`;
 	const word = c.kind === "change" && c.unit !== "positions" && c.judgement !== "neutral" ? ` ${c.judgement}` : "";
 	return `${c.direction ? `${ARROW[c.direction]} ` : ""}${c.label}${word}${!short && c.detail ? `, ${c.detail}` : ""}${c.kind === "change" && c.muted ? " (small numbers)" : ""}`;
 }
@@ -2669,9 +2597,7 @@ function rateBase(prev) {
 		if (v !== null) return v;
 	}
 }
-
-//#endregion
-//#region src/annotations/target.ts
+// src/annotations/target.ts
 /**
 * The target KPI of an annotation and the verdict of its impact row (Annotations page, `annotation_impacts`).
 * One target per annotation, in the vocabulary of the `impact` report: `{ report, metric, params? }`. Pure and
@@ -2725,10 +2651,6 @@ function defaultTarget(scope, searchOn) {
 		metric: "visitors"
 	};
 }
-/** A count pair below this many (before plus after) is not enough data. */
-const MIN_COUNT = 20;
-/** A rate whose smaller denominator (sessions, impressions, orders) is below this is not enough data. */
-const MIN_BASE = 50;
 /** A rate or average that moved less than this share of its before value is flat. */
 const FLAT_SHARE = .05;
 /**
@@ -2749,14 +2671,14 @@ function verdictOf(metric, f) {
 	};
 	let flat;
 	if (COUNT_METRICS.has(metric)) {
-		if (a + b < MIN_COUNT) return {
+		if (a + b < 20) return {
 			verdict: "no_data",
 			good: null
 		};
 		flat = f.notable === false || a === b;
 	} else {
 		const base = f.measured ? Math.min(f.measured.before ?? 0, f.measured.after ?? 0) : null;
-		if (base !== null && base < MIN_BASE) return {
+		if (base !== null && base < 50) return {
 			verdict: "no_data",
 			good: null
 		};
@@ -2788,19 +2710,6 @@ function scopesOverlap(a, b) {
 	const rb = new Set(rules(b));
 	return !rb.size || ra.some((r) => rb.has(r));
 }
-
-//#endregion
-//#region src/annotations/scope.ts
-/**
-* Annotation scopes: the versioned scope object, the read adapter, the one
-* matching function every surface shares, scope to filters for SQL, and the short summary.
-* Pure and free of host code, so the server routes, the dashboard runner, the share renderer and the
-* admin bundle import the same file.
-*/
-const SCOPE_VERSION = 1;
-const MAX_SCOPE_RULES_PER_KIND = 10;
-const MAX_SCOPE_RULES = 20;
-const MAX_SCOPE_VALUE = 512;
 const SCOPE_KINDS = [
 	"host",
 	"path",
@@ -2844,7 +2753,7 @@ const RuleSchema = z.object({
 		"prefix",
 		"regex"
 	]),
-	value: z.string().min(1).max(MAX_SCOPE_VALUE)
+	value: z.string().min(1).max(512)
 }).strict();
 /** Escape a literal for use inside a regex. */
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
@@ -2866,7 +2775,7 @@ const ScopeShape = z.object({
 }).strict();
 /** Typed by hand: the inferred refine and transform chain costs the type checker more than it is worth. */
 const ScopeSchema = ScopeShape.superRefine((s, ctx) => {
-	if (s.v !== void 0 && s.v !== SCOPE_VERSION) {
+	if (s.v !== void 0 && s.v !== 1) {
 		ctx.addIssue({
 			code: "custom",
 			path: ["v"],
@@ -2879,7 +2788,7 @@ const ScopeSchema = ScopeShape.superRefine((s, ctx) => {
 	for (const kind of SCOPE_KINDS) {
 		const rules = s[kind] ?? [];
 		total += rules.length;
-		if (rules.length > MAX_SCOPE_RULES_PER_KIND) ctx.addIssue({
+		if (rules.length > 10) ctx.addIssue({
 			code: "custom",
 			path: [kind],
 			message: SCOPE_MESSAGES.count
@@ -2917,13 +2826,13 @@ const ScopeSchema = ScopeShape.superRefine((s, ctx) => {
 				message: SCOPE_MESSAGES.path
 			});
 		});
-		if (rules.length <= MAX_SCOPE_RULES_PER_KIND && isMixed(rules) && rules.every((r) => KIND_OPS[kind].includes(r.op)) && !validateSafeRegex(mixedPattern(rules), "i").ok) ctx.addIssue({
+		if (rules.length <= 10 && isMixed(rules) && rules.every((r) => KIND_OPS[kind].includes(r.op)) && !validateSafeRegex(mixedPattern(rules), "i").ok) ctx.addIssue({
 			code: "custom",
 			path: [kind],
 			message: SCOPE_MESSAGES.mixed
 		});
 	}
-	if (total > MAX_SCOPE_RULES) ctx.addIssue({
+	if (total > 20) ctx.addIssue({
 		code: "custom",
 		message: SCOPE_MESSAGES.count
 	});
@@ -2933,7 +2842,7 @@ const ScopeSchema = ScopeShape.superRefine((s, ctx) => {
 	return out;
 });
 /** The `path` write shortcut: one page path. */
-const PathShortcut = z.string().max(MAX_SCOPE_VALUE).refine((p) => p === "" || p.startsWith("/"), { message: SCOPE_MESSAGES.path });
+const PathShortcut = z.string().max(512).refine((p) => p === "" || p.startsWith("/"), { message: SCOPE_MESSAGES.path });
 /**
 * Write side: `path` stands for one path `is` rule; `path` with `scope` is a conflict (null).
 * A site-wide scope is stored as no scope.
@@ -3123,8 +3032,6 @@ function scopeSummary(scope) {
 	}
 	return parts.join(" and ");
 }
-/** Longest search term of the annotation lists (`q`). */
-const MAX_ANNOTATION_SEARCH = 100;
 /**
 * The annotation list search: a case-insensitive substring of the title, the kind (and its label), the scope (its
 * summary and every rule value) or the source item's slug and collection. A plain substring, so `%` and `_` are literal.
@@ -3143,20 +3050,9 @@ function annotationSearchMatches(a, q) {
 		a.collection ?? ""
 	].some((s) => s.toLowerCase().includes(term));
 }
-
-//#endregion
-//#region src/query/reports/impact.ts
-/**
-* Annotation impact: one metric of one report over equal windows before and after an
-* annotation or a date. The target report runs twice through the report dispatcher (`rc.dispatch`), the
-* same path the compare option uses; this file only builds the windows and the filters and reads the
-* metric. The annotation day belongs to neither window because the change happened during it.
-* `annotation_impacts` measures a page of annotations on their target KPI in one call (Annotations page).
-*/
-const DEFAULT_IMPACT_WINDOW = 28;
 const SEARCH_TARGET = (r) => r.startsWith("search_");
 /** Target reports whose session metrics the `timeseries` report serves per day (with the key as a filter). */
-const TRAFFIC_SERIES = new Set([
+const TRAFFIC_SERIES = /* @__PURE__ */ new Set([
 	"overview",
 	"channels",
 	"sources",
@@ -3165,7 +3061,7 @@ const TRAFFIC_SERIES = new Set([
 	"devices",
 	"browsers"
 ]);
-const SESSION_SERIES = new Set([
+const SESSION_SERIES = /* @__PURE__ */ new Set([
 	"sessions",
 	"visitors",
 	"pageviews",
@@ -3174,7 +3070,7 @@ const SESSION_SERIES = new Set([
 	"avg_duration",
 	"views_per_session"
 ]);
-const SEARCH_SERIES = new Set([
+const SEARCH_SERIES = /* @__PURE__ */ new Set([
 	"clicks",
 	"impressions",
 	"ctr",
@@ -3338,7 +3234,7 @@ async function impact(rc, input) {
 	if (!metric || !IMPACT_METRICS[report].includes(metric)) throw new QueryError("invalid_params", `Unknown metric ${metric ?? "(none)"} for ${report}; allowed: ${IMPACT_METRICS[report].join(", ")}.`);
 	if (!rc.dispatch) throw new QueryError("invalid_params", "impact runs through the report dispatcher.");
 	const tz = rc.settings.siteTimezone;
-	const window = p.window ?? DEFAULT_IMPACT_WINDOW;
+	const window = p.window ?? 28;
 	const search = SEARCH_TARGET(report);
 	const scopeMode = p.scope === "none" ? "none" : "annotation";
 	let annotation = null;
@@ -3409,11 +3305,6 @@ async function impact(rc, input) {
 	}));
 	return out;
 }
-/** Window of the Annotations page when none is given. */
-const DEFAULT_LIST_WINDOW = 14;
-/** Rows (each two lean runs of its target, at most 3 statements each) one `annotation_impacts` call measures: a full page stays under 45 D1 statements. */
-const MAX_IMPACT_ROWS = 6;
-const MAX_IMPACT_ROWS_SMALL = 5;
 const SCOPE_KINDS_FILTER = [
 	"site",
 	"host",
@@ -3434,8 +3325,8 @@ async function annotationImpacts(rc, input) {
 	if (!rc.dispatch || !rc.annotationStore) throw new QueryError("invalid_params", "annotation_impacts runs through the report dispatcher.");
 	const p = input.params;
 	const tz = rc.settings.siteTimezone;
-	const window = p.window ?? DEFAULT_LIST_WINDOW;
-	const cap = rc.settings.capacityProfile === "small" ? MAX_IMPACT_ROWS_SMALL : MAX_IMPACT_ROWS;
+	const window = p.window ?? 14;
+	const cap = rc.settings.capacityProfile === "small" ? 5 : 6;
 	const limit = Math.min(input.limit, cap);
 	const searchOn = p.withSearch === true && await lastFinal(rc, "all") !== null;
 	const all = await rc.annotationStore.inRange(addDays(input.from, -window), addDays(input.to, window));
@@ -3518,9 +3409,7 @@ async function annotationImpacts(rc, input) {
 		notices: searchThrough ? ["search_lags"] : []
 	};
 }
-
-//#endregion
-//#region src/query/reports/sources.ts
+// src/query/reports/sources.ts
 /** Channel name of AI assistant referrals (data/channels.json). */
 const AI_CHANNEL = "AI Assistants";
 const NOT_SET = "'(not set)'";
@@ -3569,9 +3458,7 @@ async function aiReferrals(rc, input) {
 	}));
 	return d;
 }
-
-//#endregion
-//#region src/query/reports/values.ts
+// src/query/reports/values.ts
 const VALUES_LIMIT = 50;
 /** Distinct values of one dimension for autocompletion (limit 50, optional prefix). */
 async function dimensionValues(rc, input) {
@@ -3632,9 +3519,7 @@ async function dimensionValues(rc, input) {
 		count: num$2(r.n)
 	})) };
 }
-
-//#endregion
-//#region src/content/path.ts
+// src/content/path.ts
 /**
 * Public paths of content items: the one derivation shared by the publish and
 * update hooks and the editor panel, plus the pattern classifier of the per-collection report.
@@ -3664,7 +3549,7 @@ async function derivePath(ctx, collection, content) {
 			return typeof s === "string" && FILL_RE.test(s) ? s : m;
 		});
 		const path = new URL(filled).pathname;
-		if (/[{}]|%7B|%7D/i.test(path) || path.length > MAX_SCOPE_VALUE) return null;
+		if (/[{}]|%7B|%7D/i.test(path) || path.length > 512) return null;
 		return path;
 	} catch {
 		return null;
@@ -3689,26 +3574,17 @@ function compilePattern(collection, urlPattern) {
 		literal: literals.join("").length
 	};
 }
-const OTHER_COLLECTION = "(other)";
 /** Collection of a stored path: the matching pattern with the most literal characters, `(other)` when none matches. */
 function classifyPath(path, patterns) {
 	let best;
 	for (const c of patterns) if (c.re.test(path) && (!best || c.literal > best.literal)) best = c;
-	return best?.collection ?? OTHER_COLLECTION;
+	return best?.collection ?? "(other)";
 }
-
-//#endregion
-//#region src/query/reports/collections.ts
-/**
-* Per-collection report: the summary rows of dim `page` (the whole summary retention, open days from
-* `computeDay`) classified in JS by the collections' URL patterns. Summary rows hold one dimension, so filters are not applied.
-*/
-const COLLECTIONS_CACHE_SECONDS = 300;
 let cached;
 /** Routable collections, cached 5 minutes per isolate; empty without `schema:read`. A failed read is not cached. */
 function loadCollections(schema, nowMs = Date.now()) {
 	if (!schema) return Promise.resolve([]);
-	if (cached && nowMs - cached.at < COLLECTIONS_CACHE_SECONDS * 1e3) return cached.value;
+	if (cached && nowMs - cached.at < 3e5) return cached.value;
 	const value = schema.listCollections().then((list) => list.filter((c) => c.routable).map((c) => ({
 		slug: c.slug,
 		urlPattern: c.urlPattern ?? null
@@ -3746,7 +3622,7 @@ async function collections(rc, input) {
 			dayTotal += num$2(r.pageviews);
 			continue;
 		}
-		if (r.key === OTHER) continue;
+		if (r.key === "(other)") continue;
 		const c = classifyPath(String(r.key), patterns);
 		const s = sums.get(c) ?? {
 			pageviews: 0,
@@ -3771,7 +3647,7 @@ async function collections(rc, input) {
 		sessions: s.sessions,
 		avg_time: round(ratio(s.engaged_ms / 1e3, s.hits), 1),
 		pages: s.pages
-	})).sort((a, b) => b.pageviews - a.pageviews || (a.key === OTHER_COLLECTION ? 1 : b.key === OTHER_COLLECTION ? -1 : a.key < b.key ? -1 : 1));
+	})).sort((a, b) => b.pageviews - a.pageviews || (a.key === "(other)" ? 1 : b.key === "(other)" ? -1 : a.key < b.key ? -1 : 1));
 	const classified = all.reduce((a, r) => a + num$2(r.pageviews), 0);
 	return {
 		rows: all.slice(input.offset, input.offset + input.limit),
@@ -3784,9 +3660,7 @@ async function collections(rc, input) {
 		...input.filters.length ? { notices: ["filters_not_applied"] } : {}
 	};
 }
-
-//#endregion
-//#region src/query/reports/sitesearch.ts
+// src/query/reports/sitesearch.ts
 /**
 * Internal site search: the terms kept in the query (`qs`) of page view entries under the configured
 * parameter names, raw window only. One statement: the distinct query strings carrying a name (a `LIKE`
@@ -3800,11 +3674,12 @@ async function siteSearch(rc, input) {
 		notices: ["site_search_off"]
 	};
 	const hq = entryCols(rc.db.dialect).query;
-	const j = hitJoin(rc, input, "pv", {
+	const like = {
 		sql: names.map(() => `${hq} LIKE ? ${LIKE_ESCAPE}`).join(" OR "),
 		params: names.map((n) => `%${likeEscape(n)}=%`)
-	});
-	const strings = await rc.db.all(`SELECT ${hq} AS q, COUNT(*) AS searches, COUNT(DISTINCT s.sid) AS sessions ${j.sql} GROUP BY ${hq} ORDER BY searches DESC, q LIMIT ?`, [...j.params, SITE_SEARCH_DISTINCT_CAP + 1]);
+	};
+	const j = hitJoin(rc, input, "pv", like);
+	const strings = await rc.db.all(`SELECT ${hq} AS q, COUNT(*) AS searches, COUNT(DISTINCT s.sid) AS sessions ${j.sql} GROUP BY ${hq} ORDER BY searches DESC, q LIMIT ?`, [...j.params, 5001]);
 	const terms = /* @__PURE__ */ new Map();
 	for (const r of strings.slice(0, SITE_SEARCH_DISTINCT_CAP)) {
 		const params = new URLSearchParams(String(r.q ?? ""));
@@ -3831,7 +3706,7 @@ async function siteSearch(rc, input) {
 	})).sort((a, b) => b.searches - a.searches || b.sessions - a.sessions || (a.key < b.key ? -1 : 1));
 	let hidden_terms;
 	if (rc.publicSurface) {
-		const kept = all.filter((r) => num$2(r.sessions) >= JOURNEY_MIN_SESSIONS);
+		const kept = all.filter((r) => num$2(r.sessions) >= 2);
 		hidden_terms = all.length - kept.length;
 		all = kept;
 	}
@@ -3843,12 +3718,10 @@ async function siteSearch(rc, input) {
 			terms: all.length
 		},
 		...hidden_terms !== void 0 ? { hidden_terms } : {},
-		...strings.length > SITE_SEARCH_DISTINCT_CAP ? { notices: ["site_search_capped"] } : {}
+		...strings.length > 5e3 ? { notices: ["site_search_capped"] } : {}
 	};
 }
-
-//#endregion
-//#region src/query/reports/sites-summary.ts
+// src/query/reports/sites-summary.ts
 /** Revenue entries per currency, largest first, amounts rounded to the currency's minor unit. */
 function revenueList(m) {
 	return [...m ?? []].map(([currency, v]) => ({
@@ -3931,7 +3804,7 @@ async function sitesSummary(rc, input) {
 	for (const { rc: g, sites: gSites } of groups.values()) {
 		const { stored, open } = await splitRange(g, input.from, input.to);
 		if (stored) {
-			const inSites = inList(g.db.dialect, "site", gSites, false, MAX_SITES);
+			const inSites = inList(g.db.dialect, "site", gSites, false, 500);
 			const where = `${inSites.sql} AND dim = 'all' AND seg = '' AND day BETWEEN ? AND ?`;
 			const params = [
 				...inSites.params,
@@ -3981,12 +3854,10 @@ function routedSitesDb(db, kv) {
 	return async (site) => ({
 		key: facts.binding(site) ?? "",
 		db: await db(site),
-		summaryThrough: await (kv ? stateKv(kv, site).get(KV_WATERMARK) : null) ?? void 0
+		summaryThrough: await (kv ? stateKv(kv, site).get("rollup:watermark") : null) ?? void 0
 	});
 }
-
-//#endregion
-//#region src/query/reports/index.ts
+// src/query/reports/index.ts
 /** Report dispatcher: validation, compare execution, deltas, the routing rule (detailed or summaries) and a 30 s isolate cache. */
 const REPORTS = {
 	overview: ["traffic", overview],
@@ -4049,10 +3920,9 @@ const REPORTS = {
 	links: ["traffic", links]
 };
 const REPORT_NAMES = Object.keys(REPORTS);
-/** Search reports, gated separately for agents (`read:search`). */
-const SEARCH_REPORTS = REPORT_NAMES.filter((n) => REPORTS[n][0] === "search");
+REPORT_NAMES.filter((n) => REPORTS[n][0] === "search");
 /** Reports that refuse the compare option. */
-const NO_COMPARE = new Set([
+const NO_COMPARE = /* @__PURE__ */ new Set([
 	"search_cannibalization",
 	"search_cannibalization_pages",
 	"search_cannibalization_page",
@@ -4060,7 +3930,7 @@ const NO_COMPARE = new Set([
 ]);
 /** Reports that compare periods on their own: the compare option is ignored. */
 /** `revenue_orders` is a list of single orders: a comparison has nothing to pair, so it is ignored. */
-const SELF_COMPARED = new Set([
+const SELF_COMPARED = /* @__PURE__ */ new Set([
 	"search_position_moves",
 	"search_movers",
 	"search_decay",
@@ -4071,7 +3941,7 @@ const SELF_COMPARED = new Set([
 	"annotation_impacts"
 ]);
 /** Reports over the summaries or the dispatcher itself: no filter compilation and no routing. */
-const UNCOMPILED = new Set([
+const UNCOMPILED = /* @__PURE__ */ new Set([
 	"traffic_movers",
 	"traffic_decay",
 	"impact",
@@ -4086,7 +3956,9 @@ const OWN_SUMMARY = {
 };
 const ParamsSchema = z.object({
 	withSearch: z.boolean().optional(),
+	/** Revenue columns on breakdown reports and per funnel step. */
 	withRevenue: z.boolean().optional(),
+	/** ISO 4217 code of a revenue report; checked against the list with the typed `invalid_currency`. */
 	currency: z.string().min(1).max(8).optional(),
 	field: z.enum([
 		"utm_source",
@@ -4105,9 +3977,11 @@ const ParamsSchema = z.object({
 		"bing"
 	]).optional(),
 	page: z.string().min(1).max(2048).optional(),
+	/** `campaign` is the `revenue_breakdown` name of `utm_campaign`. */
 	dim: z.enum([...DIM_NAMES, "campaign"]).optional(),
 	prop: z.string().regex(PROP_KEY_RE).optional(),
 	prefix: z.string().max(128).optional(),
+	/** `dimension_values`: `traffic | search`; `impact`: `annotation | none`. */
 	scope: z.enum([
 		"traffic",
 		"search",
@@ -4119,6 +3993,7 @@ const ParamsSchema = z.object({
 	minImpressions: z.number().int().min(1).max(1e5).optional(),
 	minShare: z.number().int().min(1).max(50).optional(),
 	includeBrand: z.boolean().optional(),
+	/** `search_position_moves`: rows are the matrix (default) or one list. */
 	list: z.enum([
 		"matrix",
 		"up",
@@ -4140,11 +4015,17 @@ const ParamsSchema = z.object({
 	key: z.string().min(1).max(512).optional(),
 	goal: z.string().min(1).max(128).optional(),
 	path: z.string().min(1).max(512).regex(/^\//).optional(),
+	/** `impact`: add the standard traffic KPIs of both windows as `context`. */
 	context: z.boolean().optional(),
+	/** `annotation_impacts`: only annotations of this scope kind (`site` is site-wide). */
 	scopeKind: z.enum(SCOPE_KINDS_FILTER).optional(),
-	q: z.string().trim().max(MAX_ANNOTATION_SEARCH).optional(),
+	/** `annotation_impacts`: only annotations whose title, kind, scope or source slug contains this text (case-insensitive). */
+	q: z.string().trim().max(100).optional(),
+	/** `journey_paths`: only sessions landing on this page. */
 	entry: z.string().min(1).max(512).regex(/^\//).optional(),
+	/** `links`: the breakdown and one link (Links convention); `satisfaction`: the grouping (`SATISFACTION_BY`, checked by the report). */
 	by: z.enum([...LINK_BY, "browser"]).optional(),
+	/** `satisfaction`: best or worst landing pages by score. */
 	rank: z.enum(["best", "worst"]).optional(),
 	slug: z.string().min(1).max(128).optional()
 }).strict();
@@ -4152,7 +4033,7 @@ const MAX_LIMIT = 1e3;
 const SEGMENT_COMPARE_NOT_SUPPORTED = "Segment comparison is not available for search reports, the SEO views and the impact view.";
 /** Row cap of `data/export`. */
 const EXPORT_LIMIT = 1e4;
-const DELTA_SKIP = new Set(["key"]);
+const DELTA_SKIP = /* @__PURE__ */ new Set(["key"]);
 /** Relative change, null when the previous value is 0 or missing. */
 function delta(cur, prev) {
 	if (typeof cur !== "number" || typeof prev !== "number" || prev === 0) return null;
@@ -4236,8 +4117,6 @@ const SCAN_BUDGET = {
 	standard: 5e5,
 	dedicated: 5e5
 };
-/** A detailed report whose filters the summaries cannot honour may scan this many times the budget, then `narrow_range`. */
-const NARROW_FACTOR = 4;
 /** The summary plan of a report (its unavailable filters), or null when it has no summary form. */
 function summaryPlan(report, filters, params) {
 	if (report === "links") return linksPlan({
@@ -4280,9 +4159,9 @@ async function route(rc, report, from, to, filters, params, lean = false) {
 	const total = days.reduce((n, d) => n + d.sessions, 0);
 	if (total <= budget) return null;
 	if (plan && !(plan.refused ?? plan.unavailable).length) return ["summary", ...await behindNotice(rc, from, to)];
-	if (total <= NARROW_FACTOR * budget) return null;
+	if (total <= 4 * budget) return null;
 	let n = 0;
-	const fits = [...days].sort((a, b) => a.day < b.day ? 1 : -1).find((d) => (n += d.sessions) > NARROW_FACTOR * budget);
+	const fits = [...days].sort((a, b) => a.day < b.day ? 1 : -1).find((d) => (n += d.sessions) > 4 * budget);
 	const start = fits ? fits.day < to ? addDays(fits.day, 1) : to : from;
 	throw new QueryError("narrow_range", `This range holds about ${total.toLocaleString("en-US")} visits, more than one detailed report may read with these filters. Choose ${start} to ${to}, or filters the daily summaries can answer.`);
 }
@@ -4327,7 +4206,7 @@ async function runOnce(rc, req, kind, run, from, to, filters, isCompare) {
 			return {
 				data: await revenueCols(data),
 				input,
-				notices: [...new Set([
+				notices: [.../* @__PURE__ */ new Set([
 					...summary,
 					...notices,
 					...other()
@@ -4343,7 +4222,7 @@ async function runOnce(rc, req, kind, run, from, to, filters, isCompare) {
 		return {
 			data: await revenueCols(r.data),
 			input,
-			notices: [...new Set([
+			notices: [.../* @__PURE__ */ new Set([
 				...summary,
 				...r.notices,
 				...other()
@@ -4361,7 +4240,7 @@ async function runOnce(rc, req, kind, run, from, to, filters, isCompare) {
 /** Every report statement stays inside the D1 limit of 100 bound parameters, on every dialect. */
 function guardDb(db) {
 	const check = (params = []) => {
-		if (params.length > MAX_PARAMS) throw new QueryError("too_many_values", "This query needs too many values. Use fewer filter values or a prefix or regex.");
+		if (params.length > 100) throw new QueryError("too_many_values", "This query needs too many values. Use fewer filter values or a prefix or regex.");
 	};
 	return {
 		dialect: db.dialect,
@@ -4417,9 +4296,7 @@ async function execute(ctx, req) {
 		notices: [...notices]
 	};
 }
-
-//#endregion
-//#region src/query/export.ts
+// src/query/export.ts
 /**
 * The exported rows of a report: its rows, else its series, else its totals as one row. Revenue results
 * (`data.currency`) carry a `currency` column on every row, so no amount leaves without its code.
@@ -4467,9 +4344,7 @@ function exportBody(result, format) {
 		filename
 	};
 }
-
-//#endregion
-//#region src/sources/gsc-auth.ts
+// src/sources/gsc-auth.ts
 /**
 * Google auth: one `getAccessToken` over two modes. `service_account`: RS256 JWT bearer grant
 * signed with WebCrypto. `oauth`: refresh grant with the operator's own web client; the refresh token
@@ -4483,7 +4358,7 @@ const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const SITES_URL = "https://www.googleapis.com/webmasters/v3/sites";
 const GSC_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 const OAUTH_KV = "search:oauth";
-const OAUTH_TTL_MS = 10 * 6e4;
+const OAUTH_TTL_MS = 6e5;
 const EARLY_MS$1 = 6e4;
 const tokens$1 = /* @__PURE__ */ new Map();
 function serviceAccount(json) {
@@ -4549,7 +4424,8 @@ async function signJwt(sa, nowSec) {
 		iat: nowSec,
 		exp: nowSec + 3600
 	})}`;
-	return `${input}.${base64url(new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc$2.encode(input))))}`;
+	const sig = new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc$2.encode(input)));
+	return `${input}.${base64url(sig)}`;
 }
 const hex$2 = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
 function cacheToken(key, body, nowMs) {
@@ -4602,7 +4478,7 @@ async function startOAuth(ctx, redirectUri) {
 		expires: (ctx.now?.() ?? Date.now()) + OAUTH_TTL_MS,
 		redirectUri
 	});
-	return { url: `${AUTH_URL}?${new URLSearchParams({
+	const q = new URLSearchParams({
 		client_id: s.gscClientId,
 		redirect_uri: redirectUri,
 		response_type: "code",
@@ -4612,7 +4488,8 @@ async function startOAuth(ctx, redirectUri) {
 		state,
 		code_challenge: base64url(await sha256(verifier)),
 		code_challenge_method: "S256"
-	})}` };
+	});
+	return { url: `${AUTH_URL}?${q}` };
 }
 /**
 * Finish the web flow: check `state`, exchange the code, store the refresh token through
@@ -4666,9 +4543,7 @@ function suggestProperty(siteUrls, hostname) {
 		return !!d && (host === d || host.endsWith(`.${d}`));
 	}).sort((a, b) => b.length - a.length)[0] ?? null;
 }
-
-//#endregion
-//#region src/sources/bing-auth.ts
+// src/sources/bing-auth.ts
 /**
 * Bing Webmaster auth: the API key (`apikey` query parameter, default) or OAuth 2.0 with the site's own
 * client from Bing Webmaster Tools (Settings, API access, OAuth client). OAuth follows Microsoft's
@@ -4683,7 +4558,7 @@ const BING_AUTH_URL = "https://www.bing.com/webmasters/oauth/authorize";
 const BING_TOKEN_URL = "https://www.bing.com/webmasters/oauth/token";
 const BING_SCOPE = "webmaster.read";
 const BING_OAUTH_KV = "search:oauth:bing";
-const TTL_MS = 10 * 6e4;
+const TTL_MS = 6e5;
 const EARLY_MS = 6e4;
 /** The switch is on and the selected mode has its credentials. */
 const bingConfigured = (s) => s.bingEnabled && (s.bingAuth === "oauth" ? !!(s.bingClientId && s.bingClientSecret && s.bingRefreshToken) : !!s.bingApiKey);
@@ -4728,13 +4603,14 @@ async function startBingOAuth(ctx, redirectUri) {
 		expires: (ctx.now?.() ?? Date.now()) + TTL_MS,
 		redirectUri
 	});
-	return { url: `${BING_AUTH_URL}?${new URLSearchParams({
+	const q = new URLSearchParams({
 		response_type: "code",
 		client_id: s.bingClientId,
 		redirect_uri: redirectUri,
 		scope: BING_SCOPE,
 		state
-	})}` };
+	});
+	return { url: `${BING_AUTH_URL}?${q}` };
 }
 /** The pending Bing sign-in matches this `state` (the return page posts `code` and `state` without naming the provider). */
 async function isBingState(kv, state) {
@@ -4763,9 +4639,7 @@ async function exchangeBingOAuth(ctx, code, state) {
 		source: "bing"
 	};
 }
-
-//#endregion
-//#region src/sources/bing.ts
+// src/sources/bing.ts
 /**
 * Bing Webmaster source. JSON API at `https://ssl.bing.com/webmaster/api.svc/json/<Method>`
 * with `siteUrl` in the query and the API key in `apikey` (or an OAuth bearer token, `bing-auth.ts`). Bing takes no date range: every call returns its whole window
@@ -4776,7 +4650,6 @@ async function exchangeBingOAuth(ctx, code, state) {
 * `Query` for pages; `GetUserSites` gives `{ Url, IsVerified }`. Bing has no country or device.
 */
 const BING_API = "https://ssl.bing.com/webmaster/api.svc/json/";
-const PAGE_QUERIES_TTL_MS = 36e5;
 /** The in-tick retry after a throttle waits 2 to 5 seconds (jittered so parallel installs spread out). */
 const THROTTLE_WAIT_MS = [2e3, 5e3];
 /** The API URL; the key goes in `apikey` in API key mode, OAuth sends a bearer token instead. */
@@ -4892,7 +4765,7 @@ async function pageQueries(ctx, siteUrl, pageUrl) {
 	const now = ctx.now?.() ?? Date.now();
 	const key = `search:pagequeries:${base64url(await sha256(`${siteUrl}\n${pageUrl}`)).slice(0, 32)}`;
 	const hit = await ctx.kv.get(key);
-	if (hit && now - hit.at < PAGE_QUERIES_TTL_MS) return hit.rows;
+	if (hit && now - hit.at < 36e5) return hit.rows;
 	const rows = [];
 	for (const r of await call(ctx, "GetPageQueryStats", {
 		siteUrl,
@@ -4921,7 +4794,7 @@ async function queryPages(ctx, siteUrl, query) {
 	const now = ctx.now?.() ?? Date.now();
 	const key = `search:querypages:${base64url(await sha256(`${siteUrl}\n${query}`)).slice(0, 32)}`;
 	const hit = await ctx.kv.get(key);
-	if (hit && now - hit.at < PAGE_QUERIES_TTL_MS) return hit.rows;
+	if (hit && now - hit.at < 36e5) return hit.rows;
 	const rows = [];
 	for (const r of await call(ctx, "GetQueryPageStats", {
 		siteUrl,
@@ -4956,9 +4829,7 @@ const bing = {
 	},
 	fetchWindow
 };
-
-//#endregion
-//#region src/sources/page-key.ts
+// src/sources/page-key.ts
 /**
 * Page key: one key for provider URLs and own paths. The path is normalized exactly like
 * hit paths (`normalizeUrl`: query and fragment stripped, trailing slash stripped except root), so the
@@ -5005,9 +4876,7 @@ function canonicalOrigin(o) {
 	} catch {}
 	return o.property ? propertyOrigin(o.property) : "";
 }
-
-//#endregion
-//#region src/keys/scopes.ts
+// src/keys/scopes.ts
 /**
 * API key scopes in 1.0. `write:events` is the one ingest scope: it writes events only, never sessions or visitor data.
 * `data:export` and `data:import` are for backups and moves only: they read and insert the stored rows of the analytics
@@ -5033,9 +4902,7 @@ const SCOPE_LABELS = {
 	"data:export": "Export every stored row of the analytics tables (backups and moves)",
 	"data:import": "Import exported rows into the analytics tables (rows already present are kept)"
 };
-
-//#endregion
-//#region src/core/presets.ts
+// src/core/presets.ts
 /** Date presets of the admin header and of dashboards, shared by the admin and the server. */
 const PRESETS = [
 	["today", "Today"],
@@ -5091,9 +4958,7 @@ function presetRange(p, tz, nowSec = Date.now() / 1e3) {
 		};
 	}
 }
-
-//#endregion
-//#region src/dashboards/schema.ts
+// src/dashboards/schema.ts
 /** Dashboard and template records and their limits. No report SQL is imported, so the admin bundle can use it. */
 const TILE_KIND_NAMES = [
 	"kpi",
@@ -5261,7 +5126,7 @@ const TILE_METRICS = {
 	]
 };
 /** Amount keys: shown with their currency code, never as a bare number. */
-const MONEY_KEYS = new Set([
+const MONEY_KEYS = /* @__PURE__ */ new Set([
 	"revenue",
 	"aov",
 	"revenue_per_visitor",
@@ -5277,12 +5142,10 @@ function metricFormat(key) {
 }
 /** Scale family of a series metric: lines of one family share an axis; position has its own, 1 at the top. */
 const metricFamily = (key) => key === "position" ? "rank" : MONEY_KEYS.has(key) ? "money" : formatFamily(metricFormat(key));
-/** Most metrics of one line or area tile. */
-const MAX_TILE_METRICS = 4;
 /** Why a metric list cannot be one line or area tile, else null. */
 function tileMetricsProblem(list) {
 	if (!list.length) return "Choose at least one metric.";
-	if (list.length > MAX_TILE_METRICS) return `Up to ${MAX_TILE_METRICS} metrics at once.`;
+	if (list.length > 4) return `Up to 4 metrics at once.`;
 	if (new Set(list.map(metricFamily)).size > 2) return "These metrics need more than two scales.";
 	return null;
 }
@@ -5364,8 +5227,10 @@ const TileSchema = z.object({
 	report: z.enum(TILE_REPORTS),
 	kind: z.enum(TILE_KIND_NAMES),
 	title: z.string().min(1).max(60).optional(),
+	/** `kpi`, and the measure of a bars, donut or stacked tile. */
 	metric: ColumnKey.optional(),
-	metrics: z.array(ColumnKey).min(1).max(MAX_TILE_METRICS).optional(),
+	/** `line` and `area`: the charted metrics, 1 to 4 on at most two scales. */
+	metrics: z.array(ColumnKey).min(1).max(4).optional(),
 	filters: z.array(FilterSchema).max(5).optional(),
 	params: z.object({
 		source: z.enum([
@@ -5378,6 +5243,7 @@ const TileSchema = z.object({
 		event: z.string().min(1).max(64).optional(),
 		prop: z.string().regex(/^[A-Za-z0-9_]{1,32}$/).optional(),
 		dim: z.enum(["query", ...REVENUE_BREAKDOWN_DIMS]).optional(),
+		/** Revenue tiles: absent means the site's default currency at run time. */
 		currency: z.string().refine(isCurrency, { message: "currency must be an ISO 4217 code such as USD" }).optional(),
 		direction: z.enum(["up", "down"]).optional(),
 		metric: z.enum([
@@ -5401,7 +5267,9 @@ const TileSchema = z.object({
 		key: z.string().min(1).max(512).optional(),
 		scope: z.enum(["annotation", "none"]).optional(),
 		path: z.string().min(1).max(512).regex(/^\//).optional(),
+		/** `journey_paths`: the landing page. */
 		entry: z.string().min(1).max(512).regex(/^\//).optional(),
+		/** `search_position_moves` tables: the matrix (default) or one of the four lists. */
 		list: z.enum([
 			"matrix",
 			"up",
@@ -5409,7 +5277,9 @@ const TileSchema = z.object({
 			"new",
 			"lost"
 		]).optional(),
+		/** `links`: the breakdown and one link (Links convention). */
 		by: z.enum(LINK_BY).optional(),
+		/** `satisfaction` tables: best or worst landing pages by score. */
 		rank: z.enum(["best", "worst"]).optional(),
 		slug: z.string().min(1).max(128).optional()
 	}).strict().optional(),
@@ -5472,9 +5342,11 @@ const body = {
 			"segment"
 		]),
 		segment: Ref.optional(),
+		/** Side B of `compare: "segment"` (additive on `v: 1`). */
 		compareSegment: Ref.optional(),
 		filters: z.array(FilterSchema).max(10)
 	}).strict(),
+	/** `annotations` (additive on v 1): show matching annotations on shared pages; absent means off. */
 	viewer: z.object({
 		ranges: z.array(Preset).min(1).max(PRESETS.length),
 		compare: z.boolean(),
@@ -5514,10 +5386,13 @@ const Recipient = z.string().max(254).refine((v) => RECIPIENT_RE.test(v) && !CON
 const EmailSettings = z.object({
 	enabled: z.boolean(),
 	frequency: z.enum(["weekly", "monthly"]),
+	/** ISO weekday, 1 is Monday. */
 	weekday: z.number().int().min(1).max(7).default(1),
+	/** 1 to 28, so every month has the day. */
 	monthday: z.number().int().min(1).max(28).default(1),
+	/** Hour in the site timezone. */
 	hour: z.number().int().min(0).max(23).default(8),
-	recipients: z.array(Recipient).min(1).max(MAIL_MAX_RECIPIENTS),
+	recipients: z.array(Recipient).min(1).max(5),
 	range: Preset,
 	compare: z.boolean(),
 	subject: z.string().min(1).max(80).refine((v) => !CONTROL.test(v), { message: "The subject cannot contain control characters." }).optional()
@@ -5526,7 +5401,9 @@ const EmailSettings = z.object({
 const EmailRecord = EmailSettings.extend({
 	lastSent: z.number().int().optional(),
 	lastError: z.string().max(300).optional(),
-	pending: z.array(Recipient).max(MAIL_MAX_RECIPIENTS).optional(),
+	/** Recipients of a failed send; only they are retried. */
+	pending: z.array(Recipient).max(5).optional(),
+	/** Retries used for the pending recipients. */
 	retries: z.number().int().min(0).max(9).optional()
 }).strict();
 /** What an editor or agent sends: a dashboard without site and times (`id` absent creates). */
@@ -5541,7 +5418,9 @@ const DashboardSchema = z.object({
 	...body,
 	created: z.number().int(),
 	updated: z.number().int(),
+	/** Written only by `dashboards/email/save` and the mail tick. */
 	email: EmailRecord.optional(),
+	/** Next due time, epoch seconds; indexed; absent when no schedule is enabled. */
 	emailNext: z.number().int().optional()
 }).strict().superRefine(refine);
 /** Dependency definitions carried by a template (the config collection items, without `site`). */
@@ -5572,7 +5451,7 @@ const bytes$1 = (v) => new TextEncoder().encode(JSON.stringify(v)).length;
 function parseStrict(schema, input, code) {
 	const raw = input;
 	if (raw && typeof raw === "object" && "v" in raw && raw.v !== 1) throw new DashboardError("unknown_version", `Unknown record version ${String(raw.v).slice(0, 16)}; this reader knows version 1.`);
-	if (Array.isArray(raw?.tiles) && raw.tiles.length > MAX_TILES) throw new DashboardError("too_many_tiles", `At most ${MAX_TILES} tiles.`);
+	if (Array.isArray(raw?.tiles) && raw.tiles.length > 12) throw new DashboardError("too_many_tiles", `At most 12 tiles.`);
 	const r = schema.safeParse(input);
 	if (!r.success) {
 		const tiles = Array.isArray(raw?.tiles) ? raw.tiles : [];
@@ -5581,7 +5460,7 @@ function parseStrict(schema, input, code) {
 		const first = r.error.issues[0];
 		throw new DashboardError(code, `${first ? `${first.path.join(".")}: ${first.message}` : "invalid"}${bad.size ? ` (tiles ${[...bad].join(", ")})` : ""}`, [...bad]);
 	}
-	if (code === "invalid_dashboard" && bytes$1(r.data) > MAX_RECORD_BYTES) throw new DashboardError("record_too_large", `The record is larger than ${MAX_RECORD_BYTES} bytes.`);
+	if (code === "invalid_dashboard" && bytes$1(r.data) > 16384) throw new DashboardError("record_too_large", `The record is larger than ${MAX_RECORD_BYTES} bytes.`);
 	return r.data;
 }
 /** A stored record: unknown `v` is a typed error. */
@@ -5591,9 +5470,7 @@ function withoutEmail(d) {
 	const { email: _e, emailNext: _n, ...rest } = d;
 	return rest;
 }
-
-//#endregion
-//#region src/agent/query.ts
+// src/agent/query.ts
 /** Scopes a query needs: search reports need `read:search`, traffic reports `read:analytics`, `pages` with search columns both. */
 function requiredScopes(body) {
 	if (body.report === "impact") return body.params?.report?.startsWith("search_") ? ["read:analytics", "read:search"] : ["read:analytics"];
@@ -5603,23 +5480,19 @@ function requiredScopes(body) {
 }
 /** Typed rejection of a query the agent API does not serve, or null. */
 function agentBounds(body) {
-	if (body && !((Date.parse(body.query.to) - Date.parse(body.query.from)) / 864e5 < AGENT_MAX_RANGE_DAYS)) return {
+	if (body && !((Date.parse(body.query.to) - Date.parse(body.query.from)) / 864e5 < 400)) return {
 		error: "range_too_long",
-		message: `The range is longer than ${AGENT_MAX_RANGE_DAYS} days.`
+		message: `The range is longer than 400 days.`
 	};
 	return null;
 }
-
-//#endregion
-//#region src/agent/schemas.ts
+// src/agent/schemas.ts
 /**
 * Agent API request schemas and the endpoint table. Kept free of host imports so
 * `scripts/build-openapi.mjs` can load it under plain Node.
 */
 /** Optional site: the local site or a client site of this database; absent means the local site. */
 const AgentSite = z.string().regex(/^[a-z0-9-]{1,32}$/).optional();
-/** Range cap of the agent API (the admin allows longer ranges). */
-const AGENT_MAX_RANGE_DAYS = 400;
 /** A real calendar day: `2026-02-30` or `0000-00-00` would turn range math into NaN or another day. */
 const Day$5 = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((d) => addDays(d, 0) === d, { message: "not a calendar day" });
 /** The admin `Query` and report names; `query.site` names the site (a remote satellite id answers `site_not_allowed`). */
@@ -5629,6 +5502,7 @@ const AgentQueryBody = z.object({
 	params: ParamsSchema.optional(),
 	limit: z.number().int().min(1).max(MAX_LIMIT).optional(),
 	offset: z.number().int().min(0).max(1e5).optional(),
+	/** Matching annotations as `data.annotations`. */
 	withAnnotations: z.boolean().optional()
 }).strict();
 /** Optional range in the query string; the default is the last 7 days (summary) or 30 days (annotations), today included. */
@@ -5649,14 +5523,18 @@ const AnnotationParams = RangeParams.extend({
 	path: z.string().min(1).max(512).optional(),
 	host: z.string().min(1).max(253).optional(),
 	query: z.string().min(1).max(512).optional(),
-	q: z.string().trim().max(MAX_ANNOTATION_SEARCH).optional()
+	/** Text search: title, kind, scope or source slug contains it (case-insensitive). */
+	q: z.string().trim().max(100).optional()
 }).strict();
 const AnnotationBody = z.object({
 	text: z.string().trim().min(1).max(200),
+	/** Epoch seconds; defaults to now. */
 	ts: z.number().int().min(0).optional(),
 	kind: z.enum(["release", "manual"]).default("release"),
+	/** Shortcut for one page: `{ v: 1, path: [{ op: "is", value: path }] }`. Not together with `scope`. */
 	path: PathShortcut.optional(),
 	scope: ScopeSchema.optional(),
+	/** The KPI its impact is measured on (`report`, `metric`, `params`); absent means visitors of the scope. */
 	target: TargetSchema.optional(),
 	site: AgentSite
 }).strict();
@@ -5960,7 +5838,7 @@ const REVENUE_CATALOG = {
 				"entry",
 				"country"
 			],
-			rule: `The newest orders and refunds of the range, at most ${RECENT_ORDERS_CAP}, from detailed data only (raw_only before the detailed window). key is the stored order reference (a hash of the order id); amount is negative for a refund; channel, entry and country are the first touch of the order's visit. No session or visitor key.`
+			rule: `The newest orders and refunds of the range, at most 50, from detailed data only (raw_only before the detailed window). key is the stored order reference (a hash of the order id); amount is negative for a refund; channel, entry and country are the first touch of the order's visit. No session or visitor key.`
 		}
 	},
 	withRevenue: [
@@ -6044,10 +5922,10 @@ const BEHAVIOUR_CATALOG = {
 				tile: true
 			}
 		},
-		maxRangeDays: JOURNEY_MAX_RANGE_DAYS,
+		maxRangeDays: 31,
 		sessionCap: JOURNEY_SESSION_CAP,
-		minSessions: JOURNEY_MIN_SESSIONS,
-		maxRows: JOURNEY_MAX_ROWS,
+		minSessions: 2,
+		maxRows: 20,
 		rule: "Pageviews of the filtered sessions. A range starting before the raw window reads the daily summaries: the top steps and paths of each day (notice top_paths_per_day), no filters (filter_unavailable:<dim>:not_kept). Consecutive views of one path are one step. Rows with fewer than minSessions sessions are omitted and counted in data.hidden_sessions. Pageviews in the same second are ordered by hit id, so such pairs may swap.",
 		errors: [
 			"journey_range",
@@ -6069,7 +5947,7 @@ const CONTENT_CATALOG = {
 			pages: "Distinct paths of the collection."
 		},
 		rule: "Reads the daily page summaries (ca_rollup dim page), so it covers the whole summary retention. Paths are classified by each routable collection's URL pattern; the pattern with the most literal characters wins and unmatched paths are (other). totals.coverage is the classified share of all pageviews; the rest is folded into (other) by the top 500 pages per day.",
-		cacheSeconds: COLLECTIONS_CACHE_SECONDS,
+		cacheSeconds: 300,
 		notices: ["filters_not_applied", "not_available_for_site"]
 	},
 	site_search: {
@@ -6080,10 +5958,10 @@ const CONTENT_CATALOG = {
 			searches_per_session: "searches over sessions."
 		},
 		setting: "siteSearchParams",
-		maxParams: SITE_SEARCH_MAX_PARAMS,
-		termMax: SITE_SEARCH_TERM_MAX,
+		maxParams: 5,
+		termMax: 64,
 		distinctCap: SITE_SEARCH_DISTINCT_CAP,
-		minSessionsShared: JOURNEY_MIN_SESSIONS,
+		minSessionsShared: 2,
 		rule: "Raw window only. Terms are trimmed, lowercased, whitespace collapsed, at most 64 characters, and redacted when they hold an @ or nine or more consecutive digits. The agent API and the admin show every term; shared pages and emails omit terms of fewer than minSessionsShared sessions and count them in data.hidden_terms. Whether a search found results is unknown; send an event such as search_no_results.",
 		notices: ["site_search_off", "site_search_capped"],
 		errors: ["raw_only"]
@@ -6092,7 +5970,7 @@ const CONTENT_CATALOG = {
 /** Catalog of the satisfaction reports (docs/sessions.md). */
 /** Catalog of the routing rule and the summary engine (docs/AGENTS.md). */
 const SUMMARY_CATALOG = {
-	rule: `A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (${Object.entries(SCAN_BUDGET).map(([k, v]) => `${k} ${v.toLocaleString("en-US")}`).join(", ")} visits). Above it the daily summaries answer when they honour every filter; otherwise the detailed visits answer up to ${NARROW_FACTOR} times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
+	rule: `A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (${Object.entries(SCAN_BUDGET).map(([k, v]) => `${k} ${v.toLocaleString("en-US")}`).join(", ")} visits). Above it the daily summaries answer when they honour every filter; otherwise the detailed visits answer up to 4 times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
 	filters: "Summaries apply filters on the report's own dimension. One of channel, country and device combines with page, entry, source, utm_campaign, event or goal (pair rows). Two or three of channel, country and device combine with each other (the daily cube) in overview, timeseries, channels, countries, devices, revenue and revenue_series, and revenue_breakdown by channel, country or device; next to another breakdown or another session filter only one applies. They do not apply: is_not, not_contains, not_prefix and not_regex on page, event, goal and utm_campaign, or on any dimension of a revenue read; browser, os, exit and lang on a revenue read; a filter on the own dimension of events, goals, exit_pages and of revenue_breakdown by page, event or goal. No filter is dropped silently.",
 	notices: {
 		summary: "The answer reads the daily summaries.",
@@ -6107,9 +5985,9 @@ const SUMMARY_CATALOG = {
 const SATISFACTION_CATALOG = {
 	params: {
 		by: SATISFACTION_BY,
-		rank: `best | worst: landing pages with at least ${SATISFACTION_MIN_MEASURED} measured sessions ordered by score; only with by entry (the default)`
+		rank: `best | worst: landing pages with at least 30 measured sessions ordered by score; only with by entry (the default)`
 	},
-	minMeasured: SATISFACTION_MIN_MEASURED,
+	minMeasured: 30,
 	pogoDefinition: POGO_DEFINITION
 };
 /** Catalog of the `links` report (Links convention, docs/integration.md). */
@@ -6134,7 +6012,7 @@ const LINKS_CATALOG = {
 };
 /** Catalog of the SEO views and the impact view: parameters, the period rule and the fixed texts. */
 const SEO_CATALOG = {
-	maxRangeDays: SEO_MAX_RANGE_DAYS,
+	maxRangeDays: 93,
 	coverage: SEO_TEXT.coverage,
 	bingNoPairs: SEO_TEXT.bingNoPairs,
 	periodRule: "n = min(to - from + 1, 93); the current period ends at the newest final (not provisional) day of the selected sources, or yesterday for traffic views; the previous and oldest periods are the n days before, back to back. The response carries periods and the notice provisional_excluded when the end moved.",
@@ -6264,7 +6142,7 @@ const SEO_CATALOG = {
 	}
 };
 /** Metrics computed from passive browser signals; everything else is a count or a ratio of counts. */
-const ESTIMATES = new Set([
+const ESTIMATES = /* @__PURE__ */ new Set([
 	"pogo_stick_rate",
 	"returned_from_search_rate",
 	"search_reentry_rate",
@@ -6304,9 +6182,9 @@ function buildCatalog() {
 		summaries: SUMMARY_CATALOG,
 		scopes: SCOPE_LABELS,
 		limits: {
-			maxRangeDays: AGENT_MAX_RANGE_DAYS,
+			maxRangeDays: 400,
 			maxRows: MAX_LIMIT,
-			maxFilters: MAX_FILTERS
+			maxFilters: 20
 		},
 		dashboards: {
 			kinds: TILE_KIND_NAMES,
@@ -6315,8 +6193,8 @@ function buildCatalog() {
 			tileParams: TILE_PARAMS,
 			ranges: PRESETS.map((p) => p[0]),
 			limits: {
-				dashboardsPerSite: MAX_DASHBOARDS_PER_SITE,
-				tiles: MAX_TILES,
+				dashboardsPerSite: 20,
+				tiles: 12,
 				recordBytes: MAX_RECORD_BYTES,
 				tileFilters: 5,
 				defaultFilters: 10,
@@ -6330,9 +6208,7 @@ function buildCatalog() {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/data.ts
+// src/routes/data.ts
 /** Private admin routes `data/query` and `data/export`: one report per call, `plugins:read`. */
 /** `sitesDb` of a cross-site read when sites live in several databases. */
 function sitesDbOf(env, kv) {
@@ -6373,7 +6249,7 @@ async function loadAll(coll, where, opts = {}) {
 			...cursor ? { cursor } : {}
 		});
 		out.push(...page.items);
-		if (opts.info) opts.info.truncated = page.hasMore && i === MAX_PAGES - 1;
+		if (opts.info) opts.info.truncated = page.hasMore && i === 4;
 		if (!page.hasMore || !page.cursor) break;
 		cursor = page.cursor;
 	}
@@ -6448,7 +6324,7 @@ function routeError(err) {
 	throw err;
 }
 /** Reports that embed their matching annotations. */
-const SERIES_REPORTS = new Set([
+const SERIES_REPORTS = /* @__PURE__ */ new Set([
 	"timeseries",
 	"satisfaction_series",
 	"search_overview",
@@ -6636,12 +6512,13 @@ async function remoteOf(env, ctx, site) {
 }
 /** Forward the body to the satellite's `agent/v1/query`; failures are a typed `remote_error` without the remote body. */
 async function proxied(remote, ctx, site, body) {
-	const r = await remote.query(ctx.http, site, body.limit && body.limit > MAX_LIMIT ? {
+	const r = await remote.query(ctx.http, site, body.limit && body.limit > 1e3 ? {
 		...body,
 		limit: MAX_LIMIT
 	} : body);
 	if (r.ok) return r.data;
-	throw new PluginRouteError("remote_error", r.reason === "key_missing" ? "The key of this connected site is not set on this install (key_missing)." : `The connected site did not answer (${r.reason}${r.status ? ` ${r.status}` : ""}).`, 502, {
+	const text = r.reason === "key_missing" ? "The key of this connected site is not set on this install (key_missing)." : `The connected site did not answer (${r.reason}${r.status ? ` ${r.status}` : ""}).`;
+	throw new PluginRouteError("remote_error", text, 502, {
 		status: r.status,
 		reason: r.reason
 	});
@@ -6669,7 +6546,7 @@ function dataExportRoute(env) {
 			const { format: _f, ...req } = body;
 			const out = exportBody(await answerAny(env, ctx, {
 				...req,
-				limit: body.limit ?? EXPORT_LIMIT
+				limit: body.limit ?? 1e4
 			}), body.format);
 			return pluginResponse({
 				status: 200,
@@ -6694,9 +6571,7 @@ function dataCatalogRoute() {
 		handler: async (ctx) => (CatalogBody.parse(ctx.input ?? {}), buildCatalog())
 	};
 }
-
-//#endregion
-//#region src/routes/env.ts
+// src/routes/env.ts
 /** 204 with no body. The host adds `Cache-Control: private, no-store` to non-GET plugin responses. */
 const noContent = () => pluginResponse({
 	status: 204,
@@ -6710,9 +6585,7 @@ const json$1 = (data) => pluginResponse({
 		value: JSON.stringify(data)
 	}
 });
-
-//#endregion
-//#region src/routes/in.ts
+// src/routes/in.ts
 /** Body parser, an object so tests can spy on it (bots must never reach it). */
 const ingestParser = { parse(text) {
 	if (typeof text !== "string") return null;
@@ -6748,8 +6621,6 @@ function resolveOrigin(request, body, byKey) {
 		host
 	};
 }
-/** Seconds a client waits before it sends a refused page view or event again (`Retry-After`). */
-const RETRY_AFTER_S = 5;
 /** A D1 overload error ("D1 DB is overloaded. ..."): worth one more try after a short pause. */
 const isOverload = (err) => /\boverloaded\b/i.test(String(err?.message ?? err));
 /** State key of the last background run stopped by a platform limit (`PlatformLimit`); the Data page reads it. */
@@ -6777,7 +6648,7 @@ const unavailable = () => pluginResponse({
 	status: 503,
 	headers: {
 		"content-type": "text/plain",
-		"retry-after": String(RETRY_AFTER_S)
+		"retry-after": String(5)
 	}
 });
 /** 503 without `Retry-After`: the day's write allowance is used up and the client stops sending this event. */
@@ -6857,7 +6728,7 @@ function inRoute(env) {
 					...deps,
 					settings: {
 						...s,
-						ignoreReferrerHosts: [...new Set([
+						ignoreReferrerHosts: [.../* @__PURE__ */ new Set([
 							...s.ignoreReferrerHosts,
 							...linked,
 							...own
@@ -6892,13 +6763,11 @@ function inRoute(env) {
 			return out === "budget_blocked" ? blocked() : noContent();
 		} catch (err) {
 			count(failReason(err), d.site);
-			return String(err?.message).includes(CACHE_ON_MESSAGE) ? blocked() : unavailable();
+			return String(err?.message).includes("Hyperdrive query caching is on; recreate the configuration with --caching-disabled") ? blocked() : unavailable();
 		}
 	}
 }
-
-//#endregion
-//#region src/routes/privacy.ts
+// src/routes/privacy.ts
 const STATEMENT = "No cookies, no device storage, no raw IP, no raw user agent.";
 /** Fixed receipt line for the satisfaction measures. */
 const SATISFACTION_LINE = "Per page view we keep how long the page was visible and active, how far it was scrolled, how it was reached (new, reload, back or forward) and how it was left (hidden, closed, or kept for back and forward). Per session we count repeat arrivals from a search engine. The script never reads or changes your browser history.";
@@ -6912,8 +6781,6 @@ const ORDER_SESSION_LINE = "If your own server keeps the session token next to a
 const SITE_SEARCH_LINE = "If a site search parameter is configured, the words searched for are kept, with emails and long numbers removed.";
 /** Fixed receipt line for scheduled dashboard email. */
 const EMAIL_LINE = "If you schedule an email, the recipients you enter are kept with the dashboard.";
-/** Days summed by the agent status route; the receipt sums the detailed retention window. */
-const DROP_DAYS = 30;
 /** Fixed receipt line under the drop counters. */
 const DROPS_LINE = "Counted in memory per server instance and written every few seconds, so the figures are a lower bound. Nothing about these requests is kept: no address, no browser string, no row per request. Bots are counted under bot and never stored.";
 /** Plain-language table list (`kind` avoids the forbidden public words). Keep in step with `src/db/schema.ts` and the storage collections. */
@@ -7090,7 +6957,7 @@ async function buildReceipt(db, kv, s, now, bound = {
 		aliases: "one day after they are written",
 		search: `${s.searchRetentionDays} days`,
 		config: "until deleted in the admin",
-		salts: `${SALT_KEEP_DAYS} days`,
+		salts: `2 days`,
 		budget: "until the next UTC day"
 	};
 	const rows = {};
@@ -7207,8 +7074,6 @@ async function hostOtherMb(kv, env = workerEnv) {
 	const size = await hostSize(env).catch(() => null);
 	return size ? otherMb(size, (await kv.get(KV_CURSOR).catch(() => null))?.storage?.bytes) : null;
 }
-/** A self-check slower than this marks the database slow. Measured through Hyperdrive: 3 to 19 ms warm, about 700 ms for the first statement of a Neon database that scaled to zero. */
-const SLOW_MS = 1e3;
 /** One timed `selfCheck`, then the query cache probe (once per isolate and binding). Never throws. */
 async function healthOf(db, clock = Date.now) {
 	const t0 = clock();
@@ -7221,7 +7086,7 @@ async function healthOf(db, clock = Date.now) {
 		queryCache: null,
 		error: redact(check.error)
 	};
-	if (latencyMs >= SLOW_MS) return {
+	if (latencyMs >= 1e3) return {
 		engine: db.dialect,
 		status: "slow",
 		latencyMs,
@@ -7258,7 +7123,7 @@ async function capacityOf(db, s, now, site, kv, opts = {}) {
 	const today = dayInZone(now, s.siteTimezone);
 	const dropsToday = await dropCounts(db, site, today, 1);
 	const drops7 = await dropCounts(db, site, today, 7);
-	const limit = await kv?.get(KV_PLATFORM_LIMIT) ?? null;
+	const limit = await kv?.get("platform_limit_hit") ?? null;
 	const size = await liveSize(db, opts.env);
 	const target = budgetTargetOf(db);
 	const other = target === "host" ? otherMb(size, opts.analyticsBytes) : null;
@@ -7279,7 +7144,7 @@ async function capacityOf(db, s, now, site, kv, opts = {}) {
 		},
 		dropsToday,
 		drops7,
-		platformLimit: limit && limit.at >= (now - 7 * 86400) * 1e3 ? limit : null,
+		platformLimit: limit && limit.at >= (now - 604800) * 1e3 ? limit : null,
 		today
 	};
 }
@@ -7312,9 +7177,7 @@ function privacyRoute(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/agent/openapi.ts
+// src/agent/openapi.ts
 /** OpenAPI 3.1 document of the agent API, generated from the zod schemas; committed as `docs/openapi.json`. */
 const json = (schema) => {
 	const { $schema: _s, ...rest } = z.toJSONSchema(schema, {
@@ -7440,20 +7303,15 @@ function buildOpenApi(version) {
 		}
 	};
 }
-
-//#endregion
-//#region src/dashboards/run.ts
-/** Dashboard runner: one report request per distinct tile query, concurrency 2, through the report dispatcher. */
-const DEFAULT_TILE_LIMIT = 10;
 const CONCURRENCY = 2;
 /** Traffic tile reports that compare periods on their own: no segment comparison. */
-const SEGMENT_COMPARE_SKIP = new Set([
+const SEGMENT_COMPARE_SKIP = /* @__PURE__ */ new Set([
 	"traffic_movers",
 	"traffic_decay",
 	"impact"
 ]);
 /** Tile reports that refuse the compare option; their tiles always run without it. */
-const NO_COMPARE_TILES = new Set(["search_cannibalization", "search_cannibalization_pages"]);
+const NO_COMPARE_TILES = /* @__PURE__ */ new Set(["search_cannibalization", "search_cannibalization_pages"]);
 /** The dispatcher request of one tile. `params.goal` is not a report param: the tile picks the goal's row. */
 function tileRequest(tile, base) {
 	const { goal, metric, ...rest } = tile.params ?? {};
@@ -7482,7 +7340,7 @@ function tileRequest(tile, base) {
 			...base.segment ? { segment: base.segment } : {}
 		},
 		...Object.keys(params).length ? { params } : {},
-		...breakdown ? { limit: tile.limit ?? DEFAULT_TILE_LIMIT } : {}
+		...breakdown ? { limit: tile.limit ?? 10 } : {}
 	};
 }
 /** Distinct report requests of a dashboard (each one doubles with compare); the range does not change the count. */
@@ -7570,11 +7428,7 @@ async function runDashboard(rc, dashboard, opts = {}) {
 		requests: byKey.size
 	};
 }
-
-//#endregion
-//#region src/dashboards/share-view.ts
-/** Pure share types and helpers. The admin bundle imports this file, never shares.ts, which reaches server only code. */
-const MAX_SHARE_LABEL = 40;
+// src/dashboards/share-view.ts
 /** The state of one link; `stateRank` orders them from least to most permissive. */
 const shareState = (s) => !s ? "none" : s.expired ? "expired" : s.password ? "password" : "open";
 const STATE_RANK = [
@@ -7584,17 +7438,13 @@ const STATE_RANK = [
 	"open"
 ];
 const mostPermissive = (states) => states.reduce((a, b) => STATE_RANK.indexOf(b) > STATE_RANK.indexOf(a) ? b : a, "none");
-
-//#endregion
-//#region src/dashboards/password.ts
+// src/dashboards/password.ts
 /** Share passwords: PBKDF2 verifier peppered with the link secret, a per-isolate credential cache, and the KV lock. */
 /**
 * Workers rejects more than 100,000 and the Free plan has 10 ms CPU; the token pepper makes this count
 * a reused-password guard only.
 */
 const SHARE_PBKDF2_ITERATIONS = 1e4;
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 128;
 const enc$1 = new TextEncoder();
 const hex = (b) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
 function fromBase64url(s) {
@@ -7615,9 +7465,9 @@ async function derive(password, salt16, secretBytes, iter) {
 	}, key, 256)));
 }
 /** Password length in characters (code points), 8 to 128. */
-const passwordOk = (p) => [...p].length >= MIN_PASSWORD && [...p].length <= MAX_PASSWORD;
+const passwordOk = (p) => [...p].length >= 8 && [...p].length <= 128;
 async function makeVerifier(password, secret) {
-	const salt = crypto.getRandomValues(new Uint8Array(16));
+	const salt = crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(16));
 	return {
 		salt: base64url(salt),
 		iter: SHARE_PBKDF2_ITERATIONS,
@@ -7628,8 +7478,7 @@ async function makeVerifier(password, secret) {
 async function verify(pw, password, secret) {
 	return timingSafeEqual(await derive(password, fromBase64url(pw.salt), fromBase64url(secret), pw.iter), pw.verifier);
 }
-const CACHE_MS = 10 * 6e4;
-const CACHE_MAX$1 = 200;
+const CACHE_MS = 6e5;
 /** Share id to `SHA-256(secret || password)` of the last success; insertion order is age order. */
 const cache = /* @__PURE__ */ new Map();
 /** Verify through the credential cache: a repeated success within 10 minutes skips the derivation. A failure is never cached. */
@@ -7643,11 +7492,11 @@ async function checkPassword(shareId, pw, password, secret, nowMs = Date.now()) 
 		key,
 		at: nowMs
 	});
-	while (cache.size > CACHE_MAX$1) cache.delete(cache.keys().next().value);
+	while (cache.size > 200) cache.delete(cache.keys().next().value);
 	return true;
 }
 const lockKey = (id) => `share:lock:${id}`;
-const WINDOW = SHARE_LOCK_MINUTES * 60;
+const WINDOW = 900;
 /** Seconds until the lock ends, or 0 when the share is not locked. */
 async function lockedFor(kv, id, now) {
 	const l = await kv.get(lockKey(id));
@@ -7667,7 +7516,7 @@ async function recordFailure(kv, id, now) {
 		fails: l.fails + 1,
 		since: l.since
 	};
-	if (next.fails >= SHARE_LOCK_FAILURES) next.until = now + WINDOW;
+	if (next.fails >= 10) next.until = now + WINDOW;
 	await kv.set(lockKey(id), next);
 	return next.until ? WINDOW : 0;
 }
@@ -7676,11 +7525,10 @@ async function resetFailures(kv, id) {
 	const l = await kv.get(lockKey(id));
 	if (l && l.fails > 0) await kv.delete(lockKey(id));
 }
-
-//#endregion
-//#region src/dashboards/shares.ts
+// src/dashboards/shares.ts
 /** Share links over the `shares` collection, indexed by `prefix` and `site`. Times are epoch seconds. */
 var ShareError = class extends Error {
+	code;
 	constructor(code, message) {
 		super(message);
 		this.code = code;
@@ -7711,10 +7559,10 @@ async function sharesOf(coll, site, dashboard) {
 /** Up to 10 links per dashboard and 100 per site. Returns the token once; only its prefix and the hash of its secret are stored. */
 async function createShare(coll, input, now) {
 	const all = await loadAll(coll, { site: input.site });
-	if (all.filter((i) => i.data.dashboard === input.dashboard).length >= MAX_SHARES_PER_DASHBOARD) throw new ShareError("too_many_shares", `At most ${MAX_SHARES_PER_DASHBOARD} links per dashboard. Revoke one first.`);
-	if (all.length >= MAX_SHARES_PER_SITE) throw new ShareError("too_many_shares", `At most ${MAX_SHARES_PER_SITE} links per site. Revoke one first.`);
+	if (all.filter((i) => i.data.dashboard === input.dashboard).length >= 10) throw new ShareError("too_many_shares", `At most 10 links per dashboard. Revoke one first.`);
+	if (all.length >= 100) throw new ShareError("too_many_shares", `At most 100 links per site. Revoke one first.`);
 	const label = input.label?.trim();
-	if (label !== void 0 && (label.length < 1 || label.length > MAX_SHARE_LABEL || /\p{Cc}/u.test(label))) throw new ShareError("invalid_share", `A label has 1 to ${MAX_SHARE_LABEL} characters.`);
+	if (label !== void 0 && (label.length < 1 || label.length > 40 || /\p{Cc}/u.test(label))) throw new ShareError("invalid_share", `A label has 1 to 40 characters.`);
 	if (input.expires != null && input.expires <= now) throw new ShareError("invalid_share", "The expiry must be in the future.");
 	let t = generateToken();
 	if ((await coll.query({
@@ -7777,9 +7625,7 @@ async function recordView(coll, id, now) {
 		delta: { views: { inc: 1 } }
 	});
 }
-
-//#endregion
-//#region src/dashboards/store.ts
+// src/dashboards/store.ts
 /** Dashboards over the `dashboards` storage collection, indexed by `site`. */
 /** The site's readable dashboards, newest first. A record of an unknown format version is left out. */
 async function listDashboards(coll, site) {
@@ -7807,7 +7653,8 @@ const EMAIL_FIELDS = [
 * ignored and the stored schedule kept.
 */
 async function saveDashboard(coll, site, input, now) {
-	const d = parseStrict(DashboardInput, input && typeof input === "object" ? Object.fromEntries(Object.entries(input).filter(([k]) => !EMAIL_FIELDS.includes(k))) : input, "invalid_dashboard");
+	const clean = input && typeof input === "object" ? Object.fromEntries(Object.entries(input).filter(([k]) => !EMAIL_FIELDS.includes(k))) : input;
+	const d = parseStrict(DashboardInput, clean, "invalid_dashboard");
 	let created = now;
 	let kept = {};
 	if (d.id) {
@@ -7818,7 +7665,7 @@ async function saveDashboard(coll, site, input, now) {
 			email: cur.email,
 			...cur.emailNext !== void 0 ? { emailNext: cur.emailNext } : {}
 		};
-	} else if ((await loadAll(coll, { site })).length >= MAX_DASHBOARDS_PER_SITE) throw new DashboardError("too_many_dashboards", `At most ${MAX_DASHBOARDS_PER_SITE} dashboards per site.`);
+	} else if ((await loadAll(coll, { site })).length >= 20) throw new DashboardError("too_many_dashboards", `At most 20 dashboards per site.`);
 	const { id: _id, ...rest } = d;
 	const id = d.id ?? randomId(12);
 	const record = readDashboard({
@@ -7838,9 +7685,7 @@ async function deleteDashboard(coll, site, id) {
 	if (!raw || raw.site !== site) return false;
 	return coll.delete(id);
 }
-
-//#endregion
-//#region src/db/tables.ts
+// src/db/tables.ts
 const KIND = {
 	"": "text",
 	i: "int",
@@ -7874,19 +7719,15 @@ const TABLE_SPECS = {
 	ca_search_daily: spec$1("site source day page_key query country device clicks:i impressions:i pos_sum:r provisional:i", "site source day page_key query country device"),
 	ca_revenue_daily: spec$1("site day dim key cur seg segkey orders:i revenue:r sessions:i", "site dim seg day key segkey cur")
 };
-
-//#endregion
-//#region src/move/chunks.ts
+// src/move/chunks.ts
 /** Read in descending key order, site first: within each site the newest day comes first, so reports fill in from recent to old while a move runs. */
-const NEWEST_FIRST = new Set(["ca_sessions"]);
+const NEWEST_FIRST = /* @__PURE__ */ new Set(["ca_sessions"]);
 /** Counters per day: a key already in the destination gets the source value added on the first load (or the larger value kept). */
 const COUNTERS$1 = {
 	ca_srv: ["n"],
 	ca_drops: ["n"]
 };
 const enc = new TextEncoder();
-/** Stored sid of the source half of a visit that went on in the destination after the switch. */
-const SPLIT_SUFFIX = "~m";
 function spec(table) {
 	const s = TABLE_SPECS[table];
 	if (!s) throw new Error(`not an analytics table: ${table}`);
@@ -7961,7 +7802,7 @@ async function writeChunk(db, table, rows, counters = null) {
 	if (table === "ca_sessions") {
 		const at = (name) => exprs[columns.findIndex((c) => c.name === name)] ?? "";
 		const sid = columns.findIndex((c) => c.name === "sid");
-		exprs[sid] = `CASE WHEN EXISTS (SELECT 1 FROM ca_sessions o WHERE o.site = ${at("site")} AND o.day = ${at("day")} AND o.sid = ${at("sid")} AND o.started <> ${at("started")}) THEN ${at("sid")} || '${SPLIT_SUFFIX}' ELSE ${at("sid")} END`;
+		exprs[sid] = `CASE WHEN EXISTS (SELECT 1 FROM ca_sessions o WHERE o.site = ${at("site")} AND o.day = ${at("day")} AND o.sid = ${at("sid")} AND o.started <> ${at("started")}) THEN ${at("sid")} || '~m' ELSE ${at("sid")} END`;
 	}
 	const cols = counters ? COUNTERS$1[table] ?? [] : [];
 	const conflict = counters === "max" && cols.length ? `ON CONFLICT (${key.join(", ")}) DO UPDATE SET ${columns.filter((c) => !key.includes(c.name)).map((c) => `${c.name} = excluded.${c.name}`).join(", ")} WHERE ${cols.map((c) => `excluded.${c} > ${table}.${c}`).join(" OR ")}` : upsertChanged(d, table, key, [], cols);
@@ -8013,7 +7854,7 @@ async function missingKeys(src, dst, table, site, day, after, limit) {
 	const kinds = new Map(columns.map((c) => [c.name, c]));
 	const match = key.map((k) => {
 		const e = value(d, kinds.get(k));
-		return table === "ca_sessions" && k === "sid" ? `o.sid IN (${e}, ${e} || '${SPLIT_SUFFIX}')` : `o.${k} = ${e}`;
+		return table === "ca_sessions" && k === "sid" ? `o.sid IN (${e}, ${e} || '~m')` : `o.${k} = ${e}`;
 	});
 	const v = paramRows(d, keys, "v");
 	return {
@@ -8021,9 +7862,7 @@ async function missingKeys(src, dst, table, site, day, after, limit) {
 		next
 	};
 }
-
-//#endregion
-//#region src/move/job.ts
+// src/move/job.ts
 const KV_MOVE_JOB = "move:job";
 /** Pause or cancel of a job (`{ id, status }`): the job applies it; nothing else rewrites the job for it. */
 const KV_MOVE_STOP = "move:stop";
@@ -8043,7 +7882,7 @@ const MOVE_ORDER = [
 	"ca_sessions",
 	"ca_aliases"
 ];
-const COUNTERS = new Set(["ca_srv", "ca_drops"]);
+const COUNTERS = /* @__PURE__ */ new Set(["ca_srv", "ca_drops"]);
 /** Cron state of a database: the watermark is copied from the source, the others are deleted at the destination. */
 const STATE_KEYS = [
 	KV_WATERMARK,
@@ -8059,8 +7898,6 @@ const MOVE_ROWS = {
 };
 /** JSON bytes per chunk (one bound parameter): half of the 2 MB D1 documents per string or row. */
 const MOVE_CHUNK_BYTES = 1e6;
-/** Failures at one position before the job pauses. */
-const MOVE_MAX_FAILS = 5;
 /** Rows written per row copied: a secondary index adds one on D1. */
 const WRITE_ROWS = {
 	ca_sessions: 2,
@@ -8069,11 +7906,6 @@ const WRITE_ROWS = {
 };
 /** Source keys per page of the key check. */
 const KEY_ROWS = 500;
-const MOVE_LEASE_S = 60;
-/** Wall time within which one call starts chunks, below the cron hook's 55 s. */
-const MOVE_TICK_MS = 4e4;
-/** Fewer requests than this make no chunk worth starting: job and stop read, lease and its check, a chunk (read, write, save), the end. */
-const MIN_MOVE_REQUESTS = 12;
 /** Requests a call keeps for its end: the holder read, the stop read, the job write, the cron cancel. */
 const END_REQUESTS$1 = 4;
 /** Differing keys a verification keeps per table. */
@@ -8102,7 +7934,7 @@ async function openBinding(name, env = workerEnv) {
 */
 async function sourceState(kv, source) {
 	let prefix = source === null ? "" : statePrefix(source);
-	if (prefix && await kv.get(prefix + KV_WATERMARK) === null) prefix = "";
+	if (prefix && await kv.get(prefix + "rollup:watermark") === null) prefix = "";
 	const out = {};
 	for (const k of STATE_KEYS) out[k] = await kv.get(prefix + k);
 	return out;
@@ -8224,7 +8056,7 @@ const pairId = (source, dest, site) => JSON.stringify([
 ]);
 /** How this job loads counters, from the ledger; the job's pair is recorded. Two requests. */
 async function counterMode(kv, j) {
-	const ledger = await kv.get(KV_MOVE_LEDGER) ?? [];
+	const ledger = await kv.get("move:counters") ?? [];
 	const id = pairId(j.source, j.dest, j.site);
 	if (ledger.includes(id)) return "none";
 	await kv.set(KV_MOVE_LEDGER, [...ledger, id]);
@@ -8284,18 +8116,18 @@ async function runMoveJob(e, requests) {
 		if (!isMoving(job)) await e.cron?.cancel(MOVE_CRON).catch(() => {});
 		return job;
 	}
-	if ((job.until ?? 0) > e.now || requests < MIN_MOVE_REQUESTS) return job;
+	if ((job.until ?? 0) > e.now || requests < 12) return job;
 	const clock = e.clock ?? Date.now;
 	const started = clock();
 	const at = () => e.now + Math.floor((clock() - started) / 1e3);
 	const { until: _u, ...rest } = job;
 	const j = {
 		...rest,
-		lease: e.now + MOVE_LEASE_S,
+		lease: e.now + 60,
 		holder: Math.random().toString(36).slice(2, 10)
 	};
 	await e.kv.set(KV_MOVE_JOB, j);
-	if ((await e.kv.get(KV_MOVE_JOB))?.holder !== j.holder) return job;
+	if ((await e.kv.get("move:job"))?.holder !== j.holder) return job;
 	let used = 4;
 	let endRequests = END_REQUESTS$1;
 	const left = () => requests - used - endRequests;
@@ -8322,7 +8154,7 @@ async function runMoveJob(e, requests) {
 	const save = async () => {
 		used += 2;
 		if (!await mine()) throw new Lost();
-		j.lease = at() + MOVE_LEASE_S;
+		j.lease = at() + 60;
 		await e.kv.set(KV_MOVE_JOB, j);
 	};
 	let src;
@@ -8351,7 +8183,7 @@ async function runMoveJob(e, requests) {
 			const table = MOVE_ORDER[j.t];
 			const counters = COUNTERS.has(table);
 			const ledger = counters && !j.counters ? 2 : 0;
-			if (left() < (counters ? 6 : 4) + ledger || clock() - started > MOVE_TICK_MS) throw new Budget$1();
+			if (left() < (counters ? 6 : 4) + ledger || clock() - started > 4e4) throw new Budget$1();
 			if (ledger) {
 				used += ledger;
 				j.counters = await counterMode(e.kv, j);
@@ -8414,7 +8246,7 @@ async function runMoveJob(e, requests) {
 			const wm = marks.some((m) => typeof m !== "string") ? null : marks.sort()[0];
 			for (const k of STATE_KEYS) {
 				used++;
-				if (k === KV_WATERMARK && wm) await dkv.set(k, wm);
+				if (k === "rollup:watermark" && wm) await dkv.set(k, wm);
 				else await dkv.delete(k);
 			}
 			j.stateCopied = true;
@@ -8478,7 +8310,7 @@ async function runMoveJob(e, requests) {
 			if (j.t < MOVE_ORDER.length) j.chunkRows = Math.max(1, Math.floor((j.chunkRows ?? MOVE_ROWS[e.profile]) / 2));
 			const msg = err.message;
 			j.error = msg;
-			if (n % MOVE_MAX_FAILS === 0) {
+			if (n % 5 === 0) {
 				j.status = "paused";
 				j.error = `The move stopped after ${n} failed tries at the same place in ${MOVE_ORDER[j.t] ?? MOVE_ORDER[j.v]}: ${msg}. Resume it to try again.`;
 			}
@@ -8499,9 +8331,7 @@ async function dropTables(db) {
 		params: []
 	})));
 }
-
-//#endregion
-//#region src/query/filtered-delete.ts
+// src/query/filtered-delete.ts
 /**
 * Filtered delete (Data page, Delete tab): removes the visits that match stored dimensions (spam or bots the
 * classifier missed) with their page views, events, orders and refunds, then stores again the summary of every
@@ -8529,37 +8359,26 @@ const SCREENS = [
 ];
 /** Visit shapes: `single_view_idle` is one page view with no active time and no scroll. */
 const SHAPES = ["single_view_idle"];
-/** Longest range of one delete, so the preview reads a bounded number of visits. */
-const DELETE_MAX_DAYS = 400;
-/** Visits per delete statement. */
-const DELETE_CHUNK = 500;
-/** Rows written per deleted visit (the row and its `vkey` index entry) and per deleted `ca_events` row (row and day index). */
-const ROWS_PER_VISIT_DELETE = 2;
-const ROWS_PER_EVENT_DELETE = 2;
-/** shortcut: summary rows one deleted visit can change on its day (single dims, pairs, cube, links, journeys); measure on D1 if the estimate proves far off. */
-const ROWS_TOUCHED_PER_VISIT = 40;
 /** `small`: rows a delete job may write per UTC day, and the guard estimate at which it waits for the next UTC day. */
 const DELETE_DAY_ROWS = 15e3;
 const DELETE_PAUSE_AT = SYNC_BUDGET.small.pauseAt;
-/** A call holds the job this long, so the page and the cron task do not work on it at once. */
-const LEASE_S = 60;
 const KV_DELETE_JOB = "delete:job";
 const KV_DELETE_LOG = "delete:log";
 /** Id of a job an admin cancelled; the next call of that job starts the cancel (a call in flight may not see a status change). */
 const KV_DELETE_CANCEL = "delete:cancel";
-const LOG_KEEP = 10;
 const Day$4 = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const Hour = z.number().int().min(0).max(23);
 const DeleteSpecSchema = z.object({
 	from: Day$4,
 	to: Day$4,
-	filters: z.array(FilterSchema).max(MAX_FILTERS).default([]),
+	filters: z.array(FilterSchema).max(20).default([]),
 	screen: z.array(z.enum(SCREENS)).min(1).max(SCREENS.length).optional(),
 	hours: z.object({
 		from: Hour,
 		to: Hour
 	}).strict().optional(),
 	shape: z.enum(SHAPES).optional(),
+	/** Also delete the whole summaries of the range's days before the detailed window. */
 	oldDays: z.boolean().optional()
 }).strict().refine((s) => s.filters.every((f) => DELETE_DIMS.includes(f.dim)), {
 	message: "Only visit dimensions can select visits to delete.",
@@ -8567,8 +8386,8 @@ const DeleteSpecSchema = z.object({
 }).refine((s) => s.from <= s.to, {
 	message: "from must not be after to",
 	path: ["from"]
-}).refine((s) => daysBetween(s.from, s.to) < DELETE_MAX_DAYS, {
-	message: `at most ${DELETE_MAX_DAYS} days`,
+}).refine((s) => daysBetween(s.from, s.to) < 400, {
+	message: `at most 400 days`,
 	path: ["to"]
 });
 /** Readable conditions of a spec, for the audit line (dimension values only, never a visitor). */
@@ -8736,9 +8555,9 @@ async function previewDelete(e, spec) {
 		for (const [day, k] of touched) {
 			if (!wm || day > wm || day < rawFrom) continue;
 			out.recloseDays++;
-			out.estimate.summaryRows += Math.min(counts.get(day) ?? 0, k * ROWS_TOUCHED_PER_VISIT);
+			out.estimate.summaryRows += Math.min(counts.get(day) ?? 0, k * 40);
 		}
-		out.estimate.deleteRows = out.totals.visits * ROWS_PER_VISIT_DELETE + out.totals.eventRows * ROWS_PER_EVENT_DELETE;
+		out.estimate.deleteRows = out.totals.visits * 2 + out.totals.eventRows * 2;
 	}
 	if (spec.from < rawFrom) {
 		const hi = spec.to < rawFrom ? spec.to : addDays(rawFrom, -1);
@@ -8833,8 +8652,6 @@ function counted(db, limit) {
 		spend
 	};
 }
-/** Fewer requests than this make no chunk worth starting (lease, guard, chunk, save, end). */
-const MIN_REQUESTS = 12;
 /** KV calls a run keeps for its end: the job, the guard's rows and the log. */
 const END_REQUESTS = 3;
 const nextUtc = (now) => (Math.floor(now / 86400) + 1) * 86400;
@@ -8846,10 +8663,10 @@ const nextUtc = (now) => (Math.floor(now / 86400) + 1) * 86400;
 */
 async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].requests) {
 	let job = await e.kv.get(KV_DELETE_JOB);
-	if (!isActive(job) || (job.lease ?? 0) > e.now || requests < MIN_REQUESTS) return job;
-	if (job.status === "running" && await e.kv.get(KV_DELETE_CANCEL) === job.id) job.status = "cancelling";
+	if (!isActive(job) || (job.lease ?? 0) > e.now || requests < 12) return job;
+	if (job.status === "running" && await e.kv.get("delete:cancel") === job.id) job.status = "cancelling";
 	if (job.paused && job.paused.until > e.now && job.status === "running") return job;
-	job.lease = e.now + LEASE_S;
+	job.lease = e.now + 60;
 	job.paused = null;
 	await e.kv.set(KV_DELETE_JOB, job);
 	const j = job;
@@ -8877,7 +8694,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 	/** On `small`, whether `rows` more may be written now; sets the pause when not. */
 	const room = (rows) => {
 		if (!small) return true;
-		const reason = j.utc.rows + rows > DELETE_DAY_ROWS ? "day_rows" : guard + rows >= DELETE_PAUSE_AT ? "guard" : null;
+		const reason = j.utc.rows + rows > 15e3 ? "day_rows" : guard + rows >= DELETE_PAUSE_AT ? "guard" : null;
 		if (reason) j.paused = {
 			until: nextUtc(e.now),
 			reason
@@ -8905,14 +8722,14 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 					goals = await e.goals(site);
 				}
 				if (c.used() + dayStatements(goals) > requests - kvCalls - END_REQUESTS) throw new Budget();
-				if (!room(k * ROWS_TOUCHED_PER_VISIT)) return false;
+				if (!room(k * 40)) return false;
 				const rows = await rollupDay({
 					db: c.db,
 					site,
 					settings: s,
 					goals
 				}, day);
-				charge(Math.min(rows, k * ROWS_TOUCHED_PER_VISIT));
+				charge(Math.min(rows, k * 40));
 				j.deleted.summaryDays++;
 				delete j.reclose[day];
 				await save();
@@ -8921,8 +8738,8 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 		};
 		while (j.status === "running" && j.i < j.days.length) {
 			const day = j.days[j.i];
-			if (!room(DELETE_CHUNK * ROWS_PER_VISIT_DELETE)) break;
-			const rows = await c.db.all(`SELECT s.sid AS sid, s.pageviews AS pageviews, s.events AS events FROM ca_sessions s WHERE s.site = ? AND s.day = ? AND (${j.pred.sql}) LIMIT ${DELETE_CHUNK}`, [
+			if (!room(1e3)) break;
+			const rows = await c.db.all(`SELECT s.sid AS sid, s.pageviews AS pageviews, s.events AS events FROM ca_sessions s WHERE s.site = ? AND s.day = ? AND (${j.pred.sql}) LIMIT 500`, [
 				site,
 				visitDayKey(day),
 				...j.pred.params
@@ -8964,11 +8781,11 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 				j.deleted.visits += gone;
 				j.deleted.pageviews += rows.reduce((a, r) => a + n$1(r.pageviews), 0);
 				j.deleted.events += rows.reduce((a, r) => a + n$1(r.events), 0) + server;
-				charge(gone * ROWS_PER_VISIT_DELETE + evGone * ROWS_PER_EVENT_DELETE);
+				charge(gone * 2 + evGone * 2);
 			}
-			if (rows.length < DELETE_CHUNK) j.i++;
+			if (rows.length < 500) j.i++;
 			await save();
-			if (rows.length < DELETE_CHUNK && !await reclose(j.days[j.i] ?? null)) break;
+			if (rows.length < 500 && !await reclose(j.days[j.i] ?? null)) break;
 		}
 		if ((j.status === "running" && j.i >= j.days.length || j.status === "cancelling") && !j.paused && await reclose(null)) {
 			while (j.status === "running" && j.oi < j.old.length) {
@@ -8996,7 +8813,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 	delete j.lease;
 	if (j.status === "done" || j.status === "cancelled") {
 		j.finished = e.now;
-		const log = await e.kv.get(KV_DELETE_LOG) ?? [];
+		const log = await e.kv.get("delete:log") ?? [];
 		const entry = {
 			at: j.at,
 			finished: e.now,
@@ -9007,7 +8824,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 			deleted: j.deleted,
 			skipped: j.skipped.length
 		};
-		await e.kv.set(KV_DELETE_LOG, [entry, ...log].slice(0, LOG_KEEP));
+		await e.kv.set(KV_DELETE_LOG, [entry, ...log].slice(0, 10));
 		await e.kv.delete(KV_DELETE_CANCEL);
 	}
 	await e.kv.set(KV_DELETE_JOB, j);
@@ -9016,9 +8833,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 	job = j;
 	return job;
 }
-
-//#endregion
-//#region src/routes/move-files.ts
+// src/routes/move-files.ts
 /**
 * Export and import of the analytics tables through the agent API, for the `ca-data` CLI (`scripts/ca-data.mjs`):
 * `data/dump` (scope `data:export`) answers one chunk of a table as NDJSON, `data/load` (scope `data:import`) inserts
@@ -9053,14 +8868,14 @@ function wrongKind(kind, v) {
 		case "int": return typeof v === "number" && Number.isSafeInteger(v) || typeof v === "string" && INT.test(v) ? null : "an integer";
 		case "real": return typeof v === "number" && Number.isFinite(v) || typeof v === "string" && NUM.test(v) ? null : "a number";
 		case "doc":
-			if (typeof v !== "string" || v.length > 2 * MAX_DOC_BYTES) return `JSON text of at most ${2 * MAX_DOC_BYTES} characters`;
+			if (typeof v !== "string" || v.length > 131072) return `JSON text of at most ${2 * MAX_DOC_BYTES} characters`;
 			try {
 				JSON.parse(v);
 				return null;
 			} catch {
 				return `JSON text of at most ${2 * MAX_DOC_BYTES} characters`;
 			}
-		default: return typeof v === "string" && v.length <= MAX_DOC_BYTES ? null : `text of at most ${MAX_DOC_BYTES} characters`;
+		default: return typeof v === "string" && v.length <= 65536 ? null : `text of at most ${MAX_DOC_BYTES} characters`;
 	}
 }
 /** A 400 naming the first column of `row` that `table` cannot store: unknown, a missing key, a wrong kind. */
@@ -9129,7 +8944,7 @@ function dataFileHandlers(env) {
 				list.push(row);
 				bySite.set(s, list);
 			}
-			if (isActive(await ctx.kv.get(KV_DELETE_JOB))) throw new PluginRouteError("delete_running", "A delete is running on the Data page. Import when it has finished.", 409);
+			if (isActive(await ctx.kv.get("delete:job"))) throw new PluginRouteError("delete_running", "A delete is running on the Data page. Import when it has finished.", 409);
 			const move = await ctx.kv.get(KV_MOVE_JOB);
 			if (isMoving(move) && [...bySite.keys()].some((s) => bindingOf(s) === move.dest)) throw new PluginRouteError("move_running", "A data move into this database is running or paused. Import when it is done or cancelled.", 409);
 			const profile = (await env.settings()).capacityProfile;
@@ -9171,9 +8986,7 @@ function dataFileHandlers(env) {
 		} }
 	};
 }
-
-//#endregion
-//#region src/agent/routes.ts
+// src/agent/routes.ts
 /**
 * Agent API: public routes with their own auth from the `X-Api-Key` header. Every auth or
 * scope failure is 404 with `{}` (no oracle). Responses are aggregates only, except the stored rows of `data/dump`
@@ -9198,6 +9011,7 @@ const fail = (status, error, message) => send(status, {
 	message
 });
 var InputError = class extends Error {
+	code;
 	constructor(code, message) {
 		super(message);
 		this.code = code;
@@ -9214,7 +9028,7 @@ function range(input, today, days, schema = RangeParams) {
 	const to = p.to ?? today;
 	const from = p.from ?? addDays(to, -(days - 1));
 	if (from > to) throw new InputError("invalid_input", "from must not be after to");
-	if (!((Date.parse(to) - Date.parse(from)) / 864e5 < AGENT_MAX_RANGE_DAYS)) throw new InputError("range_too_long", `The range is longer than ${AGENT_MAX_RANGE_DAYS} days.`);
+	if (!((Date.parse(to) - Date.parse(from)) / 864e5 < 400)) throw new InputError("range_too_long", `The range is longer than 400 days.`);
 	return {
 		from,
 		to
@@ -9310,15 +9124,15 @@ function handlers(env) {
 			const [last] = await db.all("SELECT MAX(day) AS day FROM ca_sessions WHERE site = ?", [site]);
 			return { data: {
 				version: env.version,
-				contract: CONTRACT_VERSION,
+				contract: 1,
 				schema: await schemaVersion(db, ctx.kv),
 				timezone: s.siteTimezone,
 				lastHumanDay: last?.day == null ? null : isoDay(last.day),
 				rawFrom: await rawFromDay(dkv, s, now),
 				rollupWatermark: await dkv.get(KV_WATERMARK),
 				drops: {
-					days: DROP_DAYS,
-					byReason: await dropCounts(db, site, dayInZone(now, s.siteTimezone), DROP_DAYS)
+					days: 30,
+					byReason: await dropCounts(db, site, dayInZone(now, s.siteTimezone), 30)
 				},
 				search: Object.fromEntries((await ctx.kv.list(`search:state:${site}:`)).map((e) => [e.key.slice(14 + site.length), searchState(e.value)]))
 			} };
@@ -9558,9 +9372,7 @@ function agentRoutes(env) {
 	}
 	return routes;
 }
-
-//#endregion
-//#region src/keys/ratelimit.ts
+// src/keys/ratelimit.ts
 /** Per key, per isolate sliding window: approximate across isolates, documented in AGENTS.md. */
 function createRateLimiter(windowMs = 6e4) {
 	const hits = /* @__PURE__ */ new Map();
@@ -9576,16 +9388,11 @@ function createRateLimiter(windowMs = 6e4) {
 		return 0;
 	};
 }
-
-//#endregion
-//#region src/fragments.ts
-/** `mw:seen` older than this means the middleware is not installed: fall back to the direct route. */
-const SEEN_FRESH_MS = 24 * 36e5;
 const SEEN_CACHE_MS = 6e4;
 let seenCache;
 async function middlewareSeen(kv, now) {
 	const live = middlewareLiveAt();
-	if (live !== void 0 && now - live < SEEN_FRESH_MS) return true;
+	if (live !== void 0 && now - live < 864e5) return true;
 	if (!seenCache || now - seenCache.at >= SEEN_CACHE_MS) {
 		const v = await kv.get(MW_SEEN_KEY);
 		seenCache = {
@@ -9593,7 +9400,7 @@ async function middlewareSeen(kv, now) {
 			at: now
 		};
 	}
-	return seenCache.value !== null && now - seenCache.value < SEEN_FRESH_MS;
+	return seenCache.value !== null && now - seenCache.value < 864e5;
 }
 /**
 * `page:fragments` output: one script element at `head`, identical for every request and
@@ -9619,9 +9426,7 @@ async function pageFragments(s, kv, now = Date.now()) {
 		key: PLUGIN_ID
 	}];
 }
-
-//#endregion
-//#region src/agents/lines.ts
+// src/agents/lines.ts
 /**
 * Text form of your user agent rules, one rule per line: `action mode pattern # comment`.
 * Shared by the admin editor (local check) and the bulk route (server check), so both report the same lines.
@@ -9654,12 +9459,12 @@ const RULE_TEXT = {
 	shape: "Write action, mode and pattern, for example: bot contains examplebot",
 	action: (a) => `Unknown action "${a}": use bot or human.`,
 	mode: (m) => `Unknown mode "${m}": use contains, prefix, exact or regex.`,
-	long: `Pattern longer than ${MAX_RULE_PATTERN} characters.`,
+	long: `Pattern longer than 512 characters.`,
 	name: `Comment longer than ${MAX_NAME} characters (it is kept as the rule name).`,
 	regex: (e) => `Unsafe or invalid regex: ${e}`,
 	duplicate: (n) => `Same mode and pattern as line ${n}.`,
-	total: `At most ${MAX_USER_RULES} rules in total; this line is rule ${MAX_USER_RULES + 1}.`,
-	regexCap: `At most ${MAX_USER_REGEX_RULES} regex rules; this line is regex rule ${MAX_USER_REGEX_RULES + 1}.`,
+	total: `At most 500 rules in total; this line is rule 501.`,
+	regexCap: `At most 50 regex rules; this line is regex rule 51.`,
 	browser: "This bot rule matches a current browser user agent, so real visitors would be excluded.",
 	order: "This new rule is stored after the rules you keep, so a kept rule on a later line still wins when both match.",
 	hash: "A pattern cannot hold a space, # and a space: the text view reads that as the start of a comment.",
@@ -9700,7 +9505,7 @@ function parseRuleLines(text) {
 		const before = out.errors.length;
 		if (action !== "bot" && action !== "human") err(RULE_TEXT.action(action));
 		if (!RULE_MODES.includes(mode)) err(RULE_TEXT.mode(mode));
-		if (pattern.length > MAX_RULE_PATTERN) err(RULE_TEXT.long);
+		if (pattern.length > 512) err(RULE_TEXT.long);
 		if (name && name.length > MAX_NAME) err(RULE_TEXT.name);
 		if (mode === "regex") {
 			const v = validateSafeRegex(pattern, "i");
@@ -9720,8 +9525,8 @@ function parseRuleLines(text) {
 			pattern,
 			...name ? { name } : {}
 		};
-		if (out.rules.length === MAX_USER_RULES) err(RULE_TEXT.total);
-		if (mode === "regex" && ++regex === MAX_USER_REGEX_RULES + 1) err(RULE_TEXT.regexCap);
+		if (out.rules.length === 500) err(RULE_TEXT.total);
+		if (mode === "regex" && ++regex === 51) err(RULE_TEXT.regexCap);
 		out.rules.push({
 			...rule,
 			line
@@ -9788,7 +9593,7 @@ function diffRules(current, next) {
 	diff.removed.push(...byKey.values());
 	return diff;
 }
-const META = new Set([..."^$.*+?()[]{}|\\"]);
+const META = /* @__PURE__ */ new Set([..."^$.*+?()[]{}|\\"]);
 /**
 * The plain rule that overrides a built-in entry: its `contains` pattern, or a regex that is a literal
 * (escaped punctuation and `[xX]` case pairs allowed), as `contains` or, with a leading `^`, as `prefix`.
@@ -9819,9 +9624,7 @@ function builtinOverride(match) {
 		pattern: lit
 	} : null;
 }
-
-//#endregion
-//#region src/routes/config.ts
+// src/routes/config.ts
 /**
 * Config routes: `config/<collection>/list|save|delete` over the plugin
 * storage collections, all `plugins:manage`. Every regex is checked
@@ -9864,7 +9667,7 @@ const FunnelItem = z.object({
 });
 const SegmentItem = z.object({
 	name: z.string().min(1).max(64),
-	filters: z.array(FilterSchema).min(1).max(MAX_FILTERS)
+	filters: z.array(FilterSchema).min(1).max(20)
 }).strict().superRefine((s, ctx) => {
 	s.filters.forEach((f, i) => {
 		if (f.op !== "regex" && f.op !== "not_regex") return;
@@ -9939,8 +9742,10 @@ const AnnotationItem = z.object({
 		"release"
 	]),
 	text: z.string().min(1).max(200),
+	/** Input shortcut for one path `is` rule; never stored. */
 	path: PathShortcut.nullish(),
 	scope: ScopeSchema.optional(),
+	/** The KPI the Annotations page measures; absent means the default (visitors of the scope). */
 	target: TargetSchema.optional(),
 	slug: z.string().max(256).optional(),
 	collection: z.string().max(64).optional(),
@@ -10019,8 +9824,8 @@ async function checkRuleCaps(store, rule, exceptId) {
 	const { mode } = rule;
 	const rows = (await agentRuleRows(store)).filter((r) => r.id !== exceptId);
 	if (rows.some((r) => ruleKey(r.data) === ruleKey(rule))) throw new PluginRouteError("duplicate_rule", RULE_TEXT.same, 400);
-	if (rows.length >= MAX_USER_RULES) throw new PluginRouteError("too_many_rules", `At most ${MAX_USER_RULES} user agent rules in total.`, 400);
-	if (mode === "regex" && rows.filter((r) => r.data.mode === "regex").length >= MAX_USER_REGEX_RULES) throw new PluginRouteError("too_many_rules", `At most ${MAX_USER_REGEX_RULES} regex user agent rules.`, 400);
+	if (rows.length >= 500) throw new PluginRouteError("too_many_rules", `At most 500 user agent rules in total.`, 400);
+	if (mode === "regex" && rows.filter((r) => r.data.mode === "regex").length >= 50) throw new PluginRouteError("too_many_rules", `At most 50 regex user agent rules.`, 400);
 }
 /** Copy the whole rule set (`rows`, as stored) to the options key the middleware reads, then drop the isolate caches. */
 async function rulesChanged(env, ctx, rows) {
@@ -10032,12 +9837,9 @@ async function rulesChanged(env, ctx, rows) {
 }
 /** Bulk body: the whole rule set as text; `check` validates and diffs without writing. */
 const BulkRulesBody = z.object({
-	text: z.string().max(MAX_USER_RULES * 700),
+	text: z.string().max(35e4),
 	check: z.boolean().optional()
 }).strict();
-const BUILTIN_PAGE = 50;
-/** Rows one bulk save writes: the host writes one statement per put, D1 allows 50 queries per invocation. */
-const BULK_WRITES_PER_CALL = 30;
 const BuiltinBody = z.object({
 	q: z.string().max(200).optional(),
 	category: z.enum(AGENT_CATEGORIES).optional(),
@@ -10110,8 +9912,8 @@ function agentRuleRoutes(env) {
 				}))];
 				const dels = diff.removed.map((r) => r.id);
 				if (!store.putMany || !store.deleteMany) throw new PluginRouteError("storage_unavailable", "Bulk writes are not available.", 500);
-				const putsNow = puts.slice(0, BULK_WRITES_PER_CALL);
-				const delsNow = dels.slice(0, BULK_WRITES_PER_CALL - putsNow.length);
+				const putsNow = puts.slice(0, 30);
+				const delsNow = dels.slice(0, 30 - putsNow.length);
 				if (putsNow.length) await store.putMany(putsNow);
 				if (delsNow.length) await store.deleteMany(delsNow);
 				const written = putsNow.length + delsNow.length;
@@ -10139,8 +9941,8 @@ function agentRuleRoutes(env) {
 				return {
 					total: hits.length,
 					page,
-					pageSize: BUILTIN_PAGE,
-					items: hits.slice(page * BUILTIN_PAGE, (page + 1) * BUILTIN_PAGE).map((a) => ({
+					pageSize: 50,
+					items: hits.slice(page * 50, (page + 1) * 50).map((a) => ({
 						id: a.id,
 						name: a.name,
 						category: a.category,
@@ -10240,9 +10042,7 @@ function configRoutes(env) {
 	Object.assign(routes, agentRuleRoutes(env));
 	return routes;
 }
-
-//#endregion
-//#region src/annotations/hook.ts
+// src/annotations/hook.ts
 /**
 * Automatic annotations from the content lifecycle hooks: one per item, kind and day,
 * scoped to the item's public path when the host can resolve it, else site-wide with `slug` and
@@ -10287,9 +10087,7 @@ async function annotate(ctx, kind, content, collection, s, ts = Math.floor(Date.
 		ref: id
 	});
 }
-
-//#endregion
-//#region src/sources/gsc.ts
+// src/sources/gsc.ts
 /**
 * Google Search Console source: `searchAnalytics/query` per window of days for the grains
 * totals (`date`), `page`, `query`, `page` with `query` (capped at `searchMaxRowsPerDay` per day), `country`
@@ -10421,12 +10219,8 @@ const google = {
 	},
 	fetchRange
 };
-
-//#endregion
-//#region src/sources/store.ts
+// src/sources/store.ts
 const COLS = "site, source, day, page_key, query, country, device, clicks, impressions, pos_sum, provisional";
-/** Characters of the JSON parameter of one insert: at most 3 UTF-8 bytes each, so 1.2 MB, under D1's 2 MB limit for a value. */
-const INSERT_JSON_CHARS = 4e5;
 const KIND_SQL = {
 	all: "",
 	query: " AND query <> '' AND page_key = ''",
@@ -10513,7 +10307,7 @@ function replaceStatements(dialect, site, source, days, provisional, kind = "all
 			r.pos_sum,
 			provisional(day) ? 1 : 0
 		]);
-		if (size + json.length + 1 > INSERT_JSON_CHARS) flush();
+		if (size + json.length + 1 > 4e5) flush();
 		part.push(json);
 		size += json.length + 1;
 	}
@@ -10535,31 +10329,18 @@ async function writeReplace(db, stmts, inserted) {
 	const dw = db.meta?.rows_written;
 	if (ins.length) await db.batch(ins);
 	const iw = ins.length ? db.meta?.rows_written : 0;
-	return typeof dw === "number" && typeof iw === "number" ? dw + iw : changes * ROWS_PER_DELETE + inserted * ROWS_PER_INSERT;
+	return typeof dw === "number" && typeof iw === "number" ? dw + iw : changes * 1 + inserted * 2;
 }
-
-//#endregion
-//#region src/sources/sync.ts
+// src/sources/sync.ts
 const SOURCES = {
 	google,
 	bing
 };
-/** Default of `syncSubrequestBudget`: the Free plan allows 50 requests per invocation; the host's cron bookkeeping, settings and storage reads take the rest. */
-const DEFAULT_SUBREQUEST_BUDGET = 40;
-/** Requests kept for the end of a tick: the cursor, the lock release and the pair state. */
-const END_RESERVE = 3;
 const MAX_MS = 4e4;
 const CONTINUE_DELAY_MS = 6e4;
-const SYNC_DAYS = 7;
-const PROVISIONAL_DAYS = 3;
-/** Adaptive window of days per pull: starts at 8, doubles while the biggest grain stays under a quarter page, halves on a full page, a load error or a window that did not fit a tick. */
-const WINDOW_START = 8;
-const WINDOW_MAX = 32;
-/** Windows fetched at once. Google allows 1,200 queries per minute per site; three windows are 18 calls. */
-const FETCH_PARALLEL = 3;
 /** First wait after a throttled or overloaded provider; doubles per repeat up to `RETRY_MAX_MS` (and never beyond the sync interval). */
-const RETRY_BASE_MS = 5 * 6e4;
-const RETRY_MAX_MS = 2 * 36e5;
+const RETRY_BASE_MS = 3e5;
+const RETRY_MAX_MS = 72e5;
 const KV_SEARCH_CURSOR = "search:cursor";
 const KV_SEARCH_LOCK = "search:lock";
 /** Longer than the cron hook timeout (55 s), so a crashed tick's lock expires before the next minute's tick is refused twice. */
@@ -10620,11 +10401,11 @@ const noRetry = (e) => e instanceof SourceError && (e.status === 401 || e.status
 /** Too many requests or a server side failure: the provider is under load, so the window shrinks and the next try waits. */
 const loadError = (e) => e instanceof SourceError && (e.status === 429 || e.status >= 500);
 /** `limit` requests (fetches, statements, KV calls) or `maxMs`, whichever comes first, minus `END_RESERVE`. */
-function makeBudget(now, limit = DEFAULT_SUBREQUEST_BUDGET, maxMs = MAX_MS) {
+function makeBudget(now, limit = 40, maxMs = MAX_MS) {
 	const start = now();
 	let calls = 0;
 	let used = 0;
-	const left = () => limit - END_RESERVE - used;
+	const left = () => limit - 3 - used;
 	const need = (n) => {
 		if (n > left() || now() - start >= maxMs) throw new BudgetExhausted();
 	};
@@ -10709,7 +10490,7 @@ const sourceCtx = (ctx, budget) => ({
 	now: ctx.now,
 	...ctx.sleep ? { sleep: ctx.sleep } : {}
 });
-const provisional = (today) => (day) => day >= addDays(today, -PROVISIONAL_DAYS);
+const provisional = (today) => (day) => day >= addDays(today, -3);
 const lesser = (d, e) => d < e ? d : e;
 /**
 * The days of `days` (oldest first, or newest first) whose rows written fit the rows left today, stopping at the
@@ -10725,7 +10506,7 @@ function fitting(a, days, newestFirst = false, stored) {
 	if (newestFirst) keys.reverse();
 	for (const day of keys) {
 		const list = days.get(day) ?? [];
-		const cost = stored ? (stored.get(day) ?? 0) * ROWS_PER_DELETE + list.length * ROWS_PER_INSERT : list.length * ROWS_PER_ROW_BOUND;
+		const cost = stored ? (stored.get(day) ?? 0) * 1 + list.length * 2 : list.length * 3;
 		const alone = !out.size && a.used === 0 && cost <= (a.pauseAt === null ? a.budget : a.pauseAt - (a.ingest ?? 0));
 		if (cost > left && !alone) break;
 		left -= cost;
@@ -10748,11 +10529,11 @@ async function pullRange(ctx, p, src, budget, rows, today, pos, last, stored, pa
 	while (pos.cursor <= last) {
 		const a = await rows.allowance();
 		if (a.paused) throw new RowsPaused(a.resumeAt ?? nextUtcDay(ctx.now()));
-		let room = Math.floor(a.left / (ROWS_PER_INSERT * (pace.perDay ?? ctx.settings.searchMaxRowsPerDay)));
+		let room = Math.floor(a.left / (2 * (pace.perDay ?? ctx.settings.searchMaxRowsPerDay)));
 		if (room < 1 && (pace.perDay === void 0 || a.used === 0)) room = 1;
 		if (room < 1) throw new RowsPaused(nextUtcDay(ctx.now()));
 		const ranges = [];
-		for (let from = pos.cursor; from <= last && room > 0 && ranges.length < FETCH_PARALLEL && (ranges.length + 1) * perWindow <= budget.left;) {
+		for (let from = pos.cursor; from <= last && room > 0 && ranges.length < 3 && (ranges.length + 1) * perWindow <= budget.left;) {
 			const to = lesser(addDays(from, Math.min(pos.win, room) - 1), last);
 			ranges.push([from, to]);
 			room -= daysBetween(from, to);
@@ -10790,9 +10571,9 @@ async function pullRange(ctx, p, src, budget, rows, today, pos, last, stored, pa
 				}
 				await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, stmts, n)));
 				pos.cursor = addDays([...fit.keys()].sort().pop(), 1);
-				if (largest >= GSC_PAGE_ROWS) pos.win = Math.max(1, Math.floor(pos.win / 2));
-				else if (largest < GSC_PAGE_ROWS / 4 && !grown) {
-					pos.win = Math.min(WINDOW_MAX, pos.win * 2);
+				if (largest >= 25e3) pos.win = Math.max(1, Math.floor(pos.win / 2));
+				else if (largest < 6250 && !grown) {
+					pos.win = Math.min(32, pos.win * 2);
 					grown = true;
 				}
 				await stored(n);
@@ -10862,7 +10643,7 @@ async function runWindowPair(ctx, p, src, budget, rows, today, force) {
 		if (a.paused) throw new RowsPaused(a.resumeAt ?? nextUtcDay(ctx.now()));
 		const days = await yieldOnPlatformLimit(() => src.fetchWindow(sourceCtx(ctx, budget), p.target));
 		const floor = addDays(today, -ctx.settings.searchRetentionDays);
-		const want = pending ? pending.from : addDays(today, -SYNC_DAYS);
+		const want = pending ? pending.from : addDays(today, -7);
 		const oldest = want > floor ? want : floor;
 		const keep = /* @__PURE__ */ new Map();
 		for (const [day, list] of days) if (day >= oldest && day < today) keep.set(day, list);
@@ -10871,7 +10652,7 @@ async function runWindowPair(ctx, p, src, budget, rows, today, force) {
 		for (const r of await db.all("SELECT DISTINCT day FROM ca_search_daily WHERE site = ? AND source = ? AND day < ?", [
 			p.site,
 			p.source,
-			addDays(today, -SYNC_DAYS)
+			addDays(today, -7)
 		])) keep.delete(String(r.day));
 		const fit = fitting(a, keep, true);
 		const { stmts, rows: n } = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
@@ -10928,8 +10709,8 @@ async function runPair(ctx, p, budget, rows, today, force) {
 	const wake = wait && !due ? wait : null;
 	if (due) {
 		const pos = {
-			cursor: st.cursorDay && st.cursorDay >= addDays(today, -SYNC_DAYS) ? st.cursorDay : addDays(today, -SYNC_DAYS),
-			win: st.window ?? WINDOW_START
+			cursor: st.cursorDay && st.cursorDay >= addDays(today, -7) ? st.cursorDay : addDays(today, -7),
+			win: st.window ?? 8
 		};
 		const save = () => ctx.kv.set(key, Object.assign(st, {
 			cursorDay: pos.cursor,
@@ -10962,7 +10743,7 @@ async function runPair(ctx, p, budget, rows, today, force) {
 	if (bf.retryAt && ctx.now() < bf.retryAt && !force) return bf.retryAt;
 	const pos = {
 		cursor: bf.cursor,
-		win: bf.window ?? WINDOW_START
+		win: bf.window ?? 8
 	};
 	const done = daysBetween(bf.from, bf.cursor) - 1;
 	try {
@@ -11005,7 +10786,7 @@ async function runPair(ctx, p, budget, rows, today, force) {
 }
 /** Take `kv search:lock`, or report it held by a running tick. A lock older than `LOCK_MS` belongs to a crashed tick and is taken over. */
 async function lock(kv, now) {
-	if ((await kv.compareAndSet(KV_SEARCH_LOCK, null, { until: now + LOCK_MS })).applied) return true;
+	if ((await kv.compareAndSet("search:lock", null, { until: now + 6e4 })).applied) return true;
 	const cur = await kv.get(KV_SEARCH_LOCK);
 	if (cur && typeof cur.until === "number" && cur.until > now) return false;
 	await kv.set(KV_SEARCH_LOCK, { until: now + LOCK_MS });
@@ -11075,18 +10856,6 @@ async function runSearchTick(outer, opts = {}) {
 		...paused !== null ? { pausedUntil: paused } : {}
 	};
 }
-
-//#endregion
-//#region src/routes/annotations.ts
-/**
-* `annotations/preview` (`plugins:read`): what a scope covers over the last 30 days, through
-* `scopeToFilters` and the existing compiler. One traffic statement (hosts and pages with samples) and,
-* when query rules exist and a Search source is configured, one search statement over the query grain;
-* the compiler adds one bounded statement per regex filter it expands (four in total with regex path and
-* query rules; a host regex adds a fifth).
-*/
-const PREVIEW_DAYS = 30;
-const PREVIEW_SAMPLES = 5;
 const PreviewBody = z.object({
 	site: SiteField,
 	scope: ScopeSchema.optional(),
@@ -11111,7 +10880,7 @@ function previewRoute(env) {
 			const s = await env.settings();
 			const site = (await bindSite(body.site, s.siteId, ctx.storage.sites)).id;
 			const to = dayInZone(env.now?.() ?? Math.floor(Date.now() / 1e3), s.siteTimezone);
-			const from = addDays(to, -((body.days ?? PREVIEW_DAYS) - 1));
+			const from = addDays(to, -((body.days ?? 30) - 1));
 			const db = await env.db(site);
 			const cc = {
 				db,
@@ -11132,25 +10901,27 @@ function previewRoute(env) {
 				}, "pv");
 				const [hosts, pages] = parts(await db.all(`WITH m AS (SELECT DISTINCT s.host AS host, ${entryCols(db.dialect).path} AS path ${hits.sql})
 SELECT 'n' AS k, CAST((SELECT COUNT(DISTINCT host) FROM m) AS TEXT) AS v, CAST((SELECT COUNT(DISTINCT path) FROM m) AS TEXT) AS w
-UNION ALL SELECT 'h', host, NULL FROM (SELECT DISTINCT host FROM m WHERE host IS NOT NULL ORDER BY host LIMIT ${PREVIEW_SAMPLES}) a
-UNION ALL SELECT 'p', path, NULL FROM (SELECT DISTINCT path FROM m ORDER BY path LIMIT ${PREVIEW_SAMPLES}) b`, hits.params), ["h", "p"]);
+UNION ALL SELECT 'h', host, NULL FROM (SELECT DISTINCT host FROM m WHERE host IS NOT NULL ORDER BY host LIMIT 5) a
+UNION ALL SELECT 'p', path, NULL FROM (SELECT DISTINCT path FROM m ORDER BY path LIMIT 5) b`, hits.params), ["h", "p"]);
 				const notices = traffic.notices.filter((n) => n !== "scope_query_not_applied");
 				let queries = null;
-				if (body.scope?.query?.length) if (searchConfigured(s)) {
-					const search = scopeToFilters(body.scope, "search");
-					notices.push(...search.notices);
-					const c = await compileSearch(cc, search.filters.filter((f) => f.dim === "query"));
-					const where = and([{
-						sql: "d.site = ? AND d.day BETWEEN ? AND ? AND d.query <> '' AND d.page_key = '' AND d.country = '' AND d.device = ''",
-						params: [
-							site,
-							from,
-							to
-						]
-					}, c.pred]);
-					queries = parts(await db.all(`WITH m AS (SELECT DISTINCT d.query AS q FROM ca_search_daily d WHERE ${where.sql})
-SELECT 'n' AS k, CAST((SELECT COUNT(*) FROM m) AS TEXT) AS v, NULL AS w UNION ALL SELECT 'q', q, NULL FROM (SELECT q FROM m ORDER BY q LIMIT ${PREVIEW_SAMPLES}) a`, where.params), ["q"])[0];
-				} else notices.push("scope_no_search_source");
+				if (body.scope?.query?.length) {
+					if (searchConfigured(s)) {
+						const search = scopeToFilters(body.scope, "search");
+						notices.push(...search.notices);
+						const c = await compileSearch(cc, search.filters.filter((f) => f.dim === "query"));
+						const where = and([{
+							sql: "d.site = ? AND d.day BETWEEN ? AND ? AND d.query <> '' AND d.page_key = '' AND d.country = '' AND d.device = ''",
+							params: [
+								site,
+								from,
+								to
+							]
+						}, c.pred]);
+						queries = parts(await db.all(`WITH m AS (SELECT DISTINCT d.query AS q FROM ca_search_daily d WHERE ${where.sql})
+SELECT 'n' AS k, CAST((SELECT COUNT(*) FROM m) AS TEXT) AS v, NULL AS w UNION ALL SELECT 'q', q, NULL FROM (SELECT q FROM m ORDER BY q LIMIT 5) a`, where.params), ["q"])[0];
+					} else notices.push("scope_no_search_source");
+				}
 				return {
 					hosts,
 					pages,
@@ -11164,17 +10935,13 @@ SELECT 'n' AS k, CAST((SELECT COUNT(*) FROM m) AS TEXT) AS v, NULL AS w UNION AL
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/editor.ts
+// src/routes/editor.ts
 /**
 * `editor/traffic` (`plugins:read`): the last 30 days of one content item's public page for the
 * editor sidebar panel. The path comes from `derivePath`; at most five statements (series, sources, search,
 * whether revenue exists, page revenue), annotations from storage through the one matching function.
 */
-const EDITOR_DAYS = 30;
 const TOP_SOURCES = 5;
-const NEWEST_ANNOTATIONS = 5;
 const EditorTrafficBody = z.object({
 	collection: z.string().min(1).max(64),
 	id: z.string().min(1).max(128),
@@ -11197,8 +10964,9 @@ function editorRoutes(env) {
 			});
 			if (!path) return { path: null };
 			const s = await env.settings();
-			const to = dayInZone(env.now?.() ?? Math.floor(Date.now() / 1e3), s.siteTimezone);
-			const from = addDays(to, -(EDITOR_DAYS - 1));
+			const now = env.now?.() ?? Math.floor(Date.now() / 1e3);
+			const to = dayInZone(now, s.siteTimezone);
+			const from = addDays(to, -29);
 			const site = s.siteId;
 			const db = await env.db(site);
 			const range = [
@@ -11260,7 +11028,7 @@ GROUP BY COALESCE(s.source, '(not set)') ORDER BY sessions DESC, key LIMIT ${TOP
 					op: "is",
 					values: [path]
 				}]
-			}).slice(-NEWEST_ANNOTATIONS).reverse().map((a) => annotationView(a, s.siteTimezone));
+			}).slice(-5).reverse().map((a) => annotationView(a, s.siteTimezone));
 			const pageviews = days.reduce((a, r) => a + num$2(r.pageviews), 0);
 			const series = bucketSeries(from, to, "day", days).map((p) => ({
 				t: p.t,
@@ -11287,12 +11055,10 @@ GROUP BY COALESCE(s.source, '(not set)') ORDER BY sessions DESC, key LIMIT ${TOP
 		}
 	} };
 }
-
-//#endregion
-//#region src/routes/contract.ts
+// src/routes/contract.ts
 function contractBody(s) {
 	return {
-		v: CONTRACT_VERSION,
+		v: 1,
 		pluginId: PLUGIN_ID,
 		collectPath: s.collectPath,
 		scriptPath: s.scriptPath,
@@ -11311,9 +11077,7 @@ function contractRoute(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/charts/caveats.ts
+// src/charts/caveats.ts
 /** Fixed caveat and notice texts, shared by the admin info markers and the shared page. No React. */
 /** Notice texts of the SEO views and the impact view. */
 const SEO_NOTICES = {
@@ -11405,23 +11169,15 @@ function noticeText(notices, c = {}) {
 	}
 	return out;
 }
-
-//#endregion
-//#region src/charts/markers.ts
+// src/charts/markers.ts
 /** Bucket key of an annotation on a series chart, shared by the admin chart kit and the shared page renderer. */
 /** The series bucket (`YYYY-MM-DD`, `YYYY-MM-DD HH:00` or a week start) holding `ts` in the site timezone. */
 function annotationBucket(ts, gran, tz) {
 	const day = dayInZone(ts, tz);
 	return gran === "hour" ? `${day} ${String(hourInZone(ts, tz)).padStart(2, "0")}:00` : gran === "week" ? weekStart(day) : day;
 }
-
-//#endregion
-//#region src/dashboards/tiles.ts
-/** Most lines drawn while a comparison is on: each has a dashed twin. */
-const COMPARE_LINES = 2;
+// src/dashboards/tiles.ts
 const TRIMMED_COMPARE = "Comparison on: showing the first 2 metrics.";
-/** Columns of a table tile: the name and the first three figures of the report. */
-const TABLE_TILE_COLUMNS = 4;
 /** A series more than this many times another of its family moves to the right axis (as on the report pages). */
 const SCALE_RATIO = 20;
 /**
@@ -11443,7 +11199,7 @@ function lineAxes(lines) {
 }
 /** The footnote of the site search floor on shared pages and in emails. */
 const hiddenTermsText = (n) => `${n} search term${n === 1 ? "" : "s"} used in fewer than 2 sessions ${n === 1 ? "is" : "are"} not shown.`;
-const SKIP = new Set([
+const SKIP = /* @__PURE__ */ new Set([
 	"key",
 	"previous",
 	"delta",
@@ -11460,7 +11216,7 @@ const formatValue = (key, v, currency) => fmt(v, valueFormat(key ?? "", currency
 const valueLabel = (key, currency) => currency && MONEY_KEYS.has(key) ? `${metricLabel(key)} (${currency})` : metricLabel(key);
 /** "100.00 EUR (1 order), 80.00 GBP (2 orders)", at most 5 listed then "and n more"; empty without others. */
 function otherCurrencies(others) {
-	return `${others.slice(0, MAX_CURRENCIES_LISTED).map((c) => `${formatAmount(c.revenue, c.currency)} (${c.orders} order${c.orders === 1 ? "" : "s"})`).join(", ")}${others.length > MAX_CURRENCIES_LISTED ? ` and ${others.length - MAX_CURRENCIES_LISTED} more` : ""}`;
+	return `${others.slice(0, 5).map((c) => `${formatAmount(c.revenue, c.currency)} (${c.orders} order${c.orders === 1 ? "" : "s"})`).join(", ")}${others.length > 5 ? ` and ${others.length - 5} more` : ""}`;
 }
 /** The lines under a revenue tile: "Amounts in USD." and "Also recorded: 120.00 EUR (3 orders)." */
 function currencyLines(d) {
@@ -11624,11 +11380,11 @@ function tileData(tile, result, opts = {}) {
 		if (d.granularity === "hour" || d.granularity === "week" || d.granularity === "day") out.granularity = d.granularity;
 		return out;
 	}
-	const limited = rows.slice(0, tile.limit ?? DEFAULT_TILE_LIMIT);
+	const limited = rows.slice(0, tile.limit ?? 10);
 	const first = limited[0] ?? {};
 	const label = "query" in first ? "query" : "key";
 	const columns = [label, ...Object.keys(first).filter((k) => !SKIP.has(k) && k !== label && (first[k] === null || typeof first[k] !== "object"))];
-	out.columns = tile.kind === "table" ? columns.slice(0, TABLE_TILE_COLUMNS) : columns;
+	out.columns = tile.kind === "table" ? columns.slice(0, 4) : columns;
 	if (tile.kind === "table") {
 		out.rows = limited.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? v ? "yes" : "no" : v])));
 		return out;
@@ -11642,15 +11398,6 @@ function tileData(tile, result, opts = {}) {
 	out.rows = tile.kind === "donut" ? foldSlices(bars) : bars;
 	return out;
 }
-
-//#endregion
-//#region src/dashboards/render.ts
-/**
-* Server-rendered shared dashboard: one HTML string with inline CSS and inline SVG built from the
-* shared chart geometry. No script, link, image, form or external URL; every interpolated string is escaped.
-*/
-/** Annotations listed under one tile of the shared page. */
-const SHARE_ANNOTATIONS_PER_TILE = 12;
 const ESC = {
 	"&": "&amp;",
 	"<": "&lt;",
@@ -11720,8 +11467,8 @@ function annotationParts(d, sc, tz) {
 		return `<g data-marker="${e(g.ts[0])}"><title>${e(tip)}</title><line x1="${g.x}" x2="${g.x}" y1="${sc.top}" y2="${sc.bottom}" stroke="${c(2)}" stroke-dasharray="2 2"/><circle cx="${g.x}" cy="${sc.top}" r="4" fill="${c(2)}"/>${badge}</g>`;
 	}).join("");
 	const shown = groups.flatMap((g) => g.markers.map((m) => m.a));
-	const items = shown.slice(0, SHARE_ANNOTATIONS_PER_TILE).map((a) => `<li><time datetime="${e(a.day)}">${e(a.day)}</time> ${e(a.text)} <span style="color:#64748b">(${e(KIND_LABELS[a.kind] ?? a.kind)}, ${e(a.summary)})</span></li>`);
-	if (shown.length > SHARE_ANNOTATIONS_PER_TILE) items.push(`<li>and ${shown.length - SHARE_ANNOTATIONS_PER_TILE} more</li>`);
+	const items = shown.slice(0, 12).map((a) => `<li><time datetime="${e(a.day)}">${e(a.day)}</time> ${e(a.text)} <span style="color:#64748b">(${e(KIND_LABELS[a.kind] ?? a.kind)}, ${e(a.summary)})</span></li>`);
+	if (shown.length > 12) items.push(`<li>and ${shown.length - 12} more</li>`);
 	return {
 		svg,
 		list: shown.length ? `<ul aria-label="Annotations" style="margin:6px 0 0;padding-left:18px;font-size:12px">${items.join("")}</ul>` : "",
@@ -11735,7 +11482,7 @@ function line(d, title, area, tz) {
 	const height = 180;
 	const n = d.buckets.length;
 	const compare = d.lines.some((l) => l.compare);
-	const lines = compare ? d.lines.slice(0, COMPARE_LINES) : d.lines;
+	const lines = compare ? d.lines.slice(0, 2) : d.lines;
 	const axes = lineAxes(lines);
 	const sc = lineScale(n, [], height);
 	const [left, right] = ["left", "right"].map((side) => {
@@ -11754,8 +11501,8 @@ function line(d, title, area, tz) {
 	const val = (l, v) => formatValue(l.key, v, d.currency);
 	const parts = left.scale.ticks.map((v, k) => {
 		const y = left.scale.y(v);
-		const r = right.list.length ? `<text x="${W}" y="${r1(y - 3)}" font-size="10" fill="${MUTED}" text-anchor="end">${e(fmtTick(right.scale.ticks[k] ?? 0, right.format))}</text>` : "";
-		return `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="${MUTED}" stroke-opacity="0.3"${k === (left.scale.invert ? 2 : 0) ? "" : " stroke-dasharray=\"2 3\""}/><text x="0" y="${r1(y - 3)}" font-size="10" fill="${MUTED}">${e(fmtTick(v, left.format))}</text>${r}`;
+		const r = right.list.length ? `<text x="600" y="${r1(y - 3)}" font-size="10" fill="${MUTED}" text-anchor="end">${e(fmtTick(right.scale.ticks[k] ?? 0, right.format))}</text>` : "";
+		return `<line x1="0" x2="600" y1="${y}" y2="${y}" stroke="${MUTED}" stroke-opacity="0.3"${k === (left.scale.invert ? 2 : 0) ? "" : " stroke-dasharray=\"2 3\""}/><text x="0" y="${r1(y - 3)}" font-size="10" fill="${MUTED}">${e(fmtTick(v, left.format))}</text>${r}`;
 	});
 	lines.forEach((l, slot) => {
 		const cur = path(l.values, l);
@@ -11786,7 +11533,7 @@ function line(d, title, area, tz) {
 		const was = compare ? `; ${d.compareLabel ?? "comparison"}: ${lines.map((l) => `${metricLabel(l.key)} ${val(l, l.compare?.[i] ?? null)}`).join(", ")}` : "";
 		parts.push(`<rect x="${r1(sc.x(i) - sc.step / 2)}" y="0" width="${r1(sc.step)}" height="${height}" fill="transparent"><title>${e(`${t}: ${now}${was}`)}</title></rect>`);
 	});
-	if (n > 0) parts.push(`<text x="0" y="${height - 4}" font-size="10" fill="${MUTED}">${e(d.buckets[0])}</text><text x="${W}" y="${height - 4}" font-size="10" fill="${MUTED}" text-anchor="end">${e(d.buckets[n - 1])}</text>`);
+	if (n > 0) parts.push(`<text x="0" y="176" font-size="10" fill="${MUTED}">${e(d.buckets[0])}</text><text x="600" y="176" font-size="10" fill="${MUTED}" text-anchor="end">${e(d.buckets[n - 1])}</text>`);
 	const ann = annotationParts(d, sc, tz);
 	parts.push(ann.svg);
 	const mi = d.impact ? d.buckets.indexOf(d.impact.day) : -1;
@@ -11795,7 +11542,7 @@ function line(d, title, area, tz) {
 	const caps = right.list.length ? `<p class="caps"><span>${e(left.list.map((l) => metricLabel(l.key)).join(", "))}</span><span>${e(right.list.map((l) => metricLabel(l.key)).join(", "))}</span></p>` : "";
 	const legend = lines.length > 1 || compare ? `<p class="lg">${lines.map((l, slot) => `<span>${swatch(slot)} ${e(metricLabel(l.key))}</span>`).join("")}${compare ? `<span>${swatch(0, true)} Dashed: ${e(d.compareLabel ?? "comparison")}</span>` : ""}</p>` : "";
 	const trimmed = compare && d.lines.length > lines.length ? `<p class="upd">${e(TRIMMED_COMPARE)}</p>` : "";
-	return `${caps}<svg viewBox="0 0 ${W} ${height}" role="img" aria-label="${e(label)}">${parts.join("")}</svg>${legend}${trimmed}${ann.list}`;
+	return `${caps}<svg viewBox="0 0 600 ${height}" role="img" aria-label="${e(label)}">${parts.join("")}</svg>${legend}${trimmed}${ann.list}`;
 }
 function rowsTable(rows, metric, title, currency) {
 	return `<table aria-label="${e(title)}"><thead><tr><th scope="col">Name</th><th scope="col" class="n">${e(valueLabel(metric ?? "value", currency))}</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${e(r.label)}</td><td class="n">${e(formatValue(metric, r.value, currency))}</td></tr>`).join("")}</tbody></table>`;
@@ -11804,13 +11551,13 @@ function bars(d, title) {
 	const rows = d.rows;
 	const max = Math.max(1, ...rows.map((r) => r.value));
 	const rowH = 22;
-	const g = rows.map((r, i) => `<g transform="translate(0 ${i * rowH})"><rect x="0" y="2" width="${barWidth(r.value, max)}" height="${rowH - 4}" fill="${c(0)}" fill-opacity="0.18"/><text x="6" y="${rowH / 2 + 4}" font-size="12">${e(r.label)}</text><text x="${W - 4}" y="${rowH / 2 + 4}" font-size="12" text-anchor="end">${e(formatValue(d.metric, r.value, d.currency))}</text></g>`).join("");
-	return `<svg viewBox="0 0 ${W} ${rows.length * rowH}" role="img" aria-label="${e(title)}">${g}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
+	const g = rows.map((r, i) => `<g transform="translate(0 ${i * rowH})"><rect x="0" y="2" width="${barWidth(r.value, max)}" height="18" fill="${c(0)}" fill-opacity="0.18"/><text x="6" y="15" font-size="12">${e(r.label)}</text><text x="596" y="15" font-size="12" text-anchor="end">${e(formatValue(d.metric, r.value, d.currency))}</text></g>`).join("");
+	return `<svg viewBox="0 0 600 ${rows.length * rowH}" role="img" aria-label="${e(title)}">${g}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
 }
 function donut(d, title) {
 	const rows = d.rows;
-	const arcs = donutArcs(rows).map((a, i) => `<circle cx="50" cy="50" r="${DONUT_R}" fill="none" stroke="${c(i)}" stroke-width="14" stroke-dasharray="${a.dasharray}" stroke-dashoffset="${a.dashoffset}" transform="rotate(-90 50 50)"><title>${e(`${a.label}: ${fmt(a.share, "percent")}`)}</title></circle>`).join("");
-	return `<svg viewBox="0 0 100 100" style="max-width:160px" role="img" aria-label="${e(title)}"><circle cx="50" cy="50" r="${DONUT_R}" fill="none" stroke="${MUTED}" stroke-opacity="0.2" stroke-width="14"/>${arcs}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
+	const arcs = donutArcs(rows).map((a, i) => `<circle cx="50" cy="50" r="40" fill="none" stroke="${c(i)}" stroke-width="14" stroke-dasharray="${a.dasharray}" stroke-dashoffset="${a.dashoffset}" transform="rotate(-90 50 50)"><title>${e(`${a.label}: ${fmt(a.share, "percent")}`)}</title></circle>`).join("");
+	return `<svg viewBox="0 0 100 100" style="max-width:160px" role="img" aria-label="${e(title)}"><circle cx="50" cy="50" r="40" fill="none" stroke="${MUTED}" stroke-opacity="0.2" stroke-width="14"/>${arcs}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
 }
 function table(d, title) {
 	const head = d.columns.map((k) => `<th scope="col"${k === "key" ? "" : " class=\"n\""}>${e(valueLabel(k, d.currency))}</th>`).join("");
@@ -11828,7 +11575,7 @@ function stacked(d, title) {
 	}).join("");
 	const head = `<th scope="col">Period</th>${st.labels.map((l) => `<th scope="col" class="n">${e(l)}</th>`).join("")}`;
 	const body = st.series.map((p) => `<tr><td>${e(p.t)}</td>${st.keys.map((k) => `<td class="n">${e(fmt(p.values[k] ?? 0))}</td>`).join("")}</tr>`).join("");
-	return `<svg viewBox="0 0 ${W} ${height}" role="img" aria-label="${e(`${title}, ${st.series.length} bars`)}">${g}</svg><table aria-label="${e(title)}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+	return `<svg viewBox="0 0 600 ${height}" role="img" aria-label="${e(`${title}, ${st.series.length} bars`)}">${g}</svg><table aria-label="${e(title)}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 function tileBody(d, title, tz) {
 	if (!d) return "<p>This tile could not be loaded.</p>";
@@ -11841,7 +11588,7 @@ function tileBody(d, title, tz) {
 	if (d.kind === "donut") return donut(d, title);
 	return table(d, title);
 }
-const VISITOR_KEYS = new Set(["visitors", "converting"]);
+const VISITOR_KEYS = /* @__PURE__ */ new Set(["visitors", "converting"]);
 /** Caveats the tiles need: per-day visitors (11.3), satisfaction estimates (31.4), search data lag (25), summaries. */
 function footnotes(input) {
 	const out = /* @__PURE__ */ new Set();
@@ -11876,9 +11623,7 @@ function renderShared(input) {
 	});
 	return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><title>${e(dash.name)}</title><style>${CSS}</style></head><body><header><h1>${e(dash.name)}</h1><nav aria-label="Date range">${nav.join("")}</nav><p class="upd">Updated <time datetime="${e(updated)}">${e(updated.slice(0, 16).replace("T", " "))}</time> UTC</p></header><main class="grid">${tiles.join("")}</main><footer>${footnotes(input).map((f) => `<p>${e(f)}</p>`).join("")}<p>Shared view</p></footer></body></html>`;
 }
-
-//#endregion
-//#region src/dashboards/email.ts
+// src/dashboards/email.ts
 /**
 * Scheduled dashboard email body: `renderEmail` returns `{ subject, text, html }`. The HTML is table
 * based with inline styles, because mail clients strip SVG: KPI tiles as label, value and change; series tiles as one
@@ -11914,7 +11659,7 @@ function changeLine(d) {
 	return `<p style="margin:2px 0 0;font-size:13px;color:${c.kind === "none" || c.muted ? JUDGE_COLOR.neutral : JUDGE_COLOR[c.judgement ?? "neutral"]}">${escapeHtml(changeText(c, true))}</p>${c.detail ? `<p style="${S.muted}">${escapeHtml(c.detail)}</p>` : ""}`;
 }
 /** A revenue tile whose site has no revenue is left out of the email. */
-const omitted = (report, d) => report.startsWith("revenue") && d?.empty === REVENUE_EMPTY;
+const omitted = (report, d) => report.startsWith("revenue") && d?.empty === "No revenue recorded yet";
 const lastTwo = (l) => {
 	const i = l.values.length - 1;
 	return {
@@ -11981,9 +11726,10 @@ function tileHtml(title, t, maxRows) {
 	const notes = noticeText(d.notices).map((n) => `<p style="${S.muted}">${escapeHtml(n)}</p>`).join("");
 	let body;
 	const tbl = d.empty ? null : tableOf(d, maxRows);
-	if (tbl) if (!tbl.rows.length) body = `<p style="margin:0">No data for this range.</p>`;
-	else body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${tbl.head.map((h, i) => `<th style="${tbl.numeric[i] ? S.num : S.th}">${escapeHtml(h)}</th>`).join("")}</tr>${tbl.rows.map((r) => `<tr>${r.map((c, i) => `<td style="${tbl.numeric[i] ? S.num : S.td}">${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</table>`;
-	else {
+	if (tbl) {
+		if (!tbl.rows.length) body = `<p style="margin:0">No data for this range.</p>`;
+		else body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${tbl.head.map((h, i) => `<th style="${tbl.numeric[i] ? S.num : S.th}">${escapeHtml(h)}</th>`).join("")}</tr>${tbl.rows.map((r) => `<tr>${r.map((c, i) => `<td style="${tbl.numeric[i] ? S.num : S.td}">${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</table>`;
+	} else {
 		const ls = lines(d);
 		body = d.kind === "kpi" && !d.empty ? `<div style="${S.kpi}">${escapeHtml(ls[0] ?? "")}</div>${d.impact ? "" : changeLine(d)}` : ls.map((l) => `<p style="margin:0">${escapeHtml(l)}</p>`).join("");
 	}
@@ -12034,8 +11780,8 @@ function renderEmail(input) {
 		return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(subject)}</title></head><body style="${S.body}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="${S.box}"><tr><td style="${S.cell}"><h1 style="${S.h1}">${escapeHtml(dash.name)}</h1><p style="${S.muted}">${escapeHtml(sub)}</p></td></tr>${cells}<tr><td style="${S.cell};border-top:1px solid #e2e8f0">${foot}<p style="font-size:13px;margin:8px 0 0"><a href="${escapeHtml(input.adminUrl)}" style="color:#2563eb">Open this dashboard in the admin</a></p></td></tr></table></td></tr></table></body></html>`;
 	};
 	let html = build(Number.POSITIVE_INFINITY, true);
-	if (bytes(html) > MAIL_MAX_HTML_BYTES) html = build(5, true);
-	if (bytes(html) > MAIL_MAX_HTML_BYTES) html = build(0, false);
+	if (bytes(html) > 1e5) html = build(5, true);
+	if (bytes(html) > 1e5) html = build(0, false);
 	return {
 		subject,
 		text: [
@@ -12050,9 +11796,7 @@ function renderEmail(input) {
 		html
 	};
 }
-
-//#endregion
-//#region src/dashboards/mail.ts
+// src/dashboards/mail.ts
 /**
 * Scheduled dashboard email: the next due time in the site timezone, the save rules, and the cron tick
 * `mail` that sends at most one dashboard per run, one message per recipient, at most once per period.
@@ -12073,9 +11817,9 @@ function nextDue(e, tz, now) {
 function checkSchedule(d, email, otherEnabled) {
 	if (!email.enabled) return;
 	const n = distinctRequests(d);
-	if (n > MAIL_MAX_DISTINCT_REQUESTS) throw new DashboardError("too_many_requests", `This dashboard needs ${n} distinct requests; an email allows at most ${MAIL_MAX_DISTINCT_REQUESTS}. Remove or merge tiles.`);
-	if (email.compare && n > SHARE_COMPARE_MAX_REQUESTS) throw new DashboardError("too_many_requests", `With comparison an email allows at most ${SHARE_COMPARE_MAX_REQUESTS} distinct requests; this dashboard needs ${n}.`);
-	if (otherEnabled >= MAX_SCHEDULED_PER_SITE) throw new DashboardError("too_many_scheduled", `At most ${MAX_SCHEDULED_PER_SITE} scheduled emails per site.`);
+	if (n > 12) throw new DashboardError("too_many_requests", `This dashboard needs ${n} distinct requests; an email allows at most 12. Remove or merge tiles.`);
+	if (email.compare && n > 6) throw new DashboardError("too_many_requests", `With comparison an email allows at most 6 distinct requests; this dashboard needs ${n}.`);
+	if (otherEnabled >= 5) throw new DashboardError("too_many_scheduled", `At most 5 scheduled emails per site.`);
 }
 /** The stored record after a schedule save: the send state is kept, `emailNext` follows `enabled`. */
 function applySchedule(d, settings, tz, now) {
@@ -12123,7 +11867,7 @@ var BudgetError = class extends Error {
 * plus 4 (8 with compare) would exceed the budget, and the counting database refuses any statement beyond it.
 */
 async function composeEmail(c, d, email) {
-	const counting = countingDb(await c.db(d.site), MAIL_STATEMENT_BUDGET);
+	const counting = countingDb(await c.db(d.site), 36);
 	const rc = await c.runner(d.site, counting.db, c.now, counting.take);
 	const compare = email.compare ? d.defaults.compare === "none" ? "previous" : d.defaults.compare : "none";
 	const per = compare === "none" ? 4 : 8;
@@ -12131,7 +11875,7 @@ async function composeEmail(c, d, email) {
 	const run = await runDashboard({
 		...rc,
 		async dispatch(body, a) {
-			if (counting.used() + reserved + per > MAIL_STATEMENT_BUDGET) throw new BudgetError();
+			if (counting.used() + reserved + per > 36) throw new BudgetError();
 			reserved += per;
 			try {
 				return await rc.dispatch(body, a);
@@ -12152,7 +11896,7 @@ async function composeEmail(c, d, email) {
 		});
 		else if (!r?.result) tiles.push({ data: null });
 		else {
-			const goalName = t.params?.goal && c.goalName && counting.used() < MAIL_STATEMENT_BUDGET ? (counting.take(1), await c.goalName(d.site, t.params.goal)) : void 0;
+			const goalName = t.params?.goal && c.goalName && counting.used() < 36 ? (counting.take(1), await c.goalName(d.site, t.params.goal)) : void 0;
 			const data = tileData(t, r.result, { goalName });
 			const hidden = r.result.data.hidden_terms;
 			tiles.push({
@@ -12266,7 +12010,7 @@ async function runMailTick(c) {
 			...base,
 			lastSent: c.now
 		};
-		else if (used < MAIL_MAX_RETRIES) {
+		else if (used < 2) {
 			state = {
 				...base,
 				...failed.length < to.length ? { lastSent: c.now } : {},
@@ -12280,7 +12024,7 @@ async function runMailTick(c) {
 				...base,
 				lastError
 			};
-			c.log?.warn(`mail: ${failed.length} recipient(s) of dashboard ${d.id} failed after ${MAIL_MAX_RETRIES} retries`);
+			c.log?.warn(`mail: ${failed.length} recipient(s) of dashboard ${d.id} failed after 2 retries`);
 		}
 		const cur = await c.dashboards.get(d.id).then((r) => r ? readDashboard(r) : null, () => null);
 		if (cur?.email?.enabled) {
@@ -12363,1205 +12107,1147 @@ function countedCtx(ctx, take) {
 		...ctx.kv ? { kv: wrap(ctx.kv) } : {}
 	};
 }
-
-//#endregion
-//#region src/data/templates/acquisition.json
-var acquisition_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Acquisition",
-	description: "Channels, referring sites, campaigns and AI assistants.",
-	tiles: [
-		{
-			"id": "aq0001",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "sessions"
-		},
-		{
-			"id": "aq0002",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "bounce_rate"
-		},
-		{
-			"id": "aq0003",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "visitors"
-		},
-		{
-			"id": "aq0004",
-			"report": "timeseries",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["sessions"],
-			"title": "Sessions over time"
-		},
-		{
-			"id": "aq0005",
-			"report": "channels",
-			"kind": "donut",
-			"w": 1
-		},
-		{
-			"id": "aq0006",
-			"report": "sources",
-			"kind": "table",
-			"w": 2,
-			"title": "Referring sites"
-		},
-		{
-			"id": "aq0007",
-			"report": "campaigns",
-			"kind": "table",
-			"w": 2
-		},
-		{
-			"id": "aq0008",
-			"report": "ai_referrals",
-			"kind": "bars",
-			"w": 1,
-			"title": "AI assistants"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/behaviour.json
-var behaviour_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Behaviour",
-	description: "Events, outbound links, downloads and forms.",
-	tiles: [
-		{
-			"id": "bh0001",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "views_per_session"
-		},
-		{
-			"id": "bh0002",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "avg_duration"
-		},
-		{
-			"id": "bh0003",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "bounce_rate"
-		},
-		{
-			"id": "bh0004",
-			"report": "events",
-			"kind": "table",
-			"w": 3,
-			"title": "Events"
-		},
-		{
-			"id": "bh0005",
-			"report": "outbound",
-			"kind": "bars",
-			"w": 2,
-			"title": "Outbound links"
-		},
-		{
-			"id": "bh0006",
-			"report": "downloads",
-			"kind": "bars",
-			"w": 1
-		},
-		{
-			"id": "bh0007",
-			"report": "forms",
-			"kind": "table",
-			"w": 2
-		},
-		{
-			"id": "bh0008",
-			"report": "scroll",
-			"kind": "bars",
-			"w": 1,
-			"title": "Scroll depth"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/content.json
-var content_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Content",
-	description: "Which pages people read, where they land and where they leave.",
-	tiles: [
-		{
-			"id": "ct0001",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pageviews"
-		},
-		{
-			"id": "ct0002",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "views_per_session"
-		},
-		{
-			"id": "ct0003",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "avg_duration"
-		},
-		{
-			"id": "ct0004",
-			"report": "pages",
-			"kind": "table",
-			"w": 3,
-			"limit": 25,
-			"title": "Pages"
-		},
-		{
-			"id": "ct0005",
-			"report": "entry_pages",
-			"kind": "table",
-			"w": 2,
-			"title": "Landing pages"
-		},
-		{
-			"id": "ct0006",
-			"report": "scroll",
-			"kind": "bars",
-			"w": 1,
-			"title": "Scroll depth"
-		},
-		{
-			"id": "ct0007",
-			"report": "exit_pages",
-			"kind": "table",
-			"w": 2
-		},
-		{
-			"id": "ct0008",
-			"report": "not_found",
-			"kind": "table",
-			"w": 1,
-			"title": "Not found"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/overview.json
-var overview_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Overview",
-	description: "Visitors, traffic sources, top pages and audience at a glance.",
-	tiles: [
-		{
-			"id": "ov0001",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "visitors"
-		},
-		{
-			"id": "ov0002",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pageviews"
-		},
-		{
-			"id": "ov0003",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "bounce_rate"
-		},
-		{
-			"id": "ov0004",
-			"report": "timeseries",
-			"kind": "area",
-			"w": 3,
-			"metrics": ["visitors", "sessions"]
-		},
-		{
-			"id": "ov0005",
-			"report": "channels",
-			"kind": "bars",
-			"w": 1
-		},
-		{
-			"id": "ov0006",
-			"report": "pages",
-			"kind": "table",
-			"w": 2,
-			"title": "Top pages"
-		},
-		{
-			"id": "ov0007",
-			"report": "sources",
-			"kind": "bars",
-			"w": 1
-		},
-		{
-			"id": "ov0008",
-			"report": "countries",
-			"kind": "donut",
-			"w": 1
-		},
-		{
-			"id": "ov0009",
-			"report": "devices",
-			"kind": "donut",
-			"w": 1
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/satisfaction.json
-var satisfaction_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Search Satisfaction",
-	description: "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages.",
-	tiles: [
-		{
-			"id": "st0001",
-			"report": "satisfaction",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pct_long"
-		},
-		{
-			"id": "st0002",
-			"report": "satisfaction",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pct_short"
-		},
-		{
-			"id": "st0003",
-			"report": "satisfaction",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pct_bad"
-		},
-		{
-			"id": "st0004",
-			"report": "satisfaction_series",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["pct_long"],
-			"title": "Long clicks over time"
-		},
-		{
-			"id": "st0005",
-			"report": "satisfaction",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pogo_stick_rate"
-		},
-		{
-			"id": "st0007",
-			"report": "satisfaction_series",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["pogo_stick_rate"],
-			"title": "Pogo-sticking over time"
-		},
-		{
-			"id": "st0006",
-			"report": "satisfaction",
-			"kind": "table",
-			"w": 2,
-			"title": "Landing pages"
-		},
-		{
-			"id": "st0008",
-			"report": "satisfaction",
-			"kind": "table",
-			"w": 3,
-			"title": "Best pages",
-			"params": { "rank": "best" }
-		},
-		{
-			"id": "st0009",
-			"report": "satisfaction",
-			"kind": "table",
-			"w": 3,
-			"title": "Worst pages",
-			"params": { "rank": "worst" }
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/revenue.json
-var revenue_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Revenue",
-	description: "Revenue, orders and average order value in the site's default currency, by channel, source, landing page and goal.",
-	tiles: [
-		{
-			"id": "rv0001",
-			"report": "revenue",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "revenue"
-		},
-		{
-			"id": "rv0002",
-			"report": "revenue",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "orders"
-		},
-		{
-			"id": "rv0003",
-			"report": "revenue",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "aov",
-			"title": "Average order value"
-		},
-		{
-			"id": "rv0004",
-			"report": "revenue",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "revenue_per_visitor",
-			"title": "Revenue per visitor"
-		},
-		{
-			"id": "rv0005",
-			"report": "revenue_series",
-			"kind": "area",
-			"w": 2,
-			"metrics": ["revenue"],
-			"title": "Revenue over time"
-		},
-		{
-			"id": "rv0006",
-			"report": "revenue_breakdown",
-			"kind": "bars",
-			"w": 1,
-			"params": { "dim": "channel" },
-			"title": "Revenue by channel"
-		},
-		{
-			"id": "rv0007",
-			"report": "revenue_breakdown",
-			"kind": "table",
-			"w": 2,
-			"params": { "dim": "source" },
-			"title": "Revenue by source"
-		},
-		{
-			"id": "rv0008",
-			"report": "revenue_breakdown",
-			"kind": "table",
-			"w": 2,
-			"params": { "dim": "entry" },
-			"title": "Revenue by landing page"
-		},
-		{
-			"id": "rv0009",
-			"report": "revenue_breakdown",
-			"kind": "table",
-			"w": 1,
-			"params": { "dim": "goal" },
-			"title": "Revenue by goal"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/search.json
-var search_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Search",
-	description: "Clicks, impressions, queries and pages from the connected Search sources.",
-	tiles: [
-		{
-			"id": "se0001",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "clicks"
-		},
-		{
-			"id": "se0002",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "impressions"
-		},
-		{
-			"id": "se0003",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "position"
-		},
-		{
-			"id": "se0004",
-			"report": "search_overview",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["clicks", "impressions"],
-			"title": "Search clicks and impressions over time"
-		},
-		{
-			"id": "se0005",
-			"report": "search_queries",
-			"kind": "table",
-			"w": 2,
-			"title": "Queries"
-		},
-		{
-			"id": "se0006",
-			"report": "search_pages",
-			"kind": "table",
-			"w": 1,
-			"title": "Pages"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d",
-			"12m"
-		],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/seo-overview.json
-var seo_overview_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "SEO overview",
-	description: "Search clicks and positions, position bands, movement between bands, declining pages and striking distance.",
-	tiles: [
-		{
-			"id": "so0001",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "clicks"
-		},
-		{
-			"id": "so0002",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "impressions"
-		},
-		{
-			"id": "so0003",
-			"report": "search_overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "position"
-		},
-		{
-			"id": "so0004",
-			"report": "search_overview",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["clicks", "impressions"],
-			"title": "Search clicks and impressions over time"
-		},
-		{
-			"id": "so0005",
-			"report": "search_position_bands",
-			"kind": "bars",
-			"w": 1,
-			"title": "Queries by position band"
-		},
-		{
-			"id": "so0006",
-			"report": "search_position_moves",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "moved_up",
-			"title": "Queries moved up"
-		},
-		{
-			"id": "so0007",
-			"report": "search_position_moves",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "moved_down",
-			"title": "Queries moved down"
-		},
-		{
-			"id": "so0008",
-			"report": "search_movers",
-			"kind": "table",
-			"w": 3,
-			"title": "Declining pages",
-			"params": { "direction": "down" }
-		},
-		{
-			"id": "so0009",
-			"report": "search_striking_distance",
-			"kind": "table",
-			"w": 3,
-			"title": "Striking distance"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "none",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": false
-	}
-};
-
-//#endregion
-//#region src/data/templates/cannibalization.json
-var cannibalization_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Cannibalization",
-	description: "Queries where several pages of the site compete, and the pages involved.",
-	tiles: [
-		{
-			"id": "ca0001",
-			"report": "search_cannibalization",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "cannibalized_queries",
-			"title": "Cannibalized queries"
-		},
-		{
-			"id": "ca0002",
-			"report": "search_cannibalization",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "cannibalized_impressions",
-			"title": "Their impressions"
-		},
-		{
-			"id": "ca0003",
-			"report": "search_cannibalization",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "visible_share",
-			"title": "Visible share"
-		},
-		{
-			"id": "ca0004",
-			"report": "search_cannibalization",
-			"kind": "table",
-			"w": 3,
-			"title": "Queries with competing pages"
-		},
-		{
-			"id": "ca0005",
-			"report": "search_cannibalization_pages",
-			"kind": "table",
-			"w": 3,
-			"title": "Competing pages"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "none",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": false
-	}
-};
-
-//#endregion
-//#region src/data/templates/position-bands.json
-var position_bands_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Position bands",
-	description: "Queries per position band, the trend, movement between bands and pairs in striking distance.",
-	tiles: [
-		{
-			"id": "pb0001",
-			"report": "search_position_bands",
-			"kind": "bars",
-			"w": 1,
-			"title": "Queries by band"
-		},
-		{
-			"id": "pb0002",
-			"report": "search_position_bands",
-			"kind": "table",
-			"w": 2,
-			"title": "Bands"
-		},
-		{
-			"id": "pb0003",
-			"report": "search_position_bands_series",
-			"kind": "stacked",
-			"w": 3,
-			"metric": "queries",
-			"title": "Queries per band over time"
-		},
-		{
-			"id": "pb0004",
-			"report": "search_position_moves",
-			"kind": "table",
-			"w": 3,
-			"title": "Movement between bands"
-		},
-		{
-			"id": "pb0005",
-			"report": "search_striking_distance",
-			"kind": "table",
-			"w": 3,
-			"title": "Striking distance"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "none",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": false
-	}
-};
-
-//#endregion
-//#region src/data/templates/winners-losers.json
-var winners_losers_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Winners and losers",
-	description: "Rising and declining pages and queries, new and lost queries, and content decay.",
-	tiles: [
-		{
-			"id": "wl0001",
-			"report": "search_movers",
-			"kind": "table",
-			"w": 1,
-			"title": "Rising pages",
-			"params": {
-				"dim": "page",
-				"direction": "up"
-			}
-		},
-		{
-			"id": "wl0002",
-			"report": "search_movers",
-			"kind": "table",
-			"w": 2,
-			"title": "Declining pages",
-			"params": {
-				"dim": "page",
-				"direction": "down"
-			}
-		},
-		{
-			"id": "wl0003",
-			"report": "search_movers",
-			"kind": "table",
-			"w": 1,
-			"title": "Rising queries",
-			"params": {
-				"dim": "query",
-				"direction": "up"
-			}
-		},
-		{
-			"id": "wl0004",
-			"report": "search_movers",
-			"kind": "table",
-			"w": 2,
-			"title": "Declining queries",
-			"params": {
-				"dim": "query",
-				"direction": "down"
-			}
-		},
-		{
-			"id": "wl0005",
-			"report": "search_position_moves",
-			"kind": "table",
-			"w": 1,
-			"title": "New queries",
-			"params": { "list": "new" }
-		},
-		{
-			"id": "wl0006",
-			"report": "search_position_moves",
-			"kind": "table",
-			"w": 2,
-			"title": "Lost queries",
-			"params": { "list": "lost" }
-		},
-		{
-			"id": "wl0007",
-			"report": "search_decay",
-			"kind": "table",
-			"w": 3,
-			"title": "Declining over three periods"
-		},
-		{
-			"id": "wl0008",
-			"report": "traffic_movers",
-			"kind": "table",
-			"w": 1,
-			"title": "Pages with fewer views",
-			"params": { "direction": "down" }
-		},
-		{
-			"id": "wl0009",
-			"report": "traffic_decay",
-			"kind": "table",
-			"w": 2,
-			"title": "Page views declining over three periods"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "none",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": false
-	}
-};
-
-//#endregion
-//#region src/data/templates/impact-last-changes.json
-var impact_last_changes_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Impact of last changes",
-	description: "The 28 days after the newest annotation against the 28 days before it.",
-	tiles: [
-		{
-			"id": "im0001",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "sessions",
-			"title": "Sessions",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "overview"
-			}
-		},
-		{
-			"id": "im0002",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "sessions",
-			"title": "Organic Search sessions",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "channels",
-				"key": "Organic Search"
-			}
-		},
-		{
-			"id": "im0003",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "clicks",
-			"title": "Search clicks",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "search_overview"
-			}
-		},
-		{
-			"id": "im0004",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "position",
-			"title": "Search position",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "search_overview"
-			}
-		},
-		{
-			"id": "im0005",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pct_long",
-			"title": "Long click rate",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "satisfaction"
-			}
-		},
-		{
-			"id": "im0006",
-			"report": "impact",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pct_bad",
-			"title": "Bad experience rate",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "satisfaction"
-			}
-		},
-		{
-			"id": "im0007",
-			"report": "impact",
-			"kind": "line",
-			"w": 3,
-			"metrics": ["sessions"],
-			"title": "Sessions before and after",
-			"params": {
-				"annotation": "latest",
-				"window": 28,
-				"report": "overview"
-			}
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "none",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": false
-	}
-};
-
-//#endregion
-//#region src/data/templates/weekly-digest.json
-var weekly_digest_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Weekly digest",
-	description: "Last week at a glance for a scheduled email: visitors, sessions, pageviews, bounce rate, channels, top pages, sources and countries, compared with the week before.",
-	tiles: [
-		{
-			"id": "wd0001",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "visitors"
-		},
-		{
-			"id": "wd0002",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "sessions"
-		},
-		{
-			"id": "wd0003",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "pageviews"
-		},
-		{
-			"id": "wd0004",
-			"report": "overview",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "bounce_rate"
-		},
-		{
-			"id": "wd0005",
-			"report": "channels",
-			"kind": "table",
-			"w": 2,
-			"limit": 10,
-			"title": "Channels"
-		},
-		{
-			"id": "wd0006",
-			"report": "pages",
-			"kind": "table",
-			"w": 3,
-			"limit": 10,
-			"title": "Top pages"
-		},
-		{
-			"id": "wd0007",
-			"report": "sources",
-			"kind": "table",
-			"w": 2,
-			"limit": 10,
-			"title": "Top sources"
-		},
-		{
-			"id": "wd0008",
-			"report": "countries",
-			"kind": "table",
-			"w": 1,
-			"limit": 10,
-			"title": "Countries"
-		}
-	],
-	defaults: {
-		"range": "7d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": ["7d", "30d"],
-		"compare": true
-	}
-};
-
-//#endregion
-//#region src/data/templates/links.json
-var links_default = {
-	kind: "dashboard-template",
-	v: 1,
-	name: "Links",
-	description: "Impressions, clicks and click-through rate of short links by link, placement, page and channel, with the Link clicks goal.",
-	tiles: [
-		{
-			"id": "lk0001",
-			"report": "goals",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "completions",
-			"params": { "goal": "Link clicks" },
-			"title": "Link clicks"
-		},
-		{
-			"id": "lk0002",
-			"report": "goals",
-			"kind": "kpi",
-			"w": 1,
-			"metric": "conversion_rate",
-			"params": { "goal": "Link clicks" },
-			"title": "Sessions with a link click"
-		},
-		{
-			"id": "lk0003",
-			"report": "links",
-			"kind": "bars",
-			"w": 1,
-			"metric": "clicks",
-			"params": { "by": "channel" },
-			"title": "Clicks by channel"
-		},
-		{
-			"id": "lk0004",
-			"report": "links",
-			"kind": "table",
-			"w": 3,
-			"params": { "by": "link" },
-			"title": "Links"
-		},
-		{
-			"id": "lk0005",
-			"report": "links",
-			"kind": "table",
-			"w": 2,
-			"params": { "by": "place" },
-			"title": "Placements"
-		},
-		{
-			"id": "lk0006",
-			"report": "links",
-			"kind": "bars",
-			"w": 1,
-			"metric": "clicks",
-			"params": { "by": "page" },
-			"title": "Clicks by page"
-		}
-	],
-	defaults: {
-		"range": "30d",
-		"compare": "previous",
-		"filters": []
-	},
-	viewer: {
-		"ranges": [
-			"7d",
-			"30d",
-			"90d"
-		],
-		"compare": true
-	},
-	dependencies: { "goals": [{
-		"name": "Link clicks",
-		"type": "event",
-		"match": "is",
-		"value": "out"
-	}] }
-};
-
-//#endregion
-//#region src/dashboards/templates.ts
+// src/dashboards/templates.ts
 /** Templates: a dashboard with every segment, goal and funnel reference written as the record's name. */
 /** Built-in gallery, in display order. */
 const BUILTIN_TEMPLATES = {
-	overview: overview_default,
-	content: content_default,
-	acquisition: acquisition_default,
-	behaviour: behaviour_default,
-	satisfaction: satisfaction_default,
-	revenue: revenue_default,
-	"weekly-digest": weekly_digest_default,
-	search: search_default,
-	"impact-last-changes": impact_last_changes_default,
-	"seo-overview": seo_overview_default,
-	cannibalization: cannibalization_default,
-	"position-bands": position_bands_default,
-	"winners-losers": winners_losers_default,
-	links: links_default
+	overview: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Overview",
+		description: "Visitors, traffic sources, top pages and audience at a glance.",
+		tiles: [
+			{
+				"id": "ov0001",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "visitors"
+			},
+			{
+				"id": "ov0002",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pageviews"
+			},
+			{
+				"id": "ov0003",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "bounce_rate"
+			},
+			{
+				"id": "ov0004",
+				"report": "timeseries",
+				"kind": "area",
+				"w": 3,
+				"metrics": ["visitors", "sessions"]
+			},
+			{
+				"id": "ov0005",
+				"report": "channels",
+				"kind": "bars",
+				"w": 1
+			},
+			{
+				"id": "ov0006",
+				"report": "pages",
+				"kind": "table",
+				"w": 2,
+				"title": "Top pages"
+			},
+			{
+				"id": "ov0007",
+				"report": "sources",
+				"kind": "bars",
+				"w": 1
+			},
+			{
+				"id": "ov0008",
+				"report": "countries",
+				"kind": "donut",
+				"w": 1
+			},
+			{
+				"id": "ov0009",
+				"report": "devices",
+				"kind": "donut",
+				"w": 1
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	content: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Content",
+		description: "Which pages people read, where they land and where they leave.",
+		tiles: [
+			{
+				"id": "ct0001",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pageviews"
+			},
+			{
+				"id": "ct0002",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "views_per_session"
+			},
+			{
+				"id": "ct0003",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "avg_duration"
+			},
+			{
+				"id": "ct0004",
+				"report": "pages",
+				"kind": "table",
+				"w": 3,
+				"limit": 25,
+				"title": "Pages"
+			},
+			{
+				"id": "ct0005",
+				"report": "entry_pages",
+				"kind": "table",
+				"w": 2,
+				"title": "Landing pages"
+			},
+			{
+				"id": "ct0006",
+				"report": "scroll",
+				"kind": "bars",
+				"w": 1,
+				"title": "Scroll depth"
+			},
+			{
+				"id": "ct0007",
+				"report": "exit_pages",
+				"kind": "table",
+				"w": 2
+			},
+			{
+				"id": "ct0008",
+				"report": "not_found",
+				"kind": "table",
+				"w": 1,
+				"title": "Not found"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	acquisition: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Acquisition",
+		description: "Channels, referring sites, campaigns and AI assistants.",
+		tiles: [
+			{
+				"id": "aq0001",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "sessions"
+			},
+			{
+				"id": "aq0002",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "bounce_rate"
+			},
+			{
+				"id": "aq0003",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "visitors"
+			},
+			{
+				"id": "aq0004",
+				"report": "timeseries",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["sessions"],
+				"title": "Sessions over time"
+			},
+			{
+				"id": "aq0005",
+				"report": "channels",
+				"kind": "donut",
+				"w": 1
+			},
+			{
+				"id": "aq0006",
+				"report": "sources",
+				"kind": "table",
+				"w": 2,
+				"title": "Referring sites"
+			},
+			{
+				"id": "aq0007",
+				"report": "campaigns",
+				"kind": "table",
+				"w": 2
+			},
+			{
+				"id": "aq0008",
+				"report": "ai_referrals",
+				"kind": "bars",
+				"w": 1,
+				"title": "AI assistants"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	behaviour: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Behaviour",
+		description: "Events, outbound links, downloads and forms.",
+		tiles: [
+			{
+				"id": "bh0001",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "views_per_session"
+			},
+			{
+				"id": "bh0002",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "avg_duration"
+			},
+			{
+				"id": "bh0003",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "bounce_rate"
+			},
+			{
+				"id": "bh0004",
+				"report": "events",
+				"kind": "table",
+				"w": 3,
+				"title": "Events"
+			},
+			{
+				"id": "bh0005",
+				"report": "outbound",
+				"kind": "bars",
+				"w": 2,
+				"title": "Outbound links"
+			},
+			{
+				"id": "bh0006",
+				"report": "downloads",
+				"kind": "bars",
+				"w": 1
+			},
+			{
+				"id": "bh0007",
+				"report": "forms",
+				"kind": "table",
+				"w": 2
+			},
+			{
+				"id": "bh0008",
+				"report": "scroll",
+				"kind": "bars",
+				"w": 1,
+				"title": "Scroll depth"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	satisfaction: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Search Satisfaction",
+		description: "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages.",
+		tiles: [
+			{
+				"id": "st0001",
+				"report": "satisfaction",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pct_long"
+			},
+			{
+				"id": "st0002",
+				"report": "satisfaction",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pct_short"
+			},
+			{
+				"id": "st0003",
+				"report": "satisfaction",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pct_bad"
+			},
+			{
+				"id": "st0004",
+				"report": "satisfaction_series",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["pct_long"],
+				"title": "Long clicks over time"
+			},
+			{
+				"id": "st0005",
+				"report": "satisfaction",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pogo_stick_rate"
+			},
+			{
+				"id": "st0007",
+				"report": "satisfaction_series",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["pogo_stick_rate"],
+				"title": "Pogo-sticking over time"
+			},
+			{
+				"id": "st0006",
+				"report": "satisfaction",
+				"kind": "table",
+				"w": 2,
+				"title": "Landing pages"
+			},
+			{
+				"id": "st0008",
+				"report": "satisfaction",
+				"kind": "table",
+				"w": 3,
+				"title": "Best pages",
+				"params": { "rank": "best" }
+			},
+			{
+				"id": "st0009",
+				"report": "satisfaction",
+				"kind": "table",
+				"w": 3,
+				"title": "Worst pages",
+				"params": { "rank": "worst" }
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	revenue: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Revenue",
+		description: "Revenue, orders and average order value in the site's default currency, by channel, source, landing page and goal.",
+		tiles: [
+			{
+				"id": "rv0001",
+				"report": "revenue",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "revenue"
+			},
+			{
+				"id": "rv0002",
+				"report": "revenue",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "orders"
+			},
+			{
+				"id": "rv0003",
+				"report": "revenue",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "aov",
+				"title": "Average order value"
+			},
+			{
+				"id": "rv0004",
+				"report": "revenue",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "revenue_per_visitor",
+				"title": "Revenue per visitor"
+			},
+			{
+				"id": "rv0005",
+				"report": "revenue_series",
+				"kind": "area",
+				"w": 2,
+				"metrics": ["revenue"],
+				"title": "Revenue over time"
+			},
+			{
+				"id": "rv0006",
+				"report": "revenue_breakdown",
+				"kind": "bars",
+				"w": 1,
+				"params": { "dim": "channel" },
+				"title": "Revenue by channel"
+			},
+			{
+				"id": "rv0007",
+				"report": "revenue_breakdown",
+				"kind": "table",
+				"w": 2,
+				"params": { "dim": "source" },
+				"title": "Revenue by source"
+			},
+			{
+				"id": "rv0008",
+				"report": "revenue_breakdown",
+				"kind": "table",
+				"w": 2,
+				"params": { "dim": "entry" },
+				"title": "Revenue by landing page"
+			},
+			{
+				"id": "rv0009",
+				"report": "revenue_breakdown",
+				"kind": "table",
+				"w": 1,
+				"params": { "dim": "goal" },
+				"title": "Revenue by goal"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	"weekly-digest": {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Weekly digest",
+		description: "Last week at a glance for a scheduled email: visitors, sessions, pageviews, bounce rate, channels, top pages, sources and countries, compared with the week before.",
+		tiles: [
+			{
+				"id": "wd0001",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "visitors"
+			},
+			{
+				"id": "wd0002",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "sessions"
+			},
+			{
+				"id": "wd0003",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pageviews"
+			},
+			{
+				"id": "wd0004",
+				"report": "overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "bounce_rate"
+			},
+			{
+				"id": "wd0005",
+				"report": "channels",
+				"kind": "table",
+				"w": 2,
+				"limit": 10,
+				"title": "Channels"
+			},
+			{
+				"id": "wd0006",
+				"report": "pages",
+				"kind": "table",
+				"w": 3,
+				"limit": 10,
+				"title": "Top pages"
+			},
+			{
+				"id": "wd0007",
+				"report": "sources",
+				"kind": "table",
+				"w": 2,
+				"limit": 10,
+				"title": "Top sources"
+			},
+			{
+				"id": "wd0008",
+				"report": "countries",
+				"kind": "table",
+				"w": 1,
+				"limit": 10,
+				"title": "Countries"
+			}
+		],
+		defaults: {
+			"range": "7d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": ["7d", "30d"],
+			"compare": true
+		}
+	},
+	search: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Search",
+		description: "Clicks, impressions, queries and pages from the connected Search sources.",
+		tiles: [
+			{
+				"id": "se0001",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "clicks"
+			},
+			{
+				"id": "se0002",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "impressions"
+			},
+			{
+				"id": "se0003",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "position"
+			},
+			{
+				"id": "se0004",
+				"report": "search_overview",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["clicks", "impressions"],
+				"title": "Search clicks and impressions over time"
+			},
+			{
+				"id": "se0005",
+				"report": "search_queries",
+				"kind": "table",
+				"w": 2,
+				"title": "Queries"
+			},
+			{
+				"id": "se0006",
+				"report": "search_pages",
+				"kind": "table",
+				"w": 1,
+				"title": "Pages"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d",
+				"12m"
+			],
+			"compare": true
+		}
+	},
+	"impact-last-changes": {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Impact of last changes",
+		description: "The 28 days after the newest annotation against the 28 days before it.",
+		tiles: [
+			{
+				"id": "im0001",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "sessions",
+				"title": "Sessions",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "overview"
+				}
+			},
+			{
+				"id": "im0002",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "sessions",
+				"title": "Organic Search sessions",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "channels",
+					"key": "Organic Search"
+				}
+			},
+			{
+				"id": "im0003",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "clicks",
+				"title": "Search clicks",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "search_overview"
+				}
+			},
+			{
+				"id": "im0004",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "position",
+				"title": "Search position",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "search_overview"
+				}
+			},
+			{
+				"id": "im0005",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pct_long",
+				"title": "Long click rate",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "satisfaction"
+				}
+			},
+			{
+				"id": "im0006",
+				"report": "impact",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "pct_bad",
+				"title": "Bad experience rate",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "satisfaction"
+				}
+			},
+			{
+				"id": "im0007",
+				"report": "impact",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["sessions"],
+				"title": "Sessions before and after",
+				"params": {
+					"annotation": "latest",
+					"window": 28,
+					"report": "overview"
+				}
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "none",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": false
+		}
+	},
+	"seo-overview": {
+		kind: "dashboard-template",
+		v: 1,
+		name: "SEO overview",
+		description: "Search clicks and positions, position bands, movement between bands, declining pages and striking distance.",
+		tiles: [
+			{
+				"id": "so0001",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "clicks"
+			},
+			{
+				"id": "so0002",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "impressions"
+			},
+			{
+				"id": "so0003",
+				"report": "search_overview",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "position"
+			},
+			{
+				"id": "so0004",
+				"report": "search_overview",
+				"kind": "line",
+				"w": 3,
+				"metrics": ["clicks", "impressions"],
+				"title": "Search clicks and impressions over time"
+			},
+			{
+				"id": "so0005",
+				"report": "search_position_bands",
+				"kind": "bars",
+				"w": 1,
+				"title": "Queries by position band"
+			},
+			{
+				"id": "so0006",
+				"report": "search_position_moves",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "moved_up",
+				"title": "Queries moved up"
+			},
+			{
+				"id": "so0007",
+				"report": "search_position_moves",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "moved_down",
+				"title": "Queries moved down"
+			},
+			{
+				"id": "so0008",
+				"report": "search_movers",
+				"kind": "table",
+				"w": 3,
+				"title": "Declining pages",
+				"params": { "direction": "down" }
+			},
+			{
+				"id": "so0009",
+				"report": "search_striking_distance",
+				"kind": "table",
+				"w": 3,
+				"title": "Striking distance"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "none",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": false
+		}
+	},
+	cannibalization: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Cannibalization",
+		description: "Queries where several pages of the site compete, and the pages involved.",
+		tiles: [
+			{
+				"id": "ca0001",
+				"report": "search_cannibalization",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "cannibalized_queries",
+				"title": "Cannibalized queries"
+			},
+			{
+				"id": "ca0002",
+				"report": "search_cannibalization",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "cannibalized_impressions",
+				"title": "Their impressions"
+			},
+			{
+				"id": "ca0003",
+				"report": "search_cannibalization",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "visible_share",
+				"title": "Visible share"
+			},
+			{
+				"id": "ca0004",
+				"report": "search_cannibalization",
+				"kind": "table",
+				"w": 3,
+				"title": "Queries with competing pages"
+			},
+			{
+				"id": "ca0005",
+				"report": "search_cannibalization_pages",
+				"kind": "table",
+				"w": 3,
+				"title": "Competing pages"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "none",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": false
+		}
+	},
+	"position-bands": {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Position bands",
+		description: "Queries per position band, the trend, movement between bands and pairs in striking distance.",
+		tiles: [
+			{
+				"id": "pb0001",
+				"report": "search_position_bands",
+				"kind": "bars",
+				"w": 1,
+				"title": "Queries by band"
+			},
+			{
+				"id": "pb0002",
+				"report": "search_position_bands",
+				"kind": "table",
+				"w": 2,
+				"title": "Bands"
+			},
+			{
+				"id": "pb0003",
+				"report": "search_position_bands_series",
+				"kind": "stacked",
+				"w": 3,
+				"metric": "queries",
+				"title": "Queries per band over time"
+			},
+			{
+				"id": "pb0004",
+				"report": "search_position_moves",
+				"kind": "table",
+				"w": 3,
+				"title": "Movement between bands"
+			},
+			{
+				"id": "pb0005",
+				"report": "search_striking_distance",
+				"kind": "table",
+				"w": 3,
+				"title": "Striking distance"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "none",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": false
+		}
+	},
+	"winners-losers": {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Winners and losers",
+		description: "Rising and declining pages and queries, new and lost queries, and content decay.",
+		tiles: [
+			{
+				"id": "wl0001",
+				"report": "search_movers",
+				"kind": "table",
+				"w": 1,
+				"title": "Rising pages",
+				"params": {
+					"dim": "page",
+					"direction": "up"
+				}
+			},
+			{
+				"id": "wl0002",
+				"report": "search_movers",
+				"kind": "table",
+				"w": 2,
+				"title": "Declining pages",
+				"params": {
+					"dim": "page",
+					"direction": "down"
+				}
+			},
+			{
+				"id": "wl0003",
+				"report": "search_movers",
+				"kind": "table",
+				"w": 1,
+				"title": "Rising queries",
+				"params": {
+					"dim": "query",
+					"direction": "up"
+				}
+			},
+			{
+				"id": "wl0004",
+				"report": "search_movers",
+				"kind": "table",
+				"w": 2,
+				"title": "Declining queries",
+				"params": {
+					"dim": "query",
+					"direction": "down"
+				}
+			},
+			{
+				"id": "wl0005",
+				"report": "search_position_moves",
+				"kind": "table",
+				"w": 1,
+				"title": "New queries",
+				"params": { "list": "new" }
+			},
+			{
+				"id": "wl0006",
+				"report": "search_position_moves",
+				"kind": "table",
+				"w": 2,
+				"title": "Lost queries",
+				"params": { "list": "lost" }
+			},
+			{
+				"id": "wl0007",
+				"report": "search_decay",
+				"kind": "table",
+				"w": 3,
+				"title": "Declining over three periods"
+			},
+			{
+				"id": "wl0008",
+				"report": "traffic_movers",
+				"kind": "table",
+				"w": 1,
+				"title": "Pages with fewer views",
+				"params": { "direction": "down" }
+			},
+			{
+				"id": "wl0009",
+				"report": "traffic_decay",
+				"kind": "table",
+				"w": 2,
+				"title": "Page views declining over three periods"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "none",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": false
+		}
+	},
+	links: {
+		kind: "dashboard-template",
+		v: 1,
+		name: "Links",
+		description: "Impressions, clicks and click-through rate of short links by link, placement, page and channel, with the Link clicks goal.",
+		tiles: [
+			{
+				"id": "lk0001",
+				"report": "goals",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "completions",
+				"params": { "goal": "Link clicks" },
+				"title": "Link clicks"
+			},
+			{
+				"id": "lk0002",
+				"report": "goals",
+				"kind": "kpi",
+				"w": 1,
+				"metric": "conversion_rate",
+				"params": { "goal": "Link clicks" },
+				"title": "Sessions with a link click"
+			},
+			{
+				"id": "lk0003",
+				"report": "links",
+				"kind": "bars",
+				"w": 1,
+				"metric": "clicks",
+				"params": { "by": "channel" },
+				"title": "Clicks by channel"
+			},
+			{
+				"id": "lk0004",
+				"report": "links",
+				"kind": "table",
+				"w": 3,
+				"params": { "by": "link" },
+				"title": "Links"
+			},
+			{
+				"id": "lk0005",
+				"report": "links",
+				"kind": "table",
+				"w": 2,
+				"params": { "by": "place" },
+				"title": "Placements"
+			},
+			{
+				"id": "lk0006",
+				"report": "links",
+				"kind": "bars",
+				"w": 1,
+				"metric": "clicks",
+				"params": { "by": "page" },
+				"title": "Clicks by page"
+			}
+		],
+		defaults: {
+			"range": "30d",
+			"compare": "previous",
+			"filters": []
+		},
+		viewer: {
+			"ranges": [
+				"7d",
+				"30d",
+				"90d"
+			],
+			"compare": true
+		},
+		dependencies: { "goals": [{
+			"name": "Link clicks",
+			"type": "event",
+			"match": "is",
+			"value": "out"
+		}] }
+	}
 };
 const BUILTIN_NAMES = Object.keys(BUILTIN_TEMPLATES);
-const BUILTIN_GROUPS = Object.fromEntries(BUILTIN_NAMES.map((n) => [n, [
+Object.fromEntries(BUILTIN_NAMES.map((n) => [n, [
 	"seo-overview",
 	"cannibalization",
 	"position-bands",
@@ -13632,7 +13318,8 @@ function toTemplate(d, deps, opts) {
 /** Structural validation of a template or a built-in name (a structural error rejects the whole template, naming the tiles). */
 function readTemplate(input) {
 	const raw = input.builtin !== void 0 ? BUILTIN_TEMPLATES[input.builtin] : input.template;
-	return parseStrict(TemplateSchema, raw && typeof raw === "object" ? withoutEmail(raw) : raw, "invalid_template");
+	const clean = raw && typeof raw === "object" ? withoutEmail(raw) : raw;
+	return parseStrict(TemplateSchema, clean, "invalid_template");
 }
 /**
 * Names to the target site's ids. An existing record of that name is reused and never overwritten; a missing one is
@@ -13729,24 +13416,13 @@ async function fromTemplate(tpl, lookups, opts) {
 		unresolved
 	};
 }
-
-//#endregion
-//#region src/routes/dashboards.ts
-/**
-* Dashboard routes: `dashboards/list` and `dashboards/get` under `plugins:read`; save, delete,
-* export, import and copy under `plugins:manage`. Every route takes `site` (local, client or remote id). Dependencies
-* are created through the config save routes, so their validation (safe regex, funnel steps) applies. The schedule
-* (`email`) is written only by `dashboards/email/save`; list and get hide its recipients below Admin.
-*/
-/** Host role of Admin (`Role.ADMIN`); callers below see `recipientCount` instead of the recipients. */
-const ADMIN_ROLE = 50;
 /** The host text when no email provider is configured. */
 const NO_PROVIDER_TEXT = "No email provider is configured. Install and activate an email provider plugin, then select it in Settings > Email.";
 const TEST_SEND_SECONDS = 60;
 /** `email` without recipients for callers below Admin, plus `recipientCount`. */
 function forCaller(d, role) {
 	if (!d.email) return d;
-	if ((role ?? 0) >= ADMIN_ROLE) return {
+	if ((role ?? 0) >= 50) return {
 		...d,
 		recipientCount: d.email.recipients.length
 	};
@@ -14058,9 +13734,7 @@ function dashboardRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/query/purge.ts
+// src/query/purge.ts
 /** Every fact row of a site, in delete order; `day` steps remove one day per chunk. */
 const SITE_STEPS = [
 	{
@@ -14130,8 +13804,6 @@ const SITE_STEPS = [
 		cutoff: "9999-12-31"
 	}
 ];
-/** A delete cursor untouched for this long belongs to an abandoned delete and is not resumed. */
-const STALE_SECONDS = 3600;
 const purgeKey = (site) => `purge:${site}`;
 /**
 * One bounded call of a per-site delete: at most `maxChunks` chunks, resuming from `purge:<site>`.
@@ -14139,12 +13811,12 @@ const purgeKey = (site) => `purge:${site}`;
 * The cursor is removed when the site has no rows left.
 */
 async function purgeSite(db, kv, site, o = {}) {
-	const chunkRows = o.chunkRows ?? CHUNK_ROWS;
-	const maxChunks = o.maxChunks ?? MAX_CHUNKS;
+	const chunkRows = o.chunkRows ?? 2e3;
+	const maxChunks = o.maxChunks ?? 20;
 	const key = purgeKey(site);
 	const now = o.now ?? Math.floor(Date.now() / 1e3);
 	const saved = await kv.get(key);
-	const c = saved && now - (saved.at ?? 0) < STALE_SECONDS ? saved : {
+	const c = saved && now - (saved.at ?? 0) < 3600 ? saved : {
 		step: 0,
 		deleted: {},
 		at: now
@@ -14170,8 +13842,8 @@ async function purgeSite(db, kv, site, o = {}) {
 * removes whole days up to about `chunkRows` rows (at least one day). Idempotent, so no cursor is needed.
 */
 async function purgeSearch(db, site, source, o = {}) {
-	const chunkRows = o.chunkRows ?? CHUNK_ROWS;
-	const maxChunks = o.maxChunks ?? MAX_CHUNKS;
+	const chunkRows = o.chunkRows ?? 2e3;
+	const maxChunks = o.maxChunks ?? 20;
 	let deleted = 0;
 	for (let n = 0; n < maxChunks; n++) {
 		const days = await db.all("SELECT day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? AND source = ? GROUP BY day ORDER BY day LIMIT 1000", [site, source]);
@@ -14198,9 +13870,7 @@ async function purgeSearch(db, site, source, o = {}) {
 		done: Number(left?.n ?? 0) === 0
 	};
 }
-
-//#endregion
-//#region src/routes/sites.ts
+// src/routes/sites.ts
 /** Collections whose records belong to one site. User agent rules are one set per install and stay. */
 const SITE_COLLECTIONS = [
 	"dashboards",
@@ -14235,16 +13905,20 @@ async function deleteSiteRecords(storage, site) {
 const ListBody = z.object({ counts: z.boolean().optional() }).strict().optional();
 const Host = z.string().trim().toLowerCase().max(253);
 const SaveBody = z.object({
+	/** True to create; false or absent edits an existing record. */
 	create: z.boolean().optional(),
 	id: z.string().regex(SITE_ID_RE),
 	label: z.string().trim().min(1).max(64),
-	hosts: z.array(Host).min(1).max(MAX_HOSTS),
+	hosts: z.array(Host).min(1).max(10),
 	gscProperty: z.string().trim().max(512).optional(),
 	bingSiteUrl: z.string().trim().max(512).optional(),
 	paused: z.boolean().optional(),
+	/** Per-site revenue settings: null removes the field, so the site inherits the master's setting. */
 	defaultCurrency: z.string().refine(isCurrency, "Unknown currency code.").nullable().optional(),
 	acceptClientRevenue: z.boolean().nullable().optional(),
+	/** Site search parameter names, comma separated: null inherits, "" turns it off for this site. */
 	siteSearchParams: z.string().max(200).nullable().optional(),
+	/** Linked to this site: events stored under this site's id, the visit continues across the hosts. */
 	linked: z.boolean().optional()
 }).strict();
 const Day$2 = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -14316,8 +13990,8 @@ function siteRoutes(env) {
 		if (!ctx.kv) return;
 		const hosts = linkedHosts(sites);
 		await ctx.kv.set(LINKED_HOSTS_KEY, hosts);
-		const keep = new Set([...hosts, hostnameOf((await env.settings()).siteOrigin)]);
-		for (const e of await ctx.kv.list(HOST_SEEN_PREFIX)) if (!keep.has(e.key.slice(HOST_SEEN_PREFIX.length))) await ctx.kv.delete(e.key);
+		const keep = /* @__PURE__ */ new Set([...hosts, hostnameOf((await env.settings()).siteOrigin)]);
+		for (const e of await ctx.kv.list(HOST_SEEN_PREFIX)) if (!keep.has(e.key.slice(10))) await ctx.kv.delete(e.key);
 	}
 	async function write(ctx, site) {
 		await syncLinked(ctx, [...(await loadSites(coll$1(ctx))).filter((o) => o.id !== site.id), site]);
@@ -14388,7 +14062,7 @@ function siteRoutes(env) {
 				return {
 					sites,
 					...linked.length ? { linked } : {},
-					middlewareSeen: typeof seen === "number" && now() * 1e3 - seen < SEEN_FRESH_MS,
+					middlewareSeen: typeof seen === "number" && now() * 1e3 - seen < 864e5,
 					snippet: {
 						src: `${origin}${s.scriptPath ?? "/_/e.js"}`,
 						keyAttr: `${names.attrPrefix}key`,
@@ -14438,7 +14112,7 @@ function siteRoutes(env) {
 					filters: [],
 					granularity: "auto",
 					params: {},
-					limit: MAX_SITES,
+					limit: 500,
 					offset: 0,
 					isCompare
 				});
@@ -14486,7 +14160,7 @@ function siteRoutes(env) {
 			async handler(ctx = {}) {
 				const s = await env.settings();
 				const seen = /* @__PURE__ */ new Map();
-				for (const e of await ctx.kv?.list(HOST_SEEN_PREFIX) ?? []) if (typeof e.value === "number") seen.set(e.key.slice(HOST_SEEN_PREFIX.length), e.value);
+				for (const e of await ctx.kv?.list("host:seen:") ?? []) if (typeof e.value === "number") seen.set(e.key.slice(HOST_SEEN_PREFIX.length), e.value);
 				const hosts = /* @__PURE__ */ new Map();
 				for (const c of await loadSites(ctx.storage?.sites)) if (c.linked) for (const h of c.hosts) hosts.set(h, {
 					host: h,
@@ -14511,7 +14185,7 @@ function siteRoutes(env) {
 				const cur = ClientSiteSchema.safeParse(await coll$1(ctx).get(body.id));
 				if (body.create && cur.success) throw bad(`The id ${body.id} is already registered.`);
 				if (!body.create && !cur.success) throw new PluginRouteError("not_found", "Unknown site.", 404);
-				if (body.create && (await loadSites(coll$1(ctx))).length >= MAX_SITES) throw bad(`At most ${MAX_SITES} sites.`);
+				if (body.create && (await loadSites(coll$1(ctx))).length >= 500) throw bad(`At most 500 sites.`);
 				const base = cur.success ? cur.data : {
 					key: newSiteKey(),
 					created: now(),
@@ -14531,7 +14205,7 @@ function siteRoutes(env) {
 				]) if (next[k] === null) delete next[k];
 				if (typeof next.siteSearchParams === "string") {
 					const { names, invalid } = parseSiteSearchParams(next.siteSearchParams);
-					if (invalid.length) throw bad(`Site search parameters are at most ${SITE_SEARCH_MAX_PARAMS} names of letters, digits and _ (up to 16 characters): ${invalid.join(", ")}.`);
+					if (invalid.length) throw bad(`Site search parameters are at most 5 names of letters, digits and _ (up to 16 characters): ${invalid.join(", ")}.`);
 					next.siteSearchParams = names;
 				}
 				return write(ctx, await checked(ctx, next, body.id));
@@ -14580,9 +14254,7 @@ function siteRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/mcp.ts
+// src/mcp.ts
 /**
 * MCP tools: the host serves them at `/_emdash/api/mcp` as `cookieless-analytics__<name>`. Each names a
 * private JSON POST route of this plugin with a declared permission; the host checks the caller's role against
@@ -14617,14 +14289,14 @@ const MCP_TOOLS = {
 		destructive: false
 	}
 };
-
-//#endregion
-//#region src/routes/keys.ts
+// src/routes/keys.ts
 /** Admin routes `keys/list|create|revoke|delete`, `plugins:manage`. Create returns the token once; nothing returns it later. */
 const KeyCreateBody = z.object({
 	label: z.string().trim().min(1).max(64),
 	scopes: z.array(z.enum(SCOPES)).min(1).max(SCOPES.length),
+	/** Optional restriction to local-database sites (the local site and client sites); empty or absent means all. */
 	sites: z.array(z.string().regex(SITE_ID_RE)).max(50).optional(),
+	/** Epoch seconds; absent or null means no expiry. */
 	expires: z.number().int().positive().nullable().optional()
 }).strict();
 const KeyRevokeBody = z.object({ id: z.string().regex(/^[a-z0-9]{1,64}$/) }).strict();
@@ -14654,7 +14326,7 @@ function keyRoutes(env = {}) {
 					if (unknown) throw new PluginRouteError("unknown_site", `Unknown site ${unknown}: a key can be limited to this site and its client sites only.`, 400);
 				}
 				const c = coll(ctx);
-				if ((await listKeys(c)).length >= MAX_KEYS) throw new PluginRouteError("too_many_keys", `At most ${MAX_KEYS} keys per install, revoked keys included; delete a revoked key to make room.`, 400);
+				if ((await listKeys(c)).length >= 100) throw new PluginRouteError("too_many_keys", `At most 100 keys per install, revoked keys included; delete a revoked key to make room.`, 400);
 				return createKey(c, body, now());
 			}
 		},
@@ -14685,18 +14357,16 @@ function keyRoutes(env = {}) {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/session.ts
+// src/routes/session.ts
 /** Lookups per truncated IP per minute before the route answers `{ sid: null }`. */
 const READS_PER_MINUTE = 60;
 const NONE = {
-	v: CONTRACT_VERSION,
+	v: 1,
 	sid: null
 };
 function shape(s) {
 	return {
-		v: CONTRACT_VERSION,
+		v: 1,
 		sid: s.sid,
 		started: s.started,
 		channel: s.channel,
@@ -14725,7 +14395,7 @@ function sessionRoute(env) {
 			const now = deps.now ?? Math.floor(Date.now() / 1e3);
 			if (bump("read", truncateIp(info.ip, "strict"), now) > READS_PER_MINUTE) return json$1(NONE);
 			const q = ctx.input ?? {};
-			const active = (row) => row && isActive$1(row, now, Math.min(s.maxSessionMinutes, MAX_VISIT_MINUTES)) ? row : null;
+			const active = (row) => row && isActive$1(row, now, Math.min(s.maxSessionMinutes, 1440)) ? row : null;
 			let found = null;
 			if (isSid(q.sid)) {
 				const r = await readVisits(deps.db, s.siteId, now, s.siteTimezone, q.sid, []);
@@ -14746,9 +14416,7 @@ function sessionRoute(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/share-view.ts
+// src/routes/share-view.ts
 /** The password of `Authorization: Basic base64(user:pass)` as UTF-8; the user part is ignored. */
 function basicPassword(header) {
 	const m = /^Basic\s+([A-Za-z0-9+/=]+)\s*$/i.exec(header ?? "");
@@ -14800,7 +14468,7 @@ function shareViewRoute(env) {
 			}
 			const r = url.searchParams.get("r");
 			const range = dash.viewer.ranges.includes(r) ? r : dash.defaults.range;
-			const allowCompare = dash.viewer.compare && distinctRequests(dash) <= SHARE_COMPARE_MAX_REQUESTS;
+			const allowCompare = dash.viewer.compare && distinctRequests(dash) <= 6;
 			const compare = allowCompare && url.searchParams.get("c") === "1";
 			const site = hit.share.site;
 			const dctx = {
@@ -14851,9 +14519,7 @@ function shareViewRoute(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/shares.ts
+// src/routes/shares.ts
 /**
 * Share routes: `shares/list` under `plugins:read` (every link of a dashboard without hash or
 * verifier), `shares/create` and `shares/delete` (by share id) under `plugins:manage`. A remote satellite's dashboards
@@ -14868,9 +14534,9 @@ const ShareBodies = {
 	create: z.object({
 		dashboard: Id,
 		site: SiteField,
-		password: z.string().refine(passwordOk, `Use ${MIN_PASSWORD} to ${MAX_PASSWORD} characters.`).optional(),
+		password: z.string().refine(passwordOk, `Use 8 to 128 characters.`).optional(),
 		expires: z.number().int().positive().nullable().optional(),
-		label: z.string().trim().min(1).max(MAX_SHARE_LABEL).optional()
+		label: z.string().trim().min(1).max(40).optional()
 	}).strict(),
 	delete: z.object({
 		id: z.string().regex(/^[a-z0-9]{16}$/),
@@ -14939,9 +14605,7 @@ function shareRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/settings.ts
+// src/routes/settings.ts
 /**
 * Admin routes `settings/get` and `settings/save` (`plugins:manage`) behind the Settings page: the plugin settings in
 * sections, checked by `normalizeSettings` with an error per field. Secrets never leave the server ("set" or not), and
@@ -15218,11 +14882,13 @@ function validateSettings(values, current, target = "host") {
 			const max = (f.max ?? 0) / by;
 			if (!Number.isInteger(n) || n < min || n > max) errors[k] = `Use a whole number from ${min} to ${max}.`;
 			else clean[k] = n * by;
-		} else if (f.type === "boolean") if (typeof v === "boolean") clean[k] = v;
-		else errors[k] = "Choose on or off.";
-		else if (f.type === "select") if (typeof v === "string" && f.options.some((o) => o.value === v)) clean[k] = v;
-		else errors[k] = "Choose one of the listed options.";
-		else if (typeof v !== "string") errors[k] = "Enter text.";
+		} else if (f.type === "boolean") {
+			if (typeof v === "boolean") clean[k] = v;
+			else errors[k] = "Choose on or off.";
+		} else if (f.type === "select") {
+			if (typeof v === "string" && f.options.some((o) => o.value === v)) clean[k] = v;
+			else errors[k] = "Choose one of the listed options.";
+		} else if (typeof v !== "string") errors[k] = "Enter text.";
 		else if (k === "linkRules") {
 			const r = parseLinkRules(v, normalizeSettings({
 				...current,
@@ -15315,6 +14981,7 @@ function settingsRoutes(env) {
 					})),
 					values,
 					secrets,
+					/** Where the budget is checked, the rest of the EmDash database in MB when known, and the warning level of the stored value (`budgetWarning`; the page recomputes it as the value changes). */
 					budget: {
 						target,
 						otherMb,
@@ -15358,9 +15025,7 @@ function settingsRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/sources/backfill.ts
+// src/sources/backfill.ts
 /**
 * Search backfill: `kv search:backfill:<site>:<source>` holds `{ from, to, cursor, done, error }`.
 * The sync tick advances it in adaptive windows of days inside the shared request budget; the cursor moves
@@ -15406,9 +15071,7 @@ async function cancelBackfill(kv, site, source) {
 async function backfillStatus(kv, site, source, now = Date.now()) {
 	return progress(await kv.get(backfillKey(site, source)), now);
 }
-
-//#endregion
-//#region src/sources/bing-csv.ts
+// src/sources/bing-csv.ts
 /**
 * Bing Webmaster Tools file import: the CSV the Search Performance report exports (one table per file:
 * keywords, that is queries, or pages). The exact export layout is not documented by Microsoft
@@ -15566,7 +15229,7 @@ function readDay(t, dayFirst) {
 }
 /** Parse one exported table. Throws `CsvError` with a plain sentence when the file is not usable. */
 function parseBingCsv(input) {
-	if (input.length > CSV_MAX_CHARS) throw new CsvError(`The file is larger than ${CSV_MAX_CHARS / 1e3} KB. Export a shorter date range.`);
+	if (input.length > 5e5) throw new CsvError(`The file is larger than ${CSV_MAX_CHARS / 1e3} KB. Export a shorter date range.`);
 	const text = input.replace(/^﻿/, "");
 	const first = text.split(/\r?\n/, 1)[0] ?? "";
 	const sep = [
@@ -15589,7 +15252,7 @@ function parseBingCsv(input) {
 	if (at.query >= 0 && at.page >= 0) throw new CsvError("The file has both a query and a page column. Bing stores no page with query pairs; import the Keywords and the Pages export separately.");
 	const kind = at.query >= 0 ? "query" : at.page >= 0 ? "page" : "totals";
 	if (kind === "totals" && at.day < 0) throw new CsvError("The file has no Keyword, Page or Date column.");
-	if (lines.length > CSV_MAX_ROWS) throw new CsvError(`The file has more than ${CSV_MAX_ROWS} rows. Export a shorter date range.`);
+	if (lines.length > 5e4) throw new CsvError(`The file has more than ${CSV_MAX_ROWS} rows. Export a shorter date range.`);
 	const keyAt = kind === "query" ? at.query : at.page;
 	const rows = [];
 	let skipped = 0;
@@ -15656,9 +15319,9 @@ async function importBingCsv(o, csv, day) {
 		if (list) list.push(row);
 		else days.set(d, [row]);
 	}
-	const { stmts, rows } = replaceStatements(o.db.dialect, o.target.site, "bing", days, (d) => d >= addDays(o.today, -PROVISIONAL_DAYS), csv.kind);
+	const { stmts, rows } = replaceStatements(o.db.dialect, o.target.site, "bing", days, (d) => d >= addDays(o.today, -3), csv.kind);
 	const a = await o.rows?.allowance();
-	if (a && rows * ROWS_PER_ROW_BOUND > a.left) throw new RowsPaused(nextUtcDay(Date.now()), `This file writes up to ${rows * ROWS_PER_ROW_BOUND} rows; Search may write ${a.left} more rows today (the budget resets at 00:00 UTC). Import it after the reset, or export fewer days.`);
+	if (a && rows * 3 > a.left) throw new RowsPaused(nextUtcDay(Date.now()), `This file writes up to ${rows * 3} rows; Search may write ${a.left} more rows today (the budget resets at 00:00 UTC). Import it after the reset, or export fewer days.`);
 	const written = await writeReplace(o.db, stmts, rows);
 	await o.rows?.charge(written);
 	const sorted = [...days.keys()].sort();
@@ -15671,9 +15334,7 @@ async function importBingCsv(o, csv, day) {
 		to: sorted[sorted.length - 1] ?? null
 	};
 }
-
-//#endregion
-//#region src/routes/search.ts
+// src/routes/search.ts
 /**
 * Search routes. `search/status` is `plugins:read`; the others are `plugins:manage`:
 * `search/test`, `search/sync` (one forced tick for a site), `search/backfill` (start, cancel, status),
@@ -15814,7 +15475,7 @@ function searchService(env) {
 			]);
 			const stored = new Set(rows.map((x) => String(x.day)));
 			if (stored.size) {
-				const end = addDays(t, -SYNC_DAYS - 1);
+				const end = addDays(t, -8);
 				if (to > end) to = end;
 				while (to >= r.from && stored.has(to)) to = addDays(to, -1);
 			}
@@ -15839,6 +15500,7 @@ function searchService(env) {
 	return {
 		syncCtx,
 		start,
+		/** One forced tick over the site's pairs (one source when given). */
 		async sync(ctx, body) {
 			const b = await bound(ctx, body.site);
 			const s = await env.settings();
@@ -15867,7 +15529,7 @@ function searchService(env) {
 			const db = await env.db(b.id);
 			const t = today(s);
 			const rows = /* @__PURE__ */ new Map();
-			const syncFrom = addDays(t, -SYNC_DAYS);
+			const syncFrom = addDays(t, -7);
 			for (const r of await db.all("SELECT source, day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? GROUP BY source, day ORDER BY source, day", [b.id])) {
 				const day = String(r.day);
 				const x = rows.get(String(r.source));
@@ -15906,7 +15568,7 @@ function searchService(env) {
 					firstDay: r?.first ?? null,
 					lastDay: r?.last ?? null,
 					holes: r?.holes ?? [],
-					perDay: r ? Math.ceil(r.n / daysBetween(r.first, r.last)) : PLANNING_ROWS_PER_DAY,
+					perDay: r ? Math.ceil(r.n / daysBetween(r.first, r.last)) : 500,
 					limitDays: PROVIDER_DAYS[id],
 					backfill: await backfillStatus(ctx.kv, b.id, id, now())
 				});
@@ -15925,7 +15587,7 @@ function searchService(env) {
 				sources,
 				budget,
 				provisional: {
-					from: addDays(t, -PROVISIONAL_DAYS),
+					from: addDays(t, -3),
 					to: addDays(t, -1)
 				}
 			};
@@ -16163,9 +15825,7 @@ function searchRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/tools.ts
+// src/routes/tools.ts
 /**
 * Admin tool routes, all `plugins:manage`: agent tester, channel
 * reclassification, rollup now, purge now, delete all data, filtered delete, void revenue. The agent API has no delete route.
@@ -16215,8 +15875,6 @@ const DeleteStartBody = z.object({
 	spec: DeleteSpecSchema,
 	confirm: z.string().min(1).max(32)
 }).strict();
-/** Sessions read per reclassify batch; a call runs at most four batches. */
-const RECLASSIFY_BATCH = 500;
 const RECLASSIFY_BATCHES = 4;
 const manage$1 = "plugins:manage";
 function toolRoutes(env) {
@@ -16277,10 +15935,11 @@ function toolRoutes(env) {
 	/** The job, the recent deletions and the job's daily rows on `small` (null: no daily cap). */
 	const deleteState = async (ctx, job) => ({
 		job: jobView(job),
-		log: await ctx.kv.get(KV_DELETE_LOG) ?? [],
+		log: await ctx.kv.get("delete:log") ?? [],
 		dayRows: (await env.settings()).capacityProfile === "small" ? DELETE_DAY_ROWS : null
 	});
 	return {
+		/** Read-only preview of a filtered delete: matches per day, top values, summary days, revenue and the rows it writes. */
 		"tools/delete-preview": {
 			permission: manage$1,
 			input: DeletePreviewBody,
@@ -16289,12 +15948,13 @@ function toolRoutes(env) {
 				return previewDelete(await deleteEnv(ctx, body.site), body.spec);
 			}
 		},
+		/** Start a filtered delete job (one at a time) after the confirmation, and run its first call. */
 		"tools/delete-start": {
 			permission: manage$1,
 			input: DeleteStartBody,
 			async handler(ctx) {
 				const body = DeleteStartBody.parse(ctx.input);
-				if (isActive(await ctx.kv.get(KV_DELETE_JOB))) throw new PluginRouteError("delete_running", "A delete is still running. Wait for it or cancel it first.", 409);
+				if (isActive(await ctx.kv.get("delete:job"))) throw new PluginRouteError("delete_running", "A delete is still running. Wait for it or cancel it first.", 409);
 				const e = await deleteEnv(ctx, body.site);
 				const p = await previewDelete(e, body.spec);
 				const visits = String(p.totals.visits);
@@ -16305,6 +15965,7 @@ function toolRoutes(env) {
 				return deleteState(ctx, await runJob(ctx, 20));
 			}
 		},
+		/** One more bounded call of the running delete job (the page calls it while open; the `retention` cron task otherwise). */
 		"tools/delete-run": {
 			permission: manage$1,
 			input: EmptyBody$1,
@@ -16312,6 +15973,7 @@ function toolRoutes(env) {
 				return deleteState(ctx, await runJob(ctx, 8));
 			}
 		},
+		/** Cancel the running job: no further visits are deleted; the days already touched get their summaries stored again. */
 		"tools/delete-cancel": {
 			permission: manage$1,
 			input: EmptyBody$1,
@@ -16322,6 +15984,7 @@ function toolRoutes(env) {
 				return deleteState(ctx, await runJob(ctx, 8));
 			}
 		},
+		/** The current or last job and the recent deletions, read only. */
 		"tools/delete-status": {
 			permission: manage$1,
 			input: EmptyBody$1,
@@ -16329,6 +15992,11 @@ function toolRoutes(env) {
 				return deleteState(ctx, await ctx.kv.get(KV_DELETE_JOB));
 			}
 		},
+		/**
+		* Void spoofed revenue of orders without an id (orders with an id are corrected or voided through
+		* `agent/v1/events`): without `confirm` it counts the matching hits, with `confirm: true` it sets
+		* `val` and `cur` to NULL on them. Raw window only; the `revenue` task's reconcile restates the day.
+		*/
 		"tools/revenue-void": {
 			permission: manage$1,
 			input: RevenueVoidBody,
@@ -16400,7 +16068,7 @@ function toolRoutes(env) {
 				for (let b = 0; b < RECLASSIFY_BATCHES && !done; b++) {
 					const rows = await db.all(`SELECT s.sid AS sid, s.day AS day, s.channel AS channel, s.source AS source, s.ref_host AS ref_host, ${UTM_KEYS.map((k) => `s.${k} AS ${k}`).join(", ")},
 (SELECT ${x.query} FROM ${entriesOf(db.dialect, "x")} WHERE ${x.pv} ORDER BY ${x.ts}, ${x.id} LIMIT 1) AS q
-FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid LIMIT ${RECLASSIFY_BATCH}`, [
+FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid LIMIT 500`, [
 						site,
 						visitDayKey(from),
 						cursor
@@ -16443,7 +16111,7 @@ FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid 
 						])) changed.add(isoDay(r.day));
 					}
 					if (rows.length) cursor = String(rows[rows.length - 1]?.sid);
-					done = rows.length < RECLASSIFY_BATCH;
+					done = rows.length < 500;
 				}
 				if (updated) clearReportCache();
 				const wm = await stateKv(ctx.kv, site).get(KV_WATERMARK);
@@ -16567,9 +16235,7 @@ FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid 
 		}
 	};
 }
-
-//#endregion
-//#region src/routes/move.ts
+// src/routes/move.ts
 /**
 * Data move routes, all `plugins:manage` like the delete tools: status, start, run (the page polls it while open),
 * pause, cancel, verify and drop-old-tables. The source is the EmDash database or a binding the admin types; the
@@ -16605,7 +16271,7 @@ function refuseWhileMoving(route) {
 	return {
 		...route,
 		async handler(ctx) {
-			if (isMoving(await ctx.kv.get(KV_MOVE_JOB))) throw new PluginRouteError("move_running", MOVING, 409);
+			if (isMoving(await ctx.kv.get("move:job"))) throw new PluginRouteError("move_running", MOVING, 409);
 			return route.handler(ctx);
 		}
 	};
@@ -16655,6 +16321,7 @@ function moveRoutes(env) {
 		return runMoveJob(await jobEnv(ctx), 0);
 	};
 	return {
+		/** The current or last move and the destination of the default site. */
 		"move/status": {
 			permission: manage,
 			input: EmptyBody,
@@ -16662,13 +16329,14 @@ function moveRoutes(env) {
 				return state(await current(ctx));
 			}
 		},
+		/** Start a move from `source` into the database of `site` (or the default one), then its first call. */
 		"move/start": {
 			permission: manage,
 			input: MoveStartBody,
 			async handler(ctx) {
 				const body = MoveStartBody.parse(ctx.input ?? {});
 				if (isMoving(await current(ctx))) throw new PluginRouteError("move_running", "A move is already running. Wait for it or cancel it first.", 409);
-				if (isActive(await ctx.kv.get(KV_DELETE_JOB))) throw new PluginRouteError("delete_running", "A delete is still running. Wait for it or cancel it first.", 409);
+				if (isActive(await ctx.kv.get("delete:job"))) throw new PluginRouteError("delete_running", "A delete is still running. Wait for it or cancel it first.", 409);
 				const s = await env.settings();
 				const site = body.site === void 0 ? void 0 : (await bindSite(body.site, s.siteId, ctx.storage?.sites)).id;
 				const dest = env.destBinding(site);
@@ -16695,6 +16363,7 @@ function moveRoutes(env) {
 				return state(await run(ctx, 30));
 			}
 		},
+		/** One more bounded call (the page calls it while open; the `move` cron task otherwise). */
 		"move/run": {
 			permission: manage,
 			input: EmptyBody,
@@ -16702,6 +16371,7 @@ function moveRoutes(env) {
 				return state(await run(ctx, 8));
 			}
 		},
+		/** Pause the running move (the tasks keep skipping its database), or resume it with `resume: true`. */
 		"move/pause": {
 			permission: manage,
 			input: MovePauseBody,
@@ -16724,6 +16394,10 @@ function moveRoutes(env) {
 				return state(await stop(ctx, job, "paused"));
 			}
 		},
+		/**
+		* Stop the move. Rows already copied stay. Starting again with the same source and site continues this job from
+		* its position; the counters of a pair already loaded are not added again (the ledger of `job.ts`).
+		*/
 		"move/cancel": {
 			permission: manage,
 			input: EmptyBody,
@@ -16745,6 +16419,7 @@ function moveRoutes(env) {
 				return state(j);
 			}
 		},
+		/** Compare both sides again per table, site and day (after the rollup restored the summaries, say). */
 		"move/verify": {
 			permission: manage,
 			input: EmptyBody,
@@ -16766,6 +16441,11 @@ function moveRoutes(env) {
 				return state(j);
 			}
 		},
+		/**
+		* The last step: drop the nine tables and `ca_meta` from the old database, once the check found nothing missing.
+		* When that is the EmDash database its schema version (host KV) goes too, so `ensureSchema` creates the tables
+		* again if a site writes there later.
+		*/
 		"move/drop-old-tables": {
 			permission: manage,
 			input: MoveDropBody,
@@ -16793,18 +16473,6 @@ function moveRoutes(env) {
 		}
 	};
 }
-
-//#endregion
-//#region src/multisite/proxy.ts
-/**
-* Remote satellite proxy: forwards a report body to the satellite's `agent/v1/query` (and the
-* All-sites row to its `agent/v1/summary`) through the host's `ctx.http`, which validates the target and
-* the target against `allowedHosts`; redirects are refused (`redirect: "error"`) so the key is never sent elsewhere. The key is read from
-* `process.env[keyEnv]` at call time and never returned, stored or logged.
-*/
-const REMOTE_TIMEOUT_MS = 8e3;
-const REMOTE_MAX_BYTES = 1048576;
-const REMOTE_CACHE_MS = 6e4;
 const CACHE_MAX = 200;
 const AGENT_BASE = `/_emdash/api/plugins/${PLUGIN_ID}/agent/v1`;
 const processEnv = () => typeof process !== "undefined" && process.env ? process.env : {};
@@ -16812,7 +16480,7 @@ function createRemote(sites, deps = {}) {
 	const byId = new Map(sites.map((s) => [s.id, s]));
 	const env = deps.env ?? processEnv;
 	const nowMs = deps.nowMs ?? Date.now;
-	const timeoutMs = deps.timeoutMs ?? REMOTE_TIMEOUT_MS;
+	const timeoutMs = deps.timeoutMs ?? 8e3;
 	const cache = /* @__PURE__ */ new Map();
 	const err = (status, reason) => ({
 		ok: false,
@@ -16828,7 +16496,7 @@ function createRemote(sites, deps = {}) {
 		if (!http) return err(0, "no_http");
 		const cacheKey = `${id}\n${init.method} ${path}\n${init.body ?? ""}`;
 		const hit = cache.get(cacheKey);
-		if (hit && nowMs() - hit.at < REMOTE_CACHE_MS) return hit.value;
+		if (hit && nowMs() - hit.at < 6e4) return hit.value;
 		const ac = new AbortController();
 		let timer;
 		const timeout = new Promise((resolve) => {
@@ -16858,10 +16526,10 @@ function createRemote(sites, deps = {}) {
 		}
 		if (res === "timeout") return err(504, "timeout");
 		if (res.status < 200 || res.status > 299) return err(res.status, "http");
-		if (Number(res.headers.get("content-length") ?? 0) > REMOTE_MAX_BYTES) return err(res.status, "too_large");
+		if (Number(res.headers.get("content-length") ?? 0) > 1048576) return err(res.status, "too_large");
 		const buf = await res.arrayBuffer().catch(() => null);
 		if (!buf) return err(502, "network");
-		if (buf.byteLength > REMOTE_MAX_BYTES) return err(res.status, "too_large");
+		if (buf.byteLength > 1048576) return err(res.status, "too_large");
 		let json;
 		try {
 			json = JSON.parse(new TextDecoder().decode(buf));
@@ -16884,10 +16552,12 @@ function createRemote(sites, deps = {}) {
 		sites,
 		find: (id) => id ? byId.get(id) : void 0,
 		ids: () => sites.map((s) => s.id),
+		/** Whether the key env var of a satellite is set; never its value. */
 		keyPresent: (id) => {
 			const s = byId.get(id);
 			return !!s && !!env()[s.keyEnv];
 		},
+		/** `agent/v1/query` with the body; `query.site` is left out so the satellite answers its own site. */
 		query(http, id, body) {
 			const { site: _s, ...query } = body.query;
 			return call(http, id, "query", {
@@ -16898,6 +16568,7 @@ function createRemote(sites, deps = {}) {
 				})
 			});
 		},
+		/** `agent/v1/summary` for a range and compare option. */
 		summary(http, id, p) {
 			return call(http, id, `summary?${new URLSearchParams({
 				from: p.from,
@@ -16908,8 +16579,6 @@ function createRemote(sites, deps = {}) {
 		clearCache: () => cache.clear()
 	};
 }
-/** All-sites summary: at most this many satellites are fetched per page, three at a time. */
-const SITES_SUMMARY_MAX_REMOTE = 10;
 const SUMMARY_CONCURRENCY = 3;
 const ROW_METRICS = [
 	"sessions",
@@ -16934,7 +16603,7 @@ const revenueOf = (v) => (Array.isArray(v) ? v : []).flatMap((e) => e && typeof 
 * never a failed page. `skip` holds ids that resolve to a site of this database.
 */
 async function remoteSummaryRows(remote, http, body, skip = /* @__PURE__ */ new Set()) {
-	const list = remote.sites.filter((s) => !skip.has(s.id)).slice(0, SITES_SUMMARY_MAX_REMOTE);
+	const list = remote.sites.filter((s) => !skip.has(s.id)).slice(0, 10);
 	const out = [];
 	let next = 0;
 	const worker = async () => {
@@ -16977,6 +16646,648 @@ async function remoteSummaryRows(remote, http, body, skip = /* @__PURE__ */ new 
 	await Promise.all(Array.from({ length: Math.min(SUMMARY_CONCURRENCY, list.length) }, worker));
 	return out;
 }
-
-//#endregion
-export { MOVE_CRON as A, dataQueryRoute as B, annotate as C, agentRoutes as D, createRateLimiter as E, KV_PLATFORM_LIMIT as F, inRoute as I, platformLimitKind as L, openBinding as M, runMoveJob as N, runDeleteJob as O, privacyRoute as P, dataCatalogRoute as R, runSearchTick as S, pageFragments as T, loadGoals as V, runMailTick as _, toolRoutes as a, previewRoute as b, settingsRoutes as c, sessionRoute as d, keyRoutes as f, mailDeps as g, dashboardRoutes as h, refuseWhileMoving as i, isMoving as j, KV_MOVE_JOB as k, shareRoutes as l, siteRoutes as m, remoteSummaryRows as n, searchRoutes as o, MCP_TOOLS as p, moveRoutes as r, searchService as s, createRemote as t, shareViewRoute as u, contractRoute as v, configRoutes as w, CONTINUE_JOBS as x, editorRoutes as y, dataExportRoute as z };
+// src/index.ts
+/** Plugin descriptor (for `emdash({ plugins: [...] })`) and the native runtime `createPlugin`. */
+const PACKAGE = "@infinitnet/cookieless-analytics";
+/** Capabilities: the head script via `page:fragments`, content reads for annotations, scheduled dashboard email through the host provider, schema reads for the collection report, outbound calls to the Search providers. */
+const CAPABILITIES = [
+	"hooks.page-fragments:register",
+	"content:read",
+	"email:send",
+	"network:request",
+	"schema:read"
+];
+/** Exact hosts `ctx.http` may reach for Search; never a wildcard. Remote satellites add their hostnames. */
+const ALLOWED_HOSTS = [
+	"oauth2.googleapis.com",
+	"www.googleapis.com",
+	"ssl.bing.com",
+	"www.bing.com"
+];
+/** Config collections. Composite indexes are runtime-only; the descriptor carries flat ones. */
+const STORAGE = {
+	goals: { indexes: ["site", ["site", "active"]] },
+	funnels: { indexes: ["site"] },
+	segments: { indexes: ["site"] },
+	channel_rules: { indexes: ["site", ["site", "priority"]] },
+	agent_rules: { indexes: ["site", ["site", "priority"]] },
+	annotations: { indexes: [
+		"site",
+		"ts",
+		["site", "ts"]
+	] },
+	api_keys: { indexes: ["prefix"] },
+	sites: { indexes: ["key"] },
+	dashboards: { indexes: ["site", "emailNext"] },
+	shares: { indexes: ["prefix", "site"] }
+};
+/**
+* Admin pages; each path is a key of `pages` in `src/admin/index.tsx`. Icon names resolve in the host nav icon map.
+* `group` puts the eleven pages in one sidebar folder "Analytics".
+*/
+const ADMIN_PAGES = [
+	{
+		path: "/",
+		label: "Overview",
+		icon: "chart-line",
+		group: "Analytics"
+	},
+	{
+		path: "/dashboards",
+		label: "Dashboards",
+		icon: "dashboard",
+		group: "Analytics"
+	},
+	{
+		path: "/pages",
+		label: "Pages",
+		icon: "file",
+		group: "Analytics"
+	},
+	{
+		path: "/satisfaction",
+		label: "Search Satisfaction",
+		icon: "star",
+		group: "Analytics"
+	},
+	{
+		path: "/sources",
+		label: "Sources",
+		icon: "link",
+		group: "Analytics"
+	},
+	{
+		path: "/audience",
+		label: "Audience",
+		icon: "users",
+		group: "Analytics"
+	},
+	{
+		path: "/behaviour",
+		label: "Behaviour",
+		icon: "list",
+		group: "Analytics"
+	},
+	{
+		path: "/revenue",
+		label: "Revenue",
+		icon: "coins",
+		group: "Analytics"
+	},
+	{
+		path: "/links",
+		label: "Links",
+		icon: "tag",
+		group: "Analytics"
+	},
+	{
+		path: "/annotations",
+		label: "Annotations",
+		icon: "calendar",
+		group: "Analytics"
+	},
+	{
+		path: "/search",
+		label: "Search",
+		icon: "search",
+		group: "Analytics"
+	},
+	{
+		path: "/config",
+		label: "Definitions",
+		icon: "book",
+		group: "Analytics"
+	},
+	{
+		path: "/data",
+		label: "Data",
+		icon: "database",
+		group: "Analytics"
+	},
+	{
+		path: "/settings",
+		label: "Settings",
+		icon: "settings",
+		group: "Analytics"
+	}
+];
+/** Dashboard widgets; ids match the `widgets` map of the admin entry. */
+const ADMIN_WIDGETS = [{
+	id: "today",
+	title: "Cookieless Analytics",
+	size: "third"
+}];
+/**
+* Product labels where the host shows no plugin name. `displayName` and `description` are typed on
+* the descriptor and on `definePlugin` from EmDash 1.5.0; 1.4.0 ignores them (docs/design-notes.md).
+*/
+const PLUGIN_LABELS = {
+	displayName: PRODUCT_NAME,
+	description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS that stores real sessions in your own database with a page script of about 2.5 KB gzipped."
+};
+/**
+* `options.sites`: remote satellites; `options.database`: the D1 or Hyperdrive binding of an own analytics database;
+* `options.databases`: site routing, each listed site's analytics tables in its own binding. `engine: "postgres"`
+* in either loads the runtime entry `/postgres`, the one that carries the node-postgres driver.
+* Validated here so a bad `astro.config` fails the build.
+*/
+function cookielessAnalytics(options = {}) {
+	const { sites, database, databases } = parseOptions(options);
+	return {
+		id: PLUGIN_ID,
+		...PLUGIN_LABELS,
+		version: VERSION,
+		format: "native",
+		entrypoint: engineOf({
+			database,
+			databases
+		}) === "postgres" ? `${PACKAGE}/postgres` : PACKAGE,
+		adminEntry: `${PACKAGE}/admin`,
+		adminPages: [...ADMIN_PAGES],
+		adminWidgets: [...ADMIN_WIDGETS],
+		capabilities: [...CAPABILITIES],
+		allowedHosts: allowedHostsFor(ALLOWED_HOSTS, sites),
+		...sites.length || database || databases ? { options: {
+			...sites.length ? { sites } : {},
+			...database ? { database } : {},
+			...databases ? { databases } : {}
+		} } : {},
+		storage: Object.fromEntries(Object.entries(STORAGE).map(([name, c]) => [name, { indexes: c.indexes.flatMap((i) => typeof i === "string" ? [i] : []) }])),
+		settingsSchema
+	};
+}
+const settings = cachedSettings(() => getPluginSettings(PLUGIN_ID));
+let agentRules;
+async function loadAgentRules(ctx) {
+	if (agentRules && Date.now() - agentRules.at < 6e4) return agentRules.rules;
+	let rules = [];
+	try {
+		let cursor;
+		do {
+			const res = await ctx.storage.agent_rules?.query({
+				limit: 100,
+				...cursor ? { cursor } : {}
+			});
+			rules.push(...(res?.items ?? []).map((i) => i.data));
+			cursor = res?.hasMore ? res.cursor : void 0;
+		} while (cursor && rules.length < 500);
+	} catch {
+		rules = agentRules?.rules ?? [];
+	}
+	agentRules = {
+		rules,
+		at: Date.now()
+	};
+	return rules;
+}
+const channelRules = /* @__PURE__ */ new Map();
+/** User channel rules of one site merged with the built-ins minus the disabled ones; local site when none is given. */
+async function loadChannelRules(ctx, site) {
+	const siteId = site ?? (await settings()).siteId;
+	const cached = channelRules.get(siteId);
+	if (cached && Date.now() - cached.at < 6e4) return cached.rules;
+	let rules = cached?.rules ?? buildChannelRules();
+	try {
+		const items = ((await ctx.storage.channel_rules?.query({
+			where: { site: siteId },
+			limit: 100
+		}))?.items ?? []).map((i) => i.data);
+		const user = items.flatMap((r, n) => r.channel && r.any && r.enabled !== false ? [{
+			id: `user-${n + 1}`,
+			channel: r.channel,
+			any: r.any,
+			priority: r.priority ?? 0
+		}] : []);
+		rules = buildChannelRules(user, items.flatMap((r) => r.disables ? [r.disables] : []));
+	} catch {}
+	channelRules.set(siteId, {
+		rules,
+		at: Date.now()
+	});
+	return rules;
+}
+/** Cron jobs and their schedules. The host Cron Trigger cadence bounds how often they run. */
+const CRON_JOBS = {
+	rollup: "*/30 * * * *",
+	retention: "17 * * * *",
+	salts: "5 0 * * *",
+	search: "7 */1 * * *",
+	revenue: "25,55 * * * *",
+	mail: "15,35,45 * * * *"
+};
+/** The `cron` hook timeout; the host default is 5000 ms (`plugins/define-plugin.ts`). */
+const CRON_TIMEOUT_MS = 55e3;
+/**
+* Tasks that spend a request budget. The host runs every due task of a tick in one invocation, one after another,
+* and the platform's queries per invocation (Workers Free: 50) are shared by all of them; so one invocation runs at
+* most one of these. With a per-minute trigger the schedules never make two of them due together; with a coarser one
+* (`*\/15`), a task that finds the invocation taken is owed a turn (`cron:owed`), and the next invocation's task
+* hands its turn to the task owed longest, in order. `salts` (KV only) always runs.
+*/
+const HEAVY_JOBS = /* @__PURE__ */ new Set([
+	"rollup",
+	"retention",
+	"revenue",
+	"search",
+	"mail",
+	MOVE_CRON,
+	...CONTINUE_JOBS
+]);
+const KV_CRON_OWED = "cron:owed";
+/** A heavy task that starts this soon after the last one ended runs in the same invocation (tasks of a tick follow each other at once; ticks are a minute apart). */
+const SAME_INVOCATION_MS = 5e3;
+/** Turn state requests per heavy run: the owed read and, when it changed, its write. Taken from the run's budget. */
+const TURN_REQUESTS = 2;
+/** `cron` hook body: one handler per job name; unknown names are logged and ignored. */
+function cronDispatcher(handlers) {
+	return async (event, ctx) => {
+		if (!(Object.hasOwn(handlers, event.name) ? handlers[event.name] : void 0)) {
+			ctx.log.warn(`cookieless-analytics: unknown cron job ${event.name}`);
+			return;
+		}
+		if (pendingLimit) await ctx.kv.set(KV_PLATFORM_LIMIT, pendingLimit).then(() => pendingLimit = void 0, () => {});
+		let name = event.name;
+		if (HEAVY_JOBS.has(name)) {
+			const now = Date.now();
+			if (now - heavyEnd < 5e3) {
+				if (owed && !owed[name]) {
+					owed[name] = now;
+					await ctx.kv.set(KV_CRON_OWED, owed).catch(() => {});
+				}
+				return;
+			}
+			owed = await ctx.kv.get("cron:owed").catch(() => null) ?? {};
+			const first = Object.entries(owed).filter(([k]) => Object.hasOwn(handlers, k)).sort((a, b) => a[1] - b[1])[0];
+			if (first && first[0] !== name) {
+				owed[name] ??= now;
+				name = first[0];
+			}
+			const changed = name in owed;
+			delete owed[name];
+			if (changed) await ctx.kv.set(KV_CRON_OWED, owed).catch(() => {});
+		}
+		try {
+			await handlers[name](ctx, name === event.name ? event : {
+				...event,
+				name
+			});
+		} catch (err) {
+			const kind = platformLimitKind(err);
+			if (kind) {
+				pendingLimit = {
+					at: Date.now(),
+					task: name,
+					kind
+				};
+				await ctx.kv.set(KV_PLATFORM_LIMIT, pendingLimit).then(() => pendingLimit = void 0, () => {});
+			}
+			throw err;
+		} finally {
+			if (HEAVY_JOBS.has(name)) heavyEnd = Date.now();
+		}
+	};
+}
+let pendingLimit;
+let heavyEnd = 0;
+let owed;
+/** Forget the turn state of this isolate (tests). */
+function resetCronTurns() {
+	heavyEnd = 0;
+	owed = void 0;
+}
+/** Tools refused while a data move is active: they delete rows or close days. */
+const MOVE_REFUSES = /* @__PURE__ */ new Set([
+	"tools/delete-start",
+	"tools/delete-all",
+	"tools/purge-site",
+	"tools/purge-search",
+	"tools/purge",
+	"tools/rollup-now",
+	"tools/revenue-void",
+	"sites/delete"
+]);
+/** Create missing or changed schedule rows. `plugin:activate` runs only on first install, so admin routes also call this once per isolate. */
+async function ensureCron(ctx) {
+	if (!ctx.cron) return;
+	const have = new Map((await ctx.cron.list()).map((t) => [t.name, t.schedule]));
+	for (const [name, schedule] of Object.entries(CRON_JOBS)) if (have.get(name) !== schedule) await ctx.cron.schedule(name, { schedule });
+}
+let cronChecked;
+const ensureCronOnce = (ctx) => cronChecked ??= ensureCron(ctx).catch(() => {
+	cronChecked = void 0;
+});
+function createPlugin(options = {}) {
+	const { sites: remoteSites, database, databases } = parseOptions(options);
+	const dbFor = setPluginFacts(factsDb(databases ?? database, async () => fromKysely(await getDb())));
+	drops.route = dbFor.targets().length > 1 ? dbFor : void 0;
+	const remote = createRemote(remoteSites);
+	const remoteIds = remote.ids;
+	const env = {
+		async deps(ctx) {
+			const s = await settings();
+			return {
+				db: await dbFor(s.siteId),
+				kv: ctx.kv,
+				settings: s,
+				sink: routedSink(dbFor, s, ctx.kv),
+				agentRules: await loadAgentRules(ctx),
+				channelRules: await loadChannelRules(ctx),
+				ready: () => ensureHostSchema(dbFor, ctx.kv)
+			};
+		},
+		channelRules: (ctx, site) => loadChannelRules(ctx, site),
+		after: (fn) => after(async () => {
+			await pgOwnScope(fn);
+		})
+	};
+	const db = (site) => dbFor(site);
+	const now = () => Math.floor(Date.now() / 1e3);
+	const goalsOf = async (ctx, site) => loadGoals(ctx.storage.goals, site ?? (await settings()).siteId);
+	const dataQuery = dataQueryRoute({
+		db,
+		settings,
+		remote
+	});
+	const dataExport = dataExportRoute({
+		db,
+		settings,
+		remote
+	});
+	const privacy = privacyRoute({
+		db,
+		settings
+	});
+	const preview = previewRoute({
+		db,
+		settings
+	});
+	const tools = toolRoutes({
+		db,
+		settings,
+		agentRules: (ctx) => loadAgentRules(ctx),
+		channelRules: (ctx, site) => loadChannelRules(ctx, site),
+		goals: (ctx, site) => goalsOf(ctx, site)
+	});
+	const config = configRoutes({
+		settings,
+		changed: (c) => {
+			if (c === "agent_rules") {
+				agentRules = void 0;
+				resetStoredAgentRules();
+			}
+			if (c === "channel_rules") channelRules.clear();
+		}
+	});
+	/** Host route: ensures the cron rows once per isolate, then calls the handler with the host context. */
+	const wrap = (r) => ({
+		...r,
+		handler: async (ctx) => {
+			await ensureCronOnce(ctx);
+			return r.handler(ctx);
+		}
+	});
+	const mailOf = async (ctx) => mailDeps({
+		db,
+		settings
+	}, {
+		input: null,
+		storage: ctx.storage,
+		kv: ctx.kv
+	}, await settings(), ctx.site?.url ?? "");
+	const dashboards = dashboardRoutes({
+		settings,
+		config,
+		remoteIds,
+		mail: (ctx) => mailOf(ctx)
+	});
+	const shares = shareRoutes({
+		settings,
+		remoteIds
+	});
+	const shareView = shareViewRoute({
+		db,
+		settings,
+		after: env.after
+	});
+	const keys = keyRoutes({ settings });
+	const searchEnv = {
+		db,
+		settings,
+		settingsChanged: () => settings.clear()
+	};
+	const search = searchService(searchEnv);
+	const agent = agentRoutes({
+		db,
+		settings,
+		version: VERSION,
+		limiter: createRateLimiter(),
+		remoteIds,
+		route: dbFor,
+		search: {
+			sync: (ctx, body) => search.sync(ctx, body),
+			backfill: (ctx, body) => search.backfill(ctx, body)
+		}
+	});
+	/** The data move's job while it is active: the tasks skip its destination, the delete tools refuse. */
+	const moving = async (kv) => {
+		const j = await kv.get(KV_MOVE_JOB);
+		return isMoving(j) ? j : null;
+	};
+	/** Where a data move reads and writes: the source is the EmDash database (null) or a binding of this Worker. */
+	const moveDbs = {
+		source: async (b) => b === null ? fromKysely(await getDb()) : openBinding(b),
+		dest: (site) => dbFor(site),
+		destKv: (kv, site) => dbFor.kv(kv, site)
+	};
+	/** Cron sync tick; without outbound HTTP (no `network:request`) there is nothing to pull. */
+	const searchTick = (continueAs) => async (ctx) => {
+		if (!ctx.http) return;
+		if (await moving(ctx.kv)) return;
+		await ensureHostSchema(dbFor, ctx.kv);
+		await runSearchTick({
+			...await search.syncCtx(ctx),
+			log: ctx.log
+		}, { continueAs });
+	};
+	/** A cron task once per database, each with its share of the profile's requests (one invocation's queries are capped together). */
+	const perDatabase = async (ctx, s, task) => {
+		const move = await moving(ctx.kv);
+		return eachTarget(dbFor, ctx.kv, async (d, kv, share, binding) => {
+			if (move && move.dest === binding) return;
+			await ensureSchemaOnce(d, ctx.kv);
+			await task(d, kv, share(PROFILES[s.capacityProfile].requests - 2 - 1));
+		}, ctx.log);
+	};
+	const cron = cronDispatcher({
+		async rollup(ctx) {
+			const s = await settings();
+			await perDatabase(ctx, s, (d, kv, requests) => runRollup({
+				db: d,
+				settings: s,
+				goals: (site) => goalsOf(ctx, site)
+			}, kv, now(), { requests }));
+		},
+		async retention(ctx) {
+			const s = await settings();
+			let used = 0;
+			await perDatabase(ctx, s, async (d, kv, requests) => {
+				used += (await runRetention(d, kv, s, now(), { requests })).requests;
+			});
+			await runDeleteJob({
+				kv: ctx.kv,
+				db,
+				settings: s,
+				goals: (site) => goalsOf(ctx, site),
+				now: now()
+			}, PROFILES[s.capacityProfile].requests - 2 - used);
+		},
+		async revenue(ctx) {
+			const s = await settings();
+			await perDatabase(ctx, s, async (d, kv, requests) => {
+				const t = now();
+				await runRevenue({
+					db: d,
+					settings: s,
+					goals: (site) => goalsOf(ctx, site)
+				}, kv, t, await rawFromDay(kv, s, t), { requests });
+			});
+		},
+		salts: async (ctx) => cleanSalts(ctx.kv, await settings(), now()),
+		async mail(ctx) {
+			if (!ctx.email || !ctx.storage.dashboards) return;
+			await ensureHostSchema(dbFor, ctx.kv);
+			const res = await runMailTick({
+				...await mailOf(ctx),
+				kv: ctx.kv,
+				dashboards: ctx.storage.dashboards,
+				email: ctx.email,
+				now: now(),
+				log: ctx.log
+			});
+			if (res.failed.length) ctx.log.warn(`cookieless-analytics: mail ${res.id} failed for ${res.failed.length} recipient(s)`);
+		},
+		async move(ctx) {
+			const s = await settings();
+			await runMoveJob({
+				kv: ctx.kv,
+				...moveDbs,
+				source: async (b) => await moveDbs.source(b) ?? missingDb(b ?? ""),
+				profile: s.capacityProfile,
+				settings: s,
+				now: now(),
+				cron: ctx.cron
+			}, PROFILES[s.capacityProfile].requests - 2);
+		},
+		search: searchTick(CONTINUE_JOBS[0]),
+		"search-continue": searchTick(CONTINUE_JOBS[1]),
+		"search-continue-next": searchTick(CONTINUE_JOBS[0])
+	});
+	return scoped(definePlugin({
+		id: PLUGIN_ID,
+		...PLUGIN_LABELS,
+		version: VERSION,
+		capabilities: [...CAPABILITIES],
+		allowedHosts: allowedHostsFor(ALLOWED_HOSTS, remoteSites),
+		storage: STORAGE,
+		admin: {
+			entry: `${PACKAGE}/admin`,
+			settingsSchema,
+			pages: [...ADMIN_PAGES],
+			widgets: [...ADMIN_WIDGETS]
+		},
+		routes: {
+			in: inRoute(env),
+			session: sessionRoute(env),
+			contract: contractRoute(env),
+			[ROUTES.shareView]: {
+				...shareView,
+				handler: (ctx) => shareView.handler(ctx)
+			},
+			"data/query": wrap(dataQuery),
+			"data/export": wrap(dataExport),
+			"data/catalog": wrap(dataCatalogRoute()),
+			"privacy/receipt": wrap(privacy),
+			"annotations/preview": wrap(preview),
+			"editor/traffic": wrap(editorRoutes({
+				db,
+				settings
+			})["editor/traffic"]),
+			...Object.fromEntries(Object.entries(siteRoutes({
+				settings,
+				db,
+				remoteIds,
+				remoteSites: () => remoteSites.map((r) => ({
+					id: r.id,
+					label: r.label,
+					origin: r.origin,
+					keyPresent: remote.keyPresent(r.id)
+				})),
+				remoteRows: (body, ctx, skip) => remoteSummaryRows(remote, ctx.http, body, skip)
+			})).map(([name, r]) => [name, wrap(MOVE_REFUSES.has(name) ? refuseWhileMoving(r) : r)])),
+			...Object.fromEntries(Object.entries(config).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(tools).map(([name, r]) => [name, wrap(MOVE_REFUSES.has(name) ? refuseWhileMoving(r) : r)])),
+			...Object.fromEntries(Object.entries(moveRoutes({
+				settings,
+				...moveDbs,
+				destBinding: (site) => dbFor.binding(site) ?? dbFor.targets()[0]?.binding ?? null,
+				targets: () => dbFor.targets().map((t) => t.binding)
+			})).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(searchRoutes(searchEnv)).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(keys).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(settingsRoutes({
+				settings,
+				settingsChanged: () => settings.clear()
+			})).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(dashboards).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(shares).map(([name, r]) => [name, wrap(r)])),
+			...Object.fromEntries(Object.entries(agent).map(([name, r]) => [name, {
+				...r,
+				handler: (ctx) => r.handler(ctx)
+			}]))
+		},
+		mcp: { tools: MCP_TOOLS },
+		hooks: {
+			"plugin:activate": async (_event, ctx) => {
+				try {
+					await eachTarget(dbFor, ctx.kv, (d) => ensureSchema(d, ctx.kv), ctx.log);
+				} finally {
+					await ensureCron(ctx);
+				}
+			},
+			cron: {
+				handler: async (event, ctx) => {
+					try {
+						await cron(event, ctx);
+					} finally {
+						if (drops.size) await db().then((d) => drops.flush(d)).catch(() => {});
+					}
+				},
+				timeout: CRON_TIMEOUT_MS
+			},
+			"page:fragments": async (_event, ctx) => pageFragments(await settings(), ctx.kv),
+			"content:afterPublish": async (event, ctx) => annotate(ctx, "publish", event.content, event.collection, await settings()),
+			"content:afterSave": async (event, ctx) => {
+				if (!event.isNew && event.content.status === "published") await annotate(ctx, "update", event.content, event.collection, await settings());
+			}
+		}
+	}));
+}
+/**
+* Every route and hook handler of `plugin` in one Postgres request scope: one client per binding, closed when the
+* handler ends; a nested scope (a route called by the middleware) reuses it. Without Postgres it costs one `run`.
+*/
+function scoped(plugin) {
+	const each = (o) => Object.fromEntries(Object.entries(o).map(([name, r]) => {
+		const h = r?.handler;
+		return [name, typeof h === "function" ? {
+			...r,
+			handler: (...a) => pgScope(() => h(...a))
+		} : r];
+	}));
+	return {
+		...plugin,
+		routes: each(plugin.routes),
+		hooks: each(plugin.hooks)
+	};
+}
+export { resetCronTurns as _, CRON_JOBS as a, KV_CRON_OWED as c, STORAGE as d, TURN_REQUESTS as f, ensureCron as g, cronDispatcher as h, CAPABILITIES as i, PLUGIN_LABELS as l, createPlugin as m, ADMIN_WIDGETS as n, CRON_TIMEOUT_MS as o, cookielessAnalytics as p, ALLOWED_HOSTS as r, HEAVY_JOBS as s, ADMIN_PAGES as t, SAME_INVOCATION_MS as u };

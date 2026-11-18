@@ -1,32 +1,24 @@
 version: 2
 updates:
+  # One entry for the whole pnpm workspace (the plugin and packages/companion): the root owns the single lockfile,
+  # so a separate entry for the package would bump its manifest without the lockfile and fail the frozen install.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
     # The dev copy of emdash stays on the peer floor 1.4.0 that CI checks; raise it by hand with the peer range.
+    # TypeScript 7 has no programmatic compiler API; scripts/check-panel-types.mjs and one test use it, so the major waits for a migration.
     ignore:
       - dependency-name: emdash
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     groups:
       # Minor and patch updates in one weekly pull request; each major gets its own.
       npm-minor-and-patch:
         applies-to: version-updates
         update-types: [minor, patch]
       npm-security:
-        applies-to: security-updates
-        update-types: [minor, patch]
-  # The registry companion: its own importer in the root lockfile, exact pins kept as written.
-  - package-ecosystem: npm
-    directory: /packages/companion
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
-    groups:
-      companion-minor-and-patch:
-        applies-to: version-updates
-        update-types: [minor, patch]
-      companion-security:
         applies-to: security-updates
         update-types: [minor, patch]
   - package-ecosystem: github-actions

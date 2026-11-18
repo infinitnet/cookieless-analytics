@@ -1,0 +1,67 @@
+name: EmDash latest
+
+# CI tests the plugin against the lowest EmDash it supports (the 1.4.0 peer floor). This workflow tests it against the
+# newest release of EmDash, once a week and on demand, and opens one issue when that stops working.
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: emdash-latest
+  cancel-in-progress: false
+
+jobs:
+  latest:
+    name: Typecheck and tests on the newest EmDash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The newest emdash goes into node_modules only. The manifest and lockfile are restored afterwards, so the
+      # checks that pin the 1.4.0 floor in them keep describing the repository, and what runs is the code against the new host.
+      - name: Install the newest emdash
+        id: emdash
+        run: |
+          latest="$(npm view emdash version)"
+          pnpm add -w -D "emdash@${latest}" --config.minimumReleaseAge=0
+          git checkout -- package.json pnpm-lock.yaml pnpm-workspace.yaml
+          echo "version=${latest}" >> "$GITHUB_OUTPUT"
+          echo "Tested against emdash ${latest}" >> "$GITHUB_STEP_SUMMARY"
+      - name: Typecheck (five projects and the panel types)
+        run: pnpm typecheck
+      - run: pnpm test
+      - name: Open or update the issue on a failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Compatibility check failed on the newest EmDash"
+          body="The weekly check against emdash ${{ steps.emdash.outputs.version }} failed: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          number="$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq '.[0].number')"
+          if [ -n "${number}" ]; then
+            gh issue comment "${number}" --body "${body}"
+          else
+            gh issue create --title "${title}" --body "${body}"
+          fi
+      - name: Close the issue when it passes again
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Compatibility check failed on the newest EmDash"
+          number="$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq '.[0].number')"
+          if [ -n "${number}" ]; then
+            gh issue close "${number}" --comment "Passing again on emdash ${{ steps.emdash.outputs.version }}."
+          fi

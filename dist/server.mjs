@@ -1,7 +1,6 @@
 import { PLUGIN_ID, ROUTES } from "./contract.mjs";
 import { getPublicPluginApiRouteHandler } from "emdash/plugin-utils";
-
-//#region src/server.ts
+// src/server.ts
 /**
 * In-process helper for other plugins and site code on the same EmDash install:
 * `recordEvent(locals, event, request)` posts one event body to this plugin's `in` route through the
@@ -54,6 +53,4 @@ async function recordEvent(locals, event, request) {
 		return { ok: false };
 	}
 }
-
-//#endregion
 export { recordEvent };

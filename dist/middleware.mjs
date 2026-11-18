@@ -1,11 +1,9 @@
 import { PLUGIN_ID } from "./contract.mjs";
-import { Lt as ensureHostSchema, Vt as pluginFacts, Zt as pgOwnScope, b as linkedHostsOf, ln as fromKysely, o as routedSink } from "./queue-sink-BOtlgr5B.mjs";
-import { Fn as likeEscape, rn as cachedSettings } from "./rollup-DahnNaAs.mjs";
-import { E as recordServerHit, c as storedAgentRules, n as handleRequest, t as MW_SEEN_KEY } from "./middleware-core-DwvXAIlw.mjs";
+import { c as storedAgentRules, m as recordServerHit, n as handleRequest, t as MW_SEEN_KEY } from "./middleware-core-q85kV3_A.mjs";
+import { Br as pluginFacts, Ir as ensureHostSchema, Xr as pgOwnScope, bi as likeEscape, ci as fromKysely, fr as cachedSettings, o as routedSink, v as linkedHostsOf } from "./queue-sink-CsXeLpUE.mjs";
 import { after, getPluginSettings } from "emdash";
 import { getDb } from "emdash/runtime";
-
-//#region src/db/options-kv.ts
+// src/db/options-kv.ts
 /**
 * `ctx.kv` replacement for code without a plugin context (the middleware). Reads and writes the
 * host `options` table with the same `plugin:<id>:<key>` names and JSON values the host KV uses
@@ -51,9 +49,7 @@ function optionsKv(db, pluginId) {
 		}
 	};
 }
-
-//#endregion
-//#region src/middleware.ts
+// src/middleware.ts
 const settings = cachedSettings(() => getPluginSettings(PLUGIN_ID));
 /** The site's analytics tables (`createPlugin`'s resolver) and the plugin's KV on the host database. */
 async function store(site) {
@@ -86,6 +82,4 @@ const onRequest = (context, next) => handleRequest(context, next, {
 		await optionsKv(fromKysely(await getDb()), PLUGIN_ID).set(MW_SEEN_KEY, Date.now());
 	})
 });
-
-//#endregion
 export { onRequest };

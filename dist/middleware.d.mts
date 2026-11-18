@@ -1,6 +1,3 @@
+/** Astro middleware entry, registered by `./integration` with `order: "pre"` after `emdash()`. */
 import { MiddlewareHandler } from "astro";
-
-//#region src/middleware.d.ts
-declare const onRequest: MiddlewareHandler;
-//#endregion
-export { onRequest };
+export declare const onRequest: MiddlewareHandler;

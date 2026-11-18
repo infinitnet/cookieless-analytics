@@ -1,8 +1,6 @@
-import { E as drops, Rt as factsDb, a as queueBinding, dn as fromD1, n as QUEUE_BINDING, r as consumeBatch, s as visitorGroups, t as ORPHAN_ATTEMPTS } from "./queue-sink-BOtlgr5B.mjs";
-import "./rollup-DahnNaAs.mjs";
-import { i as parseOptions } from "./config-D7Pvk1K6.mjs";
-
-//#region src/queue.ts
+import { Lr as factsDb, a as queueBinding, n as QUEUE_BINDING, r as consumeBatch, s as visitorGroups, t as ORPHAN_ATTEMPTS, ui as fromD1, w as drops } from "./queue-sink-CsXeLpUE.mjs";
+import { i as parseOptions } from "./config-C42AfJsx.mjs";
+// src/queue.ts
 /**
 * Entry of the queue consumer Worker (`consumer/` in the repository): applies queued page views, events and
 * engagement updates to the D1 database with the plugin's own statements, so the tables equal the direct path.
@@ -27,6 +25,4 @@ async function handleQueue(batch, env, options = {}) {
 }
 /** shortcut: keyed by env alone, so one consumer Worker passes one option, as the README says. */
 const resolvers = /* @__PURE__ */ new WeakMap();
-
-//#endregion
 export { ORPHAN_ATTEMPTS, QUEUE_BINDING, consumeBatch, fromD1, handleQueue, queueBinding, visitorGroups };

@@ -1,6 +1,5 @@
 import { PLUGIN_ID } from "./contract.mjs";
-
-//#region src/integration.ts
+// src/integration.ts
 /**
 * Astro integration: registers the middleware that serves the page script and the neutral event
 * path. Add it after `emdash()` in `integrations`.
@@ -16,6 +15,4 @@ function cookielessAnalyticsIntegration() {
 		} }
 	};
 }
-
-//#endregion
 export { cookielessAnalyticsIntegration as default };

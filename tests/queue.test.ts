@@ -341,7 +341,9 @@ describe("queue tier: producer", () => {
 		const out = execFileSync(process.execPath, ["--input-type=module", "-e", script], { encoding: "utf8" });
 		expect(JSON.parse(out.trim())).toEqual([null, "function", "function"]);
 		// The build keeps the dynamic import of the Workers module, unresolved, for the Workers runtime to provide.
-		const chunks = readdirSync("dist").filter((f) => f.endsWith(".mjs") && readFileSync(`dist/${f}`, "utf8").includes('import("cloudflare:workers")'));
+		// Whatever the bundler's line breaks and comments: `import(` then the module name as a string, then `)`.
+		const unresolved = /import\(\s*(?:\/\*[\s\S]*?\*\/\s*)?["']cloudflare:workers["']\s*\)/;
+		const chunks = readdirSync("dist").filter((f) => f.endsWith(".mjs") && unresolved.test(readFileSync(`dist/${f}`, "utf8")));
 		expect(chunks).toHaveLength(1);
 	});
 });

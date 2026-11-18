@@ -1,7 +1,5 @@
-import { t as __exportAll } from "./rolldown-runtime-95iHPtFO.mjs";
-import { $ as planRows, B as bucketSeries, Cn as dayInt, Ct as and, Dt as entryCols, G as FILTER_DIMS, K as SEGMENTS, Q as planFilters, St as TRUE, V as resolveGranularity, X as matchKey, _t as sessionMetrics, a as OTHER, dt as liveVisits, et as readSummary, ft as num, gt as sessionBreakdown, ht as round, lt as hitJoin, ot as annotationsIn, pt as ratio, ut as keysIn, vt as sessionTotals, xt as QueryError, yt as sessionWhere } from "./rollup-DahnNaAs.mjs";
-
-//#region src/query/reports/overview.ts
+import { Bt as SEGMENTS, Ft as resolveGranularity, Jt as readSummary, Ki as __exportAll, Kt as planFilters, Pt as bucketSeries, Wt as matchKey, _n as and, an as liveVisits, dn as sessionMetrics, en as annotationsIn, fn as sessionTotals, gn as TRUE, hn as QueryError, in as keysIn, it as OTHER, ln as round, mi as dayInt, on as num, pn as sessionWhere, qt as planRows, rn as hitJoin, sn as ratio, un as sessionBreakdown, xn as entryCols, zt as FILTER_DIMS } from "./queue-sink-CsXeLpUE.mjs";
+// src/query/reports/overview.ts
 /** KPI strip: totals plus realtime sessions (current run only). */
 async function overview(rc, input) {
 	const totals = await sessionTotals(rc, input);
@@ -23,9 +21,7 @@ async function firstRun(rc, sessions) {
 	if (num(sessions) > 0) return {};
 	return { stored: (await rc.db.all("SELECT 1 AS n FROM ca_sessions WHERE site = ? UNION ALL SELECT 1 AS n FROM ca_rollup WHERE site = ? LIMIT 1", [rc.site, rc.site])).length > 0 };
 }
-
-//#endregion
-//#region src/query/reports/pages.ts
+// src/query/reports/pages.ts
 /** Search metrics for page keys over the range: page grain rows of the selected source. */
 async function searchForPages(rc, input, keys) {
 	const out = /* @__PURE__ */ new Map();
@@ -183,9 +179,7 @@ async function notFound(rc, input) {
 		notices
 	};
 }
-
-//#endregion
-//#region src/query/reports/satisfaction-copy.ts
+// src/query/reports/satisfaction-copy.ts
 /** Fixed Satisfaction texts, shared by the reports, the agent catalog and the admin without pulling in SQL code. */
 /** Typed `raw_only` text beyond the raw window. */
 const SATISFACTION_RAW_ONLY = "Search Satisfaction is computed from session rows, which are kept for the raw retention window only. Choose a more recent range or raise the raw retention.";
@@ -204,18 +198,12 @@ const SATISFACTION_BY = [
 	"country",
 	"browser"
 ];
-/** Fewest measured sessions a landing page needs to be ranked as a best or worst page (`params.rank`). */
-const SATISFACTION_MIN_MEASURED = 30;
 /** How the best and worst pages are ranked (docs/sessions.md "Best and worst pages"). */
-const SCORE_DEFINITION = `Long click rate minus bad experience rate minus pogo-sticking rate, in points, for landing pages with at least ${SATISFACTION_MIN_MEASURED} measured sessions.`;
-
-//#endregion
-//#region src/query/reports/revenue-copy.ts
+const SCORE_DEFINITION = `Long click rate minus bad experience rate minus pogo-sticking rate, in points, for landing pages with at least 30 measured sessions.`;
+// src/query/reports/revenue-copy.ts
 /** Text of the `revenue_orders` answer outside the detailed window; shared with the admin, so kept free of server imports. */
 const ORDERS_RAW_ONLY = "Single orders are kept for the detailed window only; the totals and breakdowns cover older days from the daily summaries.";
-
-//#endregion
-//#region src/query/reports/rollup.ts
+// src/query/reports/rollup.ts
 /**
 * Report executors over the summaries: ranges before the detailed window, and long ranges inside
 * it that the dispatcher routes here. Rows come from `planRows` (stored days plus open days in memory); the filter
@@ -462,6 +450,4 @@ async function runRollupReport(report, rc, input) {
 		]
 	};
 }
-
-//#endregion
-export { runRollupReport as a, SATISFACTION_BY as c, SCORE_DEFINITION as d, entryPages as f, overview as g, pages as h, rollup_exports as i, SATISFACTION_CAVEAT as l, notFound as m, ROLLUP_REPORTS as n, POGO_DEFINITION as o, exitPages as p, rawOnly as r, RETURNED_DEFINITION as s, RAW_ONLY as t, SATISFACTION_MIN_MEASURED as u };
+export { runRollupReport as a, SATISFACTION_BY as c, entryPages as d, exitPages as f, overview as h, rollup_exports as i, SATISFACTION_CAVEAT as l, pages as m, ROLLUP_REPORTS as n, POGO_DEFINITION as o, notFound as p, rawOnly as r, RETURNED_DEFINITION as s, RAW_ONLY as t, SCORE_DEFINITION as u };

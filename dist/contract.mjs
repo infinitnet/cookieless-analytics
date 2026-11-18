@@ -1,4 +1,4 @@
-//#region src/contract.ts
+// src/contract.ts
 /**
 * Public, versioned integration contract. Other plugins may duplicate these
 * constants instead of importing the package; changing any value is a breaking change.
@@ -24,7 +24,7 @@ const SEMVER_RE = /^\d{1,4}\.\d{1,4}\.\d{1,4}(?:-[0-9A-Za-z.-]{1,32})?$/;
 function isCompanionHello(body) {
 	if (!body || typeof body !== "object" || Array.isArray(body)) return false;
 	const b = body;
-	return Object.keys(b).length === 4 && b.v === 1 && b.product === PLUGIN_ID && typeof b.pluginVersion === "string" && SEMVER_RE.test(b.pluginVersion) && Number.isInteger(b.contractVersion) && b.contractVersion >= 1 && b.contractVersion <= 999;
+	return Object.keys(b).length === 4 && b.v === 1 && b.product === "cookieless-analytics" && typeof b.pluginVersion === "string" && SEMVER_RE.test(b.pluginVersion) && Number.isInteger(b.contractVersion) && b.contractVersion >= 1 && b.contractVersion <= 999;
 }
 /** Route names under `/_emdash/api/plugins/<PLUGIN_ID>/`. */
 const ROUTES = {
@@ -70,6 +70,4 @@ const FORBIDDEN_PUBLIC_WORDS = [
 	"stats",
 	"beacon"
 ];
-
-//#endregion
 export { COMPANION_NAME, COMPANION_PUBLISHER_DID, COMPANION_SLUG, CONTRACT_VERSION, DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, PRODUCT_URL, RESERVED_EVENTS, ROUTES, SID_RE, VERSION, isCompanionHello };

@@ -1,7 +1,7 @@
 /** The report is named "Search Satisfaction" wherever a person reads it; the id `satisfaction` stays. */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import ts from "typescript";
+import { parseSync } from "oxc-parser";
 import { describe, expect, it } from "vitest";
 import { ADMIN_PAGES } from "../src/index.js";
 import { settingsSchema } from "../src/settings.js";
@@ -35,12 +35,20 @@ const mdProse = (s: string) =>
 /** What a person can read in a source file: string literals and JSX text, minus pure identifiers and paths. */
 function sourceText(code: string, file = "x.tsx"): string {
 	const out: string[] = [];
-	const visit = (n: ts.Node) => {
-		if (ts.isImportDeclaration(n) || ts.isExportDeclaration(n)) return;
-		if (ts.isStringLiteralLike(n) || ts.isTemplateLiteralToken(n) || ts.isJsxText(n)) out.push(n.text);
-		ts.forEachChild(n, visit);
+	const visit = (n: unknown): void => {
+		if (!n || typeof n !== "object") return;
+		if (Array.isArray(n)) return void n.forEach(visit);
+		const node = n as { type?: string; value?: unknown; declaration?: unknown };
+		if (typeof node.type !== "string") return void Object.values(node).forEach(visit);
+		// Import lines and re-exports hold module paths, not text.
+		if (node.type === "ImportDeclaration" || node.type === "ExportAllDeclaration") return;
+		if (node.type === "ExportNamedDeclaration" && !node.declaration) return;
+		if (node.type === "Literal" && typeof node.value === "string") out.push(node.value);
+		else if (node.type === "TemplateElement") out.push((node.value as { cooked?: string; raw: string }).cooked ?? (node.value as { raw: string }).raw);
+		else if (node.type === "JSXText") out.push(node.value as string);
+		for (const [k, v] of Object.entries(node)) if (k !== "parent" && v && typeof v === "object") visit(v);
 	};
-	visit(ts.createSourceFile(file, code, ts.ScriptTarget.Latest, false, file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS));
+	visit(parseSync(file, code, { lang: file.endsWith(".tsx") ? "tsx" : "ts", sourceType: "module" }).program);
 	// Lowercase tokens are ids and paths (`satisfaction`, `/satisfaction`); CSS comments are never shown.
 	return out
 		.filter((t) => !ID.test(t))

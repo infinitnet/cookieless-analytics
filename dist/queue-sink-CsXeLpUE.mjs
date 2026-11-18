@@ -1,8 +1,131 @@
-import { t as __exportAll } from "./rolldown-runtime-95iHPtFO.mjs";
-import { DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, LINK_EVENTS } from "./contract.mjs";
+import { DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, LINK_EVENTS, RESERVED_EVENTS, SID_RE } from "./contract.mjs";
+import { PluginRouteError } from "emdash";
 import { z } from "zod";
-
-//#region src/core/time.ts
+import { AsyncLocalStorage } from "node:async_hooks";
+// \0rolldown/runtime.js
+var __defProp = Object.defineProperty;
+var __exportAll = (all, flags) => {
+	let target = Object.setPrototypeOf({}, null);
+	for (var name in all) __defProp(target, name, {
+		get: all[name],
+		enumerable: true
+	});
+	if (!(flags & 1)) __defProp(target, Symbol.toStringTag, { value: "Module" });
+	return flags & 2 ? target : Object.preventExtensions(target);
+};
+// src/core/crypto.ts
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+/** Random `[a-z0-9]{n}` from `crypto.getRandomValues` (rejection sampling, no modulo bias). */
+function randomId(n) {
+	let out = "";
+	while (out.length < n) {
+		const bytes = crypto.getRandomValues(new Uint8Array(n * 2));
+		for (const b of bytes) if (b < 252 && out.length < n) out += ALPHABET[b % 36];
+	}
+	return out;
+}
+const enc = new TextEncoder();
+function base64url(bytes) {
+	let bin = "";
+	for (const b of bytes) bin += String.fromCharCode(b);
+	return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function hmacSha256(key, message) {
+	const raw = typeof key === "string" ? enc.encode(key) : key;
+	const k = await crypto.subtle.importKey("raw", raw, {
+		name: "HMAC",
+		hash: "SHA-256"
+	}, false, ["sign"]);
+	return new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(message)));
+}
+async function sha256(message) {
+	return new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(message)));
+}
+/** Constant-time string compare (length leak only). */
+function timingSafeEqual(a, b) {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	return diff === 0;
+}
+function expandIpv6(ip) {
+	const parts = ip.split("::");
+	if (parts.length > 2) return null;
+	const head = parts[0] ? parts[0].split(":") : [];
+	const tail = parts.length === 2 && parts[1] ? parts[1].split(":") : [];
+	const fill = parts.length === 2 ? 8 - head.length - tail.length : 0;
+	if (fill < 0 || parts.length === 1 && head.length !== 8) return null;
+	const groups = [
+		...head,
+		...Array(fill).fill("0"),
+		...tail
+	];
+	if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return null;
+	return groups.map((g) => Number.parseInt(g, 16));
+}
+/**
+* Truncate an IP to its network prefix: IPv4 /24 (strict /16), IPv6 /48 (strict /32).
+* Unparseable input returns "" so it still hashes but never leaks.
+*/
+function truncateIp(ip, mode = "standard") {
+	if (!ip) return "";
+	let v = ip.trim().toLowerCase();
+	const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
+	if (mapped?.[1]) v = mapped[1];
+	const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
+	if (v4) {
+		const o = v4.slice(1, 5).map(Number);
+		if (o.some((n) => n > 255)) return "";
+		return mode === "strict" ? `${o[0]}.${o[1]}.0.0` : `${o[0]}.${o[1]}.${o[2]}.0`;
+	}
+	const g = expandIpv6(v.replace(/%.*$/, ""));
+	if (!g) return "";
+	const keep = mode === "strict" ? 2 : 3;
+	return `${g.slice(0, keep).map((n) => n.toString(16)).join(":")}::`;
+}
+/** True when `ip` lies inside `cidr` (IPv4 or IPv6, already validated by settings). */
+function ipInCidr(ip, cidr) {
+	const [net = "", bitsRaw = ""] = cidr.split("/");
+	const bits = Number(bitsRaw);
+	const words = (v) => {
+		const m = v.trim().toLowerCase().replace(/^::ffff:(?=\d+\.)/, "");
+		const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(m);
+		if (v4) return v4.slice(1, 5).map(Number);
+		const g = expandIpv6(m.replace(/%.*$/, ""));
+		return g ? g.flatMap((n) => [n >> 8, n & 255]) : null;
+	};
+	const a = words(ip);
+	const b = words(net);
+	if (!a || !b || a.length !== b.length || !(bits >= 0 && bits <= a.length * 8)) return false;
+	for (let i = 0; i < a.length; i++) {
+		const keep = Math.max(0, Math.min(8, bits - i * 8));
+		const mask = keep === 0 ? 0 : 255 << 8 - keep & 255;
+		if ((a[i] & mask) !== (b[i] & mask)) return false;
+	}
+	return true;
+}
+/** Daily visitor key: base64url(HMAC-SHA256(salt, site|ipTrunc|uaNorm)) truncated to 22 chars. */
+async function vkey(salt, site, ipTrunc, uaNorm) {
+	return base64url(await hmacSha256(salt, `${site}|${ipTrunc}|${uaNorm}`)).slice(0, 22);
+}
+const SALT_PREFIX = "salt:";
+const saltCache = /* @__PURE__ */ new Map();
+/** Salt for a salt day, created lazily with compare-and-set so concurrent isolates agree. */
+async function getOrCreateSalt(kv, day) {
+	const cached = saltCache.get(day);
+	if (cached) return cached;
+	const key = SALT_PREFIX + day;
+	let salt = await kv.get(key);
+	if (!salt) {
+		const fresh = base64url(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
+		salt = (await kv.compareAndSet(key, null, fresh)).applied ? fresh : await kv.get(key);
+		if (!salt) throw new Error("salt unavailable");
+	}
+	if (saltCache.size > 8) saltCache.clear();
+	saltCache.set(day, salt);
+	return salt;
+}
+// src/core/time.ts
 /** Time helpers. Timestamps are epoch seconds; days are `YYYY-MM-DD` strings. */
 const DAY_S = 86400;
 const formatters = /* @__PURE__ */ new Map();
@@ -103,8 +226,6 @@ function samePeriodLastYear(r) {
 		to: minusYear(r.to)
 	};
 }
-/** Minutes after local midnight, past the write path's reach, before a day is closed (requests in flight, cron jitter). */
-const CLOSE_GRACE_S = 900;
 /**
 * Newest closed day (its summary may be stored). The write path reaches visits started today or yesterday
 * (`liveDays`, engagement updates have no time bound), so day D can change until local midnight that starts D + 2:
@@ -112,15 +233,9 @@ const CLOSE_GRACE_S = 900;
 */
 function lastClosedDay(now, tz) {
 	const today = dayInZone(now, tz);
-	return addDays(today, now >= zonedToEpoch(today, 0, tz) + CLOSE_GRACE_S ? -2 : -3);
+	return addDays(today, now >= zonedToEpoch(today, 0, tz) + 900 ? -2 : -3);
 }
-
-//#endregion
-//#region src/db/sql.ts
-/** SQL statement helpers: parameter counting and chunked `IN` lists (D1 allows 100 bound parameters). */
-const MAX_PARAMS = 100;
-const IN_CHUNK = 90;
-function chunk(items, size = IN_CHUNK) {
+function chunk(items, size = 90) {
 	if (size < 1) throw new Error("chunk size must be positive");
 	const out = [];
 	for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
@@ -132,9 +247,7 @@ function ident(name) {
 	if (!IDENT_RE.test(name)) throw new Error(`invalid identifier: ${name}`);
 	return name;
 }
-
-//#endregion
-//#region src/db/dialect.ts
+// src/db/dialect.ts
 /**
 * Portable DDL. `{INT}` and `{REAL}` resolve per dialect (epoch seconds need BIGINT on Postgres), `{NOROWID}`
 * makes a clustered table on SQLite (Postgres has no equivalent; its primary key index serves the same reads),
@@ -369,10 +482,774 @@ function deleteDaySlice(dialect, table, site, day, slice, key = "sid") {
 		...hi === null ? [] : [s`${k} < ${hi}`]
 	], " AND ");
 }
-
-//#endregion
-//#region src/data/currencies.json
-var currencies_default = [
+// src/core/worker-env.ts
+let found$1;
+/**
+* The Worker's bindings, looked up once per isolate through `cloudflare:workers`. Null where that module does not
+* exist (Node, other hosts).
+*/
+function workerEnv() {
+	return found$1 ??= (async () => {
+		try {
+			const { env } = await import(
+				/* @vite-ignore */
+				"cloudflare:workers"
+);
+			return env ?? null;
+		} catch {
+			return null;
+		}
+	})();
+}
+// src/db/d1.ts
+/** A binding value is a D1 database when it can prepare and batch. */
+const isD1 = (v) => typeof v?.prepare === "function" && typeof v.batch === "function";
+const bindable$1 = (p) => {
+	if (p === void 0) return null;
+	if (typeof p === "boolean") return p ? 1 : 0;
+	if (typeof p === "bigint") return Number.isSafeInteger(Number(p)) ? Number(p) : String(p);
+	return p;
+};
+/** D1 code 7429 ("DB overloaded") with a text that does not say so gets the word, so the 503 path retries it. */
+function mapError(err) {
+	const msg = String(err?.message ?? err);
+	if (/\b7429\b/.test(msg) && !/\boverloaded\b/i.test(msg)) return new Error(`D1 DB is overloaded (7429): ${msg}`, { cause: err });
+	return err;
+}
+function fromD1(d1) {
+	let meta;
+	const stmt = (sql, params = []) => d1.prepare(sql).bind(...params.map(bindable$1));
+	async function call(f) {
+		try {
+			const r = await f();
+			meta = (Array.isArray(r) ? r[r.length - 1] : r)?.meta ?? meta;
+			if (Array.isArray(r) && meta) meta = {
+				...meta,
+				rows_written: r.reduce((a, x) => a + (x.meta?.rows_written ?? 0), 0)
+			};
+			return r;
+		} catch (err) {
+			throw mapError(err);
+		}
+	}
+	const db = {
+		dialect: "sqlite",
+		get meta() {
+			return meta;
+		},
+		async run(sql, params) {
+			return { changes: (await call(() => stmt(sql, params).run())).meta?.changes ?? 0 };
+		},
+		async all(sql, params) {
+			return (await call(() => stmt(sql, params).all())).results ?? [];
+		},
+		async batch(stmts) {
+			if (stmts.length) await call(() => d1.batch(stmts.map((s) => stmt(s.sql, s.params))));
+		},
+		async size() {
+			await db.run("SELECT 1");
+			return meta?.size_after === void 0 ? null : { bytes: meta.size_after };
+		}
+	};
+	return db;
+}
+// src/db/adapter.ts
+/** Detect the SQL flavour the same way EmDash core does (adapter class), with a capability fallback. */
+function detectDialect(db) {
+	const adapter = db.getExecutor().adapter;
+	if (adapter.constructor?.name?.includes("Postgres")) return "postgres";
+	return adapter.supportsTransactionalDdl === true ? "postgres" : "sqlite";
+}
+/** `?` placeholders to `$1..$n`, outside single-quoted strings. */
+function toPostgresPlaceholders(sql) {
+	let n = 0;
+	let quoted = false;
+	let out = "";
+	for (const c of sql) {
+		if (c === "'") quoted = !quoted;
+		out += c === "?" && !quoted ? `$${++n}` : c;
+	}
+	return out;
+}
+/**
+* Wrap a Kysely instance (from `getDb()` in `emdash/runtime`). The compiled query is built
+* structurally so this package needs no runtime `kysely` import.
+*/
+function fromKysely(k, dialect = detectDialect(k)) {
+	async function exec(sql, params = []) {
+		const text = dialect === "postgres" ? toPostgresPlaceholders(sql) : sql;
+		const query = Object.freeze({
+			sql: text,
+			parameters: Object.freeze([...params]),
+			query: Object.freeze({
+				kind: "RawNode",
+				sqlFragments: Object.freeze([text]),
+				parameters: Object.freeze([])
+			}),
+			queryId: { queryId: Math.random().toString(36).slice(2) }
+		});
+		return k.executeQuery(query);
+	}
+	const db = {
+		dialect,
+		async run(sql, params) {
+			const r = await exec(sql, params);
+			const n = r.numAffectedRows ?? r.numUpdatedOrDeletedRows ?? 0n;
+			return { changes: Number(n) };
+		},
+		async all(sql, params) {
+			return (await exec(sql, params)).rows;
+		},
+		async batch(stmts) {
+			for (const s of stmts) await exec(s.sql, s.params);
+		},
+		...dialect === "postgres" ? { size: () => catalogSize(db) } : {}
+	};
+	return db;
+}
+/** Startup self-check: one trivial read. On failure the caller disables writes and shows a banner. */
+async function selfCheck(db) {
+	try {
+		const rows = await db.all("SELECT 1 AS ok");
+		if (Number(rows[0]?.ok) !== 1) return {
+			ok: false,
+			error: "unexpected self-check result"
+		};
+		return {
+			ok: true,
+			dialect: db.dialect
+		};
+	} catch (err) {
+		return {
+			ok: false,
+			error: err instanceof Error ? err.message : String(err)
+		};
+	}
+}
+// src/db/schema.ts
+const SCHEMA_VERSION_KEY = "schema:version";
+/** Forward-only. Never edit a released entry; append a new version instead. */
+const MIGRATIONS = [{
+	version: 1,
+	statements: [
+		`CREATE TABLE IF NOT EXISTS ca_sessions (
+	site TEXT NOT NULL, day ${VISIT_DAY_TYPE} NOT NULL, sid TEXT NOT NULL, vkey TEXT NOT NULL, hour {INT} NOT NULL,
+	started {INT} NOT NULL, last_seen {INT} NOT NULL, window_s {INT} NOT NULL,
+	entry_path TEXT, exit_path TEXT,
+	pageviews {INT} NOT NULL DEFAULT 0, events {INT} NOT NULL DEFAULT 0, engaged_ms {INT} NOT NULL DEFAULT 0,
+	visible_ms {INT} NOT NULL DEFAULT 0, reentries {INT} NOT NULL DEFAULT 0,
+	max_scroll {INT} NOT NULL DEFAULT 0, interacted {INT} NOT NULL DEFAULT 0,
+	ref_host TEXT, ref_path TEXT, channel TEXT, source TEXT,
+	utm_source TEXT, utm_medium TEXT, utm_campaign TEXT, utm_term TEXT, utm_content TEXT,
+	country TEXT, region TEXT, device TEXT, browser TEXT, browser_major TEXT, os TEXT, lang TEXT, screen TEXT, host TEXT,
+	hits {DOC},
+	PRIMARY KEY (site, day, sid)){NOROWID}`,
+		"CREATE INDEX IF NOT EXISTS ca_sessions_vkey ON ca_sessions (site, vkey)",
+		`CREATE TABLE IF NOT EXISTS ca_events (
+	site TEXT NOT NULL, id TEXT NOT NULL, day {INT} NOT NULL, ts {INT} NOT NULL,
+	sday ${VISIT_DAY_TYPE}, sid TEXT,
+	name TEXT NOT NULL, path TEXT, props TEXT, val {REAL}, cur TEXT,
+	PRIMARY KEY (site, id)){NOROWID}`,
+		"CREATE INDEX IF NOT EXISTS ca_events_day ON ca_events (site, day)",
+		`CREATE TABLE IF NOT EXISTS ca_srv (
+	site TEXT NOT NULL, day {INT} NOT NULL, status {INT} NOT NULL, path TEXT NOT NULL, ref TEXT NOT NULL DEFAULT '',
+	n {INT} NOT NULL, last_ts {INT} NOT NULL,
+	PRIMARY KEY (site, day, status, path, ref)){NOROWID}`,
+		`CREATE TABLE IF NOT EXISTS ca_drops (
+	site TEXT NOT NULL, day {INT} NOT NULL, reason TEXT NOT NULL, n {INT} NOT NULL,
+	PRIMARY KEY (site, day, reason)){NOROWID}`,
+		`CREATE TABLE IF NOT EXISTS ca_cube (
+	site TEXT NOT NULL, day {INT} NOT NULL, channel TEXT NOT NULL, country TEXT NOT NULL, device TEXT NOT NULL,
+	sessions {INT} NOT NULL DEFAULT 0, pageviews {INT} NOT NULL DEFAULT 0, visitors {INT} NOT NULL DEFAULT 0,
+	bounces {INT} NOT NULL DEFAULT 0, engaged {INT} NOT NULL DEFAULT 0, duration_ms {INT} NOT NULL DEFAULT 0,
+	events {INT} NOT NULL DEFAULT 0,
+	PRIMARY KEY (site, day, channel, country, device)){NOROWID}`,
+		`CREATE TABLE IF NOT EXISTS ca_rollup (
+	site TEXT NOT NULL, day TEXT NOT NULL, dim TEXT NOT NULL, key TEXT NOT NULL,
+	seg TEXT NOT NULL DEFAULT '', segkey TEXT NOT NULL DEFAULT '',
+	pageviews {INT} NOT NULL DEFAULT 0, sessions {INT} NOT NULL DEFAULT 0, visitors {INT} NOT NULL DEFAULT 0,
+	bounces {INT} NOT NULL DEFAULT 0, engaged {INT} NOT NULL DEFAULT 0, engaged_ms {INT} NOT NULL DEFAULT 0,
+	events {INT} NOT NULL DEFAULT 0, hits {INT} NOT NULL DEFAULT 0,
+	PRIMARY KEY (site, dim, seg, day, key, segkey)){NOROWID}`,
+		`CREATE TABLE IF NOT EXISTS ca_aliases (
+	site TEXT NOT NULL, sid TEXT NOT NULL, canon TEXT NOT NULL, expires {INT} NOT NULL,
+	PRIMARY KEY (site, sid)){NOROWID}`,
+		`CREATE TABLE IF NOT EXISTS ca_search_daily (
+	site TEXT NOT NULL, source TEXT NOT NULL, day TEXT NOT NULL, page_key TEXT NOT NULL, query TEXT NOT NULL,
+	country TEXT NOT NULL, device TEXT NOT NULL,
+	clicks {INT} NOT NULL DEFAULT 0, impressions {INT} NOT NULL DEFAULT 0, pos_sum {REAL} NOT NULL DEFAULT 0,
+	provisional {INT} NOT NULL DEFAULT 0,
+	PRIMARY KEY (site, source, day, page_key, query, country, device)){NOROWID}`,
+		"CREATE INDEX IF NOT EXISTS ca_search_daily_site_page_day ON ca_search_daily (site, page_key, day)",
+		`CREATE TABLE IF NOT EXISTS ca_revenue_daily (
+	site TEXT NOT NULL, day TEXT NOT NULL, dim TEXT NOT NULL, key TEXT NOT NULL, cur TEXT NOT NULL,
+	seg TEXT NOT NULL DEFAULT '', segkey TEXT NOT NULL DEFAULT '',
+	orders {INT} NOT NULL DEFAULT 0, revenue {REAL} NOT NULL DEFAULT 0, sessions {INT} NOT NULL DEFAULT 0,
+	PRIMARY KEY (site, dim, seg, day, key, segkey, cur)){NOROWID}`
+	]
+}];
+const SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1]?.version ?? 0;
+const TABLES = [
+	"ca_sessions",
+	"ca_events",
+	"ca_srv",
+	"ca_drops",
+	"ca_cube",
+	"ca_rollup",
+	"ca_aliases",
+	"ca_search_daily",
+	"ca_revenue_daily"
+];
+/**
+* Apply pending migrations and record `schema:version` in KV. Safe to call on every activation
+* and lazily before the first write: statements are idempotent and the version only moves forward.
+* An own analytics database (`ownDatabase`) keeps its version in its own `ca_meta` row instead: the host KV
+* then says nothing about it, so removing the option later still creates the tables on the host database.
+*/
+async function ensureSchema(db, kv, migrations = MIGRATIONS) {
+	const store = own.has(db) ? versionRow(db) : kv;
+	const current = await schemaVersion(db, kv);
+	let version = current;
+	for (const m of migrations) {
+		if (m.version <= current) continue;
+		await db.batch(m.statements.map((s) => ({ sql: ddl(db.dialect, s) })));
+		await store.set(SCHEMA_VERSION_KEY, m.version);
+		version = m.version;
+	}
+	return version;
+}
+const own = /* @__PURE__ */ new WeakSet();
+/** The recorded schema version: the host KV, or the version row of an own analytics database. */
+async function schemaVersion(db, kv) {
+	return Number(await (own.has(db) ? versionRow(db) : kv).get("schema:version") ?? 0) || 0;
+}
+/**
+* Mark a `Db` as the own analytics database (plugin option `database`). The host applies no migrations there, so
+* `ensureSchema` creates the tables itself, once: the DDL costs its rows written on the first run only (every
+* statement is `IF NOT EXISTS` and the version row skips them afterwards; one read per isolate).
+*/
+function ownDatabase(db) {
+	own.add(db);
+	return db;
+}
+/** The `Db` was marked by `ownDatabase` (its storage budget is that of an own database). */
+const isOwnDatabase = (db) => own.has(db);
+/** Name and value rows of an own analytics database; it holds the schema version only. */
+const META_TABLE = "CREATE TABLE IF NOT EXISTS ca_meta (name TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL){NOROWID}";
+function versionRow(db) {
+	return {
+		async get(key) {
+			const rows = await db.all("SELECT value FROM ca_meta WHERE name = ?", [key]).catch(() => []);
+			return rows[0] ? JSON.parse(rows[0].value) : null;
+		},
+		async set(key, value) {
+			await db.batch([{ sql: ddl(db.dialect, META_TABLE) }, {
+				sql: "INSERT INTO ca_meta (name, value) VALUES (?, ?) ON CONFLICT (name) DO UPDATE SET value = excluded.value",
+				params: [key, JSON.stringify(value)]
+			}]);
+		}
+	};
+}
+let ready;
+/** Own databases are remembered each on its own: the host's single promise must never stand for another database. */
+const ownReady = /* @__PURE__ */ new WeakMap();
+/** `ensureSchema` once per isolate (once per own database); a failure is retried on the next call. */
+function ensureSchemaOnce(db, kv) {
+	const once = () => ensureSchema(db, kv).then(() => void 0, (err) => {
+		if (own.has(db)) ownReady.delete(db);
+		else ready = void 0;
+		throw err;
+	});
+	if (own.has(db)) {
+		let p = ownReady.get(db);
+		if (!p) ownReady.set(db, p = once());
+		return p;
+	}
+	ready ??= once();
+	return ready;
+}
+// src/db/pg.ts
+const isHyperdrive = (v) => typeof v?.connectionString === "string";
+const DRIVER = Symbol.for("cookieless-analytics:pg-driver");
+const SCOPE = Symbol.for("cookieless-analytics:pg-scope");
+const g = globalThis;
+const store = g[SCOPE] ??= new AsyncLocalStorage();
+const usePgDriver = (driver) => {
+	g[DRIVER] = driver;
+};
+const pgDriver = () => g[DRIVER];
+/**
+* Run `fn` with request scoped Postgres clients. When `fn` settles, statements it left running finish (at most
+* `DRAIN_MS`), then the clients are closed. A nested scope uses the outer one.
+*/
+async function pgScope(fn) {
+	if (store.getStore()?.open) return fn();
+	const holder = {
+		open: true,
+		slots: /* @__PURE__ */ new Map()
+	};
+	try {
+		return await store.run(holder, fn);
+	} finally {
+		holder.open = false;
+		const slots = [...holder.slots.values()];
+		if (slots.length) {
+			await within(Promise.all(slots.map((s) => s.tail)), DRAIN_MS);
+			await Promise.all(slots.map(async (s) => close(await s.client.catch(() => null))));
+			holder.slots.clear();
+		}
+	}
+}
+/** Statement timeout of the ingest path: covers the measured 700 ms first statement of a Neon database resumed from zero. */
+const INGEST_STATEMENT_MS = 5e3;
+/**
+* Runs `fn` with every Postgres statement it sends limited to `ms` (on the scope's clients, or on clients of its
+* own outside a scope). A statement that runs longer fails as a timeout and its client is closed.
+*/
+function pgStatementLimit(ms, fn) {
+	const h = store.getStore();
+	const child = h?.open ? Object.assign(Object.create(h), { statementMs: Math.min(ms, h.statementMs ?? ms) }) : {
+		open: false,
+		slots: /* @__PURE__ */ new Map(),
+		statementMs: ms
+	};
+	return store.run(child, fn);
+}
+/**
+* `pgScope` that never joins an enclosing scope: for work after the response (`after()` inherits the route's context,
+* and must neither hold the route's clients open nor run on them after they closed).
+*/
+const pgOwnScope = (fn) => store.exit(() => pgScope(fn));
+/** Longer than the driver's query timeout (15 s), so a statement still running ends by itself first. */
+const DRAIN_MS = 16e3;
+const END_MS = 1e3;
+/** Waits for `p` (never rejects) or `ms`, whichever comes first. */
+async function within(p, ms) {
+	let timer;
+	await Promise.race([p.catch(() => void 0), new Promise((r) => timer = setTimeout(r, ms))]);
+	clearTimeout(timer);
+}
+/** `end()` that cannot hang the caller: a dead socket gets a second, then is left behind. */
+async function close(c) {
+	if (c) await within(c.end(), END_MS);
+}
+const URL_RE = /[A-Za-z][A-Za-z0-9+.-]*:\/\/\S+/g;
+const CREDENTIAL_RE = /\b(auth|credential|host|key|password|secret|signature|token|user)\s*[=:]\s*\S+/gi;
+/** Server texts like `for user "x"`, `host "1.2.3.4", user "x", database "y"`. */
+const QUOTED_RE = /\b(database|host|role|user)\s+"[^"]*"/gi;
+/** Socket texts like `connect ECONNREFUSED 10.0.0.5:5432`, `getaddrinfo ENOTFOUND db.example.com`. */
+const SOCKET_TARGET_RE = /\b(ECONNREFUSED|ECONNRESET|EPIPE|ETIMEDOUT|EHOSTUNREACH|ENETUNREACH|EAI_AGAIN|ENOTFOUND)\s+\S+/g;
+const IPV4_RE = /\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b/g;
+/** IPv6 candidates (`2001:db8::5`, `[fe80::1%eth0]:5432`); `ipv6` keeps times and `x::bigint` casts. */
+const IPV6_RE = /(?<![\w:.])\[?(?:[0-9A-Fa-f]{1,4})?(?::[0-9A-Fa-f]{0,4}){2,7}(?:%[\w.-]+)?\]?(?::\d{1,5})?(?![\w:])/g;
+const ipv6 = (m) => {
+	const addr = m.replace(/^\[|\](?::\d+)?$|%.*$/g, "");
+	return /[0-9A-Fa-f]/.test(addr) && (addr.includes("::") || addr.split(":").length === 8) ? "[redacted]" : m;
+};
+const CODE_RE = /^[A-Za-z0-9_-]{1,32}$/;
+/**
+* Removes URLs, `key=value` credentials, quoted user, host and database names, socket targets, IPv4 and IPv6
+* addresses, plus every part of `connectionString` (user, password, host, database) wherever it appears (a part of
+* one or two characters as a whole word only); flattens the text and caps it at 500 characters.
+*/
+function redact(message, connectionString) {
+	let out = message;
+	for (const part of secretsOf(connectionString)) out = part.length >= 3 ? out.split(part).join("[redacted]") : out.replace(new RegExp(`(?<![A-Za-z0-9_])${part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![A-Za-z0-9_])`, "g"), "[redacted]");
+	return out.replace(URL_RE, "[redacted url]").replace(CREDENTIAL_RE, "$1=[redacted]").replace(QUOTED_RE, "$1 \"[redacted]\"").replace(SOCKET_TARGET_RE, "$1 [redacted]").replace(IPV4_RE, "[redacted]").replace(IPV6_RE, ipv6).replace(/[\r\n\t]+/g, " ").slice(0, 500);
+}
+/** The connection string itself and its user, password, host and database, longest first; none when it does not parse. */
+function secretsOf(connectionString) {
+	if (!connectionString) return [];
+	const parts = [connectionString];
+	try {
+		const u = new URL(connectionString);
+		parts.push(u.host, u.hostname, u.username, u.password, decodeURIComponent(u.username), decodeURIComponent(u.password), u.pathname.slice(1));
+	} catch {}
+	return [...new Set(parts.filter((p) => p.length > 0))].sort((a, b) => b.length - a.length);
+}
+/** SQLSTATE class 08 (connection), too many connections, starting up, shutting down, serialization and deadlock aborts. */
+const TRANSIENT_CODES = /* @__PURE__ */ new Set([
+	"53300",
+	"57P01",
+	"57P03",
+	"40001",
+	"40P01"
+]);
+const SOCKET_CODES = /* @__PURE__ */ new Set([
+	"ECONNREFUSED",
+	"ECONNRESET",
+	"EPIPE",
+	"ETIMEDOUT",
+	"EHOSTUNREACH",
+	"ENETUNREACH",
+	"EAI_AGAIN"
+]);
+const TIMEOUT_RE = /timeout|timed out|connection terminated|connection (?:was )?closed|client (?:was|has been) closed|network connection lost/i;
+const codeOf = (err) => {
+	const c = err?.code;
+	return typeof c === "string" && CODE_RE.test(c) ? c : "";
+};
+/** True for an error after which the client must not be reused (and a connect may be tried again). */
+const isConnectionError = (err) => {
+	const code = codeOf(err);
+	if (SOCKET_CODES.has(code)) return true;
+	if (/^[0-9A-Z]{5}$/.test(code)) return code.startsWith("08") || code === "57P01" || code === "57P03";
+	return TIMEOUT_RE.test(String(err?.message ?? err));
+};
+/** A connect or statement timeout; a server error with a SQLSTATE that quotes the word is not one. */
+const isTimeout = (err) => {
+	const code = codeOf(err);
+	return code === "ETIMEDOUT" || !/^[0-9A-Z]{5}$/.test(code) && /timeout|timed out/i.test(String(err?.message ?? ""));
+};
+/** The error this package throws: redacted text, the SQLSTATE in brackets, "overloaded" for transient states. */
+function mapPgError(err, connectionString) {
+	const code = codeOf(err);
+	const text = redact(String(err?.message ?? err), connectionString) || "unknown error";
+	const tag = code ? ` (${code})` : "";
+	if (TRANSIENT_CODES.has(code) || isConnectionError(err)) return Object.assign(/* @__PURE__ */ new Error(`Postgres is overloaded or unreachable${tag}: ${text}`), { code });
+	return Object.assign(/* @__PURE__ */ new Error(`Postgres error${tag}: ${text}`), { code });
+}
+const RETRY_PAUSE_MS = () => 100 + Math.random() * 200;
+async function connect(driver, connectionString) {
+	for (let attempt = 0;; attempt++) {
+		const c = driver(connectionString);
+		c.on?.("error", () => void 0);
+		try {
+			await c.connect();
+			return c;
+		} catch (err) {
+			close(c);
+			if (attempt > 0 || !isConnectionError(err) || isTimeout(err)) throw err;
+			await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS()));
+		}
+	}
+}
+const bindable = (p) => p === void 0 ? null : p;
+/** How long a binding is refused without connecting after a connect or statement timeout. */
+const FAIL_FAST_MS = 2e4;
+/** Open fail-fast windows by binding name, one map per isolate (shared by every bundle of the package). */
+const failFast = g[Symbol.for("cookieless-analytics:pg-fail-fast")] ??= /* @__PURE__ */ new Map();
+/** `p`, or a timeout error after `ms` (none without `ms`). */
+function timed(p, ms) {
+	if (!ms) return p;
+	let timer;
+	const late = new Promise((_, reject) => timer = setTimeout(() => reject(/* @__PURE__ */ new Error(`statement timeout: no answer within ${ms} ms`)), ms));
+	return Promise.race([p, late]).finally(() => clearTimeout(timer));
+}
+/** Clients left in an unknown transaction state (a failed `ROLLBACK`): never reused. */
+const poisoned = /* @__PURE__ */ new WeakSet();
+/**
+* `binding` is read on every use, never stored on the returned object. `name` is the binding name, the only
+* label that appears in messages.
+*/
+function fromPg(binding, name) {
+	const driver = () => {
+		const d = pgDriver();
+		if (!d) throw new Error(`binding ${name} is a Hyperdrive binding; set engine: "postgres" in the plugin options`);
+		return d;
+	};
+	/** Runs `f` on a client of the current scope (serialised per client), or on a client of its own. */
+	async function use(f0) {
+		const d = driver();
+		const down = failFast.get(name);
+		if (down && Date.now() < down.until) throw new Error(`${down.reason} (not connecting again for ${Math.ceil((down.until - Date.now()) / 1e3)} s)`);
+		const holder = store.getStore();
+		const f = (c) => timed(f0(c), holder?.statementMs);
+		try {
+			if (!holder?.open) {
+				const c = await connect(d, binding.connectionString);
+				try {
+					return await f(c);
+				} finally {
+					await close(c);
+				}
+			}
+			let slot = holder.slots.get(name);
+			if (!slot) {
+				const client = connect(d, binding.connectionString);
+				slot = {
+					client,
+					tail: client
+				};
+				holder.slots.set(name, slot);
+			}
+			const s = slot;
+			const p = s.tail.then(() => s.client.then(f), () => s.client.then(f));
+			s.tail = p.catch(() => void 0);
+			try {
+				return await p;
+			} catch (err) {
+				if ((isConnectionError(err) || await s.client.then((c) => poisoned.has(c), () => true)) && holder.slots.get(name) === s) {
+					holder.slots.delete(name);
+					s.client.then(close, () => void 0);
+				}
+				throw err;
+			}
+		} catch (err) {
+			const e = mapPgError(err, binding.connectionString);
+			if (isTimeout(err)) failFast.set(name, {
+				until: Date.now() + FAIL_FAST_MS,
+				reason: e.message
+			});
+			throw e;
+		}
+	}
+	const query = (c, sql, params = []) => c.query(toPostgresPlaceholders(sql), params.map(bindable));
+	const db = {
+		dialect: "postgres",
+		async run(sql, params) {
+			return { changes: (await use((c) => query(c, sql, params))).rowCount ?? 0 };
+		},
+		async all(sql, params) {
+			return (await use((c) => query(c, sql, params))).rows;
+		},
+		async batch(stmts) {
+			if (!stmts.length) return;
+			if (stmts.length === 1) return void await use((c) => query(c, stmts[0].sql, stmts[0].params));
+			await use(async (c) => {
+				await c.query("BEGIN");
+				try {
+					for (const s of stmts) await query(c, s.sql, s.params);
+					await c.query("COMMIT");
+				} catch (err) {
+					if (!isConnectionError(err)) await c.query("ROLLBACK").catch(() => poisoned.add(c));
+					throw err;
+				}
+			});
+		},
+		size: () => catalogSize(db)
+	};
+	return db;
+}
+/** Whole database and each analytics table (`pg_total_relation_size`: heap, indexes, TOAST), in the schemas of `search_path`. */
+async function catalogSize(db) {
+	const names = [...TABLES, "ca_meta"];
+	const rows = await db.all(`SELECT '' AS name, pg_database_size(current_database()) AS bytes
+		 UNION ALL
+		 SELECT c.relname AS name, pg_total_relation_size(c.oid) AS bytes FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+		 WHERE c.relkind = 'r' AND n.nspname = ANY (current_schemas(false)) AND c.relname IN (${names.map(() => "?").join(", ")})`, names);
+	const tables = {};
+	let bytes = 0;
+	for (const r of rows) if (r.name === "") bytes = Number(r.bytes);
+	else tables[r.name] = (tables[r.name] ?? 0) + Number(r.bytes);
+	return {
+		bytes,
+		tables
+	};
+}
+// src/db/query-cache.ts
+const CACHE_ON_MESSAGE = "Hyperdrive query caching is on; recreate the configuration with --caching-disabled";
+/** A probe that takes longer counts as failed: it never holds an ingest request for the full query timeouts. */
+const PROBE_MS = 1e4;
+/**
+* True when a read through `db` returns a value its own last write replaced. Each probe uses a row of its own, so no
+* cache entry of another isolate's probe can answer its reads. Five statements: write, read, write, read, delete.
+* `live` false stops it before its next statement (its deadline passed): no statement runs after that, so a stopped
+* probe leaves its row.
+*/
+async function probeQueryCache(db, live = () => true) {
+	const row = `cache_probe:${crypto.randomUUID()}`;
+	const step = (s) => live() ? s() : Promise.reject(/* @__PURE__ */ new Error("cookieless-analytics: the query cache probe was stopped at its deadline"));
+	const write = (v) => step(() => db.run("INSERT INTO ca_meta (name, value) VALUES (?, ?) ON CONFLICT (name) DO UPDATE SET value = excluded.value", [row, v]));
+	const read = async () => (await step(() => db.all("SELECT value FROM ca_meta WHERE name = ?", [row])))[0]?.value;
+	try {
+		const first = crypto.randomUUID();
+		await write(first);
+		await read();
+		await write(crypto.randomUUID());
+		return await read() === first;
+	} finally {
+		if (live()) await db.run("DELETE FROM ca_meta WHERE name = ?", [row]).catch(() => void 0);
+	}
+}
+/** `p`, or a rejection after `ms`. */
+function deadline(p, ms) {
+	let timer;
+	return Promise.race([p, new Promise((_, reject) => timer = setTimeout(() => reject(/* @__PURE__ */ new Error(`cookieless-analytics: the query cache probe took longer than ${ms} ms`)), ms))]).finally(() => clearTimeout(timer));
+}
+/** Binding names of the Hyperdrive `Db`s, so the probe runs on those only. */
+const hyperdrive = /* @__PURE__ */ new WeakMap();
+/** Settled probe results only: a running probe belongs to its request and is never shared. */
+const results = /* @__PURE__ */ new Map();
+/** Marks `db` as the Hyperdrive binding `name`. */
+function hyperdriveDb(db, name) {
+	hyperdrive.set(db, name);
+	return db;
+}
+/**
+* Whether `db` is a Hyperdrive binding with query caching on: false for any other database. Until a result is
+* stored for the binding in this isolate, each call runs a probe of its own, with its own timer, so a request
+* cancelled mid-probe never holds up another. A probe that fails or takes longer than `PROBE_MS` (the database is
+* down or slow) stores nothing and rethrows: the write would fail the same way.
+*/
+async function queryCacheOn(db) {
+	const name = hyperdrive.get(db);
+	if (name === void 0) return false;
+	const known = results.get(name);
+	if (known !== void 0) return known;
+	let live = true;
+	const on = await deadline(probeQueryCache(db, () => live), PROBE_MS).finally(() => {
+		live = false;
+	});
+	if (!results.has(name)) {
+		results.set(name, on);
+		if (on) console.warn(`cookieless-analytics: binding ${name}: ${CACHE_ON_MESSAGE}. Page views and events are not recorded until then.`);
+	}
+	return results.get(name) ?? on;
+}
+// src/db/facts.ts
+/** A `Db` whose every statement fails: the configured binding does not exist in this Worker. */
+function missingDb(binding) {
+	const fail = async () => {
+		throw new Error(`cookieless-analytics: database option: the D1 or Hyperdrive binding ${binding} does not exist in this Worker; analytics are not written to the host database. Add the binding to the wrangler config or remove the option.`);
+	};
+	return {
+		dialect: "sqlite",
+		run: fail,
+		all: fail,
+		batch: fail
+	};
+}
+/** Cron state keys of a routed database: the default database keeps the plain keys. */
+const statePrefix = (binding) => `db:${binding}:`;
+/** The KV under `prefix`. Only the methods the KV has are wrapped. */
+function prefixedKv(kv, prefix) {
+	if (!prefix) return kv;
+	const k = kv;
+	const out = {};
+	if (k.get) out.get = (key) => k.get(prefix + key);
+	if (k.set) out.set = (key, v) => k.set(prefix + key, v);
+	if (k.delete) out.delete = (key) => k.delete(prefix + key);
+	if (k.list) out.list = async (p = "") => (await k.list(prefix + p)).map((e) => ({
+		...e,
+		key: e.key.slice(prefix.length)
+	}));
+	if (k.compareAndSet) out.compareAndSet = (key, rev, v) => k.compareAndSet(prefix + key, rev, v);
+	return out;
+}
+/** The resolver for the plugin options `database` or `databases` (absent: the host database for every site). */
+function factsDb(option, host, env = workerEnv) {
+	const route = !option ? { sites: {} } : "binding" in option ? {
+		default: option.binding,
+		sites: {}
+	} : option;
+	const opened = /* @__PURE__ */ new Map();
+	const open = (binding) => {
+		let get = opened.get(binding);
+		if (!get) {
+			const own = env().then((e) => {
+				const b = e?.[binding];
+				return ownDatabase(isD1(b) ? fromD1(b) : isHyperdrive(b) ? hyperdriveDb(fromPg(b, binding), binding) : missingDb(binding));
+			});
+			let ready = false;
+			get = async () => {
+				const db = await own;
+				if (!ready) await ensureSchema(db, {
+					get: async () => null,
+					set: async () => {}
+				}).then(() => ready = true, () => void 0);
+				return db;
+			};
+			opened.set(binding, get);
+		}
+		return get();
+	};
+	/** The binding of `site`, or null for the default database. */
+	const bindingOf = (site) => {
+		const b = (site !== void 0 && Object.hasOwn(route.sites, site) ? route.sites[site] : void 0) ?? route.default;
+		return b === void 0 || b === route.default ? null : b;
+	};
+	const dbOf = (b) => b !== null ? open(b) : route.default !== void 0 ? open(route.default) : host();
+	const kvOf = (kv, b) => b === null ? kv : prefixedKv(kv, statePrefix(b));
+	const dbFor = ((site) => dbOf(bindingOf(site)));
+	dbFor.kv = (kv, site) => kvOf(kv, bindingOf(site));
+	dbFor.binding = bindingOf;
+	dbFor.targets = () => [null, ...new Set(Object.values(route.sites).filter((b) => b !== route.default))].map((b) => ({
+		binding: b ?? route.default ?? null,
+		db: () => dbOf(b),
+		kv: (kv) => kvOf(kv, b)
+	}));
+	return dbFor;
+}
+let current;
+/** `createPlugin` records its resolver, so the middleware (an entry without plugin options) uses the same database. */
+function setPluginFacts(dbFor) {
+	return current = dbFor;
+}
+/**
+* The resolver `createPlugin` recorded. Throws when the plugin was not created in this isolate: the option is
+* unknown then, and a write must not guess the host database.
+*/
+function pluginFacts() {
+	if (!current) throw new Error("cookieless-analytics: the plugin is not initialised in this isolate; the analytics database is unknown.");
+	return current;
+}
+/** The resolver `createPlugin` recorded, or null (tests and tools that build routes without the plugin). */
+function pluginFactsOrNull() {
+	return current ?? null;
+}
+/**
+* Run `task` once per database of `dbFor` (a cron task), each with the host KV under that database's prefix and
+* its share of a request budget (`share(total)`: the databases of one invocation split the platform's queries per
+* invocation). A database that fails (a missing binding) is logged and the others still run; the first error is
+* thrown at the end.
+*/
+async function eachTarget(dbFor, kv, task, log) {
+	let failed;
+	const targets = dbFor.targets();
+	const share = (total) => Math.max(1, Math.floor(total / targets.length));
+	for (const t of targets) try {
+		await task(await t.db(), t.kv(kv), share, t.binding);
+	} catch (err) {
+		log?.warn(`cookieless-analytics: task failed on the database ${t.binding ?? "of the host"}: ${err.message}`);
+		failed ??= err;
+	}
+	if (failed) throw failed;
+}
+/**
+* The databases a whole-install task walks (a tool's rollup or retention run): the plugin's when sites are routed
+* to several databases, else the one database of `db`.
+*/
+function factsTargets(db) {
+	const t = current?.targets();
+	return t && t.length > 1 ? t : [{
+		binding: null,
+		db: () => db(),
+		kv: (kv) => kv
+	}];
+}
+/** Run `task` once per database of `factsTargets`; with several, the default database's result plus one entry per database. */
+async function eachDatabase(db, kv, task) {
+	const targets = factsTargets(db);
+	if (targets.length === 1) return task(await db(), kv);
+	const out = [];
+	for (const t of targets) out.push({
+		...await task(await t.db(), t.kv(kv)),
+		binding: t.binding
+	});
+	return {
+		...out[0],
+		databases: out
+	};
+}
+/**
+* The lazy schema migration of the host database, when some site's tables are there. Own databases (missing ones
+* included) get their tables from `dbFor` itself, so one site's database never decides another site's writes.
+*/
+async function ensureHostSchema(dbFor, kv) {
+	const host = dbFor.targets().find((t) => t.binding === null);
+	if (host) await ensureSchemaOnce(await host.db(), kv);
+}
+/** The host KV through the prefix of `site`'s database (the plain KV before `createPlugin` or without routing). */
+function stateKv(kv, site) {
+	return current ? current.kv(kv, site) : kv;
+}
+// src/core/currency.ts
+/**
+* ISO 4217 currencies and money formatting. Pure: shared by the server, the admin
+* bundle, the share renderer and the email renderer. No `Intl`, so every runtime prints the same text.
+*/
+const CURRENCIES = [
 	{
 		"code": "AED",
 		"exp": 2,
@@ -1149,18 +2026,8 @@ var currencies_default = [
 		"name": "Zimbabwe Gold"
 	}
 ];
-
-//#endregion
-//#region src/core/currency.ts
-/**
-* ISO 4217 currencies and money formatting. Pure: shared by the server, the admin
-* bundle, the share renderer and the email renderer. No `Intl`, so every runtime prints the same text.
-*/
-const CURRENCIES = currencies_default;
 const BY_CODE = new Map(CURRENCIES.map((c) => [c.code, c]));
 const REVENUE_MAX_VALUE = 1e9;
-const REVENUE_MAX_OID = 64;
-const MAX_CURRENCIES_LISTED = 5;
 /** An uppercase code on the embedded list. */
 const isCurrency = (code) => typeof code === "string" && BY_CODE.has(code);
 /** Trim, uppercase, three letters, listed; anything else is null (never a fallback). */
@@ -1185,13 +2052,126 @@ function formatAmount(value, code) {
 	const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	return `${value < 0 && Number(fixed) !== 0 ? "-" : ""}${grouped}${frac ? `.${frac}` : ""} ${code}`;
 }
-
-//#endregion
-//#region src/query/safe-regex.ts
-const MAX_PATTERN_LENGTH = 200;
-const MAX_GROUPS = 20;
-const MAX_REPEAT = 50;
-const MAX_COMBINATIONS = 1e3;
+const EVENT_NAME_RE = /^[A-Za-z0-9_.:\- ]{1,64}$/;
+const PROP_KEY_RE$1 = /^[A-Za-z0-9_]{1,32}$/;
+const CONTROL_RE = /[\u0000-\u001f\u007f]/;
+const isSid = (v) => typeof v === "string" && SID_RE.test(v);
+const isHitId = (v) => typeof v === "string" && HIT_RE.test(v);
+function isReservedEvent(name) {
+	return Object.hasOwn(RESERVED_EVENTS, name);
+}
+/** Custom event names: 1..64 of `[A-Za-z0-9_.:\- ]`; a leading `_` is reserved for built-in events. */
+function isEventName(v, allowReserved = false) {
+	if (typeof v !== "string" || !EVENT_NAME_RE.test(v)) return false;
+	return v.startsWith("_") ? allowReserved && isReservedEvent(v) : true;
+}
+/** Same-origin path plus query as sent by the page script. */
+function isPath(v) {
+	return typeof v === "string" && v.startsWith("/") && !v.startsWith("//") && v.length <= 2048 && !CONTROL_RE.test(v);
+}
+/** Empty string or an absolute http(s) URL. */
+function isReferrer(v) {
+	if (v === "") return true;
+	if (typeof v !== "string" || v.length > 2048 || CONTROL_RE.test(v)) return false;
+	return /^https?:\/\//i.test(v) && URL.canParse(v);
+}
+/**
+* Clean an event property map: at most 10 keys, keys `^[A-Za-z0-9_]{1,32}$`, values string <= 128,
+* finite number or boolean. Invalid entries are dropped. Reserved events keep only their fixed key.
+*/
+function cleanProps(p, eventName) {
+	if (p === void 0 || p === null) return void 0;
+	if (typeof p !== "object" || Array.isArray(p)) return void 0;
+	const only = eventName && isReservedEvent(eventName) ? RESERVED_EVENTS[eventName] : void 0;
+	const out = {};
+	let n = 0;
+	for (const [k, v] of Object.entries(p)) {
+		if (n >= 10) break;
+		if (only ? k !== only : !PROP_KEY_RE$1.test(k)) continue;
+		if (typeof v === "string" && v.length <= 128 && !CONTROL_RE.test(v) || typeof v === "boolean" || typeof v === "number" && Number.isFinite(v)) {
+			out[k] = v;
+			n++;
+		}
+	}
+	return n ? out : void 0;
+}
+const OID_RE = new RegExp(`^[A-Za-z0-9_.:\\-]{1,64}$`);
+/**
+* Revenue fields of an event: null when there is no `val` (a lone `cur` or `oid` is ignored),
+* an error when any of the three is invalid (the caller then drops all three and keeps the event).
+* `cur` is normalised but never defaulted here; rounding needs the effective currency and happens on write.
+*/
+function validateRevenue(b) {
+	if (b.val === void 0) return null;
+	if (typeof b.val !== "number" || !Number.isFinite(b.val) || b.val < 0 || b.val > 1e9) return { error: "invalid_value" };
+	const cur = b.cur === void 0 ? void 0 : normalizeCurrency(b.cur);
+	if (cur === null) return { error: "invalid_currency" };
+	if (b.oid !== void 0 && (typeof b.oid !== "string" || !OID_RE.test(b.oid))) return { error: "invalid_id" };
+	return {
+		val: b.val,
+		...cur ? { cur } : {},
+		...b.oid !== void 0 ? { oid: b.oid } : {}
+	};
+}
+const isInt = (v, min, max) => typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
+/** Validate a parsed ingest body. Returns a clean typed body or null (dropped silently with 204). */
+function validateIngest(raw, maxEngagedMs = 72e5) {
+	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+	const b = raw;
+	if (b.v !== 1) return null;
+	if (b.sid !== void 0 && !isSid(b.sid)) return null;
+	if (b.k !== void 0 && !isSid(b.k)) return null;
+	const base = { v: 1 };
+	if (b.sid) base.sid = b.sid;
+	if (b.k) base.k = b.k;
+	if (b.n === 0 || b.n === 1) base.n = b.n;
+	switch (b.t) {
+		case "pv":
+			if (!isHitId(b.h) || !isPath(b.u)) return null;
+			if (b.r !== void 0 && !isReferrer(b.r)) return null;
+			if (b.w !== void 0 && !isInt(b.w, 0, 1e5)) return null;
+			return {
+				...base,
+				t: "pv",
+				h: b.h,
+				u: b.u,
+				...b.r ? { r: b.r } : {},
+				...b.w !== void 0 ? { w: b.w } : {},
+				...isInt(b.nt, 0, 2) ? { nt: b.nt } : {}
+			};
+		case "en":
+			if (!isHitId(b.h) || typeof b.d !== "number" || !Number.isFinite(b.d) || b.d < 0) return null;
+			if (b.s !== void 0 && !isInt(b.s, 0, 100)) return null;
+			return {
+				...base,
+				t: "en",
+				h: b.h,
+				d: Math.min(Math.round(b.d), maxEngagedMs),
+				...isInt(b.e, 1, maxEngagedMs) ? { e: b.e } : {},
+				...b.s !== void 0 ? { s: b.s } : {},
+				...b.i === 1 || b.i === 0 ? { i: b.i } : {},
+				...isInt(b.x, 0, 2) ? { x: b.x } : {}
+			};
+		case "ev": {
+			if (!isEventName(b.name, true)) return null;
+			if (b.h !== void 0 && !isHitId(b.h)) return null;
+			if (b.u !== void 0 && !isPath(b.u)) return null;
+			const rev = isReservedEvent(b.name) ? null : validateRevenue(b);
+			const p = cleanProps(b.p, b.name);
+			return {
+				...base,
+				t: "ev",
+				name: b.name,
+				...b.h ? { h: b.h } : {},
+				...b.u ? { u: b.u } : {},
+				...p ? { p } : {},
+				...rev && !("error" in rev) ? rev : {},
+				...rev && "error" in rev ? { revenueInvalid: true } : {}
+			};
+		}
+		default: return null;
+	}
+}
 const fail = (error) => ({
 	ok: false,
 	error
@@ -1214,7 +2194,7 @@ function quantifierAt(p, i) {
 		const lo = Number(m[1]);
 		min = lo;
 		max = m[2] === void 0 ? lo : m[3] === "" ? Number.POSITIVE_INFINITY : Number(m[3]);
-		if (lo > MAX_REPEAT || Number.isFinite(max) && max > MAX_REPEAT) return { error: `Repeats above ${MAX_REPEAT} are not allowed.` };
+		if (lo > 50 || Number.isFinite(max) && max > 50) return { error: `Repeats above 50 are not allowed.` };
 		unbounded = !Number.isFinite(max);
 		end = i + m[0].length;
 	} else return null;
@@ -1239,7 +2219,7 @@ function escapeAt(p, i) {
 }
 function validateSafeRegex(pattern, flags = "") {
 	if (typeof pattern !== "string" || pattern.length === 0) return fail("Pattern is empty.");
-	if (pattern.length > MAX_PATTERN_LENGTH) return fail(`Pattern is longer than ${MAX_PATTERN_LENGTH} characters.`);
+	if (pattern.length > 200) return fail(`Pattern is longer than 200 characters.`);
 	if (!/^i?$/.test(flags)) return fail("Only the i flag is allowed.");
 	const p = pattern;
 	const stack = [{
@@ -1284,7 +2264,7 @@ function validateSafeRegex(pattern, flags = "") {
 				else if (named) i += 2 + named[0].length;
 				else return fail("Pattern does not compile.");
 			} else i += 1;
-			if (++groups > MAX_GROUPS) return fail(`More than ${MAX_GROUPS} groups are not allowed.`);
+			if (++groups > 20) return fail(`More than 20 groups are not allowed.`);
 			stack.push({
 				hasQuantifier: false,
 				hasAlternation: false
@@ -1322,7 +2302,7 @@ function validateSafeRegex(pattern, flags = "") {
 			top.hasQuantifier = true;
 			if (q.unbounded) openEnded++;
 			else combinations *= q.max - q.min + 1;
-			if (combinations > MAX_COMBINATIONS) return fail("Optional and ranged repeats allow too many combinations.");
+			if (combinations > 1e3) return fail("Optional and ranged repeats allow too many combinations.");
 			i = q.end;
 			last = { kind: "none" };
 			continue;
@@ -1344,9 +2324,7 @@ function validateSafeRegex(pattern, flags = "") {
 function compileSafeRegex(pattern, flags = "i") {
 	return validateSafeRegex(pattern, flags).ok ? new RegExp(pattern, flags) : null;
 }
-
-//#endregion
-//#region src/names.ts
+// src/names.ts
 const RESERVED_PREFIXES = [
 	"/_emdash",
 	"/_astro",
@@ -1396,31 +2374,21 @@ function publicNames(namespace) {
 		attrIgnore: `${attrPrefix}ignore`
 	};
 }
-
-//#endregion
-//#region src/link-rules.ts
-/**
-* Link rules (`linkRules` setting): one rule per line, `<pattern> <event> [label]`. Parsed here for the
-* server and the admin page; the page script (`src/client/boot.ts`) runs the same match at click time.
-* A leaf module: the admin Settings page imports it, so it imports nothing else.
-*/
-const MAX_LINK_RULES = 20;
-const MAX_LINK_RULES_TEXT = 2048;
-const HOST_RE = /^([a-z0-9-]+(?:\.[a-z0-9-]+)+(?::\d{1,5})?)\//i;
+const HOST_RE$1 = /^([a-z0-9-]+(?:\.[a-z0-9-]+)+(?::\d{1,5})?)\//i;
 const EVENT_RE = /^[A-Za-z0-9.:-][A-Za-z0-9_.:-]{0,63}$/;
 const LABEL_RE = /^[^\s\u0000-\u001f\u007f]{1,64}$/;
 /** Valid rules (the first 20) and the message of the first bad line, if any. Bad lines are left out. */
 function parseLinkRules(text, ignored = []) {
 	const rules = [];
-	let error = text.length > MAX_LINK_RULES_TEXT ? "All rules together are longer than 2,048 characters." : void 0;
+	let error = text.length > 2048 ? "All rules together are longer than 2,048 characters." : void 0;
 	const lines = text.split(/\r?\n/);
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i]?.trim() ?? "";
 		if (!line) continue;
 		const bad = lineError(line, ignored, rules);
 		if (bad) error ??= `Line ${i + 1}: ${bad}`;
-		else if (rules.length < MAX_LINK_RULES) rules.push(ruleOf(line));
-		else error ??= `At most ${MAX_LINK_RULES} rules.`;
+		else if (rules.length < 20) rules.push(ruleOf(line));
+		else error ??= `At most 20 rules.`;
 	}
 	return error ? {
 		rules,
@@ -1430,7 +2398,7 @@ function parseLinkRules(text, ignored = []) {
 /** The rule of a valid line; a host is lowercased, as the browser gives it. */
 function ruleOf(line) {
 	const [p = "", n = "", l] = line.split(/\s+/);
-	const pattern = p.replace(HOST_RE, (h) => h.toLowerCase());
+	const pattern = p.replace(HOST_RE$1, (h) => h.toLowerCase());
 	return l ? [
 		pattern,
 		n,
@@ -1442,7 +2410,7 @@ function lineError(line, ignored, rules) {
 	if (parts.length < 2 || parts.length > 3) return "use \"pattern event\" or \"pattern event label\".";
 	const [p = "", n = "", l] = parts;
 	const regex = p[0] === "~" && p.length > 1;
-	if (!regex && !(p[0] === "/" || p.startsWith("mailto:") || p.startsWith("tel:") || HOST_RE.test(p))) return "the pattern starts with /, a host name, mailto:, tel: or ~ for a regular expression.";
+	if (!regex && !(p[0] === "/" || p.startsWith("mailto:") || p.startsWith("tel:") || HOST_RE$1.test(p))) return "the pattern starts with /, a host name, mailto:, tel: or ~ for a regular expression.";
 	if (regex) {
 		const r = validateSafeRegex(p.slice(1), "i");
 		if (!r.ok) return r.error;
@@ -1456,9 +2424,7 @@ function lineError(line, ignored, rules) {
 	const pattern = ruleOf(line)[0];
 	if (rules.some((r) => r[0] === pattern)) return "the same pattern is used twice.";
 }
-
-//#endregion
-//#region src/settings.ts
+// src/settings.ts
 const SCRIPT_FOR_BOTS_CAVEAT = "Page fragments land in the route cache, which is keyed without the user agent and sends no Vary: User-Agent header, so a page first cached for a bot would be served to humans without the script. Enable only with route caching off.";
 const opts = (list) => list.map(([value, label]) => ({
 	value,
@@ -2015,15 +2981,12 @@ const PROFILES = {
 		requests: 400
 	}
 };
-const SUMMARY_SHARE = .25;
 /** A D1 database holds 10 GB; the EmDash database shares it with the site's content, so its budget stops at 9 GB. */
 const HOST_MAX_MB = 9e3;
 /** An own D1 database leaves 500 MB for what the estimate does not count (Search rows, aliases, space freed by deletes). */
 const OWN_MAX_MB = 9500;
 /** The most a D1 database holds, in MB: 500 on the Workers Free plan (`small`), else 10 GB. */
 const d1CapMb = (profile) => profile === "small" ? 500 : 1e4;
-/** Content plus analytics in the EmDash database above this share of `d1CapMb` is the strong warning at any budget. */
-const HOST_FULL_SHARE = .95;
 /** Postgres has no hard cap to protect; the budget only keeps a small hosted plan from filling up. */
 const PG_MAX_MB = 2e6;
 /** The budget table row of a profile in a target. `small` on D1 is the Workers Free plan's 500 MB database, wherever it is. */
@@ -2078,7 +3041,7 @@ function storageBudget(s, target) {
 function budgetWarning(s, target, otherMb) {
 	const mb = budgetMb(s, target);
 	const r = budgetRange(s.capacityProfile, target);
-	if (r.strong !== null && mb > r.strong || target === "host" && otherMb !== void 0 && mb + otherMb > HOST_FULL_SHARE * d1CapMb(s.capacityProfile)) return "strong";
+	if (r.strong !== null && mb > r.strong || target === "host" && otherMb !== void 0 && mb + otherMb > .95 * d1CapMb(s.capacityProfile)) return "strong";
 	return r.caution !== null && mb > r.caution ? "caution" : "none";
 }
 /** `https://host[:port]` from a url with no path, query or credentials; anything else is empty. */
@@ -2119,13 +3082,12 @@ function isCidr(s) {
 	const m6 = IPV6_CIDR.exec(s);
 	return !!m6 && s.includes(":") && Number(m6[1]) <= 128;
 }
-const MAX_BRAND_TERMS = 20;
 /** D1 refuses LIKE patterns of 50 bytes or more; a term is used as `%term%` with backslash, `%` and `_` escaped. */
 const likeBytes = (t) => new TextEncoder().encode(`%${t.replace(/[\\%_]/g, "\\$&")}%`).length;
 /** Brand terms: one per line, trimmed and lowercased, 2 to 40 characters, LIKE pattern under 50 bytes, unique, at most 20. */
 function parseBrandTerms(v) {
 	const terms = v.split(/\r?\n/).map((t) => t.trim().toLowerCase()).filter((t) => t.length >= 2 && t.length <= 40 && likeBytes(t) < 50);
-	return [...new Set(terms)].slice(0, MAX_BRAND_TERMS);
+	return [...new Set(terms)].slice(0, 20);
 }
 const listNormalizers = {
 	excludePaths: (s) => s.startsWith("/") && s.length <= 256,
@@ -2137,7 +3099,7 @@ const listNormalizers = {
 	siteSearchParams: (s) => SITE_SEARCH_PARAM_RE.test(s),
 	annotateCollections: (s) => /^[a-z][a-z0-9_]{0,63}$/.test(s)
 };
-const LOWERCASE_LISTS = new Set([
+const LOWERCASE_LISTS = /* @__PURE__ */ new Set([
 	"excludeIpPrefixes",
 	"ignoreReferrerHosts",
 	"queryAllowlist",
@@ -2145,14 +3107,13 @@ const LOWERCASE_LISTS = new Set([
 	"siteSearchParams",
 	"annotateCollections"
 ]);
-const SITE_SEARCH_MAX_PARAMS = 5;
 /** A site search parameter name; lowercase because stored query keys are lowercased (`normalizeUrl`). */
 const SITE_SEARCH_PARAM_RE = /^[a-z0-9_]{1,16}$/;
 /** Site search parameter names of a comma or space separated string: lowercased, unique, at most 5, and the invalid ones. */
 function parseSiteSearchParams(v) {
 	const items = [...new Set(splitList(v.toLowerCase()))];
 	const invalid = items.filter((n) => !SITE_SEARCH_PARAM_RE.test(n));
-	if (items.length - invalid.length > SITE_SEARCH_MAX_PARAMS) invalid.push(...items.filter((n) => SITE_SEARCH_PARAM_RE.test(n)).slice(SITE_SEARCH_MAX_PARAMS));
+	if (items.length - invalid.length > 5) invalid.push(...items.filter((n) => SITE_SEARCH_PARAM_RE.test(n)).slice(5));
 	return {
 		names: items.filter((n) => !invalid.includes(n)),
 		invalid
@@ -2214,7 +3175,7 @@ function normalizeSettings(raw) {
 		s.collectPath = DEFAULT_COLLECT_PATH;
 	}
 	s.searchBrandTerms = parseBrandTerms(String(out.searchBrandTerms ?? ""));
-	s.siteSearchParams = s.siteSearchParams.slice(0, SITE_SEARCH_MAX_PARAMS);
+	s.siteSearchParams = s.siteSearchParams.slice(0, 5);
 	s.linkRules = parseLinkRules(String(out.linkRules ?? ""), s.ignorePathPrefixes).rules;
 	s.sharePath = normalizeSharePath(s.sharePath);
 	if (s.sharePath === s.scriptPath || s.sharePath === s.collectPath) s.sharePath = DEFAULT_SHARE_PATH;
@@ -2261,9 +3222,168 @@ function cachedSettings(loader, ttlMs = 6e4, now = Date.now) {
 	};
 	return Object.assign(get, { clear });
 }
-
-//#endregion
-//#region src/query/filters.ts
+// src/sources/types.ts
+const SOURCE_IDS = ["google", "bing"];
+var BudgetExhausted = class extends Error {};
+/** Provider error with the HTTP status; 401 and 403 are never retried, 429 and 503 back off to the next tick. */
+var SourceError = class extends Error {
+	status;
+	constructor(status, message) {
+		super(message);
+		this.status = status;
+	}
+};
+/** A provider that refuses this caller for now (Bing `ThrottleIP`, `ThrottleUser`, `ThrottleHost`): not a failure of the connection. */
+var ThrottledError = class extends SourceError {
+	code;
+	constructor(code, message) {
+		super(429, message);
+		this.code = code;
+	}
+};
+/** Mapping field of each provider in settings and in a client site record. */
+const MAPPING_FIELD = {
+	google: "gscProperty",
+	bing: "bingSiteUrl"
+};
+// src/sources/budget.ts
+/** The ingest write guard of the `small` profile: 85 percent of the Workers Free plan's 100,000 rows per day. */
+const GUARD_ROWS = 85e3;
+const SYNC_BUDGET = {
+	small: {
+		daily: GUARD_ROWS * .25,
+		pauseAt: GUARD_ROWS * .6
+	},
+	standard: {
+		daily: 5e5,
+		pauseAt: null
+	},
+	dedicated: {
+		daily: 1e6,
+		pauseAt: null
+	}
+};
+/** State key: rows the Search syncs wrote on the UTC day `{ day, rows }`. */
+const KV_SYNC_ROWS = "budget:sync";
+/** Days a provider keeps: Google about 16 months, Bing about 6 months. */
+const PROVIDER_DAYS = {
+	google: 490,
+	bing: 180
+};
+const utcDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+/** 00:00 UTC after `ms`. */
+const nextUtcDay = (ms) => (Math.floor(ms / 864e5) + 1) * 864e5;
+/**
+* The backfill range of `days` (back from yesterday, 0 for the provider limit) or from `from`, clamped to what the
+* provider keeps and to the search retention. `clamped` tells the caller the start moved.
+*/
+function backfillRange(o, source, yesterday, retentionDays) {
+	const oldest = addDays(yesterday, 1 - Math.min(PROVIDER_DAYS[source], retentionDays));
+	const want = o.from ?? addDays(yesterday, 1 - (o.days || PROVIDER_DAYS[source]));
+	return want < oldest ? {
+		from: oldest,
+		to: yesterday,
+		clamped: true
+	} : {
+		from: want,
+		to: yesterday,
+		clamped: false
+	};
+}
+/** Today's rows of the syncs are used: the work waits until `resumeAt` (ms). A `BudgetExhausted`, so a tick stops and saves its cursor. */
+var RowsPaused = class extends BudgetExhausted {
+	resumeAt;
+	constructor(resumeAt, message = "Today's Search rows budget is used.") {
+		super();
+		this.resumeAt = resumeAt;
+		this.message = message;
+		this.name = "RowsPaused";
+	}
+};
+/**
+* Today's sync rows of one tick or import: read once per UTC day from `KV_SYNC_ROWS`, charged with the rows each
+* write reported, stored after every charge. `ingest` answers today's estimated ingest rows (`small` only).
+*/
+var SyncRows = class {
+	kv;
+	now;
+	profile;
+	ingest;
+	/** Rows charged by this instance. */
+	charged = 0;
+	day = "";
+	rows = 0;
+	ingestRows = null;
+	constructor(kv, now, profile, ingest) {
+		this.kv = kv;
+		this.now = now;
+		this.profile = profile;
+		this.ingest = ingest;
+	}
+	async allowance() {
+		const day = utcDay(this.now());
+		const { daily, pauseAt } = SYNC_BUDGET[this.profile];
+		if (day !== this.day) {
+			const s = await this.kv.get(KV_SYNC_ROWS);
+			this.day = day;
+			this.rows = s?.day === day ? s.rows : 0;
+			this.ingestRows = pauseAt !== null && this.ingest ? await this.ingest() : null;
+		}
+		const total = (this.ingestRows ?? 0) + this.rows;
+		const left = Math.max(0, Math.min(daily - this.rows, pauseAt === null ? Number.POSITIVE_INFINITY : pauseAt - total));
+		const paused = left === 0;
+		return {
+			budget: daily,
+			used: this.rows,
+			left,
+			paused,
+			pauseAt,
+			ingest: this.ingestRows,
+			resumeAt: paused ? nextUtcDay(this.now()) : null
+		};
+	}
+	async charge(n) {
+		if (n <= 0) return;
+		await this.allowance();
+		this.rows += n;
+		this.charged += n;
+		await this.kv.set(KV_SYNC_ROWS, {
+			day: this.day,
+			rows: this.rows
+		});
+	}
+};
+// src/move/day-budget.ts
+/** Rows a move and `data/load` together may write in one UTC day on `small` with D1. */
+const COPY_DAY_ROWS = 15e3;
+/** Counter of today's copied rows: `{ day, rows }`, `day` the UTC day. */
+const KV_COPY_ROWS = "copy:rows";
+/** Epoch seconds of the next 00:00 UTC after `now`. */
+const nextUtcMidnight = (now) => (Math.floor(now / 86400) + 1) * 86400;
+/** Rows copied in the UTC day of `now`. */
+async function copiedToday(kv, now) {
+	const c = await kv.get(KV_COPY_ROWS);
+	return c?.day === dayInZone(now, "UTC") ? c.rows : 0;
+}
+/** Rows that may still be copied today. */
+const copyRowsLeft = async (kv, now) => Math.max(0, COPY_DAY_ROWS - await copiedToday(kv, now));
+/** Charge `rows` copied rows to today: the counter and today's write budget state (when one is stored). Returns today's total. */
+async function chargeCopyRows(kv, now, rows) {
+	const day = dayInZone(now, "UTC");
+	const total = await copiedToday(kv, now) + rows;
+	await kv.set(KV_COPY_ROWS, {
+		day,
+		rows: total
+	});
+	const b = await kv.get(KV_WRITE_BUDGET);
+	if (b?.day === day) await kv.set(KV_WRITE_BUDGET, {
+		...b,
+		rows: b.rows + rows,
+		blocked: b.blocked || b.rows + rows >= b.limit
+	});
+	return total;
+}
+// src/query/filters.ts
 /** Filter and query model. Every identifier reaching SQL comes from the fixed maps here. */
 const OPS = [
 	"is",
@@ -2282,7 +3402,7 @@ const NUM_OPS = [
 	"lt",
 	"lte"
 ];
-const NEGATED = new Set([
+const NEGATED = /* @__PURE__ */ new Set([
 	"is_not",
 	"not_contains",
 	"not_prefix",
@@ -2431,7 +3551,7 @@ const LINK_BY = [
 	"device"
 ];
 const REVENUE_VALUE_RE = /^\d{1,10}(\.\d{1,3})?$/;
-const DIM_NAMES = [...new Set([
+const DIM_NAMES = [.../* @__PURE__ */ new Set([
 	...Object.keys(TRAFFIC_DIMS),
 	...REVENUE_DIMS$1,
 	...Object.keys(SEARCH_DIMS)
@@ -2440,12 +3560,10 @@ const PROP_KEY_RE = /^[A-Za-z0-9_]{1,32}$/;
 const DAY_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 /** Range cap for the admin route (raw and rollup windows are bounded separately). */
 const MAX_RANGE_DAYS = 1e3;
-const MAX_FILTERS = 20;
-const MAX_VALUES = 500;
 const FilterSchema = z.object({
 	dim: z.enum(DIM_NAMES),
 	op: z.enum([...OPS, ...NUM_OPS]),
-	values: z.array(z.string().min(1).max(512)).min(1).max(MAX_VALUES),
+	values: z.array(z.string().min(1).max(512)).min(1).max(500),
 	prop: z.string().regex(PROP_KEY_RE).optional()
 }).strict().refine((f) => f.dim === "revenue" || f.dim === "event_prop" === (f.prop !== void 0), {
 	message: "prop is required for event_prop and only allowed there",
@@ -2455,7 +3573,7 @@ const Day = z.string().regex(DAY_RE);
 const QuerySchema = z.object({
 	from: Day,
 	to: Day,
-	filters: z.array(FilterSchema).max(MAX_FILTERS).default([]),
+	filters: z.array(FilterSchema).max(20).default([]),
 	segment: z.string().min(1).max(128).optional(),
 	compare: z.enum([
 		"previous",
@@ -2463,6 +3581,7 @@ const QuerySchema = z.object({
 		"none",
 		"segment"
 	]).default("none"),
+	/** `compare: "segment"`: the segment id of side B, same range. */
 	compareSegment: z.string().min(1).max(128).optional(),
 	granularity: z.enum([
 		"auto",
@@ -2517,9 +3636,7 @@ const FUNNEL_MODES = [
 	"strict",
 	"flexible"
 ];
-
-//#endregion
-//#region src/query/compile.ts
+// src/query/compile.ts
 /** Typed query error; the route maps it to a host `PluginRouteError` with the same code. */
 var QueryError = class extends Error {
 	code;
@@ -2540,8 +3657,6 @@ const FALSE = {
 /** Distinct values fetched for regex expansion. */
 const REGEX_DISTINCT_LIMIT = 5e3;
 const REGEX_MATCH_LIMIT = 2e3;
-/** Budget for filter parameters in one statement; D1 allows 100 and reports need the rest. */
-const FILTER_PARAM_BUDGET = 60;
 const and = (frags) => {
 	const real = frags.filter((f) => f.sql !== TRUE.sql);
 	if (!real.length) return TRUE;
@@ -2562,7 +3677,7 @@ const or = (frags) => {
 * `col IN` a list, chunked at 90 values. Each chunk binds one JSON array parameter, so a filter with
 * any number of values (or a regex expansion of 2000 matches) stays inside the D1 parameter limit.
 */
-function inList(dialect, col, values, int = false, size = IN_CHUNK) {
+function inList(dialect, col, values, int = false, size = 90) {
 	if (!values.length) return FALSE;
 	if (values.length === 1) return {
 		sql: `${col} = ?`,
@@ -2662,11 +3777,11 @@ async function expandRegex(ctx, src, patterns) {
 		v: validateSafeRegex(p, "i")
 	})).find((r) => !r.v.ok);
 	if (bad && !bad.v.ok) throw new QueryError("invalid_regex", `${bad.v.error} (${bad.p})`);
-	const rows = await ctx.db.all(`SELECT DISTINCT t.v AS v FROM (${src.sql}) t WHERE t.v IS NOT NULL LIMIT ${REGEX_DISTINCT_LIMIT + 1}`, src.params);
-	if (rows.length > REGEX_DISTINCT_LIMIT) throw new QueryError("narrow_filter", `More than ${REGEX_DISTINCT_LIMIT} distinct values in this range. Narrow the range or use contains or prefix.`);
+	const rows = await ctx.db.all(`SELECT DISTINCT t.v AS v FROM (${src.sql}) t WHERE t.v IS NOT NULL LIMIT 5001`, src.params);
+	if (rows.length > 5e3) throw new QueryError("narrow_filter", `More than ${REGEX_DISTINCT_LIMIT} distinct values in this range. Narrow the range or use contains or prefix.`);
 	const res2 = patterns.map((p) => compileSafeRegex(p, "i"));
 	const matches = rows.map((r) => String(r.v)).filter((v) => res2.some((re) => re.test(v)));
-	if (matches.length > REGEX_MATCH_LIMIT) throw new QueryError("narrow_filter", `The pattern matches more than ${REGEX_MATCH_LIMIT} values. Make it more specific.`);
+	if (matches.length > 2e3) throw new QueryError("narrow_filter", `The pattern matches more than ${REGEX_MATCH_LIMIT} values. Make it more specific.`);
 	return matches;
 }
 /** Literal values of a filter: regex ops are expanded over `src` once, then compared with `is`. */
@@ -2904,7 +4019,7 @@ async function compileTraffic(ctx, filters) {
 		srv: and(srv),
 		ignoredTraffic
 	};
-	if (out.session.params.length + Math.max(out.pv.params.length, out.ev.params.length) > FILTER_PARAM_BUDGET) throw new QueryError("too_many_values", "Too many filter values in one query. Combine values with prefix or regex.");
+	if (out.session.params.length + Math.max(out.pv.params.length, out.ev.params.length) > 60) throw new QueryError("too_many_values", "Too many filter values in one query. Combine values with prefix or regex.");
 	return out;
 }
 async function compileSearch(ctx, filters) {
@@ -2924,16 +4039,14 @@ async function compileSearch(ctx, filters) {
 		preds.push(NEGATED.has(f.op) ? negate(null, p) : p);
 	}
 	const pred = and(preds);
-	if (pred.params.length > FILTER_PARAM_BUDGET) throw new QueryError("too_many_values", "Too many filter values in one query.");
+	if (pred.params.length > 60) throw new QueryError("too_many_values", "Too many filter values in one query.");
 	return {
 		pred,
 		needs,
 		ignored
 	};
 }
-
-//#endregion
-//#region src/query/reports/base.ts
+// src/query/reports/base.ts
 const num = (v) => {
 	const n = typeof v === "number" ? v : typeof v === "bigint" ? Number(v) : typeof v === "string" ? Number(v) : 0;
 	return Number.isFinite(n) ? n : 0;
@@ -3096,18 +4209,12 @@ function revenueWhere(site, from, to, session, extra = TRUE) {
 		params: where.params
 	};
 }
-/**
-* Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so
-* orders, gross revenue and paying sessions count rows with `val >= 0` only and `refunds` is the refunded amount.
-*/
-/** Goals per goal statement (`UNION ALL`), in the closed-day writer and the detailed Goals report. */
-const GOALS_PER_STATEMENT = 10;
 /** Goal statements in groups of at most `GOALS_PER_STATEMENT`, each within the bound parameter limit. */
 function goalGroups(parts) {
 	const groups = [];
 	for (const p of parts) {
 		const g = groups[groups.length - 1];
-		if (g && g.length < GOALS_PER_STATEMENT && g.reduce((n, x) => n + x.params.length, 0) + p.params.length <= MAX_PARAMS) g.push(p);
+		if (g && g.length < 10 && g.reduce((n, x) => n + x.params.length, 0) + p.params.length <= 100) g.push(p);
 		else groups.push([p]);
 	}
 	return groups;
@@ -3124,9 +4231,7 @@ function annotationsIn(rc, from, to) {
 		return d >= from && d <= to;
 	}).sort((a, b) => a.ts - b.ts);
 }
-
-//#endregion
-//#region src/query/reports/summary.ts
+// src/query/reports/summary.ts
 /**
 * Summary reads: the stored rows of `ca_rollup` and `ca_revenue_daily` over the
 * closed days of a range, merged in memory with the rows `computeDay` returns for the days that are not stored
@@ -3145,10 +4250,8 @@ const SEGMENTS$1 = [
 ];
 /** `seg` of the cube reads: `ca_cube` rows, and `ca_revenue_daily` rows of dim `all` per cube cell. */
 const CUBE_SEG = "cube";
-/** Joins the channel, country and device of a cube cell into one `segkey` (and the two keys of a session pair). */
-const CELL_SEP = "";
 /** Dimensions with pair rows (`seg` one of `SEGMENTS`). */
-const PAIR_DIMS$1 = new Set([
+const PAIR_DIMS$1 = /* @__PURE__ */ new Set([
 	"page",
 	"entry",
 	"source",
@@ -3173,7 +4276,7 @@ const FILTER_DIMS = {
 	goal: "goal"
 };
 /** Filter dimensions `ca_revenue_daily` keeps: a revenue read under any other (browser, os, exit, lang) has no rows. */
-const REVENUE_FILTER_DIMS = new Set([
+const REVENUE_FILTER_DIMS = /* @__PURE__ */ new Set([
 	"channel",
 	"source",
 	"utm_campaign",
@@ -3188,7 +4291,7 @@ const REVENUE_FILTER_DIMS = new Set([
 * A negated filter on these drops summary rows, while the detailed rows drop whole visits (a visit with the page,
 * event or goal), or keep visits the summaries do not hold (campaign rows exist only for visits with a campaign).
 */
-const NO_NEGATION = new Set([
+const NO_NEGATION = /* @__PURE__ */ new Set([
 	"page",
 	"event",
 	"goal",
@@ -3198,12 +4301,12 @@ const NO_NEGATION = new Set([
 * Report dimensions whose own filter the summaries cannot answer: events, goals and exit pages count their rates
 * over the matching visits, and a revenue breakdown by page, event or goal lists every order of the matching visits.
 */
-const OWN_TRAFFIC = new Set([
+const OWN_TRAFFIC = /* @__PURE__ */ new Set([
 	"event",
 	"goal",
 	"exit"
 ]);
-const OWN_REVENUE = new Set([
+const OWN_REVENUE = /* @__PURE__ */ new Set([
 	"page",
 	"event",
 	"goal"
@@ -3264,11 +4367,11 @@ function planFilters(filters, own, revenue = false) {
 		else if (base === null) [src, usable] = [{
 			dim: first,
 			seg: ""
-		}, new Set([first])];
+		}, /* @__PURE__ */ new Set([first])];
 		else if (PAIR_DIMS$1.has(base)) [src, usable] = [{
 			dim: base,
 			seg: first
-		}, new Set([base, first])];
+		}, /* @__PURE__ */ new Set([base, first])];
 	}
 	const applied = kept.filter((f) => usable.has(dimOf(f)) ? true : (off(f, "combination"), false));
 	return {
@@ -3292,8 +4395,6 @@ function matchKey(f, key) {
 	else hit = f.values.includes(key);
 	return NEGATED.has(f.op) ? !hit : hit;
 }
-/** Open days one read computes in memory, newest first (today, yesterday, and the day the writer is closing). */
-const MAX_OPEN_DAYS = 4;
 const OPEN_TTL_MS = 6e4;
 const OPEN_MAX = 100;
 const openCache = /* @__PURE__ */ new Map();
@@ -3317,8 +4418,8 @@ async function splitRange(rc, from, to) {
 			from,
 			to: end
 		} : null,
-		open: all.slice(-MAX_OPEN_DAYS),
-		missing: all.slice(0, Math.max(0, all.length - MAX_OPEN_DAYS))
+		open: all.slice(-4),
+		missing: all.slice(0, Math.max(0, all.length - 4))
 	};
 }
 /** `summary_behind:<from>:<to>` when a summary answer leaves out days the writer has not stored yet (more than `MAX_OPEN_DAYS` behind). */
@@ -3390,7 +4491,7 @@ function cubeSql(dialect, byDay) {
 const cubeRow = (r) => ({
 	...r,
 	key: "",
-	segkey: SEGMENTS$1.map((g) => String(r[g])).join(CELL_SEP),
+	segkey: SEGMENTS$1.map((g) => String(r[g])).join(""),
 	engaged_ms: r.engaged_ms ?? r.duration_ms
 });
 /** Add `rows` into one row per key, segment value, day and currency. */
@@ -3417,7 +4518,7 @@ function sumInto(out, rows, metrics, byDay) {
 */
 async function readSummary(rc, from, to, r) {
 	const rev = r.table === "ca_revenue_daily";
-	const cube = r.seg === CUBE_SEG && !rev;
+	const cube = r.seg === "cube" && !rev;
 	const metrics = rev ? REVENUE_METRICS : ROLLUP_METRICS;
 	const { stored, open } = await splitRange(rc, from, to);
 	const out = /* @__PURE__ */ new Map();
@@ -3449,7 +4550,7 @@ async function readSummary(rc, from, to, r) {
 			})), metrics, !!r.byDay);
 			continue;
 		}
-		const pairs = r.seg === CUBE_SEG ? d.revenueCube : rev ? d.revenuePairs : d.pairs;
+		const pairs = r.seg === "cube" ? d.revenueCube : rev ? d.revenuePairs : d.pairs;
 		const rows = r.seg ? pairs ?? [] : rev ? d.revenue : d.rows;
 		const refund = rev ? refundDim(r.dim) : null;
 		sumInto(out, rows.filter((x) => (x.dim === r.dim || x.dim === refund) && (x.seg ?? "") === r.seg && (!r.cur || x.cur === r.cur) && (!keys || keys.has(x.key))).map((x) => x.dim === refund ? {
@@ -3490,7 +4591,7 @@ async function planRead(rc, input, plan, o) {
 		dim,
 		seg
 	};
-	const keyOf = (r, d) => cube ? r.segkey.split(CELL_SEP)[SEGMENTS$1.indexOf(d)] ?? "" : FILTER_DIMS[d] === dim ? r.key : r.segkey;
+	const keyOf = (r, d) => cube ? r.segkey.split("")[SEGMENTS$1.indexOf(d)] ?? "" : FILTER_DIMS[d] === dim ? r.key : r.segkey;
 	const read_ = await readSummary(rc, input.from, input.to, {
 		table: o.table,
 		...read,
@@ -3537,9 +4638,7 @@ function storedSessions(rc, from, to, nowMs = Date.now()) {
 	value.catch(() => scanCache.get(key)?.value === value && scanCache.delete(key));
 	return value;
 }
-
-//#endregion
-//#region src/query/reports/timeseries.ts
+// src/query/reports/timeseries.ts
 /** auto: hour up to 2 days, day up to 120 days, week beyond. */
 function resolveGranularity(g, from, to) {
 	if (g !== "auto") return g;
@@ -3604,9 +4703,7 @@ function bucketSeries(from, to, gran, rows) {
 		...sessionMetrics(buckets.get(t) ?? {})
 	}));
 }
-
-//#endregion
-//#region src/query/reports/revenue.ts
+// src/query/reports/revenue.ts
 /**
 * Revenue reports: `revenue`, `revenue_series`, `revenue_breakdown`, the `withRevenue`
 * merge and `hasRevenue`. Every figure is within one currency: sums are grouped by `cur` or restricted to
@@ -3619,8 +4716,6 @@ const REVENUE_REPORTS = [
 	"revenue_series",
 	"revenue_breakdown"
 ];
-/** Most orders `revenue_orders` lists. */
-const RECENT_ORDERS_CAP = 50;
 /** Rollup dim of `ca_revenue_daily` and `ca_rollup` per breakdown dim. */
 const ROLLUP_DIM = {
 	channel: "channel",
@@ -3834,8 +4929,9 @@ async function revenueSeries(rc, input) {
 			aov: money(ratio(rev, b.orders), cur)
 		};
 	});
+	const list = currencyList(await currencyRows(rc, input), (await audience(rc, input)).visitors, cur);
 	const data = {
-		...metaOf(currencyList(await currencyRows(rc, input), (await audience(rc, input)).visitors, cur), cur),
+		...metaOf(list, cur),
 		series,
 		granularity: gran
 	};
@@ -3934,7 +5030,8 @@ async function visitorsByKey(rc, input, dim) {
 	} else if (dim === "goal") {
 		const goals = eventGoals(rc.goals);
 		rows = goals.length ? await goalUnion(rc, input, goals, "entry", (key, pred) => {
-			const q = perDay("CAST(? AS TEXT)", hitJoin(rc, input, "ev", pred), "");
+			const j = hitJoin(rc, input, "ev", pred);
+			const q = perDay("CAST(? AS TEXT)", j, "");
 			return {
 				sql: q.sql,
 				params: [key, ...q.params]
@@ -3957,7 +5054,7 @@ async function revenueBreakdown(rc, input) {
 	const list = currencyList(await currencyRows(rc, input, dim), (await audience(rc, input, dim)).visitors, cur);
 	const rev = await revenueByKey(rc, input, dim, cur);
 	const vis = await visitorsByKey(rc, input, dim);
-	const rows = [...new Set([...rev.keys(), ...vis.keys()])].map((key) => {
+	const rows = [.../* @__PURE__ */ new Set([...rev.keys(), ...vis.keys()])].map((key) => {
 		const r = rev.get(key);
 		const v = vis.get(key);
 		const revenue = r?.revenue ?? 0;
@@ -3993,7 +5090,7 @@ async function revenueBreakdown(rc, input) {
 */
 async function revenueOrders(rc, input) {
 	const cur = currencyOf(rc, input);
-	const cap = Math.min(input.limit, RECENT_ORDERS_CAP);
+	const cap = Math.min(input.limit, 50);
 	const w = revenueWhere(rc.site, input.from, input.to, input.traffic?.session ?? TRUE, {
 		sql: "h.cur = ?",
 		params: [cur]
@@ -4086,21 +5183,7 @@ async function withRevenue(rc, input, report, data) {
 		currencies: list.map(({ revenue_per_visitor: _r, ...c }) => c)
 	};
 }
-
-//#endregion
-//#region src/query/reports/journeys.ts
-/**
-* Journeys: session level page flows over the pageviews of the filtered sessions. Each report is
-* one statement plus one count statement for the session cap. Consecutive views of one path (a reload, a route
-* re-entry) are one step. Pageviews in the same second are ordered by entry key, so such pairs may swap. Before
-* the detailed window `journeysFromSummary` answers from the daily `next` and `path3` rows (`journeyDay`), which
-* keep the top steps and paths of each day: notice `top_paths_per_day`.
-*/
-const JOURNEY_MAX_RANGE_DAYS = 31;
 const JOURNEY_SESSION_CAP = 5e4;
-/** Rows with fewer sessions are omitted and counted in `hidden_sessions`: a one session path is one person's route. */
-const JOURNEY_MIN_SESSIONS = 2;
-const JOURNEY_MAX_ROWS = 20;
 /** Grouped rows read before the floor; one page has far fewer distinct neighbours. */
 const GROUP_LIMIT = 5e3;
 const EXIT = "(exit)";
@@ -4115,7 +5198,7 @@ async function journeyBase(rc, input) {
 	const sessions = sessionWhere(rc.site, input.from, input.to, input.traffic?.session ?? TRUE);
 	const [c] = await rc.db.all(`SELECT COUNT(*) AS n FROM ca_sessions s WHERE ${sessions.sql}`, sessions.params);
 	const n = num(c?.n);
-	if (n > JOURNEY_SESSION_CAP) throw new QueryError("journey_cap", `Journeys read at most ${JOURNEY_SESSION_CAP} sessions; this range has ${n}. Narrow the range or add filters.`);
+	if (n > 5e4) throw new QueryError("journey_cap", `Journeys read at most ${JOURNEY_SESSION_CAP} sessions; this range has ${n}. Narrow the range or add filters.`);
 	return journeySeq(rc, sessions);
 }
 /** The windowed CTE `seq` over the page views of the visits `sessions` selects (no range or session cap). */
@@ -4135,13 +5218,13 @@ seq AS (SELECT p.sid AS sid, p.path AS path, LAG(p.path) OVER (${ORDER}) AS prev
 }
 function checkRange(input) {
 	const days = daysBetween(input.from, input.to);
-	if (days > JOURNEY_MAX_RANGE_DAYS) throw new QueryError("journey_range", `Journeys read at most ${JOURNEY_MAX_RANGE_DAYS} days; this range has ${days}. Choose a shorter range.`);
+	if (days > 31) throw new QueryError("journey_range", `Journeys read at most 31 days; this range has ${days}. Choose a shorter range.`);
 }
 /** Rows at or above the floor (at most 20) and the sessions of the omitted ones. */
 function floor(rows) {
 	return {
-		rows: rows.filter((r) => r.sessions >= JOURNEY_MIN_SESSIONS).slice(0, JOURNEY_MAX_ROWS),
-		hidden_sessions: rows.filter((r) => r.sessions < JOURNEY_MIN_SESSIONS).reduce((a, r) => a + r.sessions, 0)
+		rows: rows.filter((r) => r.sessions >= 2).slice(0, 20),
+		hidden_sessions: rows.filter((r) => r.sessions < 2).reduce((a, r) => a + r.sessions, 0)
 	};
 }
 function neighbour(column, none) {
@@ -4197,8 +5280,6 @@ GROUP BY t.path, ${p2}, ${p3} ORDER BY sessions DESC, path1, path2, path3 LIMIT 
 }
 /** Summary dims of the journeys: `next` (key a page, segkey the next page, `(exit)`, or '' for the page's own sessions; key `(entry)` for landings) and `path3` (key the landing page, segkey the next two steps). */
 const JOURNEY_DIMS = ["next", "path3"];
-/** Separates the second and third step of a `path3` segkey (no path holds it). */
-const STEP_SEP = "";
 /**
 * The journey rows of one site and day for the summaries, one statement over the same steps as the reports: what
 * followed each page, which page each visit landed on, the visits of each page, and the three step paths. A visit
@@ -4212,7 +5293,7 @@ async function journeyDay(rc, day) {
 SELECT 'next' AS dim, t.path AS key, ${p2} AS segkey, COUNT(DISTINCT t.sid) AS sessions FROM seq t WHERE COALESCE(t.next, '') <> t.path GROUP BY t.path, ${p2}
 UNION ALL SELECT 'next', '${ENTRY}', t.path, COUNT(DISTINCT t.sid) FROM seq t WHERE t.n = 1 GROUP BY t.path
 UNION ALL SELECT 'next', t.path, '', COUNT(DISTINCT t.sid) FROM seq t GROUP BY t.path
-UNION ALL SELECT 'path3', t.path, ${p2} || '${STEP_SEP}' || ${p3}, COUNT(*) FROM seq t WHERE t.n = 1 GROUP BY t.path, ${p2}, ${p3}`, base.params)).map((r) => ({
+UNION ALL SELECT 'path3', t.path, ${p2} || '' || ${p3}, COUNT(*) FROM seq t WHERE t.n = 1 GROUP BY t.path, ${p2}, ${p3}`, base.params)).map((r) => ({
 		dim: r.dim,
 		key: String(r.key),
 		segkey: String(r.segkey),
@@ -4268,7 +5349,7 @@ const journeysFromSummary = {
 		const notices = summaryNotices(input);
 		const entry = input.params.entry;
 		const rows = (await read(rc, input, "path3", entry ? { key: entry } : {})).map((r) => {
-			const [path2 = "", rest = ""] = String(r.segkey).split(STEP_SEP);
+			const [path2 = "", rest = ""] = String(r.segkey).split("");
 			const path3 = rest || null;
 			return {
 				key: [
@@ -4290,9 +5371,7 @@ const journeysFromSummary = {
 		};
 	}
 };
-
-//#endregion
-//#region src/query/reports/links.ts
+// src/query/reports/links.ts
 /**
 * `links` (Links convention, docs/integration.md): impressions, clicks, CTR, clicking sessions and conversions per
 * link, placement, page or session dim. Clicks are `out` events and conversions `conv` events keyed by their `slug` and
@@ -4628,7 +5707,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-CrqIFQsa.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-rJWazoto.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -4675,25 +5754,23 @@ const SEGMENTS = [
 	"country",
 	"device"
 ];
-
-//#endregion
-//#region src/query/rollup.ts
+// src/query/rollup.ts
 var rollup_exports = /* @__PURE__ */ __exportAll({
-	CLOSE_GRACE_S: () => CLOSE_GRACE_S,
+	CLOSE_GRACE_S: () => 900,
 	CUBE_CAP: () => CUBE_CAP,
 	CUBE_METRICS: () => CUBE_METRICS,
 	JOURNEY_CAP: () => JOURNEY_CAP,
 	KV_REVENUE_CURSOR: () => KV_REVENUE_CURSOR,
 	KV_ROLLUP_CURSOR: () => KV_ROLLUP_CURSOR,
 	KV_WATERMARK: () => KV_WATERMARK,
-	LINK_TOP_N: () => LINK_TOP_N,
+	LINK_TOP_N: () => 200,
 	OTHER: () => OTHER,
 	PAIR_DIMS: () => PAIR_DIMS,
 	PAIR_ROWS: () => PAIR_ROWS,
 	PAIR_WEIGHTS: () => PAIR_WEIGHTS,
-	REVENUE_RECONCILE_DAYS_PER_TICK: () => REVENUE_RECONCILE_DAYS_PER_TICK,
-	REVENUE_ROLLUP_MAX_SITES_PER_TICK: () => REVENUE_ROLLUP_MAX_SITES_PER_TICK,
-	REVENUE_STATEMENTS_PER_SITE: () => REVENUE_STATEMENTS_PER_SITE,
+	REVENUE_RECONCILE_DAYS_PER_TICK: () => 2,
+	REVENUE_ROLLUP_MAX_SITES_PER_TICK: () => 3,
+	REVENUE_STATEMENTS_PER_SITE: () => 39,
 	ROLLUP_DIMS: () => ROLLUP_DIMS,
 	SEGS: () => SEGS,
 	SESSION_KEYS: () => SESSION_KEYS,
@@ -4809,8 +5886,6 @@ const PAIR_ROWS = {
 const WEIGHT_SUM = SEGS.length * (Object.values(PAIR_WEIGHTS).reduce((a, w) => a + w, 0) + LINK_PAIR_WEIGHT);
 /** Rows of one pair family (`dim` x one segment) per day: its weighted share of the profile's pair rows. */
 const pairCap = (profile, dim) => Math.floor(PAIR_ROWS[profile ?? "standard"] * (dim === "link" ? LINK_PAIR_WEIGHT : PAIR_WEIGHTS[dim]) / WEIGHT_SUM);
-/** Link rows per family and day (`link`, `link_place`; their conversion values per currency likewise). */
-const LINK_TOP_N = 200;
 /** Journey rows per day: `next` (steps, and the pages they name) and `path3`. */
 const JOURNEY_CAP = {
 	small: {
@@ -4833,7 +5908,7 @@ const SUMMARY_DIMS = [
 	...JOURNEY_DIMS
 ];
 /** Separates the two keys of a session pair inside one SQL key (no path, channel, country or device holds it). */
-const SEP = CELL_SEP;
+const SEP$1 = "";
 /**
 * Cube cells (channel x country x device) per site and day. A day has few channels and devices, so the cells are
 * mostly countries: the cap folds the smallest countries into `(other)` (see `foldCube`). Inside the summary share
@@ -4892,7 +5967,7 @@ function foldPairs(rows, n, rank, add) {
 	for (const r of sorted) if (keep.size + 1 + segs.size + (segs.has(r.segkey) ? 0 : 1) + 1 <= n) keep.add(r), segs.add(r.segkey);
 	const others = /* @__PURE__ */ new Map();
 	for (const r of sorted) {
-		if (keep.has(r) && r.key !== OTHER) continue;
+		if (keep.has(r) && r.key !== "(other)") continue;
 		const segkey = segs.has(r.segkey) ? r.segkey : OTHER;
 		let o = others.get(segkey);
 		if (!o) {
@@ -4913,14 +5988,14 @@ function foldPairs(rows, n, rank, add) {
 */
 function foldCube(rows, n, rank, add) {
 	return foldPairs(rows.map((r) => {
-		const [channel, country, device] = r.segkey.split(SEP);
+		const [channel, country, device] = r.segkey.split(SEP$1);
 		return {
 			...r,
 			key: country,
-			segkey: `${channel}${SEP}${device}`
+			segkey: `${channel}${SEP$1}${device}`
 		};
 	}), n, rank, add).map((r) => {
-		const [channel, device = OTHER] = r.segkey.split(SEP);
+		const [channel, device = OTHER] = r.segkey.split(SEP$1);
 		return {
 			...r,
 			key: "",
@@ -4928,7 +6003,7 @@ function foldCube(rows, n, rank, add) {
 				channel,
 				r.key,
 				device
-			].join(SEP)
+			].join(SEP$1)
 		};
 	});
 }
@@ -4982,7 +6057,7 @@ function foldGroups(rows, id, fold) {
 /** The link families of one day (one statement), each folded to its cap: top links by clicks and impressions, the rest in `(other)`. */
 async function computeLinks(rc, day) {
 	const rows = await linkDay(reportCtx(rc), day, SEGS);
-	const cap = (seg) => seg ? pairCap(rc.settings.capacityProfile, "link") : LINK_TOP_N;
+	const cap = (seg) => seg ? pairCap(rc.settings.capacityProfile, "link") : 200;
 	const byKey = /* @__PURE__ */ new Map();
 	for (const r of rows.filter((x) => x.cur === "")) {
 		const id = `${r.dim}\u0000${r.seg}\u0000${r.key}\u0000${r.segkey}`;
@@ -5056,12 +6131,12 @@ async function computeRollupRows(rc, day) {
 	const sessionDims = Object.entries(SESSION_KEYS);
 	const pairParts = sessionDims.filter(([dim]) => dim in PAIR_WEIGHTS).flatMap(([dim, expr]) => SEGS.map((seg) => [
 		dim,
-		`${expr} || '${SEP}' || ${SESSION_KEYS[seg]}`,
+		`${expr} || '${SEP$1}' || ${SESSION_KEYS[seg]}`,
 		seg
 	]));
 	const cubePart = [
 		"cube",
-		SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP}' || `),
+		SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP$1}' || `),
 		CUBE_SEG
 	];
 	const parts = [
@@ -5097,7 +6172,7 @@ async function computeRollupRows(rc, day) {
 	})), CUBE_CAP[rc.settings.capacityProfile ?? "standard"], (r) => r.sessions, (into, r) => {
 		for (const m of CUBE_METRICS) into[m] += r[m];
 	}).map(({ key: _, segkey, ...m }) => {
-		const [channel, country, device] = segkey.split(SEP);
+		const [channel, country, device] = segkey.split(SEP$1);
 		return {
 			channel,
 			country,
@@ -5105,9 +6180,9 @@ async function computeRollupRows(rc, day) {
 			...m
 		};
 	});
-	for (const r of sessionRows.filter((x) => x.seg !== "" && x.seg !== CUBE_SEG)) {
+	for (const r of sessionRows.filter((x) => x.seg !== "" && x.seg !== "cube")) {
 		const k = String(r.key);
-		const at = k.lastIndexOf(SEP);
+		const at = k.lastIndexOf(SEP$1);
 		if (at < 0) continue;
 		pairs.push({
 			...row(r.dim, k.slice(0, at), {
@@ -5292,7 +6367,7 @@ const cubeUpsertSql = (d) => summaryUpsertSql(d, "ca_cube", CUBE_COLS, 3, [
 	"device"
 ], int(d, 0).sql);
 /** Vanished cells of one site and day: the key range `(site, day)` of `ca_cube`, nothing else. */
-const cubeVanishedSql = (d) => `DELETE FROM ca_cube WHERE site = ? AND day = ${int(d, 0).sql} AND channel || '${SEP}' || country || '${SEP}' || device NOT IN (${d === "postgres" ? "SELECT jsonb_array_elements_text(CAST(? AS jsonb))" : "SELECT value FROM json_each(?)"})`;
+const cubeVanishedSql = (d) => `DELETE FROM ca_cube WHERE site = ? AND day = ${int(d, 0).sql} AND channel || '${SEP$1}' || country || '${SEP$1}' || device NOT IN (${d === "postgres" ? "SELECT jsonb_array_elements_text(CAST(? AS jsonb))" : "SELECT value FROM json_each(?)"})`;
 const ROLLUP_UPSERT = (d) => summaryUpsertSql(d, "ca_rollup", ROLLUP_COLS, 4, [
 	"site",
 	"dim",
@@ -5312,7 +6387,7 @@ const REVENUE_UPSERT = (d) => summaryUpsertSql(d, "ca_revenue_daily", REVENUE_CO
 ]);
 /** Vanished keys of the pair rows, bounded to the pair dims and segments. */
 const PAIR_KEY = "dim || '|' || seg || '|' || key || '|' || segkey";
-const REVENUE_BASE_DIMS = [...new Set([
+const REVENUE_BASE_DIMS = [.../* @__PURE__ */ new Set([
 	"all",
 	...Object.values(ROLLUP_DIM),
 	"goal"
@@ -5382,7 +6457,7 @@ function writeDayStmts(dialect, site, day, s) {
 					r.channel,
 					r.country,
 					r.device
-				].join(SEP)))
+				].join(SEP$1)))
 			]
 		});
 	}
@@ -5453,7 +6528,7 @@ const summaryRows = (s) => s.rows.length + s.pairs.length + s.revenue.length + s
 * revenue, links, journeys), one upsert per table (a day under 500 rows per table) and two deletes per table, plus
 * the link and journey upsert and delete of each table, and the cube's upsert, delete and revenue delete.
 */
-const dayStatements = (goals) => 3 + Math.ceil(goals.filter((g) => g.active !== false).length / GOALS_PER_STATEMENT) + 1 + Math.ceil(eventGoals(goals).length / GOALS_PER_STATEMENT) + 2 + 6 + 4 + 3;
+const dayStatements = (goals) => 3 + Math.ceil(goals.filter((g) => g.active !== false).length / 10) + 1 + Math.ceil(eventGoals(goals).length / 10) + 2 + 6 + 4 + 3;
 /**
 * Rows of one link or journey family over a range, summed per key, segment value (and currency): the closed days
 * from the stored rows in one key-range statement `(site, dim, seg, day)`, the open days (after the watermark, see
@@ -5608,10 +6683,6 @@ async function runRollup(rc, kv, now, o = {}) {
 	}
 	return out;
 }
-const REVENUE_ROLLUP_MAX_SITES_PER_TICK = 3;
-const REVENUE_RECONCILE_DAYS_PER_TICK = 2;
-/** Statements one site may cost in one `revenue` run: the reconcile and two recomputed days of a site without goals, by `dayStatements` (spy-tested). */
-const REVENUE_STATEMENTS_PER_SITE = 39;
 const KV_REVENUE_CURSOR = "revenue:cursor";
 /** Requests of a `revenue` run besides the sites: the probe, the watermark and cursor reads, the cursor write. */
 const REVENUE_FIXED_REQUESTS = 4;
@@ -5697,7 +6768,7 @@ async function computeRevenue(rc, days) {
 		to: days.at(-1),
 		goals: rc.goals
 	};
-	for (const group of chunk(eventGoals(rc.goals), GOALS_PER_STATEMENT)) {
+	for (const group of chunk(eventGoals(rc.goals), 10)) {
 		const gp = [];
 		for (const g of group) {
 			const b = base(await goalPredicate(cc, g, "h", "event"));
@@ -5746,7 +6817,7 @@ async function computeRevenue(rc, days) {
 			segkey: String(r[seg])
 		});
 		if (v.dim === "all") {
-			const segkey = SEGS.map((g) => String(r[g])).join(SEP);
+			const segkey = SEGS.map((g) => String(r[g])).join(SEP$1);
 			add(cube, [
 				v.day,
 				v.cur,
@@ -5892,13 +6963,13 @@ async function runRevenue(rc, kv, now, rawFrom, o = {}) {
 	let used = 0;
 	const cursor = await kv.get(KV_REVENUE_CURSOR);
 	const after = all.filter((s) => !cursor || s > cursor);
-	const pick = (after.length ? after : all).slice(0, REVENUE_ROLLUP_MAX_SITES_PER_TICK);
+	const pick = (after.length ? after : all).slice(0, 3);
 	const out = {
 		sites: [],
 		cursor: null
 	};
 	for (const site of pick) {
-		const cap = Math.min(REVENUE_STATEMENTS_PER_SITE, budget - used - 1);
+		const cap = Math.min(39, budget - used - 1);
 		if (cap < 1) break;
 		const c = counted(rc.db);
 		const goals = await rc.goals(site);
@@ -5908,7 +6979,7 @@ async function runRevenue(rc, kv, now, rawFrom, o = {}) {
 			settings: rc.settings,
 			goals
 		};
-		const drift = wm ? (await revenueDrift(c.db, site, addDays(rawFrom, 1), to)).slice(0, REVENUE_RECONCILE_DAYS_PER_TICK) : [];
+		const drift = wm ? (await revenueDrift(c.db, site, addDays(rawFrom, 1), to)).slice(0, 2) : [];
 		const recomputed = [];
 		for (const d of drift) {
 			if (c.n() + dayStatements(goals) > cap) break;
@@ -5931,6 +7002,2020 @@ async function runRevenue(rc, kv, now, rawFrom, o = {}) {
 	else await kv.delete(KV_REVENUE_CURSOR);
 	return out;
 }
-
-//#endregion
-export { planRows as $, saltDay as $n, SUMMARY_SHARE as $t, currencyList as A, docRead as An, inList as At, bucketSeries as B, upsertClause as Bn, NUM_OPS as Bt, journeyPaths as C, dayInt as Cn, and as Ct, RECENT_ORDERS_CAP as D, docJson as Dn, entryCols as Dt, journeysUnavailable as E, docGet as En, entriesOf as Et, revenueBreakdown as F, likeEscape as Fn, FunnelStepsSchema as Ft, FILTER_DIMS as G, addDays as Gn, REVENUE_DIMS$1 as Gt, timeseries as H, MAX_PARAMS as Hn, PROP_KEY_RE as Ht, revenueOrders as I, paramRows as In, GoalSchema as It, clearOpenDays as J, eachDay as Jn, TRAFFIC_DIMS as Jt, SEGMENTS$1 as K, dayInZone as Kn, REVENUE_VALUE_RE as Kt, revenuePlan as L, q as Ln, LINK_BY as Lt, hasRevenue as M, field as Mn, DIM_NAMES as Mt, metaOf as N, isoDay as Nn, FUNNEL_MODES as Nt, REVENUE_REPORTS as O, docObject as On, entryProp as Ot, revenue as P, join as Pn, FilterSchema as Pt, planFilters as Q, saltBoundary as Qn, SITE_SEARCH_MAX_PARAMS as Qt, revenueSeries as R, raw as Rn, MAX_FILTERS as Rt, journeyNext as S, VISIT_DAY_TYPE as Sn, TRUE as St, journeysFromSummary as T, deleteDaySlice as Tn, compileTraffic as Tt, weekStart as U, chunk as Un, QuerySchema as Ut, resolveGranularity as V, visitDayKey as Vn, OPS as Vt, CUBE_SEG as W, ident as Wn, REVENUE_BREAKDOWN_DIMS as Wt, matchKey as X, lastClosedDay as Xn, HOST_FORM_POINTER as Xt, clearScanCache as Y, hourInZone as Yn, DEFAULT_SETTINGS as Yt, openDay as Z, previousPeriod as Zn, PROFILES as Zt, linksPlan as _, isCurrency as _n, sessionMetrics as _t, OTHER as a, normalizeSettings as an, ORDER_SUMS as at, JOURNEY_MIN_SESSIONS as b, LIKE_ESCAPE as bn, visitDays as bt, counted as c, storageBudget as cn, goalGroups as ct, rollup_exports as d, compileSafeRegex as dn, liveVisits as dt, budgetMb as en, samePeriodLastYear as er, readSummary as et, runRevenue as f, validateSafeRegex as fn, num as ft, linksFromSummary as g, formatAmount as gn, sessionBreakdown as gt, links as h, REVENUE_MAX_VALUE as hn, round as ht, KV_WATERMARK as i, d1CapMb as in, DURATION_MS as it, currencyOf as j, docSet as jn, validateFilters as jt, WITH_REVENUE as k, docPut as kn, goalPredicate as kt, dayStatements as l, parseLinkRules as ln, hitJoin as lt, sitesOfDay as m, REVENUE_MAX_OID as mn, refundDim as mt, KV_REVENUE_CURSOR as n, budgetWarning as nn, storedSessions as nt, SEGS as o, parseSiteSearchParams as on, annotationsIn as ot, runRollup as p, MAX_CURRENCIES_LISTED as pn, ratio as pt, behindNotice as q, daysBetween as qn, SEARCH_DIMS as qt, KV_ROLLUP_CURSOR as r, cachedSettings as rn, storedThrough as rt, SUMMARY_DIMS as s, settingsSchema as sn, bounceRate as st, CUBE_CAP as t, budgetRange as tn, zonedToEpoch as tr, splitRange as tt, rollupDay as u, publicNames as un, keysIn as ut, JOURNEY_MAX_RANGE_DAYS as v, normalizeCurrency as vn, sessionTotals as vt, journeyPrev as w, ddl as wn, compileSearch as wt, JOURNEY_SESSION_CAP as x, SID_SLICES as xn, QueryError as xt, JOURNEY_MAX_ROWS as y, roundMinor as yn, sessionWhere as yt, withRevenue as z, upsertChanged as zn, NEGATED as zt };
+// src/query/retention.ts
+const KV_CURSOR = "retention:cursor";
+/** Rows per chunk of the per-site purge, and the size one retention statement aims at. */
+const CHUNK_ROWS = 2e3;
+const STEP_COUNT = 9;
+/** Rows a filtered delete job wrote in the UTC day `{ day, rows }` (`src/query/filtered-delete.ts`). */
+const KV_DELETE_ROWS = "delete:rows";
+/** Rows retention and a filtered delete job wrote in the UTC day of `now`, from the cursor and `KV_DELETE_ROWS`. */
+async function deletedToday(kv, now) {
+	const day = dayInZone(now, "UTC");
+	const u = (await kv.get(KV_CURSOR))?.utc;
+	const j = await kv.get(KV_DELETE_ROWS);
+	return (u && u.day === day ? u.rows : 0) + (j && j.day === day ? j.rows : 0);
+}
+/** `day` minus whole months, clamped to the month's last day. */
+function addMonths(day, n) {
+	const [y, m, d] = day.split("-").map(Number);
+	const t = new Date(Date.UTC(y, m - 1 + n, 1));
+	const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+	return `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
+}
+/** The next retention tick starts a new cycle with a fresh storage estimate, so a changed budget applies then, not the next day. */
+async function clearEstimateDay(kv) {
+	const c = await kv.get(KV_CURSOR);
+	if (c) await kv.set(KV_CURSOR, {
+		...c,
+		day: ""
+	});
+}
+/** Effective detailed window in days: the setting, shortened while the storage budget requires it. */
+async function effectiveRawDays(kv, s) {
+	return rawDaysOf(await kv.get(KV_CURSOR), s);
+}
+const rawDaysOf = (c, s) => c?.capped ? Math.min(c.rawDays, s.rawRetentionDays) : s.rawRetentionDays;
+/** First day of the detailed window; reports for ranges starting earlier read the rollup. */
+async function rawFromDay(kv, s, now) {
+	const c = await kv.get(KV_CURSOR);
+	const byDays = addDays(dayInZone(now, s.siteTimezone), -rawDaysOf(c, s));
+	const cutoff = c?.cutoff;
+	return cutoff && cutoff > byDays ? cutoff : byDays;
+}
+/** Every site present in the fact and summary tables, by skip scan (1 row read per site and table). */
+async function sitesInTables(db) {
+	const found = /* @__PURE__ */ new Set();
+	for (const t of [
+		"ca_sessions",
+		"ca_events",
+		"ca_srv",
+		"ca_drops",
+		"ca_aliases",
+		"ca_rollup",
+		"ca_cube",
+		"ca_search_daily",
+		"ca_revenue_daily"
+	]) for (const r of await db.all(`${siteScan(t)} SELECT site FROM s WHERE site IS NOT NULL`, [])) found.add(String(r.site));
+	return [...found].sort();
+}
+function steps(s, today, rawDays, watermark, now) {
+	const rawCutoff = addDays(today, -rawDays);
+	const human = humanCutoff(rawCutoff, watermark);
+	const summary = addMonths(today, -s.rollupRetentionMonths);
+	return [
+		{
+			name: "sessions",
+			table: "ca_sessions",
+			mode: "slices",
+			prefix: [],
+			cutoff: human === null ? null : visitDayKey(human)
+		},
+		{
+			name: "events",
+			table: "ca_events",
+			mode: "day",
+			prefix: [],
+			cutoff: human === null ? null : dayInt(human)
+		},
+		{
+			name: "srv",
+			table: "ca_srv",
+			mode: "day",
+			prefix: [],
+			cutoff: dayInt(rawCutoff)
+		},
+		{
+			name: "drops",
+			table: "ca_drops",
+			mode: "day",
+			prefix: [],
+			cutoff: dayInt(rawCutoff)
+		},
+		{
+			name: "aliases",
+			table: "ca_aliases",
+			mode: "expiry",
+			prefix: [],
+			cutoff: now
+		},
+		{
+			name: "cube",
+			table: "ca_cube",
+			mode: "day",
+			prefix: [],
+			cutoff: dayInt(summary)
+		},
+		{
+			name: "rollup",
+			table: "ca_rollup",
+			mode: "day",
+			prefix: ["dim", "seg"],
+			cutoff: summary
+		},
+		{
+			name: "revenue",
+			table: "ca_revenue_daily",
+			mode: "day",
+			prefix: ["dim", "seg"],
+			cutoff: summary
+		},
+		{
+			name: "search",
+			table: "ca_search_daily",
+			mode: "day",
+			prefix: ["source"],
+			cutoff: addDays(today, -s.searchRetentionDays)
+		}
+	];
+}
+const humanCutoff = (rawCutoff, watermark) => watermark ? rawCutoff <= addDays(watermark, 1) ? rawCutoff : addDays(watermark, 1) : null;
+async function runChunk(db, site, st, chunkRows) {
+	if (st.cutoff === null) return 0;
+	if (st.mode === "day") return (await db.run(`DELETE FROM ${st.table} WHERE site = ? AND day = (SELECT MIN(day) FROM ${st.table} WHERE site = ? AND ${st.where})`, [
+		site,
+		site,
+		st.cutoff
+	])).changes;
+	const pk = st.pk;
+	return (await db.run(`DELETE FROM ${st.table} WHERE site = ? AND ${pk} IN (SELECT ${pk} FROM ${st.table} WHERE site = ? AND ${st.where} LIMIT ${chunkRows})`, [
+		site,
+		site,
+		st.cutoff
+	])).changes;
+}
+var Exhausted = class extends Error {};
+/** `db` and `kv` with every call counted against `limit` requests; a call that does not fit throws `Exhausted`. */
+function metered(db, kv, limit) {
+	let used = 0;
+	const spend = () => {
+		if (used >= limit - 1) throw new Exhausted();
+		used++;
+	};
+	const mdb = {
+		dialect: db.dialect,
+		get meta() {
+			return db.meta;
+		},
+		run: (sql, p) => (spend(), db.run(sql, p)),
+		all: (sql, p) => (spend(), db.all(sql, p)),
+		batch: (stmts) => (spend(), db.batch(stmts))
+	};
+	return {
+		db: isOwnDatabase(db) ? ownDatabase(mdb) : mdb,
+		kv: {
+			get: (k) => (spend(), kv.get(k)),
+			set: (k, v) => (spend(), kv.set(k, v))
+		},
+		used: () => used
+	};
+}
+/** Next site of `table` after `after` (the first when null), or null. */
+async function nextSite(db, table, after) {
+	const [r] = await db.all(after === null ? `SELECT MIN(site) AS s FROM ${table}` : `SELECT MIN(site) AS s FROM ${table} WHERE site > ?`, after === null ? [] : [after]);
+	return r?.s ?? null;
+}
+/** Next key prefix of `site` after `after` (the first when null), in key order, or null. */
+async function nextPrefix(db, st, site, after) {
+	const cols = st.prefix.join(", ");
+	const tuple = st.prefix.length > 1 ? `(${cols}) > (${st.prefix.map(() => "?").join(", ")})` : `${cols} > ?`;
+	const rows = await db.all(`SELECT ${cols} FROM ${st.table} WHERE site = ?${after ? ` AND ${tuple}` : ""} ORDER BY ${cols} LIMIT 1`, [site, ...after ?? []]);
+	return rows[0] ? st.prefix.map((c) => String(rows[0]?.[c])) : null;
+}
+/**
+* One statement of work on the current site (and prefix). Returns true when nothing older than the cutoff is
+* left there. `day` deletes the oldest day (`MIN(day)` is a key-range probe); `slices` deletes the visits of the
+* oldest day slice by slice, sizing each statement from the rows per slice of the one before.
+*/
+async function work(db, st, c, cutoff, deleted) {
+	const site = c.site;
+	if (st.mode === "expiry") {
+		deleted((await db.run(`DELETE FROM ${st.table} WHERE site = ? AND expires < ?`, [site, cutoff])).changes);
+		return true;
+	}
+	if (st.mode === "day") {
+		const eq = st.prefix.map((p) => ` AND ${p} = ?`).join("");
+		const pv = c.prefix ?? [];
+		const n = (await db.run(`DELETE FROM ${st.table} WHERE site = ?${eq} AND day = (SELECT MIN(day) FROM ${st.table} WHERE site = ?${eq}) AND day < ?`, [
+			site,
+			...pv,
+			site,
+			...pv,
+			cutoff
+		])).changes;
+		deleted(n);
+		return n === 0;
+	}
+	if (c.vday == null) {
+		const [r] = await db.all(`SELECT MIN(day) AS d FROM ${st.table} WHERE site = ?`, [site]);
+		if (r?.d == null || r.d >= cutoff) return true;
+		c.vday = r.d;
+		c.slice = 0;
+		c.perSlice = void 0;
+		return false;
+	}
+	const from = c.slice ?? 0;
+	const per = c.perSlice ?? 2e3;
+	const span = Math.max(1, Math.min(SID_SLICES.length - from, Math.floor(CHUNK_ROWS / Math.max(1, per))));
+	const range = [SID_SLICES[from]?.[0] ?? null, SID_SLICES[from + span - 1]?.[1] ?? null];
+	const f = deleteDaySlice(db.dialect, st.table, site, c.vday, range);
+	const n = (await db.run(f.sql, f.params)).changes;
+	deleted(n);
+	c.perSlice = n / span;
+	c.slice = from + span;
+	if (c.slice >= SID_SLICES.length) {
+		c.vday = null;
+		c.slice = 0;
+	}
+	return false;
+}
+/**
+* One retention tick within the request budget of the capacity profile, resuming from the KV cursor. A new local
+* day starts a new cycle: storage estimate, effective window, then every step from the start. Returns the cursor
+* and `done` once the cycle has walked every step.
+*/
+async function runRetention(db, kv, s, now, o = {}) {
+	const m = metered(db, kv, o.requests ?? PROFILES[s.capacityProfile].requests);
+	const today = dayInZone(now, s.siteTimezone);
+	let c = await m.kv.get(KV_CURSOR);
+	const list = (cur, watermark) => steps(s, today, cur.rawDays, watermark, now);
+	let watermark = null;
+	let rows = 0;
+	const utcDay = dayInZone(now, "UTC");
+	try {
+		watermark = await m.kv.get(KV_WATERMARK);
+		if (!c || c.day !== today) {
+			const storage = await estimateStorage(m.db, s, today);
+			const keep = c && c.step < STEP_COUNT ? {
+				step: c.step,
+				site: c.site ?? null,
+				prefix: c.prefix ?? null,
+				vday: c.vday ?? null,
+				slice: c.slice ?? 0
+			} : {
+				step: 0,
+				site: null,
+				prefix: null
+			};
+			c = {
+				day: today,
+				rawDays: storage.rawDays,
+				capped: storage.capped,
+				storage,
+				cutoff: c?.cutoff ?? null,
+				...keep,
+				deleted: {}
+			};
+		}
+		const cur = c;
+		const all = list(cur, watermark);
+		const human = humanCutoff(addDays(today, -cur.rawDays), watermark);
+		if (human && (!cur.cutoff || human > cur.cutoff)) {
+			cur.cutoff = human;
+			await m.kv.set(KV_CURSOR, cur);
+		}
+		const doneToday = cur.utc?.day === utcDay ? cur.utc.rows : 0;
+		const maxRows = o.rows ?? (dailyRowsApply(s.capacityProfile, db) ? Math.min(2e3, 15e3 - doneToday) : Number.POSITIVE_INFINITY);
+		const count = (name) => (n) => {
+			cur.deleted[name] = (cur.deleted[name] ?? 0) + n;
+			rows += n;
+		};
+		let savedStep = cur.step;
+		while (rows < maxRows) {
+			if (cur.step !== savedStep && cur.step < all.length) {
+				await m.kv.set(KV_CURSOR, {
+					...cur,
+					utc: dayRows(cur.utc, utcDay, rows)
+				});
+				savedStep = cur.step;
+			}
+			const st = all[cur.step];
+			if (!st) break;
+			if (st.cutoff === null) {
+				Object.assign(cur, {
+					step: cur.step + 1,
+					site: null,
+					prefix: null
+				});
+				continue;
+			}
+			if (cur.site == null) {
+				const first = await nextSite(m.db, st.table, null);
+				if (first === null) {
+					Object.assign(cur, {
+						step: cur.step + 1,
+						site: null,
+						prefix: null
+					});
+					continue;
+				}
+				Object.assign(cur, {
+					site: first,
+					prefix: null,
+					vday: null,
+					slice: 0
+				});
+			}
+			if (st.prefix.length && cur.prefix == null) {
+				const p = await nextPrefix(m.db, st, cur.site, null);
+				if (p === null) {
+					await advanceSite(m.db, st, cur);
+					continue;
+				}
+				cur.prefix = p;
+			}
+			if (!await work(m.db, st, cur, st.cutoff, count(st.name))) continue;
+			if (st.prefix.length) {
+				const p = await nextPrefix(m.db, st, cur.site, cur.prefix ?? null);
+				if (p) {
+					cur.prefix = p;
+					continue;
+				}
+			}
+			await advanceSite(m.db, st, cur);
+		}
+	} catch (e) {
+		if (!(e instanceof Exhausted)) {
+			if (c) await kv.set(KV_CURSOR, {
+				...c,
+				utc: dayRows(c.utc, utcDay, rows)
+			}).catch(() => void 0);
+			throw e;
+		}
+	}
+	if (!c) throw new Error("retention: the request budget does not cover the start of a cycle");
+	c.utc = dayRows(c.utc, utcDay, rows);
+	await kv.set(KV_CURSOR, c);
+	return {
+		...c,
+		done: c.step >= list(c, watermark).length,
+		requests: m.used() + 1
+	};
+}
+/** The rows retention deleted in the UTC day, with this run's `rows` added. */
+const dayRows = (utc, day, rows) => ({
+	day,
+	rows: (utc?.day === day ? utc.rows : 0) + rows
+});
+/** The current site of the step is finished: move to the next one, or to the next step. */
+async function advanceSite(db, st, c) {
+	const next = await nextSite(db, st.table, c.site ?? null);
+	Object.assign(c, next === null ? {
+		step: c.step + 1,
+		site: null
+	} : { site: next }, {
+		prefix: null,
+		vday: null,
+		slice: 0,
+		perSlice: void 0
+	});
+}
+/** Delete `salt:<day>` keys older than two days before the current salt day. */
+async function cleanSalts(kv, s, now) {
+	const keep = addDays(saltDay(now, s.saltTimezone, s.saltRotationHour), -2);
+	const gone = [];
+	for (const { key } of await kv.list("salt:")) if (key.slice(5) < keep) {
+		await kv.delete(key);
+		gone.push(key);
+	}
+	return gone;
+}
+/**
+* Margin on both estimates for what SQLite did not measure: D1's page overhead and fill (production D1 stored text
+* documents inserted whole at 900 bytes per visit of 2.9 entries; JSONB saves about 17 percent of that). Keeps the
+* estimate 9 to 12 percent above the measured sizes, so the detailed window shortens early rather than late.
+*/
+const STORAGE_SAFETY = 1.1;
+/** Most the measured database size (`size_after`) may raise the detailed estimate: the estimate's error on generator traffic stays below it. */
+const MAX_SCALE = 1.5;
+/** `WITH RECURSIVE s(site)`: every site of `table` by skip scan, one row read per site. */
+const siteScan = (table) => `WITH RECURSIVE s(site) AS (SELECT MIN(site) FROM ${table} UNION ALL SELECT (SELECT MIN(site) FROM ${table} WHERE site > s.site) FROM s WHERE s.site IS NOT NULL)`;
+const dimList = SUMMARY_DIMS.map((d) => `'${d}'`).join(", ");
+/** Single dimension rows, the pair rows of every segment and the revenue rows per cube cell: key ranges of the summary primary keys. */
+const segList = [
+	"",
+	...SEGS,
+	CUBE_SEG
+].map((d) => `'${d}'`).join(", ");
+/** Bytes of the detailed data of one day from its `all` summary row. */
+const dayBytes = (visits, entries) => (visits * 290 + entries * 115) * STORAGE_SAFETY;
+/**
+* The estimate and the detailed window it allows. Two statements: the `all` rows of every site and day in the
+* longest retention, and the summary rows of the newest day before `today` (single dimension, pair, link, journey, revenue and cube rows).
+*/
+async function estimateStorage(db, s, today) {
+	const rawFrom = addDays(today, -s.rawRetentionDays);
+	const from = addDays(today, -Math.max(s.rawRetentionDays, Math.ceil(s.rollupRetentionMonths * 31)));
+	const days = (await db.all(`${siteScan("ca_rollup")} SELECT r.day AS day, SUM(r.sessions) AS visits, SUM(r.pageviews + r.events) AS entries FROM s JOIN ca_rollup r ON r.site = s.site AND r.dim = 'all' AND r.seg = '' AND r.day >= ? GROUP BY r.day ORDER BY r.day DESC`, [from])).map((d) => ({
+		day: String(d.day),
+		bytes: dayBytes(Number(d.visits), Number(d.entries))
+	}));
+	const sample = days.find((d) => d.day < today)?.day;
+	let rows = 0;
+	if (sample) {
+		const [r] = await db.all(`${siteScan("ca_rollup")} SELECT SUM((SELECT COUNT(*) FROM ca_rollup r WHERE r.site = s.site AND r.dim IN (${dimList}) AND r.seg IN (${segList}) AND r.day = ?) + (SELECT COUNT(*) FROM ca_revenue_daily v WHERE v.site = s.site AND v.dim IN (${dimList}) AND v.seg IN (${segList}) AND v.day = ?) + (SELECT COUNT(*) FROM ca_cube c WHERE c.site = s.site AND c.day = ?)) AS n FROM s WHERE s.site IS NOT NULL`, [
+			sample,
+			sample,
+			dayInt(sample)
+		]);
+		rows = Number(r?.n ?? 0);
+	}
+	const { bytes: budget } = storageBudget(s, budgetTargetOf(db));
+	const share = budget * .75;
+	const summary = Math.round(rows * days.length * 75 * STORAGE_SAFETY);
+	const size = db.meta?.size_after;
+	const estimated = days.filter((d) => d.day >= rawFrom).reduce((a, d) => a + d.bytes, 0);
+	const measured = typeof size === "number" && estimated > 0;
+	const scale = measured ? Math.min(MAX_SCALE, Math.max(1, (size - summary) / estimated)) : 1;
+	const detailDays = days.filter((d) => d.day >= rawFrom).map((d) => ({
+		...d,
+		bytes: d.bytes * scale
+	}));
+	let detail = Math.round(detailDays.reduce((a, d) => a + d.bytes, 0));
+	let rawDays = s.rawRetentionDays;
+	if (detail > share) {
+		let sum = 0;
+		let keep = 0;
+		for (const d of detailDays) {
+			sum += d.bytes;
+			if (sum > share * .95) break;
+			keep++;
+		}
+		detail = Math.round(detailDays.slice(0, Math.max(1, keep)).reduce((a, d) => a + d.bytes, 0));
+		const oldestKept = detailDays[Math.max(0, keep - 1)]?.day ?? today;
+		rawDays = Math.min(s.rawRetentionDays, Math.max(1, Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${oldestKept}T00:00:00Z`)) / 864e5)));
+	}
+	return {
+		profile: s.capacityProfile,
+		budget,
+		bytes: detail + summary,
+		detail,
+		summary,
+		rawDays,
+		capped: rawDays < s.rawRetentionDays,
+		...measured ? { measured } : {}
+	};
+}
+/** State key of the write budget: the estimate of the current UTC day. */
+const KV_WRITE_BUDGET = "budget:writes";
+/** The Workers Free plan's daily D1 rows written, per account (resets at 00:00 UTC). */
+const FREE_ROWS_PER_DAY = 1e5;
+/** Ingest stops at this share of the daily rows, so the CMS can still save content. */
+const GUARD_SHARE = .85;
+const ROWS_PER_PV = 2.6;
+/** Rows written per day that do not depend on traffic: one day of summary rows on `small`. */
+const FIXED_ROWS = 2500;
+const CHECK_SLOW_S = 3600;
+/** Rows written estimated from today's visits, page views and events, plus the rows Search syncs wrote and retention deleted today, and whether that crosses the guard. */
+function writeBudget(c, day, at, sync = 0, deletes = 0) {
+	const rows = Math.round(c.visits * 1 + c.pageviews * ROWS_PER_PV + c.events * 1 + FIXED_ROWS) + sync + deletes;
+	const limit = FREE_ROWS_PER_DAY * GUARD_SHARE;
+	return {
+		day,
+		at,
+		visits: c.visits,
+		pageviews: c.pageviews,
+		events: c.events,
+		rows,
+		limit,
+		blocked: rows >= limit,
+		...sync ? { sync } : {},
+		...deletes ? { deletes } : {}
+	};
+}
+/** The budget table row of the database `db`: Postgres, an own D1 database or the EmDash database on D1. */
+const budgetTargetOf = (db) => db.dialect === "postgres" ? "postgres" : isOwnDatabase(db) ? "own" : "host";
+/**
+* Whether the D1 Free plan's daily rows bound the writes to `db`: the `small` profile on a SQLite database. Postgres
+* has no daily row limit, so `small` there never blocks or slows writes (write guard, retention and delete rows, Search rows).
+*/
+const dailyRowsApply = (profile, db) => profile === "small" && db.dialect === "sqlite";
+/**
+* Write budget of the current UTC day: null unless `dailyRowsApply` (the `small` profile on D1). Answered from the state key while it
+* is fresh; otherwise one statement counts the visits and sums the page views and events of the visits started since 00:00 UTC (it reads the
+* visits of at most two local days) and the state is stored again. A blocked state holds until the UTC day ends.
+*/
+async function budgetState(db, kv, now, profile, timeZone = "UTC") {
+	if (!dailyRowsApply(profile, db)) return null;
+	const day = dayInZone(now, "UTC");
+	const prev = await kv.get(KV_WRITE_BUDGET);
+	if (prev && prev.day === day && (prev.blocked || now - prev.at < (prev.rows >= prev.limit * .25 ? 600 : 3600))) return prev;
+	const midnight = Date.parse(`${day}T00:00:00Z`) / 1e3;
+	const days = [.../* @__PURE__ */ new Set([dayInZone(midnight, timeZone), dayInZone(now, timeZone)])].map(visitDayKey);
+	const [r] = await db.all(`${siteScan("ca_sessions")} SELECT COUNT(*) AS v, COALESCE(SUM(v.pageviews), 0) AS pv, COALESCE(SUM(v.events), 0) AS ev FROM s JOIN ca_sessions v ON v.site = s.site AND v.day IN (${days.map(() => "?").join(", ")}) WHERE v.started >= ?`, [...days, midnight]);
+	const sync = await kv.get(KV_SYNC_ROWS);
+	const state = writeBudget({
+		visits: Number(r?.v ?? 0),
+		pageviews: Number(r?.pv ?? 0),
+		events: Number(r?.ev ?? 0)
+	}, day, now, sync?.day === day ? sync.rows : 0, await deletedToday(kv, now) + await copiedToday(kv, now));
+	await kv.set(KV_WRITE_BUDGET, state);
+	return state;
+}
+// src/data/channels.json
+var channels_default = [
+	{
+		"id": "paid_search",
+		"channel": "Paid Search",
+		"any": [
+			{
+				"list": "search",
+				"medium": "^(.*cp.*|ppc|retargeting|paid.*)$"
+			},
+			{ "click": [
+				"gclid",
+				"msclkid",
+				"gbraid",
+				"wbraid",
+				"yclid"
+			] },
+			{ "adsSource": "search" }
+		]
+	},
+	{
+		"id": "paid_social",
+		"channel": "Paid Social",
+		"any": [
+			{
+				"list": "social",
+				"medium": "^(.*cp.*|ppc|retargeting|paid.*)$"
+			},
+			{ "click": ["ttclid", "twclid"] },
+			{ "adsSource": "social" }
+		]
+	},
+	{
+		"id": "paid_video",
+		"channel": "Paid Video",
+		"any": [{
+			"list": "video",
+			"medium": "^(.*cp.*|ppc|retargeting|paid.*)$"
+		}, { "adsSource": "video" }]
+	},
+	{
+		"id": "paid_shopping",
+		"channel": "Paid Shopping",
+		"any": [{
+			"list": "shopping",
+			"medium": "^(.*cp.*|ppc|retargeting|paid.*)$"
+		}, {
+			"campaign": "^(.*(([^a-df-z]|^)shop|shopping).*)$",
+			"medium": "^(.*cp.*|ppc|retargeting|paid.*)$"
+		}]
+	},
+	{
+		"id": "paid_other",
+		"channel": "Paid Other",
+		"any": [{ "medium": "^(.*cp.*|ppc|retargeting|paid.*)$" }]
+	},
+	{
+		"id": "display",
+		"channel": "Display",
+		"any": [{ "mediumIn": [
+			"display",
+			"banner",
+			"expandable",
+			"interstitial",
+			"cpm"
+		] }]
+	},
+	{
+		"id": "affiliates",
+		"channel": "Affiliates",
+		"any": [{ "mediumIn": ["affiliate"] }]
+	},
+	{
+		"id": "cross_network",
+		"channel": "Cross-network",
+		"any": [{ "mediumIn": ["cross-network"] }]
+	},
+	{
+		"id": "audio",
+		"channel": "Audio",
+		"any": [{ "mediumIn": ["audio"] }]
+	},
+	{
+		"id": "sms",
+		"channel": "SMS",
+		"any": [{ "sourceIn": ["sms"] }, { "mediumIn": ["sms"] }]
+	},
+	{
+		"id": "mobile_push",
+		"channel": "Mobile Push",
+		"any": [{ "sourceIn": ["firebase"] }, { "medium": "^(mobile|notification)$|push$" }]
+	},
+	{
+		"id": "email",
+		"channel": "Email",
+		"any": [
+			{ "sourceIn": [
+				"gmail",
+				"email",
+				"e-mail",
+				"e_mail",
+				"e mail",
+				"newsletter"
+			] },
+			{ "mediumIn": [
+				"gmail",
+				"email",
+				"e-mail",
+				"e_mail",
+				"e mail",
+				"newsletter"
+			] },
+			{ "refList": "webmail" }
+		]
+	},
+	{
+		"id": "ai_assistants",
+		"channel": "AI Assistants",
+		"any": [{ "list": "ai" }]
+	},
+	{
+		"id": "organic_search",
+		"channel": "Organic Search",
+		"any": [{ "list": "search" }, { "mediumIn": ["organic"] }]
+	},
+	{
+		"id": "organic_social",
+		"channel": "Organic Social",
+		"any": [
+			{ "list": "social" },
+			{ "mediumIn": [
+				"social",
+				"social-network",
+				"social-media",
+				"sm",
+				"social network",
+				"social media"
+			] },
+			{ "click": ["fbclid"] }
+		]
+	},
+	{
+		"id": "organic_video",
+		"channel": "Organic Video",
+		"any": [{ "list": "video" }, { "medium": "^(.*video.*)$" }]
+	},
+	{
+		"id": "organic_shopping",
+		"channel": "Organic Shopping",
+		"any": [{ "list": "shopping" }, { "campaign": "^(.*(([^a-df-z]|^)shop|shopping).*)$" }]
+	},
+	{
+		"id": "referral",
+		"channel": "Referral",
+		"any": [{ "mediumIn": [
+			"referral",
+			"app",
+			"link"
+		] }, { "referrer": true }]
+	},
+	{
+		"id": "direct",
+		"channel": "Direct",
+		"any": [{ "direct": true }]
+	},
+	{
+		"id": "unknown",
+		"channel": "Unknown",
+		"any": [{ "utm": true }]
+	}
+];
+// src/data/hosts.json
+var hosts_default = {
+	search: [
+		"google.*",
+		"bing.com",
+		"duckduckgo.com",
+		"ecosia.org",
+		"yahoo.*",
+		"baidu.com",
+		"yandex.*",
+		"search.brave.com",
+		"startpage.com",
+		"qwant.com",
+		"naver.com",
+		"seznam.cz",
+		"kagi.com",
+		"ask.com",
+		"aol.com",
+		"mojeek.com",
+		"sogou.com",
+		"so.com",
+		"daum.net"
+	],
+	social: [
+		"facebook.com",
+		"fb.com",
+		"m.facebook.com",
+		"l.facebook.com",
+		"lm.facebook.com",
+		"instagram.com",
+		"l.instagram.com",
+		"x.com",
+		"t.co",
+		"twitter.com",
+		"linkedin.com",
+		"lnkd.in",
+		"reddit.com",
+		"pinterest.*",
+		"tiktok.com",
+		"threads.net",
+		"threads.com",
+		"bsky.app",
+		"mastodon.*",
+		"news.ycombinator.com",
+		"vk.com",
+		"telegram.org",
+		"t.me",
+		"whatsapp.com",
+		"wa.me",
+		"snapchat.com",
+		"tumblr.com",
+		"quora.com",
+		"discord.com",
+		"weibo.com",
+		"xing.com"
+	],
+	video: [
+		"youtube.com",
+		"youtu.be",
+		"m.youtube.com",
+		"vimeo.com",
+		"twitch.tv",
+		"dailymotion.com",
+		"rumble.com"
+	],
+	shopping: [
+		"shopping.google.com",
+		"amazon.*",
+		"ebay.*",
+		"etsy.com",
+		"aliexpress.com",
+		"walmart.com",
+		"idealo.*",
+		"shopify.com"
+	],
+	ai: [
+		"chatgpt.com",
+		"chat.openai.com",
+		"perplexity.ai",
+		"claude.ai",
+		"gemini.google.com",
+		"copilot.microsoft.com",
+		"you.com",
+		"phind.com",
+		"meta.ai",
+		"grok.com",
+		"deepseek.com",
+		"chat.deepseek.com",
+		"chat.mistral.ai",
+		"poe.com",
+		"duck.ai"
+	],
+	webmail: [
+		"mail.google.com",
+		"outlook.live.com",
+		"outlook.office.com",
+		"outlook.office365.com",
+		"mail.yahoo.com",
+		"mail.proton.me",
+		"proton.me",
+		"mail.aol.com",
+		"mail.yandex.ru",
+		"web.de",
+		"gmx.net",
+		"gmx.de",
+		"icloud.com"
+	],
+	ignore: [
+		"paypal.com",
+		"stripe.com",
+		"klarna.com",
+		"adyen.com",
+		"mollie.com",
+		"checkout.com",
+		"accounts.google.com",
+		"login.microsoftonline.com",
+		"login.live.com",
+		"appleid.apple.com",
+		"auth0.com",
+		"okta.com",
+		"3dsecure.io"
+	]
+};
+// src/core/url.ts
+/** Path, query and referrer helpers. */
+const BASE = "http://h.invalid";
+const UTM_KEYS = [
+	"utm_source",
+	"utm_medium",
+	"utm_campaign",
+	"utm_term",
+	"utm_content"
+];
+const CLICK_IDS = [
+	"gclid",
+	"msclkid",
+	"gbraid",
+	"wbraid",
+	"yclid",
+	"fbclid",
+	"ttclid",
+	"twclid"
+];
+/** `www.` stripped, lowercase host. */
+function cleanHost(host) {
+	return host.trim().toLowerCase().replace(/^www\./, "").replace(/\.$/, "");
+}
+function allowed(param, allowlist) {
+	const p = param.toLowerCase();
+	return allowlist.some((a) => a.endsWith("*") ? p.startsWith(a.slice(0, -1)) : p === a);
+}
+/**
+* A site search term as stored: trimmed, lowercased, whitespace collapsed, at most 64
+* characters, and `redacted` when it holds an `@` or nine or more consecutive digits (personal data typed
+* into a search box).
+*/
+function sanitizeSearchTerm(v) {
+	const t = v.trim().toLowerCase().replace(/\s+/g, " ");
+	if (t.includes("@") || /\d{9,}/.test(t)) return "redacted";
+	return t.slice(0, 64).trim();
+}
+/**
+* Normalize a `path?query` (or absolute URL) against a query allowlist. `searchParams` (site search names,
+* pageviews only) are kept too, with each value through `sanitizeSearchTerm`; an empty term is dropped.
+*/
+function normalizeUrl(u, allowlist, searchParams = []) {
+	let url;
+	try {
+		url = new URL(u, BASE);
+	} catch {
+		return {
+			path: "/",
+			query: "",
+			utm: {},
+			clickIds: []
+		};
+	}
+	let path = url.pathname.replace(/\/{2,}/g, "/");
+	if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+	path = path.slice(0, 512) || "/";
+	const kept = [];
+	const utm = {};
+	const clickIds = [];
+	for (const [k, v] of url.searchParams) {
+		const key = k.toLowerCase();
+		if (UTM_KEYS.includes(key) && v.trim() && !utm[key]) utm[key] = v.trim().toLowerCase().slice(0, 128);
+		if (CLICK_IDS.includes(key) && !clickIds.includes(key)) clickIds.push(key);
+		if (searchParams.includes(key)) {
+			const term = sanitizeSearchTerm(v);
+			if (term) kept.push([key, term]);
+		} else if (allowed(key, allowlist)) kept.push([key, v.slice(0, 256)]);
+	}
+	kept.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
+	const query = new URLSearchParams(kept).toString().slice(0, 1024);
+	return {
+		path,
+		query,
+		utm,
+		clickIds
+	};
+}
+/** Host (lowercase, `www.` stripped) and path of an absolute http(s) referrer, or null. */
+function parseReferrer(r) {
+	if (!r) return null;
+	try {
+		const url = new URL(r);
+		if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+		const host = cleanHost(url.hostname);
+		if (!host) return null;
+		return {
+			host,
+			path: url.pathname.slice(0, 256) || "/"
+		};
+	} catch {
+		return null;
+	}
+}
+/** A public suffix such as `com`, `de`, `co.uk` or `com.au` (not `evil.com`). */
+const SUFFIX_RE = /^(?:[a-z]{2,6}|(?:co|com|net|org|ac|gov|edu|ne|or)\.[a-z]{2})$/;
+/** Host matches a list entry: exact or subdomain (`bing.com`), or the base on any public suffix for `google.*`. */
+function hostMatches(host, entry) {
+	const h = cleanHost(host);
+	const e = entry.toLowerCase();
+	if (e.endsWith(".*")) {
+		const base = e.slice(0, -2);
+		const labels = h.split(".");
+		return labels.some((l, i) => l === base && SUFFIX_RE.test(labels.slice(i + 1).join(".")));
+	}
+	return h === e || h.endsWith(`.${e}`);
+}
+function hostInList(host, list) {
+	return !!host && !!list && list.some((e) => hostMatches(host, e));
+}
+// src/core/channels.ts
+const DEFAULT_HOSTS = hosts_default;
+const BUILTIN_CHANNEL_RULES = channels_default;
+const reCache = /* @__PURE__ */ new Map();
+function re(p) {
+	if (!reCache.has(p)) {
+		let r = null;
+		try {
+			r = new RegExp(p, "i");
+		} catch {
+			r = null;
+		}
+		reCache.set(p, r);
+	}
+	return reCache.get(p) ?? null;
+}
+/** Bare label of a two-label list entry: `google.*` and `bing.com` give `google` and `bing`; deeper hosts give null. */
+function entryLabel(entry) {
+	const parts = entry.toLowerCase().split(".");
+	if (parts.length !== 2) return null;
+	return parts[0] || null;
+}
+/** utm_source names a host of the list: a host value is matched as a host, a bare word against entry labels. */
+function sourceInList(source, list) {
+	if (!source) return false;
+	if (source.includes(".")) return hostInList(source, list);
+	return list.some((e) => entryLabel(e) === source);
+}
+function test(c, i, hosts) {
+	const { refHost, utm, clickIds } = i;
+	const src = utm.utm_source;
+	const med = utm.utm_medium;
+	const camp = utm.utm_campaign;
+	if (c.list && !(hostInList(refHost, hosts[c.list]) || sourceInList(src, hosts[c.list]))) return false;
+	if (c.refList && !hostInList(refHost, hosts[c.refList])) return false;
+	if (c.medium && !(med && re(c.medium)?.test(med))) return false;
+	if (c.source && !(src && re(c.source)?.test(src))) return false;
+	if (c.campaign && !(camp && re(c.campaign)?.test(camp))) return false;
+	if (c.mediumIn && !(med && c.mediumIn.includes(med))) return false;
+	if (c.sourceIn && !(src && c.sourceIn.includes(src))) return false;
+	if (c.click && !c.click.some((k) => clickIds.includes(k))) return false;
+	if (c.adsSource) {
+		if (!src || !/ads?$/.test(src)) return false;
+		if (!hosts[c.adsSource].map(entryLabel).filter((l) => !!l).some((l) => src.includes(l))) return false;
+	}
+	const hasUtm = Object.values(utm).some(Boolean);
+	if (c.referrer && !refHost) return false;
+	if (c.utm && !hasUtm) return false;
+	if (c.direct && (refHost || hasUtm || clickIds.length > 0)) return false;
+	return true;
+}
+/** Built-ins (minus disabled ids) merged with user rules by priority; ties keep user rules first. */
+function buildChannelRules(user = [], disabled = []) {
+	const builtins = BUILTIN_CHANNEL_RULES.map((rule, idx) => ({
+		rule,
+		p: (idx + 1) * 10,
+		u: 1,
+		idx
+	})).filter((x) => !disabled.includes(x.rule.id));
+	const users = user.map((r, idx) => ({
+		rule: r,
+		p: r.priority ?? 0,
+		u: 0,
+		idx
+	}));
+	return [...builtins, ...users].sort((a, b) => a.p - b.p || a.u - b.u || a.idx - b.idx).map((x) => x.rule);
+}
+/** First matching rule wins; nothing matched (no referrer, no UTM) is Direct. */
+function classifyChannel(input, opts = {}) {
+	const i = {
+		refHost: input.refHost ? cleanHost(input.refHost) : null,
+		utm: input.utm ?? {},
+		clickIds: input.clickIds ?? []
+	};
+	const hosts = opts.hosts ?? DEFAULT_HOSTS;
+	const source = i.refHost || i.utm.utm_source || (Object.values(i.utm).some(Boolean) ? "(not set)" : "(direct)");
+	for (const rule of opts.rules ?? BUILTIN_CHANNEL_RULES) if (rule.any.some((c) => test(c, i, hosts))) return {
+		channel: rule.channel,
+		source
+	};
+	return {
+		channel: "Direct",
+		source
+	};
+}
+/** A referrer host that never starts a source: the site itself, built-in ignore list, or extra hosts. */
+function isIgnoredReferrer(host, siteHost, extra = [], hosts = DEFAULT_HOSTS) {
+	const h = cleanHost(host);
+	return !!siteHost && h === cleanHost(siteHost) || hostInList(h, hosts.ignore) || hostInList(h, extra);
+}
+// src/core/session.ts
+/** Longest visit the `(site, day, sid)` lookup reaches: the visit started today or yesterday. */
+const MAX_VISIT_MINUTES = 1440;
+/** An alias lives as long as the longest visit: an engagement update after a long read on a later page still finds its visit. */
+const ALIAS_S = MAX_VISIT_MINUTES * 60;
+function isActive(s, now, maxSessionMinutes) {
+	return now - s.last_seen <= s.window_s && now - s.started <= maxSessionMinutes * 60;
+}
+function screenBucket(w) {
+	if (w === void 0 || !Number.isFinite(w) || w <= 0) return null;
+	if (w < 576) return "xs";
+	if (w < 768) return "sm";
+	if (w < 992) return "md";
+	if (w < 1200) return "lg";
+	return "xl";
+}
+function firstTouch(evt, meta, now, cfg, sid, vkey) {
+	const url = normalizeUrl(evt.u ?? "/", cfg.queryAllowlist);
+	const ref = parseReferrer(evt.r);
+	const ext = ref && !isIgnoredReferrer(ref.host, meta.siteHost, cfg.ignoreReferrerHosts, cfg.hosts) ? ref : null;
+	const { channel, source } = classifyChannel({
+		refHost: ext?.host ?? null,
+		utm: url.utm,
+		clickIds: url.clickIds
+	}, {
+		...cfg.channelRules ? { rules: cfg.channelRules } : {},
+		...cfg.hosts ? { hosts: cfg.hosts } : {}
+	});
+	const isPv = evt.t === "pv";
+	return {
+		site: meta.site,
+		sid,
+		vkey,
+		day: dayInZone(now, cfg.siteTimezone),
+		hour: hourInZone(now, cfg.siteTimezone),
+		started: now,
+		last_seen: now,
+		window_s: cfg.sessionWindowMinutes * 60,
+		entry_path: url.path,
+		exit_path: url.path,
+		pageviews: isPv ? 1 : 0,
+		events: isPv ? 0 : 1,
+		engaged_ms: 0,
+		max_scroll: 0,
+		interacted: 0,
+		ref_host: ext?.host ?? null,
+		ref_path: ext?.path ?? null,
+		channel,
+		source,
+		utm_source: url.utm.utm_source ?? null,
+		utm_medium: url.utm.utm_medium ?? null,
+		utm_campaign: url.utm.utm_campaign ?? null,
+		utm_term: url.utm.utm_term ?? null,
+		utm_content: url.utm.utm_content ?? null,
+		country: meta.country ?? null,
+		region: meta.region ?? null,
+		device: meta.ua.device,
+		browser: meta.ua.browser,
+		browser_major: meta.ua.browserMajor,
+		os: meta.ua.os,
+		lang: meta.lang ?? null,
+		screen: screenBucket(evt.w),
+		host: meta.siteHost ?? null
+	};
+}
+async function cont(store, s, evt, now, cfg) {
+	const isPv = evt.t === "pv";
+	const patch = {
+		now,
+		pageviews: isPv ? 1 : 0,
+		events: isPv ? 0 : 1
+	};
+	if (isPv) {
+		patch.exitPath = normalizeUrl(evt.u ?? "/", cfg.queryAllowlist).path;
+		if (cfg.maxPageviewsPerSession !== void 0 && s.pageviews >= cfg.maxPageviewsPerSession) return {
+			session: s,
+			created: false,
+			skipped: "session_cap"
+		};
+		if (cfg.reloadDedupeSeconds && s.pageviews > 0 && s.exit_path === patch.exitPath && now >= s.last_seen && now - s.last_seen <= cfg.reloadDedupeSeconds) return {
+			session: s,
+			created: false,
+			skipped: "reload"
+		};
+	} else if (cfg.maxEventsPerSession !== void 0 && s.events >= cfg.maxEventsPerSession) return {
+		session: s,
+		created: false,
+		skipped: "session_cap"
+	};
+	await store.continue(s.site, s.sid, patch);
+	return {
+		session: {
+			...s,
+			last_seen: Math.max(s.last_seen, now),
+			exit_path: patch.exitPath ?? s.exit_path,
+			pageviews: s.pageviews + patch.pageviews,
+			events: s.events + patch.events
+		},
+		created: false
+	};
+}
+/**
+* Session resolution. `cfg.sessionWindowMinutes` applies to new sessions only;
+* existing rows keep their own `window_s`. Never changes first-touch fields of an existing session.
+*/
+async function resolveSession(evt, meta, now, cfg, store) {
+	const W = cfg.sessionWindowMinutes * 60;
+	const site = meta.site;
+	const sidIn = isSid(evt.sid) ? evt.sid : null;
+	let own = null;
+	let canon = null;
+	if (sidIn) {
+		own = await store.getSession(site, sidIn);
+		if (own && isActive(own, now, cfg.maxSessionMinutes)) return cont(store, own, evt, now, cfg);
+		canon = await store.getAlias(site, sidIn, now);
+		const s = canon ? await store.getSession(site, canon) : null;
+		if (s && isActive(s, now, cfg.maxSessionMinutes)) return cont(store, s, evt, now, cfg);
+	}
+	const today = saltDay(now, cfg.saltTimezone, cfg.saltRotationHour);
+	const currentKey = await meta.vkeyFor(today);
+	const keys = [currentKey];
+	if (now < saltBoundary(now, cfg.saltTimezone, cfg.saltRotationHour) + W) keys.push(await meta.vkeyFor(addDays(today, -1)));
+	const found = await store.findActiveByVkey(site, keys, now);
+	if (found && isActive(found, now, cfg.maxSessionMinutes)) {
+		if (sidIn && sidIn !== found.sid) await store.putAlias(site, sidIn, found.sid, now + ALIAS_S);
+		return cont(store, found, evt, now, cfg);
+	}
+	const sid = sidIn && !own && !canon ? sidIn : randomId(20);
+	if (sidIn && (own || canon)) await store.putAlias(site, sidIn, sid, now + ALIAS_S);
+	const row = firstTouch(evt, meta, now, cfg, sid, currentKey);
+	await store.create(row);
+	return {
+		session: row,
+		created: true
+	};
+}
+/** In-memory `SessionStore` for tests. */
+var MemorySessionStore = class {
+	sessions = /* @__PURE__ */ new Map();
+	aliases = /* @__PURE__ */ new Map();
+	async getSession(site, sid) {
+		const s = this.sessions.get(`${site}|${sid}`);
+		return s ? { ...s } : null;
+	}
+	async findActiveByVkey(site, vkeys, now) {
+		let best = null;
+		for (const s of this.sessions.values()) if (s.site === site && vkeys.includes(s.vkey) && s.last_seen + s.window_s >= now && (!best || s.last_seen > best.last_seen)) best = s;
+		return best ? { ...best } : null;
+	}
+	async getAlias(site, sid, now) {
+		const a = this.aliases.get(`${site}|${sid}`);
+		return a && a.expires >= now ? a.canon : null;
+	}
+	async putAlias(site, sid, canon, expires) {
+		this.aliases.set(`${site}|${sid}`, {
+			canon,
+			expires
+		});
+	}
+	async create(row) {
+		const k = `${row.site}|${row.sid}`;
+		if (this.sessions.has(k)) throw new Error(`duplicate session ${k}`);
+		this.sessions.set(k, { ...row });
+	}
+	async continue(site, sid, p) {
+		const s = this.sessions.get(`${site}|${sid}`);
+		if (!s) return;
+		s.last_seen = Math.max(s.last_seen, p.now);
+		if (p.exitPath !== void 0) s.exit_path = p.exitPath;
+		s.pageviews += p.pageviews;
+		s.events += p.events;
+	}
+};
+/**
+* One-request store: answers from the rows of one read (`readVisits` in `apply.ts`) and records the writes
+* the resolution decided, which the caller then turns into statements.
+*/
+var RequestStore = class extends MemorySessionStore {
+	created = null;
+	continued = null;
+	alias = null;
+	constructor(site, rows, alias) {
+		super();
+		for (const r of [...rows].sort((a, b) => a.started - b.started)) this.sessions.set(`${r.site}|${r.sid}`, { ...r });
+		if (alias) this.aliases.set(`${site}|${alias.sid}`, {
+			canon: alias.canon,
+			expires: Number.POSITIVE_INFINITY
+		});
+	}
+	async putAlias(site, sid, canon, expires) {
+		this.alias = {
+			sid,
+			canon,
+			expires
+		};
+		await super.putAlias(site, sid, canon, expires);
+	}
+	async create(row) {
+		this.created = { ...row };
+		await super.create(row);
+	}
+	async continue(site, sid, p) {
+		this.continued = {
+			sid,
+			day: this.sessions.get(`${site}|${sid}`)?.day ?? ""
+		};
+		await super.continue(site, sid, p);
+	}
+};
+const MAX_DOC_BYTES = 65536;
+const SESSION_COLS = [
+	"site",
+	"sid",
+	"vkey",
+	"day",
+	"hour",
+	"started",
+	"last_seen",
+	"window_s",
+	"entry_path",
+	"exit_path",
+	"pageviews",
+	"events",
+	"engaged_ms",
+	"max_scroll",
+	"interacted",
+	"ref_host",
+	"ref_path",
+	"channel",
+	"source",
+	"utm_source",
+	"utm_medium",
+	"utm_campaign",
+	"utm_term",
+	"utm_content",
+	"country",
+	"region",
+	"device",
+	"browser",
+	"browser_major",
+	"os",
+	"lang",
+	"screen",
+	"host"
+];
+const SESSION_INTS = [
+	"hour",
+	"started",
+	"last_seen",
+	"window_s",
+	"pageviews",
+	"events",
+	"engaged_ms",
+	"max_scroll",
+	"interacted"
+];
+/** Postgres returns BIGINT as strings; normalise numeric columns. The day goes back to its ISO form. */
+function toSession(r) {
+	const row = { ...r };
+	for (const c of SESSION_INTS) row[c] = Number(row[c]);
+	const d = String(row.day);
+	row.day = /^\d{8}$/.test(d) ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}` : d;
+	return row;
+}
+const fn = (d, name) => raw(d === "postgres" ? name === "max" ? "GREATEST" : "jsonb_build_object" : name === "max" ? "MAX" : "jsonb_object");
+/** Today and yesterday in the site time zone: the days a live visit can have started on. */
+function liveDays(now, tz) {
+	const today = dayInZone(now, tz);
+	return [visitDayKey(today), visitDayKey(addDays(today, -1))];
+}
+/**
+* S4: in one statement, the client sid's alias, its own visit, the alias's visit and the live visits of the
+* visitor keys, all among visits started today or yesterday. One row (all NULL) when nothing matches.
+*/
+function visitReadSql(d, site, now, tz, sid, vkeys, key) {
+	const s = q(d);
+	const [today, yday] = liveDays(now, tz);
+	return s`SELECT a.canon AS canon, ${raw(SESSION_COLS.map((c) => `v.${c}`).join(", "))}${key ? s`, ${docGet(d, "v.hits", key, "t")} IS NOT NULL AS seen` : raw("")} FROM (SELECT (SELECT canon FROM ca_aliases WHERE site = ${site} AND sid = ${sid} AND expires >= ${now}) AS canon) a LEFT JOIN ca_sessions v ON v.site = ${site} AND v.day IN (${today}, ${yday}) AND (v.sid = ${sid} OR v.sid = a.canon${vkeys.length ? s` OR (v.vkey IN (${join(vkeys.map((k) => s`${k}`))}) AND v.last_seen + v.window_s >= ${now})` : raw("")})`;
+}
+async function readVisits(db, site, now, tz, sid, vkeys, key) {
+	const f = visitReadSql(db.dialect, site, now, tz, sid, vkeys, key);
+	const rows = await db.all(f.sql, f.params);
+	const canon = rows[0]?.canon ?? null;
+	const visits = rows.filter((r) => r.sid !== null && r.sid !== void 0);
+	return {
+		canon,
+		rows: visits.map(toSession),
+		seen: visits.some((r) => r.seen === true || Number(r.seen) === 1)
+	};
+}
+/** The visit of a client sid (through its live alias) among visits started today or yesterday. */
+function bySid(d, site, sid, now, tz, alias = "") {
+	const [today, yday] = liveDays(now, tz);
+	const v = raw(alias ? `${alias}.` : "");
+	return q(d)`${v}site = ${site} AND ${v}day IN (${today}, ${yday}) AND ${v}sid = COALESCE((SELECT canon FROM ca_aliases WHERE site = ${site} AND sid = ${sid} AND expires >= ${now}), ${sid})`;
+}
+/** One visit by its key. */
+function byKey(d, site, day, sid) {
+	return q(d)`site = ${site} AND day = ${visitDayKey(day)} AND sid = ${sid}`;
+}
+const maxSeconds = (cfg) => Math.min(cfg.maxSessionMinutes, MAX_VISIT_MINUTES) * 60;
+/**
+* Live and below the cap, and no entry under the key yet (the replay guard). An event carrying the sid of a stored
+* visit belongs to the page that visit shows, so it skips the inactivity window (a long read, then a click); a page
+* view after the window starts a new visit.
+*/
+function liveGuard(d, m) {
+	const s = q(d);
+	const cap = m.t === "pv" ? s`pageviews < ${m.cfg.maxPageviewsPerSession ?? 500}` : m.rev ? raw("1 = 1") : s`events < ${m.cfg.maxEventsPerSession ?? 200}`;
+	const win = m.t === "pv" ? s` AND ${m.now} - last_seen <= window_s` : raw("");
+	return s`${docGet(d, "hits", m.key, "t")} IS NULL${win} AND ${m.now} - started <= ${maxSeconds(m.cfg)} AND ${cap}`;
+}
+/**
+* S1 and S3: add the entry to a known visit. The entry is written with explicit-field `jsonb_set`, not
+* `jsonb_patch`: with the replay guard the entry has no `t` yet, so setting fields keeps an engagement
+* update that arrived first exactly as a merge would, and on a 50 KB document it costs a fraction of the SQL
+* time of a patch, which rewrites the whole object (measured in `tests/apply.test.ts`; on D1: 4.4 ms
+* against 0.9 ms).
+*/
+function entryUpdate(d, m, target, reentry = false) {
+	const s = q(d);
+	const f = m.fields;
+	if (m.t === "pv") return s`UPDATE ca_sessions SET hits = ${docSet(d, "hits", m.key, {
+		t: s`${m.now} - started`,
+		p: f.p,
+		qs: f.qs,
+		nt: f.nt,
+		re: reentry ? 1 : void 0,
+		hs: f.hs
+	})}, pageviews = pageviews + 1, last_seen = ${fn(d, "max")}(last_seen, ${m.now}), exit_path = ${f.p ?? null}${raw(reentry ? ", reentries = reentries + 1" : "")} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
+	return s`UPDATE ca_sessions SET hits = ${docSet(d, "hits", m.key, {
+		t: s`${m.now} - started`,
+		n: f.n,
+		p: f.p ?? raw("exit_path"),
+		pr: m.props ? docJson(d, m.props) : void 0,
+		hs: f.hs
+	})}, events = events + 1, last_seen = ${s`CASE WHEN ${m.now} - last_seen <= window_s THEN ${fn(d, "max")}(last_seen, ${m.now}) ELSE last_seen END`} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
+}
+/** Slow path, new visit: the row with its first entry inside; nothing on a conflict (a racing first event). */
+function visitInsert(d, row, m) {
+	const s = q(d);
+	const vals = SESSION_COLS.map((c) => c === "day" ? s`${visitDayKey(row.day)}` : s`${row[c]}`);
+	const f = m.fields;
+	const entry = m.t === "pv" ? docObject(d, {
+		t: 0,
+		p: f.p,
+		qs: f.qs,
+		nt: f.nt,
+		hs: f.hs
+	}) : docObject(d, {
+		t: 0,
+		n: f.n,
+		p: f.p ?? row.exit_path,
+		pr: m.props ? docJson(d, m.props) : void 0,
+		hs: f.hs
+	});
+	return s`INSERT INTO ca_sessions (${raw(SESSION_COLS.join(", "))}, hits) VALUES (${join(vals)}, ${fn(d, "object")}(${m.key}, ${entry})) ON CONFLICT DO NOTHING RETURNING sid`;
+}
+/** S2: totals move by the difference to the stored value, so repeated and reordered updates converge. */
+function engageUpdate(d, m) {
+	const s = q(d);
+	const max = fn(d, "max");
+	const old = (f) => s`COALESCE(${docGet(d, "hits", m.key, f, "int")}, 0)`;
+	const grown = (f, v) => v === void 0 ? void 0 : s`${max}(${v}, ${old(f)})`;
+	const set = [s`engaged_ms = engaged_ms + ${max}(0, ${m.d} - ${old("d")})`];
+	if (m.e !== void 0) set.push(s`visible_ms = visible_ms + ${max}(0, ${m.e} - ${old("e")})`);
+	if (m.s !== void 0) set.push(s`max_scroll = ${max}(max_scroll, ${m.s})`);
+	if (m.i !== void 0) set.push(s`interacted = ${max}(interacted, ${m.i})`);
+	set.push(s`hits = ${docSet(d, "hits", m.key, {
+		d: grown("d", m.d),
+		e: grown("e", m.e),
+		s: grown("s", m.s),
+		x: grown("x", m.x)
+	})}`);
+	const size = raw(d === "postgres" ? "pg_column_size(hits)" : "length(hits)");
+	const known = s`(${docGet(d, "hits", m.key, "t")} IS NOT NULL OR ${docGet(d, "hits", m.key, "d")} IS NOT NULL OR (started >= ${m.now - 30} AND pageviews < ${m.cap} AND ${size} < ${MAX_DOC_BYTES}))`;
+	return s`UPDATE ca_sessions SET ${join(set)} WHERE ${bySid(d, m.site, m.sid, m.now, m.tz)} AND ${known}`;
+}
+/**
+* Revenue: one `ca_events` row per order, attached to the client sid's visit (the caller moves it when the event
+* lands on another visit). A conflict is a
+* duplicate order and costs 0 rows. (SQLite needs the `WHERE` of an `INSERT ... SELECT` before `ON CONFLICT`.)
+*/
+function orderInsert(d, m) {
+	const s = q(d);
+	const tz = m.cfg.siteTimezone;
+	const on = m.sid ? bySid(d, m.site, m.sid, m.now, tz, "v") : raw("1 = 0");
+	const props = m.props ? JSON.stringify(m.props) : null;
+	const val = {
+		sql: d === "postgres" ? "CAST(? AS DOUBLE PRECISION)" : "?",
+		params: [m.rev?.val ?? null]
+	};
+	return s`INSERT INTO ca_events (site, id, day, ts, sday, sid, name, path, props, val, cur) SELECT ${m.site}, ${m.key}, ${dayInt(dayInZone(m.now, tz))}, ${m.now}, v.day, v.sid, ${m.fields.n ?? ""}, COALESCE(${m.fields.p ?? null}, v.exit_path), ${props}, ${val}, ${m.rev?.cur ?? null} FROM (SELECT 1 AS one) o LEFT JOIN ca_sessions v ON ${on} WHERE 1 = 1 ON CONFLICT (site, id) DO NOTHING RETURNING sid`;
+}
+/**
+* S5: an alias lives as long as the longest visit, so it is written again when the canonical visit changes, or when
+* less than half its life is left (an alias written with a shorter life); 0 rows otherwise.
+*/
+function aliasUpsert(d, site, a) {
+	return q(d)`INSERT INTO ca_aliases (site, sid, canon, expires) VALUES (${site}, ${a.sid}, ${a.canon}, ${a.expires}) ON CONFLICT (site, sid) DO UPDATE SET canon = excluded.canon, expires = excluded.expires WHERE ca_aliases.canon <> excluded.canon OR ca_aliases.expires < excluded.expires - ${MAX_VISIT_MINUTES * 30}`;
+}
+/** S6: error pages as counters per day, status, path and referrer. */
+function srvUpsert(d, m) {
+	return q(d)`INSERT INTO ca_srv (site, day, status, path, ref, n, last_ts) VALUES (${m.site}, ${dayInt(dayInZone(m.now, m.tz))}, ${m.status}, ${m.path}, ${m.ref}, ${1}, ${m.now}) ${raw(upsertClause("ca_srv", [
+		"site",
+		"day",
+		"status",
+		"path",
+		"ref"
+	], ["last_ts"], ["n"]))}`;
+}
+/** The guard state of this isolate per database, kept as long as `budgetState` would answer from its key. */
+const guardCache = /* @__PURE__ */ new Map();
+/**
+* Whether the daily write allowance stops ingest (`small` profile only). The state is kept in the isolate until
+* `budgetState` would check again (hourly, every 10 minutes above a quarter of the limit, a blocked state until the
+* next UTC day), so between checks a write costs no extra statement and a blocked event costs none at all; the
+* first event after a check is due pays one state read (and, when the stored state is stale, the page view sum).
+* A failed check lets writes through for a minute: the guard is an estimate and must not stop ingest by itself.
+*/
+async function writesBlocked(db, g, now) {
+	if (!dailyRowsApply(g.profile, db)) return false;
+	const key = g.key ?? "";
+	const hit = guardCache.get(key);
+	if (hit?.profile === g.profile && now < hit.until) return hit.blocked;
+	let st;
+	try {
+		st = await budgetState(db, g.kv, now, g.profile, g.tz);
+	} catch {
+		guardCache.set(key, {
+			profile: g.profile,
+			until: now + 60,
+			blocked: false
+		});
+		return false;
+	}
+	if (!st) return false;
+	const nextDay = Date.parse(`${st.day}T00:00:00Z`) / 1e3 + 86400;
+	const until = st.blocked ? nextDay : Math.min(nextDay, st.at + (st.rows >= st.limit * .25 ? 600 : CHECK_SLOW_S));
+	guardCache.set(key, {
+		profile: g.profile,
+		until,
+		blocked: st.blocked
+	});
+	return st.blocked;
+}
+/** Applies events with the statements above, directly on the database; with a guard, not while the day's writes are blocked. */
+var D1Sink = class {
+	db;
+	guard;
+	constructor(db, guard) {
+		this.db = db;
+		this.guard = guard;
+	}
+	async ingest(m) {
+		if (this.guard && await writesBlocked(this.db, this.guard, m.now)) return "budget_blocked";
+		const d = this.db.dialect;
+		if (m.t === "srv") {
+			const f = srvUpsert(d, m);
+			await this.db.run(f.sql, f.params);
+			return "ok";
+		}
+		if (m.t === "en") {
+			const f = engageUpdate(d, m);
+			return (await this.db.run(f.sql, f.params)).changes > 0 ? "ok" : "orphan_update";
+		}
+		return this.visit(m);
+	}
+	async returns(f) {
+		return this.db.all(f.sql, f.params);
+	}
+	async visit(m) {
+		const d = this.db.dialect;
+		const tz = m.cfg.siteTimezone;
+		let attached = null;
+		if (m.rev) {
+			const r = await this.returns(orderInsert(d, m));
+			if (!r.length) {
+				const own = q(d)`${bySid(d, m.site, m.sid ?? "", m.now, tz)} AND (day, sid) IN (SELECT sday, sid FROM ca_events WHERE site = ${m.site} AND id = ${m.key})`;
+				if (m.sid && (await this.returns(entryUpdate(d, m, own))).length) return "ok";
+				return "duplicate_order";
+			}
+			attached = r[0]?.sid ?? null;
+		}
+		if (m.sid && !m.fresh && (await this.returns(entryUpdate(d, m, bySid(d, m.site, m.sid, m.now, tz)))).length) return "ok";
+		const read = await readVisits(this.db, m.site, m.now, tz, m.sid, Object.values(m.keys), m.key);
+		if (read.seen) return "ok";
+		const store = new RequestStore(m.site, read.rows, m.sid && read.canon ? {
+			sid: m.sid,
+			canon: read.canon
+		} : null);
+		const cfg = {
+			...m.cfg,
+			maxSessionMinutes: Math.min(m.cfg.maxSessionMinutes, MAX_VISIT_MINUTES),
+			...m.rev && { maxEventsPerSession: void 0 }
+		};
+		const vkeyFor = async (day) => {
+			const k = m.keys[day];
+			if (!k) throw new Error(`no visitor key for salt day ${day}`);
+			return k;
+		};
+		const res = await resolveSession(m.evt, {
+			...m.meta,
+			vkeyFor
+		}, m.now, cfg, store);
+		if (store.alias) {
+			const f = aliasUpsert(d, m.site, store.alias);
+			await this.db.run(f.sql, f.params);
+		}
+		if (res.skipped) return res.skipped;
+		const visit = res.session;
+		const target = byKey(d, m.site, visit.day, visit.sid);
+		let wrote;
+		if (store.created) wrote = (await this.returns(visitInsert(d, store.created, m))).length > 0 || (await this.returns(entryUpdate(d, m, target))).length > 0;
+		else wrote = (await this.returns(entryUpdate(d, m, target, m.t === "pv" && !!m.reentry))).length > 0;
+		if (!wrote) {
+			const has = q(d)`SELECT 1 AS ok FROM ca_sessions WHERE ${target} AND ${docGet(d, "hits", m.key, "t")} IS NOT NULL`;
+			if (!(await this.db.all(has.sql, has.params)).length) throw new Error("ingest: the visit changed between the read and the write");
+		}
+		if (m.rev && attached !== visit.sid) {
+			const f = q(d)`UPDATE ca_events SET sday = ${visitDayKey(visit.day)}, sid = ${visit.sid} WHERE site = ${m.site} AND id = ${m.key}`;
+			await this.db.run(f.sql, f.params);
+		}
+		return "ok";
+	}
+};
+// src/core/drops.ts
+/** Age of the oldest count at which a request flushes. */
+const FLUSH_MS = 1e4;
+/** The flush statement: all counters in one JSON parameter, one row written per site, day and reason. */
+function dropsFlushSql(d, rows) {
+	const x = paramRows(d, rows, "x");
+	const f = (name, as) => field(d, "x", name, as);
+	return {
+		sql: `INSERT INTO ca_drops (site, day, reason, n) SELECT ${f("site")}, ${f("day", "int")}, ${f("reason")}, ${f("n", "int")} FROM ${x.sql} WHERE 1 = 1 ${upsertChanged(d, "ca_drops", [
+			"site",
+			"day",
+			"reason"
+		], [], ["n"])}`,
+		params: x.params
+	};
+}
+const SEP = "\0";
+/** The counters of one isolate. */
+var DropCounters = class {
+	windowMs;
+	clock;
+	sleep;
+	pending = /* @__PURE__ */ new Map();
+	/** Epoch ms of the oldest pending count. */
+	oldest = 0;
+	/** A request's `after()` is already waiting out the window. */
+	armed = false;
+	/** With site routing (`databases` option): each site's counts go to its own database, not to the `db` of the flush. */
+	route;
+	constructor(windowMs = FLUSH_MS, clock = () => Date.now(), sleep = (ms) => new Promise((r) => setTimeout(r, ms))) {
+		this.windowMs = windowMs;
+		this.clock = clock;
+		this.sleep = sleep;
+	}
+	/** Count one drop (or `n`); `day` is the ISO day in the site time zone. Synchronous: no I/O. */
+	add(site, day, reason, n = 1) {
+		if (!this.pending.size) this.oldest = this.clock();
+		const k = [
+			site,
+			day,
+			reason
+		].join(SEP);
+		this.pending.set(k, (this.pending.get(k) ?? 0) + n);
+	}
+	/** Counts not written yet. */
+	get size() {
+		return this.pending.size;
+	}
+	rows() {
+		return [...this.pending].map(([k, n]) => {
+			const [site, day, reason] = k.split(SEP);
+			return {
+				site,
+				day: dayInt(day),
+				reason,
+				n
+			};
+		});
+	}
+	/**
+	* Write the counters in one statement (one per database with site routing). On failure the counts of the failed
+	* database are kept for the next flush and the error is thrown.
+	*/
+	async flush(db) {
+		if (!this.pending.size) return 0;
+		const batch = this.pending;
+		this.pending = /* @__PURE__ */ new Map();
+		const groups = /* @__PURE__ */ new Map();
+		for (const e of batch) {
+			const g = this.route?.binding(e[0].split(SEP)[0]) ?? "";
+			groups.get(g)?.push(e) ?? groups.set(g, [e]);
+		}
+		let written = 0;
+		let failed;
+		for (const entries of groups.values()) try {
+			const rows = entries.map(([k, n]) => {
+				const [s, day, reason] = k.split(SEP);
+				return {
+					site: s,
+					day: dayInt(day),
+					reason,
+					n
+				};
+			});
+			const target = this.route ? await this.route(rows[0]?.site) : db;
+			const f = dropsFlushSql(target.dialect, rows);
+			await target.run(f.sql, f.params);
+			written += rows.length;
+		} catch (err) {
+			failed ??= err;
+			for (const [k, n] of entries) this.pending.set(k, (this.pending.get(k) ?? 0) + n);
+		}
+		if (failed) {
+			this.oldest = this.clock();
+			throw failed;
+		}
+		return written;
+	}
+	/**
+	* Run inside the calling request's own `after()`: flush when the oldest count is due, otherwise wait out the
+	* window unless another request already does. Never throws (a failed flush keeps its counts).
+	*/
+	async settle(db) {
+		if (!this.pending.size) return;
+		const wait = this.oldest + this.windowMs - this.clock();
+		if (wait > 0) {
+			if (this.armed) return;
+			this.armed = true;
+			try {
+				await this.sleep(wait);
+			} finally {
+				this.armed = false;
+			}
+		}
+		await this.flush(db).catch(() => {});
+	}
+	/** Test helper: forget every count. */
+	clear() {
+		this.pending.clear();
+		this.armed = false;
+	}
+};
+/** The counters of this isolate. */
+const drops = new DropCounters();
+// src/multisite/registry.ts
+/**
+* Client sites registry: the `sites` storage collection, its validation rules and a 60 s
+* in-memory snapshot keyed by `key` and by `id`, invalidated on save (the channel rules pattern).
+*/
+const SITE_ID_RE = /^[a-z0-9-]{1,32}$/;
+const SITE_KEY_RE = /^[a-z0-9]{20}$/;
+/** Lowercase hostname with at least one dot, no scheme, no port, no path. */
+const HOST_RE = /^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
+const TTL_MS = 6e4;
+const ClientSiteSchema = z.object({
+	id: z.string().regex(SITE_ID_RE),
+	label: z.string().min(1).max(64),
+	key: z.string().regex(SITE_KEY_RE),
+	hosts: z.array(z.string().regex(HOST_RE)).min(1).max(10),
+	gscProperty: z.string().max(512).default(""),
+	bingSiteUrl: z.string().max(512).default(""),
+	paused: z.boolean().default(false),
+	created: z.number().int(),
+	/** Absent means the master's setting. Checked on save; an unlisted stored code reads as Inherit, never hides the site. */
+	defaultCurrency: z.string().max(8).optional(),
+	acceptClientRevenue: z.boolean().optional(),
+	/** Site search parameter names; absent inherits the master's, empty is off for this site. */
+	siteSearchParams: z.array(z.string().regex(/^[a-z0-9_]{1,16}$/)).max(5).optional(),
+	/**
+	* Linked to this install's own site: its events are stored under the local site id with the host recorded, so
+	* the visitor key and the visit continue across the hosts. Its per-site settings do not apply then.
+	*/
+	linked: z.boolean().optional()
+});
+const EMPTY = {
+	byKey: /* @__PURE__ */ new Map(),
+	byId: /* @__PURE__ */ new Map(),
+	sites: [],
+	linked: []
+};
+let snap;
+/** Drop the snapshot so the next read reloads (after a save, a delete or a key change). */
+function invalidateRegistry() {
+	snap = void 0;
+	linkedSnap = void 0;
+}
+/** Every valid record of the collection, sorted by label. */
+async function loadSites(coll) {
+	if (!coll) return [];
+	const out = [];
+	let cursor;
+	for (let i = 0; i < 5; i++) {
+		const page = await coll.query({
+			limit: 100,
+			...cursor ? { cursor } : {}
+		});
+		for (const it of page.items) {
+			const r = ClientSiteSchema.safeParse(it.data);
+			if (r.success) out.push(r.data);
+		}
+		if (!page.hasMore || !page.cursor) break;
+		cursor = page.cursor;
+	}
+	return out.sort((a, b) => a.label.localeCompare(b.label) || (a.id < b.id ? -1 : 1));
+}
+/** The registry snapshot, reloaded at most every 60 s per isolate; the last good one survives a read error. */
+async function registry(coll, nowMs = Date.now()) {
+	if (snap && nowMs - snap.at < TTL_MS) return snap.reg;
+	let reg = snap?.reg ?? EMPTY;
+	try {
+		const all = await loadSites(coll);
+		const sites = all.filter((s) => !s.linked);
+		reg = {
+			sites,
+			linked: all.filter((s) => s.linked),
+			byKey: new Map(all.map((s) => [s.key, s])),
+			byId: new Map(sites.map((s) => [s.id, s]))
+		};
+	} catch {}
+	snap = {
+		reg,
+		at: nowMs
+	};
+	return reg;
+}
+const newSiteKey = () => randomId(20);
+/** Hosts of the client sites linked to this install's own site. */
+const linkedHosts = (sites) => sites.flatMap((s) => s.linked ? s.hosts : []);
+/** Options key holding `linkedHosts` for the page script, written by the sites routes. */
+const LINKED_HOSTS_KEY = "sites:linked";
+let linkedSnap;
+/** `LINKED_HOSTS_KEY`, read at most every 60 s per isolate (the page script must not cost a read per load). */
+async function linkedHostsOf(kv, nowMs = Date.now()) {
+	if (linkedSnap && nowMs - linkedSnap.at < TTL_MS) return linkedSnap.hosts;
+	let hosts = linkedSnap?.hosts ?? [];
+	try {
+		const v = await kv.get(LINKED_HOSTS_KEY);
+		hosts = Array.isArray(v) ? v.filter((h) => typeof h === "string" && HOST_RE.test(h)) : [];
+	} catch {}
+	linkedSnap = {
+		hosts,
+		at: nowMs
+	};
+	return hosts;
+}
+/** Hostname of an origin or URL, lowercase, or null. */
+function hostnameOf(origin) {
+	if (!origin) return null;
+	try {
+		return new URL(origin).hostname.toLowerCase();
+	} catch {
+		return null;
+	}
+}
+/** Registry rules beyond the field formats; returns the first problem in plain words, or null. */
+function siteProblem(site, r) {
+	if (site.id === r.siteId) return `The id ${site.id} is the id of this site.`;
+	if (site.id === "all") return "The id all is reserved for the All sites view.";
+	if (r.remoteIds.includes(site.id)) return `The id ${site.id} is used by a connected site.`;
+	if (r.others.some((o) => o.id === site.id)) return `The id ${site.id} is already registered.`;
+	if (new Set(site.hosts).size !== site.hosts.length) return "A host is listed twice.";
+	const master = new Set(r.masterHosts.map((h) => h.toLowerCase()));
+	for (const h of site.hosts) {
+		if (master.has(h)) return `${h} is served by this install; its pages are measured as this site.`;
+		const owner = r.others.find((o) => o.hosts.includes(h));
+		if (owner) return `${h} is already registered for ${owner.label}.`;
+	}
+	if (r.others.some((o) => o.key === site.key)) return "The key is used by another site.";
+	return null;
+}
+/**
+* The site a private or agent route works on: the requested id when it is the
+* local `siteId` or a registered client site, the local site when none is given. Anything else is a
+* typed 400 `unknown_site`.
+*/
+async function bindSite(requested, siteId, coll) {
+	if (!requested || requested === siteId) return {
+		id: siteId,
+		kind: "local"
+	};
+	const reg = await registry(coll);
+	const client = reg.byId.get(requested);
+	if (!client && reg.linked.some((s) => s.id === requested)) throw new PluginRouteError("unknown_site", `The site ${requested} is linked to ${siteId}: its data is ${siteId}'s, use that id.`, 400);
+	if (!client) throw new PluginRouteError("unknown_site", `Unknown site ${requested.slice(0, 32)}.`, 400);
+	return {
+		id: client.id,
+		kind: "client",
+		client
+	};
+}
+/** Optional `site` field of a route body. */
+const SiteField = z.string().regex(SITE_ID_RE).optional();
+/** Options key prefix of the last event time (epoch ms) of a host of this install's own site, linked hosts included. */
+const HOST_SEEN_PREFIX = "host:seen:";
+const HOST_SEEN_EVERY_MS = 6e5;
+const hostSeenAt = /* @__PURE__ */ new Map();
+/**
+* Stamp the last event time of `host`, at most every 10 minutes per host and isolate (the middleware's `mw:seen`
+* pattern), so the Hosts list costs a few option writes a day, not one per event. Returns the write to run
+* after the response, or null when none is due.
+*/
+function markHostSeen(kv, host, nowMs = Date.now()) {
+	if (!HOST_RE.test(host) && host !== "localhost") return null;
+	if (nowMs - (hostSeenAt.get(host) ?? Number.NEGATIVE_INFINITY) < HOST_SEEN_EVERY_MS) return null;
+	if (hostSeenAt.size >= 100) hostSeenAt.clear();
+	hostSeenAt.set(host, nowMs);
+	return () => kv.set(`${HOST_SEEN_PREFIX}${host}`, nowMs).catch(() => {});
+}
+// src/core/queue-sink.ts
+/** Name of the producer binding in the host's wrangler config. */
+const QUEUE_BINDING = "CA_QUEUE";
+let found;
+/** The queue binding, looked up once per isolate. Null where `cloudflare:workers` does not exist or the binding is missing. */
+function queueBinding() {
+	return found ??= workerEnv().then((env) => {
+		const q = env?.[QUEUE_BINDING];
+		return typeof q?.send === "function" ? q : null;
+	});
+}
+/** Active tier, and whether a queue binding exists (the Data page hints at it when unused). Never the queue on Postgres (`ingestSink`). */
+async function ingestStatus(s, binding = queueBinding, dialect = "sqlite") {
+	const queueBound = dialect === "sqlite" && await binding() !== null;
+	return {
+		tier: s.ingestTier === "queue" && queueBound ? "queue" : "direct",
+		queueBound
+	};
+}
+/**
+* The sink of the selected tier: the queue only when selected and bound and `db` is SQLite (the consumer writes to
+* D1), else the database (behind `guard` when given). A Hyperdrive binding with query caching on refuses every
+* write with `CACHE_ON_MESSAGE` (counted as a drop by the caller).
+*/
+async function ingestSink(db, s, binding = queueBinding, guard) {
+	if (await queryCacheOn(db)) return { ingest: async () => Promise.reject(/* @__PURE__ */ new Error(`cookieless-analytics: ${CACHE_ON_MESSAGE}`)) };
+	const direct = new D1Sink(db, guard);
+	const q = s.ingestTier === "queue" && db.dialect === "sqlite" ? await binding() : null;
+	return q ? new QueueSink(q, direct, guard ? (now) => writesBlocked(db, guard, now) : void 0) : direct;
+}
+/**
+* The sink of one request with site routing: each event goes to its site's database (one sink per database),
+* behind that database's write guard (state under its KV prefix). A missing binding rejects the event; it is
+* never written to another database. Postgres statements of an event (schema check and probe included) are limited
+* to `INGEST_STATEMENT_MS`.
+*/
+function routedSink(dbFor, s, kv, binding = queueBinding) {
+	const sinks = /* @__PURE__ */ new Map();
+	return { ingest(m) {
+		return pgStatementLimit(INGEST_STATEMENT_MS, async () => {
+			const key = dbFor.binding(m.site) ?? "";
+			let p = sinks.get(key);
+			if (!p) sinks.set(key, p = dbFor(m.site).then((d) => ingestSink(d, s, binding, {
+				kv: dbFor.kv(kv, m.site),
+				profile: s.capacityProfile,
+				tz: s.siteTimezone,
+				key
+			})));
+			return (await p).ingest(m);
+		});
+	} };
+}
+const RESOLVE_KEYS = [
+	"sessionWindowMinutes",
+	"maxSessionMinutes",
+	"saltTimezone",
+	"saltRotationHour",
+	"siteTimezone",
+	"ignoreReferrerHosts",
+	"queryAllowlist",
+	"reloadDedupeSeconds",
+	"maxPageviewsPerSession",
+	"maxEventsPerSession",
+	"channelRules",
+	"hosts"
+];
+const KEPT_PARAMS = [...UTM_KEYS, ...CLICK_IDS];
+/** Page URL as the session rules read it: the path plus the allowlisted, campaign and click id parameters. */
+function pageUrl(u, allowlist) {
+	try {
+		const url = new URL(u, "https://x.invalid");
+		for (const k of [...url.searchParams.keys()]) if (!KEPT_PARAMS.includes(k.toLowerCase()) && !allowed(k.toLowerCase(), allowlist)) url.searchParams.delete(k);
+		return url.pathname + url.search;
+	} catch {
+		return "/";
+	}
+}
+/** Referrer as the session rules read it: scheme, host and path. */
+function referrer(r) {
+	try {
+		const url = new URL(r);
+		return `${url.protocol}//${url.host}${url.pathname}`;
+	} catch {
+		return;
+	}
+}
+/**
+* The message as queued, holding only what the session rules read: the settings they use (never a secret), the
+* page URL without parameters that are not stored, and the referrer without its query.
+*/
+function queueMessage(m) {
+	if (m.t !== "pv" && m.t !== "ev") return m;
+	const cfg = Object.fromEntries(RESOLVE_KEYS.filter((k) => m.cfg[k] !== void 0).map((k) => [k, m.cfg[k]]));
+	const evt = { ...m.evt };
+	if (evt.u !== void 0) evt.u = pageUrl(evt.u, cfg.queryAllowlist);
+	if (evt.r) evt.r = referrer(evt.r);
+	if (evt.r === void 0) delete evt.r;
+	return {
+		...m,
+		cfg,
+		evt
+	};
+}
+/** Sends to the queue; a failed send writes the event through `direct` instead. The write guard is checked before the send (the consumer has none). */
+var QueueSink = class {
+	queue;
+	direct;
+	blocked;
+	constructor(queue, direct, blocked) {
+		this.queue = queue;
+		this.direct = direct;
+		this.blocked = blocked;
+	}
+	async ingest(m) {
+		if (m.t === "srv") return this.direct.ingest(m);
+		if (this.blocked && await this.blocked(m.now)) return "budget_blocked";
+		try {
+			await this.queue.send(queueMessage(m));
+			return "ok";
+		} catch {
+			return this.direct.ingest(m);
+		}
+	}
+};
+/** Backoff after a failed write: 30 s, doubling, at most 10 minutes, so with the 20 retries of the consumer config a database outage of about 2.5 hours is ridden out. */
+const retryDelay = (attempts) => Math.min(600, 30 * 2 ** Math.max(0, attempts - 1));
+/** An engagement update whose visit is not written yet (its page view is still queued) is retried this often. */
+const ORPHAN_ATTEMPTS = 3;
+const ORPHAN_DELAY_S = 30;
+const tokens = (m) => m.t === "srv" ? [] : m.t === "en" ? [m.sid] : [...m.sid ? [m.sid] : [], ...Object.values(m.keys)];
+/**
+* Messages in send order (event time, then queue time), split into groups that cannot touch the same visit: a
+* group joins every message sharing a sid or a visitor key. Groups run in parallel, a group in order, so a
+* redelivered or reordered batch gives the tables the direct path gives.
+*/
+function visitorGroups(messages) {
+	const sorted = [...messages].sort((a, b) => a.body.now - b.body.now || a.timestamp.getTime() - b.timestamp.getTime());
+	const parent = sorted.map((_, i) => i);
+	const find = (i) => parent[i] === i ? i : parent[i] = find(parent[i]);
+	const owner = /* @__PURE__ */ new Map();
+	sorted.forEach((m, i) => {
+		for (const t of tokens(m.body)) {
+			const j = owner.get(t);
+			if (j === void 0) owner.set(t, i);
+			else parent[find(i)] = find(j);
+		}
+	});
+	const groups = /* @__PURE__ */ new Map();
+	sorted.forEach((m, i) => {
+		const g = groups.get(find(i)) ?? [];
+		g.push(m);
+		groups.set(find(i), g);
+	});
+	return [...groups.values()];
+}
+/**
+* A page view, event or engagement update reaches visits started on its own day or the day before. Once that day
+* before is closed (its summary stored, `lastClosedDay`), applying the message could change a stored day, so a
+* message delayed that long (past 00:15 of the day after its own, by a backlog or an outage) is not written.
+*/
+function late(m, now) {
+	if (m.t === "srv") return false;
+	const tz = "cfg" in m ? m.cfg.siteTimezone : m.tz;
+	return addDays(dayInZone(m.now, tz), -1) <= lastClosedDay(now, tz);
+}
+/**
+* Consumer: applies one queue batch through `D1Sink`. Every statement is keyed by the entry id, so a redelivered
+* message changes nothing. A failing message is retried with the rest of its group (order kept); drops are
+* counted as on the direct path.
+*/
+async function consumeBatch(batch, db, kv) {
+	const sink = new D1Sink(db);
+	const dropped = [];
+	await Promise.all(visitorGroups(batch.messages).map(async (group) => {
+		for (const [i, msg] of group.entries()) {
+			const m = msg.body;
+			let out;
+			try {
+				out = late(m, Date.now() / 1e3) ? "late_after_close" : await sink.ingest(m);
+			} catch {
+				for (const rest of group.slice(i)) rest.retry({ delaySeconds: retryDelay(rest.attempts) });
+				return;
+			}
+			if (out === "orphan_update" && msg.attempts < 3) {
+				msg.retry({ delaySeconds: ORPHAN_DELAY_S });
+				continue;
+			}
+			msg.ack();
+			if (out !== "ok" && (msg.attempts === 1 || out === "orphan_update")) dropped.push([
+				m.site,
+				dayInZone(m.now, "cfg" in m ? m.cfg.siteTimezone : m.tz),
+				out
+			]);
+		}
+	}));
+	for (const [site, day, reason] of dropped) drops.add(site, day, reason);
+	if (dropped.length) await drops.flush(db).catch(() => {});
+}
+export { sitesInTables as $, nextUtcDay as $n, redact as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, eachDay as Ai, GoalSchema as An, formatAmount as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, ipInCidr as Bi, SEARCH_DIMS as Bn, pluginFacts as Br, SEGMENTS$1 as Bt, siteProblem as C, upsertChanged as Ci, goalPredicate as Cn, isEventName as Cr, WITH_REVENUE as Ct, readVisits as D, addDays as Di, FUNNEL_MODES as Dn, validateIngest as Dr, metaOf as Dt, MAX_DOC_BYTES as E, ident as Ei, DIM_NAMES as En, isSid as Er, hasRevenue as Et, UTM_KEYS as F, saltDay as Fi, PROP_KEY_RE as Fn, eachTarget as Fr, resolveGranularity as Ft, KV_CURSOR as G, vkey as Gi, copyRowsLeft as Gn, CACHE_ON_MESSAGE as Gr, openDay as Gt, budgetTargetOf as H, sha256 as Hi, COPY_DAY_ROWS as Hn, setPluginFacts as Hr, clearOpenDays as Ht, cleanHost as I, samePeriodLastYear as Ii, QuerySchema as In, ensureHostSchema as Ir, timeseries as It, clearEstimateDay as J, PROVIDER_DAYS as Jn, fromPg as Jr, readSummary as Jt, KV_DELETE_ROWS as K, __exportAll as Ki, nextUtcMidnight as Kn, queryCacheOn as Kr, planFilters as Kt, hostInList as L, zonedToEpoch as Li, REVENUE_BREAKDOWN_DIMS as Ln, factsDb as Lr, weekStart as Lt, buildChannelRules as M, lastClosedDay as Mi, NEGATED as Mn, normalizeCurrency as Mr, revenueSeries as Mt, classifyChannel as N, previousPeriod as Ni, NUM_OPS as Nn, roundMinor as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, dayInZone as Oi, FilterSchema as On, validateRevenue as Or, revenue as Ot, CLICK_IDS as P, saltBoundary as Pi, OPS as Pn, eachDatabase as Pr, bucketSeries as Pt, runRetention as Q, backfillRange as Qn, pgStatementLimit as Qr, DURATION_MS as Qt, normalizeUrl as R, base64url as Ri, REVENUE_DIMS$1 as Rn, factsTargets as Rr, CUBE_SEG as Rt, registry as S, q as Si, entryProp as Sn, cleanProps as Sr, REVENUE_REPORTS as St, D1Sink as T, chunk as Ti, validateFilters as Tn, isReservedEvent as Tr, currencyOf as Tt, dailyRowsApply as U, timingSafeEqual as Ui, chargeCopyRows as Un, stateKv as Ur, clearScanCache as Ut, budgetState as V, randomId as Vi, TRAFFIC_DIMS as Vn, pluginFactsOrNull as Vr, behindNotice as Vt, CHUNK_ROWS as W, truncateIp as Wi, copiedToday as Wn, statePrefix as Wr, matchKey as Wt, rawFromDay as X, SYNC_BUDGET as Xn, pgOwnScope as Xr, storedSessions as Xt, effectiveRawDays as Y, RowsPaused as Yn, isHyperdrive as Yr, splitRange as Yt, runChunk as Z, SyncRows as Zn, pgScope as Zr, storedThrough as Zt, linkedHosts as _, docPut as _i, and as _n, parseLinkRules as _r, journeyNext as _t, queueBinding as a, ensureSchemaOnce as ai, liveVisits as an, ThrottledError as ar, SEGS as at, markHostSeen as b, likeEscape as bi, entriesOf as bn, validateSafeRegex as br, journeysFromSummary as bt, ClientSiteSchema as c, fromKysely as ci, refundDim as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, isD1 as di, sessionMetrics as dn, budgetWarning as dr, runRollup as dt, usePgDriver as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, workerEnv as fi, sessionTotals as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, docObject as gi, TRUE as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, docJson as hi, QueryError as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, ensureSchema as ii, keysIn as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, hourInZone as ji, LINK_BY as jn, isCurrency as jr, revenuePlan as jt, isActive as k, daysBetween as ki, FunnelStepsSchema as kn, REVENUE_MAX_VALUE as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, selfCheck as li, round as ln, budgetMb as lr, rollupDay as lt, bindSite as m, dayInt as mi, visitDays as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, SCHEMA_VERSION_KEY as ni, goalGroups as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, isOwnDatabase as oi, num as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, LIKE_ESCAPE as pi, sessionWhere as pn, d1CapMb as pr, links as pt, cleanSalts as q, KV_SYNC_ROWS as qn, INGEST_STATEMENT_MS as qr, planRows as qt, consumeBatch as r, TABLES as ri, hitJoin as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, schemaVersion as si, ratio as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, SCHEMA_VERSION as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, fromD1 as ui, sessionBreakdown as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, docRead as vi, compileSearch as vn, publicNames as vr, journeyPaths as vt, drops as w, visitDayKey as wi, inList as wn, isPath as wr, currencyList as wt, newSiteKey as x, paramRows as xi, entryCols as xn, OID_RE as xr, journeysUnavailable as xt, loadSites as y, isoDay as yi, compileTraffic as yn, compileSafeRegex as yr, journeyPrev as yt, parseReferrer as z, getOrCreateSalt as zi, REVENUE_VALUE_RE as zn, missingDb as zr, FILTER_DIMS as zt };

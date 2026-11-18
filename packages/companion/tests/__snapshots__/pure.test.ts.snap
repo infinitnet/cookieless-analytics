@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`steps per answer set > 'cloudflare', 'npm', 'emdash' 1`] = `
+exports[`steps per answer set > cloudflare, npm, emdash 1`] = `
 [
   {
     "code": [
@@ -122,7 +122,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'npm', 'own' 1`] = `
+exports[`steps per answer set > cloudflare, npm, own 1`] = `
 [
   {
     "code": [
@@ -255,7 +255,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'npm', 'postgres' 1`] = `
+exports[`steps per answer set > cloudflare, npm, postgres 1`] = `
 [
   {
     "code": [
@@ -381,7 +381,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'pnpm', 'emdash' 1`] = `
+exports[`steps per answer set > cloudflare, pnpm, emdash 1`] = `
 [
   {
     "code": [
@@ -503,7 +503,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'pnpm', 'own' 1`] = `
+exports[`steps per answer set > cloudflare, pnpm, own 1`] = `
 [
   {
     "code": [
@@ -636,7 +636,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'pnpm', 'postgres' 1`] = `
+exports[`steps per answer set > cloudflare, pnpm, postgres 1`] = `
 [
   {
     "code": [
@@ -762,7 +762,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'yarn', 'emdash' 1`] = `
+exports[`steps per answer set > cloudflare, yarn, emdash 1`] = `
 [
   {
     "code": [
@@ -884,7 +884,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'yarn', 'own' 1`] = `
+exports[`steps per answer set > cloudflare, yarn, own 1`] = `
 [
   {
     "code": [
@@ -1017,7 +1017,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'cloudflare', 'yarn', 'postgres' 1`] = `
+exports[`steps per answer set > cloudflare, yarn, postgres 1`] = `
 [
   {
     "code": [
@@ -1143,7 +1143,7 @@ wrangler secret put EMDASH_ENCRYPTION_KEY",
 ]
 `;
 
-exports[`steps per answer set > 'node', 'npm', 'emdash' 1`] = `
+exports[`steps per answer set > node, npm, emdash 1`] = `
 [
   {
     "code": [
@@ -1249,7 +1249,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'npm', 'own' 1`] = `
+exports[`steps per answer set > node, npm, own 1`] = `
 [
   {
     "code": [
@@ -1355,7 +1355,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'npm', 'postgres' 1`] = `
+exports[`steps per answer set > node, npm, postgres 1`] = `
 [
   {
     "code": [
@@ -1461,7 +1461,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'pnpm', 'emdash' 1`] = `
+exports[`steps per answer set > node, pnpm, emdash 1`] = `
 [
   {
     "code": [
@@ -1567,7 +1567,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'pnpm', 'own' 1`] = `
+exports[`steps per answer set > node, pnpm, own 1`] = `
 [
   {
     "code": [
@@ -1673,7 +1673,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'pnpm', 'postgres' 1`] = `
+exports[`steps per answer set > node, pnpm, postgres 1`] = `
 [
   {
     "code": [
@@ -1779,7 +1779,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'yarn', 'emdash' 1`] = `
+exports[`steps per answer set > node, yarn, emdash 1`] = `
 [
   {
     "code": [
@@ -1885,7 +1885,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'yarn', 'own' 1`] = `
+exports[`steps per answer set > node, yarn, own 1`] = `
 [
   {
     "code": [
@@ -1991,7 +1991,7 @@ const page = createPublicPageContext({ Astro, kind: "custom", title: Astro.props
 ]
 `;
 
-exports[`steps per answer set > 'node', 'yarn', 'postgres' 1`] = `
+exports[`steps per answer set > node, yarn, postgres 1`] = `
 [
   {
     "code": [

@@ -1,10 +1,8 @@
+import { Bi as ipInCidr, Di as addDays, Fi as saltDay, Gi as vkey, Hi as sha256, I as cleanHost, L as hostInList, Nr as roundMinor, Oi as dayInZone, Pi as saltBoundary, R as normalizeUrl, T as D1Sink, Vi as randomId, Wi as truncateIp, j as DEFAULT_HOSTS, jr as isCurrency, vr as publicNames, w as drops, yr as compileSafeRegex, z as parseReferrer, zi as getOrCreateSalt } from "./queue-sink-CsXeLpUE.mjs";
 import { PLUGIN_ID, ROUTES } from "./contract.mjs";
-import { B as hostInList, D as D1Sink, E as drops, H as parseReferrer, N as DEFAULT_HOSTS, V as normalizeUrl, _n as randomId, bn as truncateIp, gn as ipInCidr, hn as getOrCreateSalt, vn as sha256, xn as vkey, z as cleanHost } from "./queue-sink-BOtlgr5B.mjs";
-import { $n as saltDay, Gn as addDays, Kn as dayInZone, Qn as saltBoundary, _n as isCurrency, dn as compileSafeRegex, un as publicNames, yn as roundMinor } from "./rollup-DahnNaAs.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getPublicPluginApiRouteHandler } from "emdash/plugin-utils";
-
-//#region src/data/agents.json
+// src/data/agents.json
 var agents_default = [
 	{
 		"id": "googlebot-image",
@@ -19526,9 +19524,7 @@ var agents_default = [
 		"source": "crawler-user-agents"
 	}
 ];
-
-//#endregion
-//#region src/agents/rules.ts
+// src/agents/rules.ts
 const AGENT_CATEGORIES = [
 	"search_engine",
 	"ai_training",
@@ -19546,10 +19542,6 @@ const AGENT_CATEGORIES = [
 	"unknown_bot"
 ];
 const AGENTS = agents_default;
-/** Your rules in total, regex rules included; the classifier and the routes stop at these caps. */
-const MAX_USER_RULES = 500;
-const MAX_USER_REGEX_RULES = 50;
-const MAX_RULE_PATTERN = 512;
 /** Built-in rules. Regexes compile on first candidate hit; `lit` is the substring pre-filter. */
 function compileBuiltins(records = AGENTS) {
 	return records.map((r) => {
@@ -19587,14 +19579,14 @@ function compileUserRules(rules = []) {
 	const regex = [];
 	let n = 0;
 	rules.forEach((r, i) => {
-		if (r.enabled === false || typeof r.pattern !== "string" || !r.pattern || n >= MAX_USER_RULES) return;
+		if (r.enabled === false || typeof r.pattern !== "string" || !r.pattern || n >= 500) return;
 		const base = {
 			id: r.id ?? `user-${i + 1}`,
 			category: r.category ?? "unknown_bot",
 			human: r.action === "human"
 		};
 		if (r.mode === "regex") {
-			if (regex.length >= MAX_USER_REGEX_RULES) return;
+			if (regex.length >= 50) return;
 			n++;
 			const re = compileSafeRegex(r.pattern, "i");
 			if (re) regex.push({
@@ -19638,9 +19630,7 @@ function compileUserRules(rules = []) {
 		}
 	};
 }
-
-//#endregion
-//#region src/agents/classify.ts
+// src/agents/classify.ts
 const MAX_UA = 512;
 const LRU_SIZE = 2e3;
 /** In-app WebViews: real people in social apps, never bots. */
@@ -19702,16 +19692,12 @@ function classifyUa(ua, userRules) {
 	}
 	return c.classify(ua);
 }
-
-//#endregion
-//#region src/core/site-settings.ts
+// src/core/site-settings.ts
 function siteSetting(settings, client, key) {
 	const own = client?.[key];
 	return (key === "defaultCurrency" ? isCurrency(own) : key === "siteSearchParams" ? Array.isArray(own) : typeof own === "boolean") ? own : settings[key];
 }
-
-//#endregion
-//#region src/core/ua.ts
+// src/core/ua.ts
 const BROWSERS = [
 	["Samsung Internet", /samsungbrowser\/(\d+)/],
 	["Edge", /\b(?:edg|edge|edga|edgios)\/(\d+)/],
@@ -19768,9 +19754,7 @@ function parseUa(uaRaw, hints = {}) {
 function uaNorm(p) {
 	return `${p.browser}/${p.browserMajor}|${p.os}|${p.device}`;
 }
-
-//#endregion
-//#region src/core/recorder.ts
+// src/core/recorder.ts
 const str = (v) => typeof v === "string" && v ? v : null;
 /**
 * Extract `RequestInfo` from a native `Request` (keeps `request.cf`). Pass the host's `requestMeta.ip`
@@ -19989,30 +19973,10 @@ async function recordServerHit(deps, info) {
 	await drops.settle(deps.db);
 	return false;
 }
-
-//#endregion
-//#region src/dashboards/limits.ts
-/** Dashboard and share limits (constants, not settings). No dependencies, so the middleware can import them. */
-const MAX_DASHBOARDS_PER_SITE = 20;
-const MAX_TILES = 12;
+// src/dashboards/limits.ts
 const MAX_RECORD_BYTES = 16384;
-const SHARE_LOCK_FAILURES = 10;
-const SHARE_LOCK_MINUTES = 15;
-const SHARE_COMPARE_MAX_REQUESTS = 6;
-const SHARE_OPEN_MAX_AGE = 60;
-/** Scheduled dashboard email. */
-const MAX_SHARES_PER_DASHBOARD = 10;
-const MAX_SHARES_PER_SITE = 100;
-const MAIL_MAX_RECIPIENTS = 5;
-const MAIL_MAX_DISTINCT_REQUESTS = 12;
 const MAIL_MAX_HTML_BYTES = 1e5;
-const MAX_SCHEDULED_PER_SITE = 5;
-const MAIL_STATEMENT_BUDGET = 36;
-/** Retries of a failed send, one per tick, before the schedule skips to the next period. */
-const MAIL_MAX_RETRIES = 2;
-
-//#endregion
-//#region src/agents/stored.ts
+// src/agents/stored.ts
 /** Options key holding every user agent rule of the install for the middleware, written by the config routes on each rules change. */
 const AGENT_RULES_KEY = "agents:rules";
 const TTL_MS = 6e4;
@@ -20024,7 +19988,7 @@ async function storedAgentRules(kv, nowMs = Date.now()) {
 	let rules = snap?.rules ?? [];
 	try {
 		const v = await kv.get(AGENT_RULES_KEY);
-		rules = Array.isArray(v) ? v.filter(isRule).slice(0, MAX_USER_RULES) : [];
+		rules = Array.isArray(v) ? v.filter(isRule).slice(0, 500) : [];
 	} catch {}
 	snap = {
 		rules,
@@ -20036,13 +20000,9 @@ async function storedAgentRules(kv, nowMs = Date.now()) {
 function resetStoredAgentRules() {
 	snap = void 0;
 }
-
-//#endregion
-//#region src/client/generated.ts
+// src/client/generated.ts
 const PAGE_SCRIPT = "(function(){let e=/bot|crawl|spider|slurp|headless|lighthouse|phantom|puppeteer|playwright|preview|fetch(er)?\\b|python|curl|wget|httpclient/i,t=[5,15,45];function n(n,r){let i=n.document,a=n.navigator,o=n.location,s=a.userAgent||``,c=``,l=r.c,u=``;try{let e=i.currentScript,t=new URL(e.src||`x:`,o.href),n=e.getAttribute(`${r.a}key`)||t.searchParams.get(`k`)||``;/^[a-z0-9]{20}$/.test(n)&&(c=n,l=new URL(r.c,t.origin).href,u=t.hostname)}catch(e){}if(a.webdriver===!0||e.test(s)||!a.languages||!a.languages.length||/Chrome\\//.test(s)&&!/Mobile|Android/.test(s)&&a.plugins&&a.plugins.length===0||r.g!==`none`&&a.globalPrivacyControl===!0||r.g===`dnt_and_gpc`&&a.doNotTrack===`1`)return;let d=e=>{let t=``;for(;t.length<e;)for(let r of n.crypto.getRandomValues(new Uint8Array(e*2)))r<252&&t.length<e&&(t+=`abcdefghijklmnopqrstuvwxyz0123456789`[r%36]);return t},f=d(20),p=0;try{let e=n.performance.getEntriesByType(`navigation`)[0].type;p=e===`reload`?1:e===`back_forward`?2:0}catch(e){}let m=r.a,h=r.x.length?RegExp(`\\\\.(${r.x.join(`|`)})$`,`i`):null,g=()=>Date.now(),_=()=>(o.pathname+o.search).slice(0,2048),v=``,y=!0,b=!1,x=``,S=0,C=0,w=!0,T=0,E=-0xe8d4a51000,D=0,O=0,k=``,A=(e,r)=>n.fetch(l,{method:`POST`,body:e,keepalive:!0}).then(e=>{let t=e.status===503&&e.headers.get(`retry-after`);return t?+t||0:-1},()=>0).then(n=>{n>=0&&r<3&&setTimeout(()=>A(e,r+1),Math.max(n,t[r])*(1+Math.random()/2)*1e3)}),j=(e,t)=>{e.v=1,e.sid=f,c&&(e.k=c);let r=JSON.stringify(e);t&&n.fetch?A(r,0):!(a.sendBeacon&&a.sendBeacon(l,r))&&n.fetch&&n.fetch(l,{method:`POST`,body:r,keepalive:!0}).catch(()=>{})},M=()=>{let e=g();w&&(C+=e-T,e-E<6e4&&(S+=Math.min(e-T,6e4))),T=e},N=()=>{let e=i.documentElement.scrollHeight-n.innerHeight,t=e>0?Math.round(Math.min(1,Math.max(0,n.scrollY/e))*100):100;t>D&&(D=t)},P=e=>{if(!v||y&&!e)return;y=!0,M(),N();let t={t:`en`,h:v,d:Math.min(Math.round(S),r.m),e:Math.max(1,Math.min(Math.round(C),r.m)),s:D,i:O};e!==void 0&&(t.x=e);let n=JSON.stringify(t);n!==k&&(k=n,j(t))},F=e=>{let t=typeof e==`string`&&e[0]===`/`?e.slice(0,2048):_();if(b&&t===x)return;P(),v=d(12),y=!1,S=0,C=0,T=g(),D=0,O=0;let r={t:`pv`,h:v,u:t,w:n.screen?n.screen.width:0};b||(r.r=i.referrer||``,r.n=1,r.nt=p),j(r,1),b=!0,x=t},I=(e,t,n)=>{if(typeof e!=`string`||!b)return;let r={t:`ev`,h:d(12),name:e,u:_()};t&&typeof t==`object`&&(r.p=t),n&&typeof n==`object`&&(typeof n.currency==`string`&&(r.cur=n.currency.slice(0,3)),typeof n.id==`string`&&(r.oid=n.id.slice(0,64)),n=n.value),typeof n==`number`&&isFinite(n)&&(r.val=n),j(r,1)},L=e=>r.i.some(t=>e.indexOf(t)===0),R=()=>{for(let e of[`pointerdown`,`keydown`,`scroll`,`touchstart`])n.addEventListener(e,t=>{M(),E=g(),O=1,e===`scroll`&&N()},{capture:!0,passive:!0});i.addEventListener(`visibilitychange`,()=>{M(),w=!i.hidden,i.hidden?P(0):y=!1}),n.addEventListener(`pagehide`,e=>P(e.persisted?2:1)),i.addEventListener(`astro:page-load`,()=>F()),i.addEventListener(`click`,e=>{let t=e.target;if(!t||!t.closest)return;let n=t.closest(`[${m}event]`);if(n){let e={};for(let t of n.attributes)t.name.indexOf(`${m}prop-`)===0&&(e[t.name.slice(m.length+5).replace(/-/g,`_`)]=t.value.slice(0,128));let t=e=>n.getAttribute(m+e);I(t(`event`),e,t(`value`)&&{value:+t(`value`),currency:t(`currency`),id:t(`id`)})}let i=t.closest(`a[href]`);if(!i||i.hasAttribute(`${m}ignore`))return;let a=/^https?:$/.test(i.protocol),s=i.host===o.host;if(!n&&!(a&&s&&L(i.pathname))){let e=(a?(s?``:i.host)+i.pathname:i.href.split(`?`)[0]).slice(0,512);for(let[t,n,i]of r.r){let r;try{if(t[0]===`~`){let n=new RegExp(t.slice(1),`i`).exec(e);n&&(r=n[1]||n[0])}else e.indexOf(t)||(r=e.slice(t.length))}catch(e){}if(r!==void 0){n!==`-`&&I(n,{slug:(i||r.replace(/\\/$/,``)||e).slice(0,128)});return}}}if(a){if(!s){r.o&&r.l.indexOf(i.hostname)<0&&!(i.hostname===u&&r.l.indexOf(o.hostname)>=0)&&I(`_outbound`,{url:(i.host+i.pathname).slice(0,128)});return}r.dl&&h&&h.test(i.pathname)&&!L(i.pathname)&&I(`_download`,{file:i.pathname.slice(0,128)})}},!0),i.addEventListener(`submit`,e=>{let t=e.target;if(!r.f||!t||t.hasAttribute(`${m}ignore`))return;let n=``;try{let r=new URL(e.submitter&&e.submitter.getAttribute(`formaction`)||t.getAttribute(`action`)||``,o.href);if(n=r.pathname,r.host===o.host&&L(n))return}catch(e){}I(`_form`,{form:String(t.id||t.getAttribute(`name`)||n).slice(0,128)})},!0),F();let e={v:1,sid:f,ready:!0,event:I,page:F,onReady:e=>t(e)},t=t=>{try{typeof t==`function`?t(e):e[t[0]](...t.slice(1))}catch(e){}},a=n[`${r.n}q`];n[r.n]=e,n[`${r.n}q`]={push:t},a&&a.forEach&&a.forEach(t),n.dispatchEvent(new n.CustomEvent(`${r.n}:ready`,{detail:e}))},z=()=>!i.prerendering&&!i.hidden;if(z())R();else{let e=()=>{z()&&(i.removeEventListener(`visibilitychange`,e),i.removeEventListener(`prerenderingchange`,e),R())};i.addEventListener(`visibilitychange`,e),i.addEventListener(`prerenderingchange`,e)}}n(window,__CFG__)})();";
-
-//#endregion
-//#region src/client/serve.ts
+// src/client/serve.ts
 /** Direct plugin route, used when the middleware is not installed (degraded mode). */
 const DIRECT_IN_PATH = `/_emdash/api/plugins/${PLUGIN_ID}/${ROUTES.in}`;
 /** `linked`: hosts of the client sites linked to this site (`linkedHostsOf`). */
@@ -20100,9 +20060,7 @@ function scriptResponse(s, request, linked = []) {
 		headers
 	});
 }
-
-//#endregion
-//#region src/core/request-scope.ts
+// src/core/request-scope.ts
 const KEY = Symbol.for("cookieless-analytics:audience");
 const g = globalThis;
 const store = g[KEY] ??= new AsyncLocalStorage();
@@ -20117,15 +20075,13 @@ const markMiddlewareLive = (now) => {
 };
 /** Milliseconds timestamp of the last request this isolate's middleware handled, if any. */
 const middlewareLiveAt = () => live[LIVE_KEY];
-
-//#endregion
-//#region src/middleware-core.ts
+// src/middleware-core.ts
 /**
 * Astro-free middleware logic. Never reads, buffers, rewrites or re-headers page
 * responses: the `Response` returned by `next()` is returned as the same object.
 */
 const MW_SEEN_KEY = "mw:seen";
-const SEEN_EVERY_MS = 10 * 6e4;
+const SEEN_EVERY_MS = 6e5;
 let lastSeen = Number.NEGATIVE_INFINITY;
 const STATIC_RE = /\.(?:css|js|mjs|map|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|eot|mp4|webm|mp3|wav|wasm)$/i;
 const EDIT_COOKIE_RE = /(?:^|;\s*)emdash-edit-mode=true(?:;|$)/;
@@ -20238,7 +20194,7 @@ async function handleShare(ctx, s) {
 	const headers = {
 		...SHARE_HEADERS,
 		"content-type": ok ? "text/html; charset=utf-8" : "text/plain; charset=utf-8",
-		"cache-control": ok ? r.cache === "open" ? `public, max-age=${SHARE_OPEN_MAX_AGE}` : "private, no-store" : "no-store"
+		"cache-control": ok ? r.cache === "open" ? `public, max-age=60` : "private, no-store" : "no-store"
 	};
 	if (status === 401) headers["www-authenticate"] = `Basic realm="${(r.realm ?? "View").replace(/["\\]/g, "")}", charset="UTF-8"`;
 	if (status === 429) headers["retry-after"] = String(Math.max(1, Math.ceil(r.retryAfter ?? 1)));
@@ -20308,6 +20264,4 @@ async function handle(ctx, next, deps) {
 	}
 	return res;
 }
-
-//#endregion
-export { uaNorm as A, bump as C, requestInfo as D, recordServerHit as E, AGENT_CATEGORIES as F, MAX_RULE_PATTERN as I, MAX_USER_REGEX_RULES as L, classifyUa as M, createClassifier as N, sinkOf as O, AGENTS as P, MAX_USER_RULES as R, SHARE_LOCK_MINUTES as S, recordClientEvent as T, MAX_SHARES_PER_DASHBOARD as _, scriptBody as a, SHARE_COMPARE_MAX_REQUESTS as b, storedAgentRules as c, MAIL_MAX_RECIPIENTS as d, MAIL_MAX_RETRIES as f, MAX_SCHEDULED_PER_SITE as g, MAX_RECORD_BYTES as h, middlewareLiveAt as i, siteSetting as j, parseUa as k, MAIL_MAX_DISTINCT_REQUESTS as l, MAX_DASHBOARDS_PER_SITE as m, handleRequest as n, AGENT_RULES_KEY as o, MAIL_STATEMENT_BUDGET as p, currentAudience as r, resetStoredAgentRules as s, MW_SEEN_KEY as t, MAIL_MAX_HTML_BYTES as u, MAX_SHARES_PER_SITE as v, orderHitId as w, SHARE_LOCK_FAILURES as x, MAX_TILES as y, compileUserRules as z };
+export { AGENT_CATEGORIES as C, AGENTS as S, parseUa as _, scriptBody as a, classifyUa as b, storedAgentRules as c, bump as d, orderHitId as f, sinkOf as g, requestInfo as h, middlewareLiveAt as i, MAIL_MAX_HTML_BYTES as l, recordServerHit as m, handleRequest as n, AGENT_RULES_KEY as o, recordClientEvent as p, currentAudience as r, resetStoredAgentRules as s, MW_SEEN_KEY as t, MAX_RECORD_BYTES as u, uaNorm as v, compileUserRules as w, createClassifier as x, siteSetting as y };

@@ -26,6 +26,7 @@ describe(".github YAML", () => {
 			".github/dependabot.yml",
 			".github/workflows/ci.yml",
 			".github/workflows/dependabot-automerge.yml",
+			".github/workflows/emdash-latest.yml",
 			".github/workflows/release.yml",
 			".github/workflows/wiki.yml",
 		]);
@@ -138,6 +139,39 @@ describe("CI workflow", () => {
 	});
 });
 
+describe("EmDash latest workflow", () => {
+	const wf = load<Workflow>(".github/workflows/emdash-latest.yml");
+	const job = Object.values(wf.jobs)[0] as Job;
+	const runs = job.steps.map((s) => s.run ?? "");
+
+	it("runs weekly and on demand, never on a push or a pull request", () => {
+		const on = wf.on as Record<string, unknown>;
+		expect(Object.keys(on).sort()).toEqual(["schedule", "workflow_dispatch"]);
+		expect((on.schedule as { cron: string }[]).map((c) => c.cron.split(" ").length)).toEqual([5]);
+	});
+
+	it("reads the code and writes issues, nothing else", () => {
+		expect(wf.permissions).toEqual({ contents: "read", issues: "write" });
+	});
+
+	it("installs the newest emdash, restores the tracked manifests, then typechecks and tests", () => {
+		const at = (needle: string) => runs.findIndex((r) => r.includes(needle));
+		const install = runs[at("npm view emdash version")] ?? "";
+		expect(install).toContain("pnpm add -w -D");
+		expect(install).toContain("git checkout -- package.json pnpm-lock.yaml");
+		expect(at("pnpm typecheck")).toBeGreaterThan(at("npm view emdash version"));
+		expect(at("pnpm test")).toBeGreaterThan(at("pnpm typecheck"));
+	});
+
+	it("opens or updates one issue on a failure and closes it when the check passes again", () => {
+		const fail = job.steps.find((s) => s.if === "failure()");
+		const pass = job.steps.find((s) => s.if === "success()");
+		expect(fail?.run).toContain("gh issue create");
+		expect(fail?.run).toContain("gh issue comment");
+		expect(pass?.run).toContain("gh issue close");
+	});
+});
+
 describe("Dependabot and auto-merge", () => {
 	type Update = { "package-ecosystem": string; directory: string; ignore?: { "dependency-name": string }[]; schedule: { interval: string }; groups: Record<string, { "applies-to": string; "update-types": string[] }> };
 	const dep = load<{ version: number; updates: Update[] }>(".github/dependabot.yml");
@@ -145,7 +179,7 @@ describe("Dependabot and auto-merge", () => {
 
 	it("weekly npm and actions updates, minor and patch grouped, majors left out of every group", () => {
 		expect(dep.version).toBe(2);
-		expect(dep.updates.map((u) => `${u["package-ecosystem"]} ${u.directory}`).sort()).toEqual(["github-actions /", "npm /", "npm /packages/companion"]);
+		expect(dep.updates.map((u) => `${u["package-ecosystem"]} ${u.directory}`).sort()).toEqual(["github-actions /", "npm /"]);
 		for (const u of dep.updates) {
 			expect(u.schedule.interval).toBe("weekly");
 			const groups = Object.values(u.groups);
@@ -155,9 +189,9 @@ describe("Dependabot and auto-merge", () => {
 		for (const u of npm) expect(Object.values(u.groups).some((g) => g["applies-to"] === "security-updates"), u.directory).toBe(true);
 	});
 
-	it("the root keeps emdash on the peer floor; the companion follows the emdash its test host pins", () => {
-		expect(npm.find((u) => u.directory === "/")?.ignore).toEqual([{ "dependency-name": "emdash" }]);
-		expect(npm.find((u) => u.directory === "/packages/companion")?.ignore).toBeUndefined();
+	it("one npm entry covers the workspace, and it keeps emdash on the peer floor", () => {
+		expect(npm.find((u) => u.directory === "/")?.ignore?.map((i) => i["dependency-name"])).toEqual(["emdash", "typescript"]);
+		expect(npm).toHaveLength(1);
 	});
 
 	it("auto-merge runs for dependabot[bot] only, with minimal permissions, and never for a major", () => {

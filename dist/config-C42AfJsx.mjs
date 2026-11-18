@@ -1,6 +1,5 @@
-import { p as SITE_ID_RE } from "./queue-sink-BOtlgr5B.mjs";
-
-//#region src/multisite/config.ts
+import { d as SITE_ID_RE } from "./queue-sink-CsXeLpUE.mjs";
+// src/multisite/config.ts
 /**
 * Remote satellites: the integration option `sites`, validated when the plugin is created. Each
 * satellite is another EmDash install with this plugin; its reports are read through its agent API with a
@@ -10,10 +9,6 @@ const ENGINES = ["d1", "postgres"];
 /** A Worker binding name: a JavaScript identifier, as wrangler requires. */
 const BINDING_RE = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
 const KEY_ENV_RE = /^[A-Z][A-Z0-9_]{2,63}$/;
-/** At most this many satellites; the All-sites summary fetches at most 10. */
-const MAX_REMOTE_SITES = 50;
-/** At most this many entries in `databases.sites` (the registry's site limit). */
-const MAX_ROUTED_SITES = 500;
 /** The `siteId` setting's default: settings are not readable when the plugin is created (docs/design-notes.md). */
 const DEFAULT_SITE_ID = "default";
 const fail = (msg) => {
@@ -69,7 +64,7 @@ function parseDatabases(raw) {
 	if (!sites || typeof sites !== "object" || Array.isArray(sites)) bad("sites must be an object of site id to binding name.");
 	const out = {};
 	const entries = Object.entries(sites);
-	if (entries.length > MAX_ROUTED_SITES) bad(`at most ${MAX_ROUTED_SITES} sites.`);
+	if (entries.length > 500) bad(`at most 500 sites.`);
 	for (const [id, b] of entries) {
 		if (!SITE_ID_RE.test(id) || id === "all") bad(`site id ${JSON.stringify(id)} must be lowercase letters, digits and dashes, up to 32 characters, and not all.`);
 		if (typeof b !== "string" || !BINDING_RE.test(b)) bad(`site ${id} must name a D1 or Hyperdrive binding (letters, digits and _).`);
@@ -94,7 +89,7 @@ function parseDatabase(raw) {
 function parseSites(raw, siteId) {
 	if (raw === void 0) return [];
 	if (!Array.isArray(raw)) return fail("sites must be an array.");
-	if (raw.length > MAX_REMOTE_SITES) fail(`at most ${MAX_REMOTE_SITES} sites.`);
+	if (raw.length > 50) fail(`at most 50 sites.`);
 	const sites = [];
 	for (const item of raw) {
 		const o = item && typeof item === "object" ? item : {};
@@ -120,8 +115,6 @@ function parseSites(raw, siteId) {
 }
 /** `allowedHosts`: the base hosts plus each satellite's hostname, exactly, without duplicates. */
 function allowedHostsFor(base, sites) {
-	return [...new Set([...base, ...sites.map((s) => new URL(s.origin).hostname)])];
+	return [.../* @__PURE__ */ new Set([...base, ...sites.map((s) => new URL(s.origin).hostname)])];
 }
-
-//#endregion
 export { parseOptions as i, allowedHostsFor as n, engineOf as r, BINDING_RE as t };

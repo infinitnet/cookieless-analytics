@@ -6,6 +6,8 @@ export default defineConfig({
 	platform: "neutral",
 	target: "es2022",
 	dts: true,
+	// Declarations come from the shipped source only; the root config also lists the tests, which the native emitter would check too.
+	tsconfig: "tsconfig.core.json",
 	clean: true,
 	fixedExtension: true,
 	external: [/^node:/, "astro", "astro:middleware", "emdash", /^emdash\//, "react", "react/jsx-runtime", "@cloudflare/kumo", "@emdash-cms/blocks", "kysely", "zod", "pg"],
