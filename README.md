@@ -2,7 +2,7 @@
 
 # Cookieless Analytics by Infinitnet
 
-Self-hosted, cookieless web analytics for EmDash and any site. A 2.5 KB script, no extra service, your own database.
+Self-hosted, cookieless web analytics for EmDash and any site. A 2.7 KB script, no extra service, your own database.
 
 [![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
 
@@ -18,7 +18,7 @@ Self-hosted, cookieless web analytics for EmDash and any site. A 2.5 KB script, 
 
 </div>
 
-Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS that stores real sessions in your own database with a page script of about 2.5 KB gzipped.
+Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.
 
 Cookieless Analytics shows its reports inside the EmDash admin. It also measures sites that are not EmDash, such as a plain Astro site, a static site or another CMS, through one script tag.
 
@@ -26,9 +26,9 @@ Cookieless Analytics needs 2 setup steps: deploy, then complete the EmDash setup
 
 ## Why this one
 
-Most cookieless tools count page views and stop there. Cookieless Analytics is a Plausible alternative for self hosted analytics and Astro analytics that keeps real sessions without writing anything to the visitor's device, inside your own EmDash site.
+Most cookieless tools count page views and stop there. Cookieless Analytics is a Plausible alternative for self hosted analytics and Astro analytics that keeps real sessions without writing anything to the visitor's device unless a visitor opts out, inside your own EmDash site.
 
-- **Cookieless by design.** Cookieless Analytics sets no cookie and uses no local storage, session storage or IndexedDB. A daily salted hash joins the page views of a visit and cannot link days. [Privacy](docs/privacy.md)
+- **Cookieless by design.** Cookieless Analytics sets no cookie and uses no session storage or IndexedDB; the only local storage is the opt-out flag a visitor sets by clicking the opt-out control. A daily salted hash joins the page views of a visit and cannot link days. [Privacy](docs/privacy.md)
 - **Real sessions.** Cookieless Analytics reports entry and exit pages, pages per session, bounce, duration and first-touch source, not only page views. [Sessions](docs/sessions.md)
 - **Light on your pages.** The page script weighs 2,466 bytes gzipped, loads with `defer` from your own site and stays cached for an hour. [Performance](docs/performance.md)
 - **Few requests.** A page view sends one request, plus one engagement update when the tab is left. Pages never wait for the analytics database. [Performance](docs/performance.md)
@@ -268,7 +268,7 @@ For deploy scripts, reporting bots and AI clients. Cookieless Analytics provides
 
 ### Privacy-sensitive sites
 
-For sites that want analytics without storing anything on the device. Cookieless Analytics stores no cookies and no raw IP address or user agent, honours Global Privacy Control by default and writes a privacy receipt for your privacy page. [Privacy](docs/privacy.md)
+For sites that want analytics without storing anything on the device (the opt-out flag a visitor sets by clicking is the only exception). Cookieless Analytics stores no cookies and no raw IP address or user agent, honours Global Privacy Control by default and writes a privacy receipt for your privacy page. [Privacy](docs/privacy.md)
 
 ### Small sites on the Free plan
 
@@ -276,7 +276,7 @@ For a personal site on Workers Free. Cookieless Analytics runs the full feature 
 
 ## How it works
 
-1. **One script tag.** `EmDashHead` emits the page script (or a client site loads it from your install). The script reads nothing from the device and never changes a link or the address.
+1. **One script tag.** `EmDashHead` emits the page script (or a client site loads it from your install). The script stores nothing on the device unless a visitor chooses to stop being counted ([Visitor opt-out](docs/privacy.md#visitor-opt-out)), and never changes a link or the address.
 2. **A neutral route.** The script posts to a short public path of your site. The middleware answers 204, and bots get an empty 204 without a write.
 3. **One row per visit.** Each visit is one database document that holds its page views and events, joined across full page loads by a daily salted key.
 4. **Daily summaries.** A Cron Trigger rolls closed days into summaries, applies retention, rotates the salt and syncs Search. Old days and long ranges are answered from summaries.
@@ -288,7 +288,7 @@ Details: [How visits are counted](https://github.com/infinitnet/cookieless-analy
 <details>
 <summary>Sessions without cookies</summary>
 
-Cookieless Analytics writes nothing to the device: no cookie, no local or session storage, no IndexedDB, no cache tricks.
+Cookieless Analytics writes nothing to the device except the opt-out flag a visitor sets by clicking the opt-out control: no cookie, no session storage, no IndexedDB, no cache tricks.
 
 A visitor key is a daily salted hash of a truncated IP address and the browser family. The salt rotates every day, so the key cannot link days.
 
@@ -336,11 +336,11 @@ A page views per day figure for the Workers Free plan is not published until it 
 
 ## Privacy
 
-- **No device storage.** Cookieless Analytics stores no cookies, uses no device storage and keeps no raw IP address and no raw user agent.
+- **No device storage.** Cookieless Analytics stores no cookies and writes to the device only the opt-out flag a visitor sets by clicking the opt-out control. It keeps no raw IP address and no raw user agent.
 - **IP address.** The IP address is used only inside one request to derive the daily key.
 - **Privacy signals.** Global Privacy Control is honoured by default, Do Not Track optionally.
 - **Privacy receipt.** The admin has a privacy receipt that lists every table and column in plain language with its retention, and a Markdown block for your privacy page.
-- **Consent.** The design aims to need no consent banner. This is a description of how the software works, not legal advice: whether you need consent depends on your jurisdiction and on everything else your site does.
+- **Consent.** Cookieless Analytics sets no cookies and stores nothing on the visitor's device, so it has no cookie to ask consent for. The only value it writes is the opt-out flag a visitor sets by clicking the opt-out control, which gives every visitor a one-click way to object. Counting visits rests on legitimate interest (GDPR Art. 6(1)(f)), which needs a privacy notice and a way to object, not consent. France, Spain, Italy, the Netherlands and the United Kingdom exempt audience measurement from the consent rule for device access under conditions; Germany, Austria and Ireland have no such exemption. Conditions, country notes and sources: [Consent and the law](docs/privacy.md#consent-and-the-law).
 
 Details: [docs/privacy.md](docs/privacy.md), [Privacy model](https://github.com/infinitnet/cookieless-analytics/wiki/Privacy-Model).
 

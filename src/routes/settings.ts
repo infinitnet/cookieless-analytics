@@ -39,7 +39,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 	{
 		id: "privacy",
 		label: "Privacy and exclusions",
-		keys: ["signals", "ipTruncation", "captureLanguage", "captureRegion", "excludePaths", "excludeIpPrefixes", "ignoreReferrerHosts", "queryAllowlist", "saltTimezone", "saltRotationHour"],
+		keys: ["signals", "ipTruncation", "captureLanguage", "captureRegion", "captureScreen", "excludePaths", "excludeIpPrefixes", "ignoreReferrerHosts", "queryAllowlist", "saltTimezone", "saltRotationHour"],
 		advanced: ["saltTimezone", "saltRotationHour"],
 	},
 	{

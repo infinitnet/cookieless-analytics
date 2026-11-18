@@ -1,6 +1,6 @@
 /**
  * Privacy receipt: what is stored, for how long, salt age, drop counters, row counts,
- * the fixed statement, and a Markdown block for the site's privacy page. `plugins:read`.
+ * the fixed statement, and a Markdown block for the site's privacy page (with the legal basis line). `plugins:read`.
  */
 import type { KvLike } from "../core/crypto.js";
 import { ingestStatus } from "../core/queue-sink.js";
@@ -23,7 +23,7 @@ import { z } from "zod";
 import { bindSite, type BoundSite, SiteField, type SitesColl } from "../multisite/registry.js";
 import { budgetMb, budgetWarning, d1CapMb, type Settings } from "../settings.js";
 
-export const STATEMENT = "No cookies, no device storage, no raw IP, no raw user agent.";
+export const STATEMENT = "No cookies, no device storage unless a visitor opts out, no raw IP, no raw user agent.";
 /** Fixed receipt line for the satisfaction measures. */
 export const SATISFACTION_LINE =
 	"Per page view we keep how long the page was visible and active, how far it was scrolled, how it was reached (new, reload, back or forward) and how it was left (hidden, closed, or kept for back and forward). Per session we count repeat arrivals from a search engine. The script never reads or changes your browser history.";
@@ -38,6 +38,9 @@ export const ORDER_SESSION_LINE =
 	"If your own server keeps the session token next to an order, that links the order to the pages of that session in your own records. This plugin stores no order id and no buyer data.";
 /** Fixed receipt line for the internal site search report. */
 export const SITE_SEARCH_LINE = "If a site search parameter is configured, the words searched for are kept, with emails and long numbers removed.";
+
+/** Fixed line of the copyable block: the legal basis of counting visits and the right to object. */
+export const LEGAL_BASIS_LINE = "Visits are counted on the basis of our legitimate interest in knowing how this site is used (Article 6(1)(f) GDPR). You can object at any time.";
 
 /** Fixed receipt line for scheduled dashboard email. */
 export const EMAIL_LINE = "If you schedule an email, the recipients you enter are kept with the dashboard.";
@@ -72,7 +75,7 @@ export const TABLES: readonly TableInfo[] = [
 			visible_ms: "Total time the visit's pages were visible on screen, in milliseconds.",
 			reentries: "How many times a later arrival from a search engine joined this visit.",
 			"ref_host, ref_path, channel, source, utm_*": "Where the visit came from: referring site and campaign tags of the first page.",
-			"country, region, device, browser, browser_major, os, lang, screen, host": "Country (and region when enabled) from the edge, device class, browser and OS family, language, screen size class, site host name.",
+			"country, region, device, browser, browser_major, os, lang, screen, host": "Country (and region when enabled) from the edge, device class, browser and OS family, language, screen size class (only with captureScreen), site host name.",
 			hits: "The visit's page views and events: path with allowed campaign parameters, time since the visit started, how the page was reached and left, active and visible time, scroll depth, event names and properties.",
 		},
 	},
@@ -192,19 +195,18 @@ export function receiptMarkdown(s: Settings, rawDays: number): string {
 		"",
 		`${STATEMENT} This site counts visits with a cookieless, self-hosted tool that runs on its own server.`,
 		"",
-		"- Nothing is stored on your device. A visit is recognised by a random id that lives only in the open page.",
+		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognised by a random id that lives only in the open page.",
 		"- Visits are counted per day with a key made from a shortened IP address and the browser family, mixed with a random salt that is deleted after two days. The key cannot be turned back into an IP address and cannot link visits across days.",
-		"- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language.",
+		`- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language${s.captureScreen ? ", screen size class" : ""}.`,
 		`- ${SATISFACTION_LINE}`,
 		`- ${SHARING_LINE}`,
 		`- ${REVENUE_LINE}`,
 		`- ${ORDER_SESSION_LINE}`,
 		`- ${SITE_SEARCH_LINE}`,
 		`- Detailed visit records are deleted after ${rawDays} days; daily totals without visitor keys are kept for ${s.rollupRetentionMonths} months.`,
+		`- ${LEGAL_BASIS_LINE}`,
 		s.signals === "none" ? "- Browser privacy signals are not used." : `- Browsers that send ${s.signals === "gpc" ? "Global Privacy Control" : "Global Privacy Control or the DNT header"} are not counted.`,
 		"- Known crawlers and automated clients are not counted.",
-		"",
-		"This text describes the technical setup. It is not legal advice.",
 		"",
 	].join("\n");
 }

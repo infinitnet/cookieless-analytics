@@ -10,7 +10,7 @@ const SETTING_KEYS = [
 	"maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute", "engagedThresholdSeconds",
 	"maxEngagedMsPerPage", "longClickSeconds", "badExperienceSeconds", "reloadDedupeSeconds", "realtimeWindowMinutes", "saltTimezone", "saltRotationHour",
 	"ipTruncation", "excludeEditors", "excludePaths", "excludeIpPrefixes", "ignoreReferrerHosts", "queryAllowlist",
-	"captureLanguage", "captureRegion", "autoOutbound", "autoDownloads", "autoForms", "ignorePathPrefixes", "linkRules", "downloadExtensions",
+	"captureLanguage", "captureRegion", "captureScreen", "autoOutbound", "autoDownloads", "autoForms", "ignorePathPrefixes", "linkRules", "downloadExtensions",
 	"logErrorPages", "ingestTier",
 	"rawRetentionDays", "rollupRetentionMonths", "capacityProfile", "storageBudgetMb",
 	"agentRateLimitPerMinute", "siteOrigin", "gscAuth", "gscProperty", "gscClientId", "gscClientSecret", "gscRefreshToken",

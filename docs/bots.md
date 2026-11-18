@@ -84,7 +84,7 @@ The script skips a record that an earlier source already covers, any pattern the
 
 ## Client bail-outs
 
-The page script has its own, smaller checks. If any of them applies, the script does nothing at all: it sends nothing and adds no listener.
+The page script has its own, smaller checks. If any of them applies, the script does nothing at all: it sends nothing and adds no listener. A privacy signal or the visitor's opt-out flag only stops sending.
 
 - `navigator.webdriver` is `true`.
 - The user agent matches a short bot pattern (words such as `bot`, `spider`, `headless`, `lighthouse`, `puppeteer`, `playwright`, `preview`, `python`, `curl` and `wget`).

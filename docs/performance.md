@@ -8,11 +8,11 @@ The script that `EmDashHead` adds to every page, as built by `pnpm build:client`
 
 | Form | Size |
 |---|---|
-| Minified | 4,835 bytes |
-| gzip | 2,466 bytes |
-| Brotli | 2,208 bytes |
+| Minified | 5,262 bytes |
+| gzip | 2,673 bytes |
+| Brotli | 2,402 bytes |
 
-A test keeps it under 3,072 bytes gzipped. The settings add a short JSON object; with 20 link rules at the 2,048 character cap the served script stays under 4 KB gzipped (also a test). It is served from your own site with `Cache-Control: public, max-age=3600` and an ETag, so later pages within the hour take it from the browser cache. It has no dependencies, sets no cookie and reads nothing from the device.
+A test keeps it under 3,072 bytes gzipped. The settings add a short JSON object; with 20 link rules at the 2,048 character cap the served script stays under 4 KB gzipped (also a test). It is served from your own site with `Cache-Control: public, max-age=3600` and an ETag, so later pages within the hour take it from the browser cache. It has no dependencies, sets no cookie and stores nothing on the device except the opt-out flag a visitor sets by clicking the opt-out control.
 
 ## Requests per page view
 

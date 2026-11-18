@@ -1,4 +1,4 @@
-import { Bt as SEGMENTS, Ft as resolveGranularity, Jt as readSummary, Ki as __exportAll, Kt as planFilters, Pt as bucketSeries, Wt as matchKey, _n as and, an as liveVisits, dn as sessionMetrics, en as annotationsIn, fn as sessionTotals, gn as TRUE, hn as QueryError, in as keysIn, it as OTHER, ln as round, mi as dayInt, on as num, pn as sessionWhere, qt as planRows, rn as hitJoin, sn as ratio, un as sessionBreakdown, xn as entryCols, zt as FILTER_DIMS } from "./queue-sink-CsXeLpUE.mjs";
+import { Bt as SEGMENTS, Ft as resolveGranularity, Jt as readSummary, Ki as __exportAll, Kt as planFilters, Pt as bucketSeries, Wt as matchKey, _n as and, an as liveVisits, dn as sessionMetrics, en as annotationsIn, fn as sessionTotals, gn as TRUE, hn as QueryError, in as keysIn, it as OTHER, ln as round, mi as dayInt, on as num, pn as sessionWhere, qt as planRows, rn as hitJoin, sn as ratio, un as sessionBreakdown, xn as entryCols, zt as FILTER_DIMS } from "./queue-sink-GZqbpCBQ.mjs";
 // src/query/reports/overview.ts
 /** KPI strip: totals plus realtime sessions (current run only). */
 async function overview(rc, input) {
@@ -180,7 +180,21 @@ async function notFound(rc, input) {
 	};
 }
 // src/query/reports/satisfaction-copy.ts
-/** Fixed Satisfaction texts, shared by the reports, the agent catalog and the admin without pulling in SQL code. */
+/** The scope of the Search Satisfaction reports: organic search sessions of every search engine. */
+const ORGANIC_SEARCH = {
+	dim: "channel",
+	op: "is",
+	values: ["Organic Search"]
+};
+/**
+* Filters of a Search Satisfaction run: the scope first, every channel filter of the caller left out (the report
+* answers the notice `ignored_dim:channel` for it). Other filters narrow inside the scope.
+*/
+const organicScope = (filters) => [ORGANIC_SEARCH, ...filters.filter((f) => f.dim !== "channel")];
+/** True for a channel filter that is not the scope itself: the one the report leaves out and says so. */
+const conflictsWithScope = (f) => f.dim === "channel" && !(f.op === "is" && f.values.length === 1 && f.values[0] === ORGANIC_SEARCH.values[0]);
+/** The reports that cover organic search sessions only. */
+const SATISFACTION_REPORTS = /* @__PURE__ */ new Set(["satisfaction", "satisfaction_series"]);
 /** Typed `raw_only` text beyond the raw window. */
 const SATISFACTION_RAW_ONLY = "Search Satisfaction is computed from session rows, which are kept for the raw retention window only. Choose a more recent range or raise the raw retention.";
 /** Caveat of the estimates (pogo-sticking, returned from search, search re-entry, back/forward loads). */
@@ -192,7 +206,6 @@ const RETURNED_DEFINITION = "Returned from search: a search visitor left the lan
 /** Groupings of the `satisfaction` report (`params.by`); `entry` is the landing page. */
 const SATISFACTION_BY = [
 	"entry",
-	"channel",
 	"source",
 	"device",
 	"country",
@@ -450,4 +463,4 @@ async function runRollupReport(report, rc, input) {
 		]
 	};
 }
-export { runRollupReport as a, SATISFACTION_BY as c, entryPages as d, exitPages as f, overview as h, rollup_exports as i, SATISFACTION_CAVEAT as l, pages as m, ROLLUP_REPORTS as n, POGO_DEFINITION as o, notFound as p, rawOnly as r, RETURNED_DEFINITION as s, RAW_ONLY as t, SCORE_DEFINITION as u };
+export { pages as _, runRollupReport as a, SATISFACTION_BY as c, SCORE_DEFINITION as d, conflictsWithScope as f, notFound as g, exitPages as h, rollup_exports as i, SATISFACTION_CAVEAT as l, entryPages as m, ROLLUP_REPORTS as n, POGO_DEFINITION as o, organicScope as p, rawOnly as r, RETURNED_DEFINITION as s, RAW_ONLY as t, SATISFACTION_REPORTS as u, overview as v };

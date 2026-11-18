@@ -52,7 +52,7 @@ The steps follow [docs/install.md](../../docs/install.md) and change with your a
 6. Set `EMDASH_ENCRYPTION_KEY` before you store Search secrets.
 7. Deploy, then run the four checks: the Analytics folder in the sidebar, the script tag in the page source, the script path answering 200, one POST answered with 204.
 8. Add a WAF rate limiting rule for the event path.
-9. Publish a privacy notice ([docs/privacy.md](../../docs/privacy.md)).
+9. Publish a privacy notice and check the consent rule of your country ([docs/privacy.md](../../docs/privacy.md#consent-and-the-law)).
 
 ## How the handoff works
 

@@ -130,6 +130,17 @@ export const ADMIN_CSS = `@layer components {
 .ca-chip[data-off="true"] { opacity: .7; border-style: dashed; }
 .ca-chip[data-off="true"] .ca-chip-text { text-decoration: line-through; }
 .ca-chip :where(select):where(:not([class*="kumo"])) { height: 26px; font-size: 12px; border-radius: 999px; padding: 0 32px 0 var(--ca-2); background-size: 12px 12px; }
+.ca-chip-fixed { padding: 4px var(--ca-3); border-style: solid; border-color: var(--ca-line); color: var(--ca-fg); }
+.ca-chip-fixed > svg { flex: none; color: var(--ca-muted); }
+.ca-chip-note { font-size: 11px; font-weight: 500; color: var(--ca-muted-text); text-transform: uppercase; letter-spacing: .04em; }
+/* Value suggestions of the filter bar: a list under the input, above the page. */
+.ca-combo { position: relative; display: inline-flex; min-width: 0; }
+.ca-combo-list { position: absolute; top: calc(100% + 4px); left: 0; z-index: 6; min-width: 100%; width: max-content; max-width: min(420px, 90vw); max-height: 280px; overflow-y: auto; margin: 0; padding: var(--ca-1); list-style: none; display: grid; gap: 1px; background: var(--color-kumo-base, var(--ca-surface)); color: var(--ca-fg); border: 1px solid var(--ca-line); border-radius: var(--ca-radius); box-shadow: var(--ca-shadow); }
+.ca-combo-list[hidden] { display: none; }
+.ca-combo-opt { display: flex; align-items: baseline; justify-content: space-between; gap: var(--ca-4); padding: 6px var(--ca-2); border-radius: 6px; font-size: 13px; cursor: pointer; }
+.ca-combo-opt[aria-selected=true], .ca-combo-opt:hover { background: var(--ca-hover); }
+.ca-combo-key { overflow-wrap: anywhere; min-width: 0; }
+.ca-combo-count { flex: none; font-size: 12px; color: var(--ca-muted-text); font-variant-numeric: tabular-nums; }
 
 /* Tabs and segmented switches */
 .ca-tabs { display: flex; gap: var(--ca-1); border-bottom: 1px solid var(--ca-line); overflow-x: auto; scrollbar-width: thin; min-width: 0; }

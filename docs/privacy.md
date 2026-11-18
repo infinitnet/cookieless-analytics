@@ -6,8 +6,8 @@ This page says what the plugin stores, what it never stores, and for how long. T
 
 ## Design rules
 
-- **Nothing is written to the visitor's device.** No cookies, no `localStorage`, no `sessionStorage`, no IndexedDB, no Cache API entries, no ETag tricks. The only client state is a JavaScript variable that dies with the page. A full page load continues the visit through the daily visitor key, not through anything in the URL ([sessions.md](sessions.md)).
-- **No fingerprinting.** The server-side visitor key is a hash of a shortened IP address and a normalised browser family, mixed with a random salt that changes every day. It cannot link visits across days.
+- **Nothing is written to the visitor's device,** except the opt-out flag a visitor sets by clicking the opt-out control ([Visitor opt-out](#visitor-opt-out)). No cookies, no `sessionStorage`, no IndexedDB, no Cache API entries, no ETag tricks. The only other client state is a JavaScript variable that dies with the page. A full page load continues the visit through the daily visitor key, not through anything in the URL ([sessions.md](sessions.md)).
+- **No device probing, no lasting key.** The server-side visitor key is a hash of a shortened IP address and a normalised browser family, mixed with a random salt that changes every day. It reads no canvas, font or hardware value and cannot link visits across days.
 - **No raw IP address and no full user agent is stored or logged.** The address is used inside one background task to build the key and is then gone.
 - **Exact counts, no sampling** for human traffic.
 - **Bots are excluded.** A known bot gets an empty 204 answer and no row of any kind is written ([bots.md](bots.md)).
@@ -33,7 +33,7 @@ The setting `signals` decides what a visit may carry:
 | `gpc` (default) | A browser that sends Global Privacy Control is not counted. |
 | `dnt_and_gpc` | A browser that sends Global Privacy Control or `DNT: 1` is not counted. |
 
-The check runs twice. The page script reads `navigator.globalPrivacyControl` (and `navigator.doNotTrack` with `dnt_and_gpc`) and, when the signal is on, does nothing at all: it sends nothing and adds nothing to links. The server also checks the `Sec-GPC` and `DNT` request headers and drops the event. Dropped events are counted by reason (`privacy_signal`) without any identity.
+The check runs twice. The page script reads `navigator.globalPrivacyControl` (and `navigator.doNotTrack` with `dnt_and_gpc`) and, when the signal is on, sends nothing and adds nothing to links; the opt-out control keeps working. The server also checks the `Sec-GPC` and `DNT` request headers and drops the event. Dropped events are counted by reason (`privacy_signal`) without any identity.
 
 Other ways to leave out traffic: signed-in editors (`excludeEditors`), path prefixes (`excludePaths`), IP ranges (`excludeIpPrefixes`) and known bots.
 
@@ -48,7 +48,7 @@ Rows are written only for human visits. Every table has a `site` column.
 - `day`, `hour`, `started`, `last_seen`, `window_s`: local day and hour, start and last activity time, the session window.
 - `entry_path`, `exit_path`, `pageviews`, `events`, `engaged_ms`, `visible_ms`, `reentries`, `max_scroll`, `interacted`: first and last page, counts, active and visible time, scroll depth, whether the visitor interacted.
 - `ref_host`, `ref_path`, `channel`, `source`, `utm_*`: where the visit came from, taken from the first page.
-- `country`, `region` (only with `captureRegion`), `device`, `browser`, `browser_major`, `os`, `lang`, `screen`, `host`: country from the edge, device class, browser and system family, the primary language tag (turn off with `captureLanguage`), a screen size class (`xs` to `xl`) and the host name of the visit's first page.
+- `country`, `region` (only with `captureRegion`), `device`, `browser`, `browser_major`, `os`, `lang`, `screen` (only with `captureScreen`), `host`: country from the edge, device class, browser and system family, the primary language tag (turn off with `captureLanguage`), a screen size class (`xs` to `xl`) and the host name of the visit's first page.
 - `hits`: the visit's page views and events as one document (JSONB), one entry per page view (keyed by the page's hit id) or event (keyed by `e` and the event id). A page view entry holds `t` (seconds since the visit started), `p` (path), `qs` (only the query parameters on the allowlist, `queryAllowlist`, default `utm_*`, `gclid`, `msclkid`, `fbclid`, and the words of a configured site search parameter, with emails and long numbers removed), `nt` (how the page was reached), `re` (a later arrival from a search engine), `d` (active time), `e` (visible time), `s` (scroll depth), `x` (how the page was left) and, for a page of a linked host ([client-sites.md](client-sites.md)), `hs` (that host name). An event entry holds `t`, `n` (name), `p` (path), `pr` (properties: at most 10 keys, values up to 128 characters) and, from a linked host, `hs`.
 
 **`ca_events`**: orders (from the page or the site's server) and events reported by the site's server, one row each, with the order value (`val`) and currency code (`cur`), the day it happened, and the visit it belongs to (`sday`, `sid`) when known. An order counts on its own day. Order ids themselves are not stored, only a one-way hash.
@@ -118,11 +118,11 @@ To keep the same traffic out from then on, add a user agent rule (Definitions) o
 
 ## The privacy receipt
 
-Open the Data page in the admin. The privacy receipt lists every table and column with a plain description, its retention, the age of the current salt and the next rotation, the counts of dropped requests by reason, row counts per table, and a block of Markdown you can paste into your own privacy page. When you select a client site, the receipt shows that site's row counts and says that retention is shared by the database.
+Open the Data page in the admin. The privacy receipt lists every table and column with a plain description, its retention, the age of the current salt and the next rotation, the counts of dropped requests by reason, row counts per table, and a block of Markdown you can paste into your own privacy page. The block names legitimate interest as the legal basis and the right to object. When you select a client site, the receipt shows that site's row counts and says that retention is shared by the database.
 
 The receipt states, fixed:
 
-> No cookies, no device storage, no raw IP, no raw user agent.
+> No cookies, no device storage unless a visitor opts out, no raw IP, no raw user agent.
 
 Fixed lines for the features that add data:
 
@@ -149,7 +149,88 @@ Counts are kept in memory by each server instance and written in one statement o
 
 ## Consent and the law
 
-The design aims to need no consent banner: nothing is stored on the device and no personal data is kept. Whether that holds for your site depends on your country, your other tools and how you use the data. **This page describes the technical setup. It is not legal advice.** Ask a qualified person about your own case, and publish a privacy page that matches what you run. The Markdown block of the receipt is a good start.
+Cookieless Analytics sets no cookies and stores nothing on the visitor's device, so it has no cookie to ask consent for; the only value it writes is the opt-out flag a visitor sets by clicking the opt-out control. Counting visits rests on legitimate interest (GDPR Art. 6(1)(f)), which needs a privacy notice and a way to object, not consent. France, Spain, Italy, the Netherlands and the United Kingdom exempt audience measurement from the consent rule for device access under conditions; Germany, Austria and Ireland have no such exemption. This section describes the software and the published rules; it is not legal advice.
+
+### The two rules
+
+- **Device rule.** [Art. 5(3) of the ePrivacy Directive](https://eur-lex.europa.eu/eli/dir/2002/58/2009-12-19/eng) asks consent for "the storing of information, or the gaining of access to information already stored, in the terminal equipment", unless that is strictly necessary for a service the user asked for. It covers any information, personal or not ([CJEU C-673/17 Planet49](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:62017CJ0673), paragraphs 68 to 71). The plugin writes only the opt-out flag a visitor sets by clicking, so the access half is the one that matters. The EDPB reads access widely: a page script that makes the browser send information counts ([Guidelines 2/2023](https://www.edpb.europa.eu/system/files/2024-10/edpb_guidelines_202302_technical_scope_art_53_eprivacydirective_v2_en_0.pdf), paragraphs 33 and 53), and whether consent follows depends on the exemptions (paragraph 56). Each country applies the exemptions in its own way, so the answer differs by country.
+- **Personal data rule.** A visitor's IP address is personal data for a site operator that has legal means to identify the person behind it ([CJEU C-582/14 Breyer](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:62014CJ0582), paragraph 49), and the daily visitor key can be rebuilt from an address until its salt is deleted, which makes it pseudonymous data (Recital 26), so the [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng) applies. Consent is one of six legal bases in Art. 6(1). Legitimate interest (Art. 6(1)(f), Recital 47) carries the counting of visits to your own site when you name it in your privacy notice (Art. 13), keep the data no longer than needed (Art. 5(1)(e)) and honour objections (Art. 21). An objection may come as a browser signal (Art. 21(5)); the plugin leaves out visits that send Global Privacy Control by default.
+
+### What the page script reads
+
+The device rule turns on what a script reads in the browser. This is the full list.
+
+| Value | Where it comes from | What happens to it |
+|---|---|---|
+| Page path and query | the address of the open page | sent with each page view; the path and the allowlisted parameters are stored |
+| Referrer | `document.referrer` | sent with the first page view of a page load; host and path are stored |
+| Screen width | `screen.width` | only with `captureScreen` (off by default): sent with each page view and stored as a size class (`xs` to `xl`) |
+| How the page was reached | the navigation entry of the browser | sent with the first page view of a page load (new, reload, back or forward) |
+| Active time, visible time, scroll depth, interaction | measured in the open page | sent when the page is hidden or left |
+| Events | clicks on outbound links and downloads, form submits and the elements you mark | sent as they happen; name, path and up to 10 properties are stored |
+| Session id and page view id | random values the script makes for this page load | sent with each request; kept in a script variable only |
+| Privacy signals | `navigator.globalPrivacyControl`, `navigator.doNotTrack` | read only; when a signal that the `signals` setting honours is set, the script sends nothing |
+| Opt-out flag | one `localStorage` key, read once when the page loads | read only; when it is set, the script sends nothing. It is written only when the visitor clicks the opt-out control ([Visitor opt-out](#visitor-opt-out)) |
+| Automation hints | `navigator.webdriver`, the user agent string, empty language or plugin lists | read only; an automated browser sends nothing |
+
+The server adds what every request carries: the IP address (shortened, hashed into the daily key, never stored), the `User-Agent` and client hint headers (reduced to browser and system family and device class), the first `Accept-Language` tag and the country from the edge. The visitor key is built from the request alone: nothing the script sends is part of it.
+
+### Conditions for running without a consent banner
+
+The national exemptions and the legitimate interest test share these conditions. The plugin meets the technical ones by design; the rest are yours.
+
+| Condition | What the plugin does | Your part |
+|---|---|---|
+| Nothing stored on the device | No cookie and no storage API; the opt-out flag is written only on a click ([Design rules](#design-rules)) | None |
+| Audience measurement only, for the site owner | Runs on your own install; no third party receives data and there is no advertising feature | Use the figures as statistics, not for advertising and not for decisions about single visitors |
+| No identity across sites | The site id is part of the visitor key, so two sites never share a key | Link hosts only when they are one site ([client-sites.md](client-sites.md)) |
+| No identity over time | The key changes every day and its salt is deleted after two days | Keep the Cron Trigger running; it deletes the salts ([install.md](install.md)) |
+| IP address shortened | Cut to `/24` or `/48` before hashing and never stored | None |
+| Data kept 25 months at most | `rawRetentionDays` is 760 by default and at most; `rollupRetentionMonths` is 25 by default | Leave `rollupRetentionMonths` at 25 or lower |
+| No combining with other data | The plugin itself stores no order id, user id or email address; page paths and event properties are stored as sent, so keep such values out of them | Do not keep the session id next to customer records ([revenue.md](revenue.md)) |
+| Visitors are told | The receipt block and the text below | Publish it on your privacy page |
+| Visitors can object | The opt-out control, and Global Privacy Control, which is honoured by default (`DNT: 1` too with `signals` set to `dnt_and_gpc`) | Put the opt-out control on your privacy page and name the signal there |
+
+### Where consent or an objection link applies
+
+A country without an exemption (Germany, Austria, Ireland) needs consent for the page script. Turn `injectScript` off and let your consent tool add the script tag (path from `scriptPath`) after the visitor agrees.
+
+A rule that asks for an objection link or button (the United Kingdom, the French self-assessment list) is met by the [visitor opt-out](#visitor-opt-out).
+
+Country notes and the list of sources: [Privacy Model, Consent and cookie banners](https://github.com/infinitnet/cookieless-analytics/wiki/Privacy-Model#consent-and-cookie-banners).
+
+### Visitor opt-out
+
+A visitor can object to being counted with one click. Put an element with the opt-out attribute on your privacy page:
+
+```html
+<button type="button" data-ec-optout>Stop counting my visits</button>
+```
+
+- **Attribute name.** The prefix comes from the `namespace` setting: `__ec` gives `data-ec-optout`. The script is on every page, so the element works wherever you paste it, and a click on one added to the page later toggles the flag too. The state of an element is shown when the page has loaded and after each click.
+- **Toggle.** A click on the element (or a child of it) stores one flag in the browser's `localStorage`; a second click removes it. The key is named like the attribute and the value is `1`. This is the only thing the script writes, and only on that click. Storage belongs to one origin, so on a client site the element goes on that site's own page ([client-sites.md](client-sites.md)).
+- **Effect.** The script reads the flag once when the page loads. While it is set the script sends nothing: no page views, events, engagement updates or retries, and the calls of the window API do nothing. Opting out stops sending on the open page at once; opting back in takes effect on the next page load. Other open tabs of the site read the flag on their next page load.
+- **State.** The element gets `aria-pressed` (`true` while the visitor is opted out) and `data-ec-optout-state` (`out` or `in`), so you can style it. The optional attributes `data-ec-optout-on` and `data-ec-optout-off` replace the element's text while the visitor is opted out or counted.
+- **Accessibility.** Use a `<button>` (or a link): it takes keyboard focus and activates with Enter and Space. On any other element, add `role="button"`, `tabindex="0"` and your own Enter and Space handling. The label attributes replace everything inside the element, child markup included; with them, do not rely on `aria-pressed` for the wording, so a screen reader does not announce the change twice.
+- **Blocked storage.** When the browser refuses storage, the choice holds for the open page only and the element still shows it.
+
+### Text for your privacy page
+
+Paste this next to the receipt block and replace the site name, the retention figures and the contact address with yours, and put the opt-out element where the last bullet says. With `signals` set to `none`, drop the sentence about Global Privacy Control.
+
+```markdown
+## Visitor statistics
+
+example.com counts visits with a self-hosted, cookieless tool on its own server. It sets no cookies and stores nothing on your device unless you choose to stop being counted.
+
+- **What we process.** The pages you view, the time and scroll depth on each, the site you came from, your country, device class, browser and system family and language. Your IP address is shortened and turned into a key that changes every day. The address itself is never stored.
+- **Why.** To see which pages are read and to fix what does not work. We do not use the data for advertising and we build no profiles. The data stays in our own database and is not sold or shared with advertisers.
+- **Legal basis.** Our legitimate interest in measuring the use of our site (Art. 6(1)(f) GDPR).
+- **How long.** Detailed visit records for 760 days, daily totals without visitor keys for 25 months.
+- **Your choice.** Use the button below, or turn on Global Privacy Control in your browser, and your visits are not counted. You can also object by writing to privacy@example.com.
+
+<button type="button" data-ec-optout>Stop counting my visits</button>
+```
 
 ## Related
 

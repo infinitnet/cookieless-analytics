@@ -72,11 +72,11 @@ describe("page script bytes (scripts/measure-script.mjs)", () => {
 		expect(m.brotli).toBeLessThan(m.gzip);
 	});
 
-	it("the 2.5 KB of the README tagline and the package description is the gzip size, rounded", () => {
-		expect((m.gzip / 1000).toFixed(1)).toBe("2.5");
+	it("the 2.7 KB of the README tagline and the package description is the gzip size, rounded", () => {
+		expect((m.gzip / 1000).toFixed(1)).toBe("2.7");
 		const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { description: string };
-		expect(pkg.description).toContain("about 2.5 KB gzipped");
-		expect(readFileSync("README.md", "utf8").split("\n")[4]).toContain("A 2.5 KB script");
+		expect(pkg.description).toContain("about 2.7 KB gzipped");
+		expect(readFileSync("README.md", "utf8").split("\n")[4]).toContain("A 2.7 KB script");
 	});
 
 	it("docs/performance.md states the measured sizes (minified exact, compressed within 2 percent)", () => {

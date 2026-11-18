@@ -1,17 +1,19 @@
 # Search Satisfaction
 
-The Search Satisfaction page shows whether landing pages answered the visit: how many visits lasted long, how many left quickly without doing anything, and how often visitors from a search engine went straight back to the results. It is computed from the visits you already record, with no extra script.
+The Search Satisfaction page shows whether landing pages answered a visit from organic search: how many visits lasted long, how many left quickly without doing anything, and how often visitors went straight back to the results. It is computed from the visits you already record, with no extra script.
+
+Search Satisfaction covers organic search sessions only, from every search engine. Direct, social, email, paid and all other visits are outside every number, on the page, in dashboards and shared views, in annotation impact and in the agent API alike.
 
 ![Search Satisfaction page](images/search-satisfaction.png)
 
 ## How to use it
 
-1. Open **Search Satisfaction** in the sidebar (right after Pages). It uses the range, comparison, segment and filters of the header.
+1. Open **Search Satisfaction** in the sidebar (right after Pages). It uses the range, comparison, segment and filters of the header, inside the organic search scope. The filter bar shows the scope as a fixed chip, **Channel is Organic Search**, that cannot be removed; other filters narrow inside it. A channel filter does not apply on this page: the channel is not offered in the add filter menu, and a channel chip from another page shows struck through.
 2. Read the cards: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average active time and the measured share. A card click also picks the rate shown on the trend chart.
 3. Check **Best pages** and **Worst pages**: the five landing pages with the highest and lowest score, with the score change against the previous period.
-4. Use the breakdown tabs (landing pages, channels, sources, devices, countries, browsers) to see where a rate is high.
+4. Use the breakdown tabs (landing pages, search engines, devices, countries, browsers) to see where a rate is high.
 5. Open a landing page (a ranked row, or Details in the table) for its drawer: its trend, pogo-sticking by search engine and the same breakdowns.
-6. Use a preset to focus: **Google organic** (channel Organic Search, source starts with `google.`), **Bing organic** (source starts with `bing.`) or **Chrome** (browser Chrome).
+6. Use a preset to narrow the organic sessions: **Google organic** (source starts with `google.`), **Bing organic** (source starts with `bing.`) or **Chrome** (browser Chrome).
 7. To change the thresholds, open Settings, section Sessions and engagement.
 
 ## What the page shows
@@ -19,22 +21,22 @@ The Search Satisfaction page shows whether landing pages answered the visit: how
 - **Cards**: the seven numbers with the change against the comparison. The estimates and the measured share carry an info marker with their definition.
 - **Trend chart**: the rates over time, with annotation markers. A card click picks the rate.
 - **Best pages** and **Worst pages**: sessions, long click, bad experience and pogo-sticking rates, the score and its change in points.
-- **Breakdown tabs**: landing pages (searchable, sortable and paged), channels, sources, devices, countries and browsers, each with every rate and the score.
-- **Landing page drawer**: the page's trend, pogo-sticking by search engine (organic sessions grouped by source, so two engines sit side by side) and the same breakdowns.
+- **Breakdown tabs**: landing pages (searchable, sortable and paged), search engines, devices, countries and browsers, each with every rate and the score.
+- **Landing page drawer**: the page's trend, pogo-sticking by search engine (sessions grouped by source, so two engines sit side by side) and the same breakdowns.
 - **Thresholds line**: the thresholds in effect, with "Change them in Settings".
 
-The Search Satisfaction dashboard template carries the same numbers as tiles, including the best and worst pages and the pogo-sticking trend.
+The Search Satisfaction dashboard template carries the same numbers as tiles, including the best and worst pages and the pogo-sticking trend, for organic search sessions as well.
 
 ## Definitions
 
-For each human session with at least one page view:
+For each human organic search session with at least one page view:
 
 - **Duration**: the longer of the time between the first and last page view, and the time the pages were visible.
 - **Measured**: at least one engagement update arrived. Sessions whose end was never observed (a closed app, a lost beacon, a blocked script) are unmeasured and left out of every rate. A line under the cards says how many.
 - **Long click**: measured, and the duration is above `longClickSeconds`.
 - **Short click**: measured, and the duration is at or below `longClickSeconds`.
 - **Bad experience**: measured, one page view, no events, no interaction, and a duration below `badExperienceSeconds` (never above the long click threshold, so a bad experience is always also a short click).
-- **Search session**: the channel is Organic Search or Paid Search.
+- **Search session**: the channel is Organic Search, so every session in these numbers is one.
 - **Pogo-sticking (estimate)**: a measured search session with one page view, no events, a short click, and the page left in a way the browser keeps for Back and Forward. Rate: pogo-sticks divided by measured search sessions.
 - **Returned from search (estimate)**: a search session whose first page was left for Back and Forward, and that a later arrival from a search engine joined within the same session window. It is a stronger signal than pogo-sticking because the second arrival is observed. It needs neither a short click nor a single page view, so the two numbers overlap.
 - **Search re-entry (estimate)**: search sessions that a later arrival from a search engine joined, divided by search sessions.
@@ -83,7 +85,7 @@ Primary sources from the trial record:
 
 "Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals."
 
-- The referrer is the search engine's origin only, so the query is never known, and a second search cannot be told from the same search again. Apps and browsers that send no referrer count as Direct and are outside every search based rate.
+- The referrer is the search engine's origin only, so the query is never known, and a second search cannot be told from the same search again. Apps and browsers that send no referrer count as Direct and are outside Search Satisfaction.
 - The "left for Back and Forward" signal fires on Back and on Forward alike. It means the visitor left without closing the tab and without clicking one of your links, not that they pressed Back. A tab close is not counted.
 - Browsers differ in what they keep for Back and Forward. Compare within one browser; the Chrome preset is there for that.
 - A tab or app switch is not an exit. On mobile, a page left through the app switcher and later closed by the system never reports an exit.

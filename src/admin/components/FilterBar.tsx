@@ -1,10 +1,14 @@
-/** Filter chips: operator menu, include and exclude, regex behind "Advanced" with live validation, save as segment. */
+/**
+ * Filter chips: operator menu, include and exclude, regex behind "Advanced" with live validation, save as segment,
+ * fixed chips of a page's scope, and value suggestions for the chosen dimension (`ValueInput`).
+ */
 import { Button, Input } from "@cloudflare/kumo";
 import { useState } from "react";
 import { normalizeCurrency } from "../../core/currency.js";
 import { type Dim, type Filter, MAX_FILTERS, MAX_VALUES, NEGATED, type Op, REVENUE_VALUE_RE } from "../../query/filters.js";
 import { validateSafeRegex } from "../../query/safe-regex.js";
 import { Disclosure } from "./ui.js";
+import { type SuggestSource, ValueInput } from "./ValueInput.js";
 
 export const DIM_LABELS: Partial<Record<Dim, string>> = {
 	page: "Page",
@@ -101,9 +105,14 @@ export interface FilterBarProps {
 	disabled?: ReadonlyMap<string, string> | undefined;
 	/** The dims offered (all addable dims by default). */
 	dims?: readonly Dim[] | undefined;
+	/** The page's fixed scope: shown first as chips without controls; their dims are not offered. */
+	fixed?: readonly Filter[] | undefined;
+	/** Site and range of the value suggestions; absent: the value is free text only. */
+	suggest?: SuggestSource | undefined;
 }
 
-export function FilterBar({ filters, onChange, onSaveSegment, disabled, dims }: FilterBarProps) {
+export function FilterBar({ filters, onChange, onSaveSegment, disabled, dims: offered, fixed, suggest }: FilterBarProps) {
+	const dims = fixed?.length ? (offered ?? ADDABLE).filter((d) => !fixed.some((f) => f.dim === d)) : offered;
 	const [dim, setDim] = useState<Dim>(dims?.[0] ?? "page");
 	const [value, setValue] = useState("");
 	const [rxDim, setRxDim] = useState<Dim>(dims?.[0] ?? "page");
@@ -115,6 +124,17 @@ export function FilterBar({ filters, onChange, onSaveSegment, disabled, dims }: 
 
 	return (
 		<div className="ca-filterbar">
+			{fixed?.map((f) => (
+				<span key={`fixed:${chipText(f)}`} className="ca-chip ca-chip-fixed" data-dim={f.dim} data-fixed="true" title="Fixed on this page">
+					<svg viewBox="0 0 16 16" width={12} height={12} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+						<rect x="3.5" y="7" width="9" height="6.5" rx="1.5" />
+						<path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+					</svg>
+					<span className="ca-chip-text">{chipText(f)}</span>
+					<span className="ca-sr">, </span>
+					<span className="ca-chip-note">fixed</span>
+				</span>
+			))}
 			{filters.map((f, i) => (
 				<span key={i} className="ca-chip" data-dim={f.dim} data-op={f.op} data-off={disabled?.has(f.dim) ? "true" : undefined} title={disabled?.get(f.dim)}>
 					<span className="ca-chip-text">{chipText(f)}</span>
@@ -150,7 +170,18 @@ export function FilterBar({ filters, onChange, onSaveSegment, disabled, dims }: 
 				}}
 			>
 				<DimSelect label="Dimension" value={dim} onChange={setDim} dims={dims} />
-				<Input aria-label="Value" value={value} maxLength={512} onChange={(e) => setValue(e.target.value)} placeholder={dim === "revenue" ? "50" : dim === "currency" ? "EUR" : "Value to match"} />
+				<ValueInput
+					dim={dim}
+					value={value}
+					onChange={setValue}
+					onPick={(v) => {
+						const next = addFilter(filters, dim, v);
+						if (next) onChange(next);
+						setValue("");
+					}}
+					source={suggest}
+					placeholder={dim === "revenue" ? "50" : dim === "currency" ? "EUR" : "Value to match"}
+				/>
 				<Button type="submit" disabled={full || !value.trim()}>
 					Add filter
 				</Button>

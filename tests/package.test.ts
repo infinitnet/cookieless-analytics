@@ -19,15 +19,15 @@ const pkg = JSON.parse(readFileSync("package.json", "utf8")) as {
 	scripts: Record<string, string>;
 };
 const readme = readFileSync("README.md", "utf8");
-const TAGLINE = "Self-hosted, cookieless web analytics for EmDash and any site. A 2.5 KB script, no extra service, your own database.";
+const TAGLINE = "Self-hosted, cookieless web analytics for EmDash and any site. A 2.7 KB script, no extra service, your own database.";
 // One definitional sentence, the README's opening, under 200 characters.
 const DESCRIPTION =
-	"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS that stores real sessions in your own database with a page script of about 2.5 KB gzipped.";
+	"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.";
 
 describe("package metadata", () => {
 	it("name, version, author, licence and repository", () => {
 		expect(pkg.name).toBe("@infinitnet/cookieless-analytics");
-		expect(pkg.version).toBe("1.1.1");
+		expect(pkg.version).toBe("1.1.2");
 		expect(VERSION).toBe(pkg.version);
 		// The credit line in the admin footer shows the version with a v prefix (Header and Settings).
 		for (const f of ["src/admin/components/Header.tsx", "src/admin/pages/Settings.tsx"]) expect(readFileSync(f, "utf8"), f).toContain("{PRODUCT_NAME}</a> v{VERSION}");
@@ -46,6 +46,11 @@ describe("package metadata", () => {
 			"cookieless analytics",
 			"web analytics",
 			"privacy analytics",
+			"cookieless tracking",
+			"no cookies",
+			"cookie consent",
+			"gdpr",
+			"eprivacy",
 			"self hosted",
 			"emdash",
 			"emdash-plugin",
@@ -79,7 +84,7 @@ describe("package metadata", () => {
 		// npm 10 prints an array, npm 11 an object keyed by package name.
 		const raw = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })) as Packed[] | Record<string, Packed>;
 		const info = Array.isArray(raw) ? raw[0] : Object.values(raw)[0];
-		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.1.1.tgz");
+		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.1.2.tgz");
 		const top = new Set(info?.files.map((f) => f.path.split("/")[0]));
 		expect([...top].sort()).toEqual(["LICENSE", "NOTICE", "README.md", "THIRD_PARTY_NOTICES.md", "dist", "package.json", "scripts", "src"]);
 		expect(info?.files.filter((f) => f.path.startsWith("packages/"))).toEqual([]);
@@ -173,7 +178,9 @@ describe("README", () => {
 		];
 		expect(heads).toEqual(want);
 		expect(readme).toContain("Hosted on your EmDash install, measuring every site you register.");
-		for (const w of ["plausible alternative", "self hosted analytics", "astro analytics", "not legal advice"]) expect(readme.toLowerCase()).toContain(w);
+		for (const w of ["plausible alternative", "self hosted analytics", "astro analytics", "no cookie to ask consent for", "legitimate interest (gdpr art. 6(1)(f))"]) expect(readme.toLowerCase()).toContain(w);
+		// The disclaimer stands once, in the privacy doc and on the wiki privacy page, not in the README.
+		expect(readme.toLowerCase()).not.toContain("legal advice");
 	});
 
 	it("every README image has alt text and every local image exists", () => {

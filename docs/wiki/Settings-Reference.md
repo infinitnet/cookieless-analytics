@@ -67,6 +67,7 @@ Keys marked Advanced sit under the closed Advanced disclosure of the section.
 | `ipTruncation` | select | `standard` | `standard` (Standard (/24 and /48)), `strict` (Strict (/16 and /32)) | IP truncation: Prefix kept for the daily visitor key. The address itself is never stored. |
 | `captureLanguage` | boolean | `true` |  | Capture language: Store the primary browser language tag. |
 | `captureRegion` | boolean | `false` |  | Capture region: Store the edge region in addition to the country. |
+| `captureScreen` | boolean | `false` |  | Capture screen size: The page script sends the screen width and the server stores it as a size class (xs to xl), which Delete matching visits can use. Off by default: the script then sends no screen value. |
 | `excludePaths` | string | `/_emdash/` |  | Excluded path prefixes: One prefix per line or comma separated. |
 | `excludeIpPrefixes` | string | empty |  | Excluded IP ranges: CIDR list, comma or newline separated. |
 | `ignoreReferrerHosts` | string | empty |  | Ignored referrer hosts: Extra payment or login hosts that never start a source. |

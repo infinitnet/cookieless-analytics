@@ -1,6 +1,6 @@
 # How Visits Are Counted
 
-The plugin counts visitors and sessions without cookies and without storing anything on the device. This page explains how a page view becomes part of a session, how visitors are counted, and where the method can be wrong.
+The plugin counts visitors and sessions without cookies and without storing anything on the device unless a visitor opts out. This page explains how a page view becomes part of a session, how visitors are counted, and where the method can be wrong.
 
 ## How to use it
 

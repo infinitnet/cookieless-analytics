@@ -5,7 +5,8 @@ import type { SiteEntry } from "../../routes/sites.js";
 import { listSegments, saveSegment, type SegmentItem, setApiSite } from "../api.js";
 import { ALL_SITES, selectedSite, useSite } from "../site.js";
 import { type Compare, compareRange, matchPreset, PRESETS, type Preset, presetRange, type QueryState, useQueryState, validRange } from "../state.js";
-import { FilterBar } from "./FilterBar.js";
+import { chipText, FilterBar } from "./FilterBar.js";
+import type { Filter } from "../../query/filters.js";
 import { OffFilters } from "./ReportNotices.js";
 import { Button, LinkButton } from "@cloudflare/kumo";
 import { SETUP_COPY } from "../setup.js";
@@ -207,8 +208,27 @@ export function LearnMore({ page, topic }: { page: WikiPage; topic: string }) {
 	);
 }
 
-/** Loads the sites, then renders the header and the page with the URL state. `allSites`: the page renders the All-sites view itself (the Overview). */
-export function Shell({ children, allSites = false, title, controls = "full", docs }: { children: (v: View) => ReactNode; allSites?: boolean; title?: string; controls?: Controls; docs?: DocsLink }) {
+/**
+ * Loads the sites, then renders the header and the page with the URL state. `allSites`: the page renders the All-sites view itself (the Overview).
+ * `fixedFilters`: filters the page always applies, shown as fixed chips the user cannot remove; their dims leave the add menu. `filterScope`: where the filter bar's value suggestions come from.
+ */
+export function Shell({
+	children,
+	allSites = false,
+	title,
+	controls = "full",
+	docs,
+	fixedFilters,
+	filterScope,
+}: {
+	children: (v: View) => ReactNode;
+	allSites?: boolean;
+	title?: string;
+	controls?: Controls;
+	docs?: DocsLink;
+	fixedFilters?: readonly Filter[];
+	filterScope?: "traffic" | "search";
+}) {
 	const { sites, local } = useSite();
 	if (!sites)
 		return (
@@ -217,13 +237,33 @@ export function Shell({ children, allSites = false, title, controls = "full", do
 			</div>
 		);
 	return (
-		<ShellBody sites={sites} local={local} allSites={allSites} title={title} controls={controls} docs={docs}>
+		<ShellBody sites={sites} local={local} allSites={allSites} title={title} controls={controls} docs={docs} fixedFilters={fixedFilters} filterScope={filterScope}>
 			{children}
 		</ShellBody>
 	);
 }
 
-function ShellBody({ sites, local, allSites, title, controls: base, docs, children }: { sites: SiteEntry[]; local: SiteEntry; allSites: boolean; title?: string | undefined; controls: Controls; docs?: DocsLink | undefined; children: (v: View) => ReactNode }) {
+function ShellBody({
+	sites,
+	local,
+	allSites,
+	title,
+	controls: base,
+	docs,
+	fixedFilters,
+	filterScope,
+	children,
+}: {
+	sites: SiteEntry[];
+	local: SiteEntry;
+	allSites: boolean;
+	title?: string | undefined;
+	controls: Controls;
+	docs?: DocsLink | undefined;
+	fixedFilters?: readonly Filter[] | undefined;
+	filterScope?: "traffic" | "search" | undefined;
+	children: (v: View) => ReactNode;
+}) {
 	const tz = local.timezone ?? "UTC";
 	const [state, update] = useQueryState(tz);
 	const all = state.site === ALL_SITES && sites.length > 1;
@@ -264,6 +304,8 @@ function ShellBody({ sites, local, allSites, title, controls: base, docs, childr
 	const [offBy, setOffBy] = useState<Record<string, Record<string, string>>>({});
 	const reportOff = useCallback((id: string, o: Record<string, string> | null) => setOffBy(({ [id]: _, ...rest }) => (o ? { ...rest, [id]: o } : rest)), []);
 	const off = new Map(Object.values(offBy).flatMap((o) => Object.entries(o)));
+	// A chip of a fixed dim (carried over from another page) is kept in the view but not applied here.
+	for (const f of fixedFilters ?? []) off.set(f.dim, `${chipText(f)} is fixed on this page`);
 	// The All-sites table takes no filters and no segment.
 	const table = all && allSites;
 	const [head, setHead] = useState<ShellHead | null>(null);
@@ -310,7 +352,16 @@ function ShellBody({ sites, local, allSites, title, controls: base, docs, childr
 				{controls === "full" && inDb && !table && <SegmentPicker segments={segments} value={state.segment} onChange={(segment) => update({ segment })} canCreate={listed} />}
 				</div>
 				{/* Saving needs the applied segment's filters, so it is offered only when that segment is listed. */}
-				{controls === "full" && !table && <FilterBar filters={state.filters} disabled={off} onChange={(filters) => update({ filters })} onSaveSegment={inDb && (!state.segment || segments.some((s) => s.id === state.segment)) ? save : undefined} />}
+				{controls === "full" && !table && (
+					<FilterBar
+						filters={state.filters}
+						fixed={fixedFilters}
+						disabled={off}
+						onChange={(filters) => update({ filters })}
+						onSaveSegment={inDb && (!state.segment || segments.some((s) => s.id === state.segment)) ? save : undefined}
+						suggest={{ site: site.id, from: state.from, to: state.to, scope: filterScope ?? "traffic" }}
+					/>
+				)}
 				</div>
 			</header>
 			)}

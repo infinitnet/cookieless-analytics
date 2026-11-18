@@ -2595,6 +2595,12 @@ const settingsSchema = {
 		description: "Store the edge region in addition to the country.",
 		default: false
 	},
+	captureScreen: {
+		type: "boolean",
+		label: "Capture screen size",
+		description: "The page script sends the screen width and the server stores it as a size class (xs to xl), which Delete matching visits can use. Off by default: the script then sends no screen value.",
+		default: false
+	},
 	excludePaths: {
 		type: "string",
 		label: "Excluded path prefixes",
@@ -5707,7 +5713,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-rJWazoto.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DycgS_ed.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,

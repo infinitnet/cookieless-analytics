@@ -42,7 +42,7 @@ Rules that follow from this:
 
 ## Page loads
 
-The page script is passive on links and the address: it never adds a fragment or a parameter to a link, never reads or changes the URL and makes no history call. A session therefore continues in two ways only:
+The page script is passive on links and the address: it never adds a fragment or a parameter to a link, never reads the URL for an id, never changes it and makes no history call. A session therefore continues in two ways only:
 
 - **Soft navigations** keep the in-memory `sid`.
 - **Full page loads** (a normal link, a reload, a new tab, another host of a linked site) arrive with a new `sid` and are joined to the running visit through the visitor key, as described under resolution. The new `sid` is stored as an alias of the visit for one day (`MAX_VISIT_MINUTES`, the longest visit), so the engagement update of a later page sent after a long read still reaches the visit.
@@ -112,6 +112,8 @@ So the common meaning of a page time is time in view. Our closest figures to it 
 
 Search Satisfaction approximates how a click-based system such as Google's Navboost could rate a landing page, using only the visits to your own site. It is not Navboost and does not reproduce Google's definitions or weights. The idea and the primary sources from the United States v. Google trial record are in the wiki: [Search Satisfaction](https://github.com/infinitnet/cookieless-analytics/wiki/Search-Satisfaction#where-the-idea-comes-from).
 
+Search Satisfaction covers organic search sessions only: the `satisfaction` and `satisfaction_series` reports always restrict their sessions to the channel `Organic Search`, from every search engine, for every caller (the admin page, dashboards and shared views, annotation impact and the agent API). Direct, social, email, paid and every other channel are outside every number. Other filters narrow inside that scope (a source prefix such as `google.`, a browser, a page, a device, a country). A channel filter of the caller does not apply: the report runs over the same organic search sessions and answers the notice `ignored_dim:channel`.
+
 The Search Satisfaction page turns click quality into seven numbers: long clicks, short clicks, the bad experience share, estimated pogo-sticking, the stronger "Returned from search" signal, the search re-entry rate and the share of back or forward loads per page. Everything is computed when a report runs, from session rows and their page views in the raw window, with the two thresholds read from the settings at that moment. A changed threshold therefore reclassifies every stored session at once, old and new, with no job to run.
 
 ### Thresholds
@@ -125,13 +127,13 @@ The effective bad experience threshold is `min(badExperienceSeconds, longClickSe
 
 ### Definitions
 
-For each human session with at least one page view, with `L = longClickSeconds * 1000` and `B = min(badExperienceSeconds, longClickSeconds) * 1000`:
+For each human organic search session with at least one page view, with `L = longClickSeconds * 1000` and `B = min(badExperienceSeconds, longClickSeconds) * 1000`:
 
 - `duration_ms = max((last_seen - started) * 1000, visible_ms)`.
 - `measured = visible_ms > 0`: at least one engagement update arrived. Sessions whose end was never observed (an app killed on mobile, a lost beacon, a blocked script) are counted as unmeasured and left out of every rate denominator below.
 - `long_click = measured AND duration_ms > L`; `short_click = measured AND duration_ms <= L`.
 - `bad_experience = measured AND pageviews = 1 AND events = 0 AND interacted = 0 AND duration_ms < B`.
-- `search_entry`: the stored channel is `Organic Search` or `Paid Search`.
+- `search_entry`: the stored channel is `Organic Search`. Inside the report's scope every session is a search entry, so `search_sessions` equals `sessions` and `search_measured` equals `measured`.
 - `pogo_stick (estimate) = search_entry AND pageviews = 1 AND events = 0 AND short_click AND landing_exit = 2`, where `landing_exit` is the exit kind of the session's only page view (2 means the page was left with `pagehide` and kept by the browser for back and forward). Pogo-sticking is the industry name for this pattern: a visitor from a search engine lands on a page, leaves it quickly with the browser's back action and returns to the results.
 - `reentered = reentries > 0`: a later arrival with a search referrer and a fresh client id that merged into this session.
 - `returned_from_search (estimate) = search_entry AND reentered AND first_exit = 2`, where `first_exit` is the exit kind of the session's first page view by time. In words: the landing page was left with the back or forward action and the visitor then came back from a search engine within the same session window. It is a stronger pogo signal than `pogo_stick` because the second arrival from the results page is observed, not inferred; it does not require a short click or a single page view, so the two numbers overlap but neither contains the other. The `pogo_stick` rule is unchanged by it.
@@ -148,7 +150,7 @@ Rates, per landing page and for the totals row: `pct_long = long / measured`, `p
 
 "Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals."
 
-- The referrer is the search engine's origin only; the default referrer policy `strict-origin-when-cross-origin` strips path and query on cross-origin navigations, so the query is never known and a "second search" cannot be told from "the same search again". Some surfaces (apps, Discover-like feeds, privacy browsers) send no referrer at all, so those sessions are `Direct` and outside every search-based rate.
+- The referrer is the search engine's origin only; the default referrer policy `strict-origin-when-cross-origin` strips path and query on cross-origin navigations, so the query is never known and a "second search" cannot be told from "the same search again". Some surfaces (apps, Discover-like feeds, privacy browsers) send no referrer at all, so those sessions are `Direct` and outside Search Satisfaction.
 - `pagehide` with `persisted === true` means the browser intends to keep the page for a back or forward restore; it fires on back navigation and on forward navigation to another document alike, so the signal means "left the document without closing it and without clicking one of our links", not "pressed back". A tab close or a browser that does not cache the page gives `persisted === false` and is not counted. Browsers differ in cache eligibility, so compare within one browser (the Chrome preset exists for that).
 - `visibilitychange` to hidden (tab switch, app switch, lock screen) is not an exit and is stored as exit kind 0; on mobile a page that is left through the app switcher and later killed never fires `pagehide`, so such sessions end as hidden, not as returns.
 - A back or forward restore from the back/forward cache re-shows the page without reloading it, so it produces no pageview; the back/forward load share counts full loads only and is a lower bound. Chrome reports that about one navigation in ten on desktop and one in five on mobile is a back or forward navigation, most of them served from that cache.
@@ -165,17 +167,18 @@ There is no rollup of these numbers. A table of daily summaries would either fix
 
 ### Where to see it
 
-Search Satisfaction has its own sidebar entry, right after Pages. The page reads the header's range, comparison, segment and filters and shows:
+Search Satisfaction has its own sidebar entry, right after Pages. The page reads the header's range, comparison, segment and filters, always inside the organic search scope, and shows:
 
 - Seven cards with the comparison to the previous period: long clicks, short clicks, bad experience, pogo-sticking (estimate), returned from search (estimate), average active time and the measured share. The estimates and the measured share carry an info marker with their definition. A line under the cards says how many sessions have no measured end, once.
 - A trend chart of the rates with a switch between them (a card click picks the rate too) and annotation markers.
 - "Best pages" and "Worst pages": the five landing pages with the highest and lowest score, each with sessions, long click, bad experience and pogo-sticking rates and the score change in points against the previous period.
-- Breakdown tabs: landing pages (searchable, sortable and paged), channels, sources, devices, countries and browsers, each with every rate and the score (`params.by` of the `satisfaction` report).
-- A drawer per landing page (a ranked row, or Details in the table) with its trend, pogo-sticking by search engine (organic sessions grouped by source, so Google and Bing sit side by side) and the same breakdowns.
-- Three presets that add filters: "Google organic" (channel `Organic Search`, source starts with `google.`), "Bing organic" (source starts with `bing.`) and "Chrome" (browser `Chrome`).
+- Breakdown tabs: landing pages (searchable, sortable and paged), search engines (the session source), devices, countries and browsers, each with every rate and the score (`params.by` of the `satisfaction` report: `entry`, `source`, `device`, `country` or `browser`).
+- A drawer per landing page (a ranked row, or Details in the table) with its trend, pogo-sticking by search engine (grouped by source, so Google and Bing sit side by side) and the same breakdowns.
+- The scope as a fixed chip in the filter bar, "Channel is Organic Search", which cannot be removed; the channel is not offered in the page's add filter menu, and a channel chip carried over from another page shows struck through.
+- Three presets that narrow the scope with a filter chip: "Google organic" (source starts with `google.`), "Bing organic" (source starts with `bing.`) and "Chrome" (browser `Chrome`).
 - For a range before the raw window, the notice above with one button that moves the range inside the window.
 
-The Search Satisfaction dashboard template carries the same numbers as tiles, including the best and worst pages tables and the pogo-sticking trend. Agents read them through the `satisfaction` and `satisfaction_series` reports ([AGENTS.md](AGENTS.md)).
+The Search Satisfaction dashboard template carries the same numbers as tiles, including the best and worst pages tables and the pogo-sticking trend; its tiles read the same reports, so they cover organic search sessions only, as their titles say. Agents read them through the `satisfaction` and `satisfaction_series` reports ([AGENTS.md](AGENTS.md)).
 
 ## Related
 

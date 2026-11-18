@@ -79,7 +79,7 @@ function useOAuthReturn(): { message: string | null; tone: "info" | "error"; don
 export default function Search() {
 	const oauth = useOAuthReturn();
 	return (
-		<Shell title="Search" docs="Search-Integrations">
+		<Shell title="Search" docs="Search-Integrations" filterScope="search">
 			{(v) => (
 				<>
 					{oauth.message && <Notice tone={oauth.tone === "error" ? "error" : oauth.done ? "success" : "info"}>{oauth.message}</Notice>}

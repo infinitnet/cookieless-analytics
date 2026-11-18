@@ -204,7 +204,7 @@ export const METRICS: Record<string, string> = {
 	ctr: "clicks / impressions.",
 	position: "Impression weighted mean position: sum of position times impressions, divided by impressions.",
 	measured: "Sessions with at least one engagement update (visible time above 0); the Search Satisfaction rates divide by these.",
-	search_sessions: "Sessions whose channel is Organic Search or Paid Search (Search Satisfaction reports).",
+	search_sessions: "Organic search sessions (Search Satisfaction reports, which cover organic search sessions only).",
 	long_clicks: "Measured sessions longer than the longClickSeconds setting (default 60 s).",
 	short_clicks: "Measured sessions at or below the longClickSeconds setting.",
 	bad_experiences: "Measured single page sessions without events or interaction, shorter than min(badExperienceSeconds, longClickSeconds).",

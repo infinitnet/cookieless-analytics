@@ -12,7 +12,7 @@ import { zonedToEpoch } from "../src/core/time.js";
 import { ownDatabase, TABLES as SCHEMA_TABLES } from "../src/db/schema.js";
 import { ingestStatus } from "../src/core/queue-sink.js";
 import { KV_CURSOR } from "../src/query/retention.js";
-import { capacityOf, DROPS_LINE, EMAIL_LINE, ORDER_SESSION_LINE, privacyRoute, SITE_SEARCH_LINE, type ReceiptCtx, REVENUE_LINE, SATISFACTION_LINE, SHARING_LINE, STATEMENT, TABLES } from "../src/routes/privacy.js";
+import { capacityOf, DROPS_LINE, EMAIL_LINE, LEGAL_BASIS_LINE, ORDER_SESSION_LINE, privacyRoute, SITE_SEARCH_LINE, type ReceiptCtx, REVENUE_LINE, SATISFACTION_LINE, SHARING_LINE, STATEMENT, TABLES } from "../src/routes/privacy.js";
 import { normalizeSettings } from "../src/settings.js";
 import { STORAGE } from "../src/index.js";
 import { seed } from "./fixtures/seed.js";
@@ -45,7 +45,7 @@ describe("privacy/receipt", () => {
 		const r = await route.handler({ kv: env.kv } as ReceiptCtx);
 
 		expect(r.statement).toBe(STATEMENT);
-		expect(STATEMENT).toBe("No cookies, no device storage, no raw IP, no raw user agent.");
+		expect(STATEMENT).toBe("No cookies, no device storage unless a visitor opts out, no raw IP, no raw user agent.");
 		const names = r.tables.map((t) => t.name);
 		for (const t of SCHEMA_TABLES) expect(names).toContain(t);
 		for (const c of [...Object.keys(STORAGE), "api_keys"]) expect(names).toContain(c);
@@ -90,7 +90,10 @@ describe("privacy/receipt", () => {
 		expect(r.tables.find((t) => t.name === "ca_revenue_daily")).toMatchObject({ kind: "table", retention: "25 months" });
 		expect(r.markdown).toContain(STATEMENT);
 		expect(r.markdown).toContain("30 days");
-		expect(r.markdown).toContain("not legal advice");
+		// The block is the site's own statement: it names the legal basis and the right to object, and carries no disclaimer.
+		expect(LEGAL_BASIS_LINE).toBe("Visits are counted on the basis of our legitimate interest in knowing how this site is used (Article 6(1)(f) GDPR). You can object at any time.");
+		expect(r.markdown).toContain(`- ${LEGAL_BASIS_LINE}`);
+		expect(r.markdown).not.toContain("legal advice");
 
 		expect(r.satisfaction).toBe(SATISFACTION_LINE);
 		expect(SATISFACTION_LINE).toBe(
@@ -133,6 +136,16 @@ describe("privacy/receipt", () => {
 		}
 		expect(TABLES.length).toBeGreaterThan(10);
 	});
+	it("the receipt block names the screen size class only with captureScreen", async () => {
+		const block = async (captureScreen: boolean) => {
+			const env = await schemaDb();
+			const s = normalizeSettings({ captureScreen });
+			return (await privacyRoute({ db: async () => env.db, settings: async () => s, now: () => 0 }).handler({ kv: env.kv })).markdown as string;
+		};
+		expect(await block(false)).not.toContain("screen size class");
+		expect(await block(true)).toContain("screen size class");
+	});
+
 	it("reports a client site's row counts and says retention is per database; the other site's receipt is unchanged", async () => {
 		invalidateRegistry();
 		const env = await schemaDb();

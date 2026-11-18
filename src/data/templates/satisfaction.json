@@ -2,7 +2,7 @@
 	"kind": "dashboard-template",
 	"v": 1,
 	"name": "Search Satisfaction",
-	"description": "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages.",
+	"description": "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages of organic search sessions.",
 	"tiles": [
 		{
 			"id": "st0001",
@@ -31,7 +31,7 @@
 			"kind": "line",
 			"w": 3,
 			"metrics": ["pct_long"],
-			"title": "Long clicks over time"
+			"title": "Long clicks over time (organic search)"
 		},
 		{
 			"id": "st0005",
@@ -46,21 +46,21 @@
 			"kind": "line",
 			"w": 3,
 			"metrics": ["pogo_stick_rate"],
-			"title": "Pogo-sticking over time"
+			"title": "Pogo-sticking over time (organic search)"
 		},
 		{
 			"id": "st0006",
 			"report": "satisfaction",
 			"kind": "table",
 			"w": 2,
-			"title": "Landing pages"
+			"title": "Landing pages (organic search)"
 		},
 		{
 			"id": "st0008",
 			"report": "satisfaction",
 			"kind": "table",
 			"w": 3,
-			"title": "Best pages",
+			"title": "Best pages (organic search)",
 			"params": {
 				"rank": "best"
 			}
@@ -70,7 +70,7 @@
 			"report": "satisfaction",
 			"kind": "table",
 			"w": 3,
-			"title": "Worst pages",
+			"title": "Worst pages (organic search)",
 			"params": {
 				"rank": "worst"
 			}

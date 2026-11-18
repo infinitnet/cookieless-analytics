@@ -16,6 +16,7 @@ export function clientConfig(s: Settings, viaAlias = true, linked: readonly stri
 		g: s.signals,
 		o: s.autoOutbound ? 1 : 0,
 		dl: s.autoDownloads ? 1 : 0,
+		s: s.captureScreen ? 1 : 0,
 		f: s.autoForms ? 1 : 0,
 		x: s.downloadExtensions,
 		m: s.maxEngagedMsPerPage,

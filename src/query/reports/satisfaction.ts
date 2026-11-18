@@ -1,6 +1,7 @@
 /**
  * Satisfaction reports: long and short clicks, bad experience, estimated pogo-sticking, returns to
- * search, search re-entry and the back/forward load share. Classified at query time from `ca_sessions` and the page view
+ * search, search re-entry and the back/forward load share, over organic search sessions only (the dispatcher adds
+ * the scope channel is Organic Search to every run, see `organicScope`). Classified at query time from `ca_sessions` and the page view
  * entries of its document
  * with the thresholds of the moment, so a changed threshold reclassifies every stored session at once.
  */
@@ -35,7 +36,6 @@ export { SATISFACTION_CAVEAT, SATISFACTION_RAW_ONLY } from "./satisfaction-copy.
 /** Session column per `params.by`; `entry` is the landing page table. */
 const BY_COL: Record<SatisfactionBy, string> = {
 	entry: "s.entry_path",
-	channel: "COALESCE(s.channel, '(not set)')",
 	source: "COALESCE(s.source, '(not set)')",
 	device: "COALESCE(s.device, '(not set)')",
 	country: "COALESCE(s.country, '(not set)')",
@@ -64,7 +64,7 @@ function countsSql(rc: ReportCtx, input: RunInput, keyExpr: string | null, byDay
 	const group = [keyExpr ? "t.key" : null, byDay ? "t.day" : null].filter(Boolean);
 	const inner = `SELECT ${keyExpr ? `${keyExpr} AS key, ` : ""}s.day AS day, ${DURATION_MS} AS dur,
 CASE WHEN s.visible_ms > 0 THEN 1 ELSE 0 END AS m,
-CASE WHEN s.channel IN ('Organic Search', 'Paid Search') THEN 1 ELSE 0 END AS se,
+CASE WHEN s.channel = 'Organic Search' THEN 1 ELSE 0 END AS se,
 CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END AS single,
 s.interacted AS inter, s.reentries AS re, s.engaged_ms AS eng,
 CASE WHEN s.pageviews = 1 THEN (SELECT MAX(${x.exit}) ${pvs}) END AS lexit,

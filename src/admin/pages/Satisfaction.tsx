@@ -1,13 +1,14 @@
 /**
- * Satisfaction (own page): site-wide click quality with the comparison, a trend per rate, the best and
- * worst landing pages by score, breakdowns by session dimension and a drawer per landing page. Every number comes
- * from the `satisfaction` and `satisfaction_series` reports; groupings use `params.by`, the lists `params.rank`.
+ * Satisfaction (own page): click quality of organic search sessions with the comparison, a trend per rate, the best
+ * and worst landing pages by score, breakdowns by session dimension and a drawer per landing page. Every number comes
+ * from the `satisfaction` and `satisfaction_series` reports, which cover organic search sessions only; groupings use
+ * `params.by`, the lists `params.rank`.
  */
 import { Button } from "@cloudflare/kumo";
 import { useEffect, useRef, useState } from "react";
 import type { Dim, Filter } from "../../query/filters.js";
 import type { Annotation } from "../../query/reports/base.js";
-import { SATISFACTION_MIN_MEASURED, SATISFACTION_RAW_ONLY, type SatisfactionBy } from "../../query/reports/satisfaction-copy.js";
+import { ORGANIC_SEARCH, SATISFACTION_MIN_MEASURED, SATISFACTION_RAW_ONLY, type SatisfactionBy } from "../../query/reports/satisfaction-copy.js";
 import type { Granularity } from "../../query/reports/timeseries.js";
 import { useReport } from "../api.js";
 import { annotationMarkers, LineChart } from "../components/Chart.js";
@@ -23,13 +24,18 @@ import { activeTab, ReportPanel, tabParam } from "./report.js";
 import { type MetricDef, MetricChart } from "../components/MetricChart.js";
 import { ErrorScope, errorRange, SETTINGS_HREF, usePageError } from "../components/ReportNotices.js";
 
-/** Preset filter sets: added as chips, so they combine with every other filter and segment. */
+/**
+ * Preset filter sets inside the fixed organic search scope: added as chips, so they combine with every other filter
+ * and segment. Organic sessions store the referrer host (google.com, google.co.uk), so the source matches by prefix.
+ */
 export const SATISFACTION_PRESETS: ReadonlyArray<readonly [string, readonly Filter[]]> = [
-	// Organic sessions store the referrer host (google.com, google.co.uk), so the source matches by prefix.
-	["Google organic", [{ dim: "channel", op: "is", values: ["Organic Search"] }, { dim: "source", op: "prefix", values: ["google."] }]],
-	["Bing organic", [{ dim: "channel", op: "is", values: ["Organic Search"] }, { dim: "source", op: "prefix", values: ["bing."] }]],
+	["Google organic", [{ dim: "source", op: "prefix", values: ["google."] }]],
+	["Bing organic", [{ dim: "source", op: "prefix", values: ["bing."] }]],
 	["Chrome", [{ dim: "browser", op: "is", values: ["Chrome"] }]],
 ];
+
+/** The scope of the reports (organic search sessions), shown in the header as a fixed chip that cannot be removed; the channel leaves the add menu. */
+export const SATISFACTION_FIXED: readonly Filter[] = [ORGANIC_SEARCH];
 
 /** Add preset filters; `is` values merge into an existing chip, other filters are added once. */
 export function addPreset(filters: readonly Filter[], preset: readonly Filter[]): Filter[] {
@@ -73,8 +79,8 @@ const RATE_COLUMNS: Column[] = [
 /** Groupings of the breakdown tabs: `params.by`, tab label, first column label and its filter dim. */
 const GROUPS: ReadonlyArray<readonly [SatisfactionBy, string, string, Dim]> = [
 	["entry", "Landing pages", "Landing page", "entry"],
-	["channel", "Channels", "Channel", "channel"],
-	["source", "Sources", "Source", "source"],
+	// The source of an organic search session is its search engine.
+	["source", "Search engines", "Search engine", "source"],
 	["device", "Devices", "Device", "device"],
 	["country", "Countries", "Country", "country"],
 	["browser", "Browsers", "Browser", "browser"],
@@ -221,11 +227,10 @@ export function PageDrawer({ view, page, onClose }: { view: View; page: string; 
 	const ref = useRef<HTMLElement | null>(null);
 	useEffect(() => ref.current?.focus(), [page]);
 	const [metric, setMetric] = useState<Rate>("pct_long");
-	const [by, setBy] = useState<SatisfactionBy>("channel");
+	const [by, setBy] = useState<SatisfactionBy>("device");
 	const entry: Filter = { dim: "entry", op: "is", values: [page] };
 	// Value clicks inside the drawer filter the whole page; the drawer's own entry filter is not carried over.
 	const sub: View = { ...view, state: { ...view.state, filters: [...view.state.filters, entry] }, update: (next) => view.update(next.filters ? { ...next, filters: next.filters.filter((f) => f !== entry) } : next) };
-	const search: View = { ...sub, state: { ...sub.state, filters: addIs(sub.state.filters, "channel", "Organic Search") } };
 	return (
 		<aside ref={ref} tabIndex={-1} className="ca-drawer ca-panel ca-sat-drawer" aria-label={`Search Satisfaction of ${page}`}>
 			<div className="ca-spread">
@@ -239,7 +244,7 @@ export function PageDrawer({ view, page, onClose }: { view: View; page: string; 
 			</div>
 			<Trend view={sub} query={toQuery(sub.state, "satisfaction_series")} metric={metric} onMetric={setMetric} title="Rates over time" />
 			<ReportPanel
-				view={search}
+				view={sub}
 				report="satisfaction"
 				params={{ by: "source" }}
 				title="Pogo-sticking by search engine"
@@ -289,6 +294,7 @@ function SatisfactionReport({ view }: { view: View }) {
 	return (
 		<>
 			<div className="ca-presets ca-actions" role="group" aria-label="Presets">
+				<span className="ca-small ca-sat-scope">Organic search sessions only, every search engine. Narrow to:</span>
 				{SATISFACTION_PRESETS.map(([name, preset]) => (
 					<Button size="sm" key={name} onClick={() => update({ filters: addPreset(state.filters, preset) })}>
 						{name}
@@ -343,5 +349,9 @@ function SatisfactionReport({ view }: { view: View }) {
 }
 
 export default function Satisfaction() {
-	return <Shell title="Search Satisfaction" docs="Search-Satisfaction">{(v) => <SatisfactionBody key={v.site.id} view={v} />}</Shell>;
+	return (
+		<Shell title="Search Satisfaction" docs="Search-Satisfaction" fixedFilters={SATISFACTION_FIXED}>
+			{(v) => <SatisfactionBody key={v.site.id} view={v} />}
+		</Shell>
+	);
 }

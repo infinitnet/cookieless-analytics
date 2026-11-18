@@ -1,7 +1,7 @@
 /**
  * Hostile checks on the public page at run time. The served script (`scriptBody`, the bytes a
  * visitor gets) runs in jsdom with every storage surface, the cookie jar and the history API trapped; the page is
- * loaded, clicked, scrolled, hidden and left. Then: no cookie read or written, no storage touched, no history call
+ * loaded, clicked, scrolled, hidden and left. Then: no cookie read or written, no storage touched beyond one read of the opt-out flag, no history call
  * at all, and no change to any link or to the address, also for links to and pages of linked hosts.
  */
 import { JSDOM, VirtualConsole } from "jsdom";
@@ -31,8 +31,13 @@ function trapped(url: string) {
 	const touched: string[] = [];
 	const history: string[] = [];
 	const sent: unknown[] = [];
-	for (const name of ["localStorage", "sessionStorage", "indexedDB", "caches", "cookieStore", "openDatabase"])
+	for (const name of ["sessionStorage", "indexedDB", "caches", "cookieStore", "openDatabase"])
 		Object.defineProperty(w, name, { configurable: true, get: () => (touched.push(name), undefined) });
+	// localStorage holds only the visitor's opt-out flag: the script may read it, and writes nothing without a click on the opt-out control.
+	const reads: string[] = [];
+	const writes: string[] = [];
+	const flag = { getItem: (k: string) => (reads.push(k), null), setItem: (k: string) => void writes.push(k), removeItem: (k: string) => void writes.push(k) };
+	Object.defineProperty(w, "localStorage", { configurable: true, get: () => flag });
 	Object.defineProperty(w.Document.prototype, "cookie", { configurable: true, get: () => (touched.push("cookie read"), ""), set: () => void touched.push("cookie write") });
 	const h = w.history;
 	for (const m of ["pushState", "replaceState", "back", "forward", "go"] as const) Object.defineProperty(h, m, { configurable: true, value: () => void history.push(m) });
@@ -44,7 +49,7 @@ function trapped(url: string) {
 	w.addEventListener("click", (e) => e.preventDefault());
 	w.addEventListener("submit", (e) => e.preventDefault());
 	const hrefs = () => [...w.document.querySelectorAll("a")].map((a) => a.getAttribute("href"));
-	return { dom, w, touched, history, sent, hrefs };
+	return { dom, w, touched, reads, writes, history, sent, hrefs };
 }
 
 /** Load the served script and act like a visitor: clicks on every link and control, a scroll, a hidden tab, leaving. */
@@ -66,9 +71,22 @@ describe("gate: hostile checks on the public page", () => {
 		const p = visit("https://example.org/a?b=1");
 		expect(p.sent.length).toBeGreaterThan(0); // it did run and send the page view
 		expect(p.touched).toEqual([]);
+		expect(p.reads).toEqual(["data-ec-optout"]);
+		expect(p.writes).toEqual([]);
 		expect(p.history).toEqual([]);
 		expect(p.hrefs()).toEqual(p.before);
 		expect(p.hrefs().some((h) => h?.includes("#"))).toBe(false);
+	});
+
+	it("a click on the opt-out control writes exactly the opt-out flag, and nothing else is written", () => {
+		const p = trapped("https://example.org/a");
+		p.w.document.body.insertAdjacentHTML("beforeend", '<button id="oo" data-ec-optout>Stop counting my visits</button>');
+		p.w.eval(scriptBody(normalizeSettings({}), true, [LINKED]));
+		expect(p.writes).toEqual([]);
+		(p.w.document.getElementById("oo") as HTMLElement).click();
+		expect(p.writes).toEqual(["data-ec-optout"]);
+		expect(p.touched).toEqual([]);
+		expect(p.history).toEqual([]);
 	});
 
 	it("the served script on a linked host's page: the same, and the main host is not outbound", () => {

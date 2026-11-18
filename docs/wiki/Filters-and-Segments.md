@@ -5,7 +5,7 @@ Filters narrow every number on a page to a set of sessions, for example "visits 
 ## How to use it
 
 1. Click a value in any table (a channel, a page, a country). It is added to the filter bar as "is" that value.
-2. Or open the filter bar, choose a dimension, an operator (is, contains, starts with, matches regex) and one or more values.
+2. Or open the filter bar, choose a dimension, an operator (is, contains, starts with, matches regex) and one or more values. When the value field has focus it lists up to 50 values the range holds for that dimension, with their counts; typing narrows the list (a list cut at 50 is asked again with what you typed, matched from the start of the value). Pick one with the arrow keys and Enter or with a click, or type any value and choose **Add filter**. Revenue and currency take typed values only.
 3. Use the Include and Exclude button to turn a filter into its negative ("is not", "does not contain" and so on).
 4. To keep the set, choose **Save as segment** and give it a name. It then shows in the segment picker of the header.
 5. To build or edit segments without the report pages, open Definitions, Segments.

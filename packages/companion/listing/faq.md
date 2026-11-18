@@ -25,3 +25,7 @@ Yes. Once setup is complete the companion says so. It holds only your setup answ
 ## Which sites can install it?
 
 Sites that run the EmDash plugin sandbox: Cloudflare Workers Paid with D1, or Node with workerd. Other sites install the full plugin from npm directly.
+
+## Does the full plugin need a cookie banner?
+
+It sets no cookies and stores nothing on the device. Consent for its page script depends on the country: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/privacy.md#consent-and-the-law

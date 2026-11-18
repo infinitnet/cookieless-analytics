@@ -1,4 +1,20 @@
 /** Fixed Satisfaction texts, shared by the reports, the agent catalog and the admin without pulling in SQL code. */
+import type { Filter } from "../filters.js";
+
+/** The scope of the Search Satisfaction reports: organic search sessions of every search engine. */
+export const ORGANIC_SEARCH: Filter = { dim: "channel", op: "is", values: ["Organic Search"] };
+
+/**
+ * Filters of a Search Satisfaction run: the scope first, every channel filter of the caller left out (the report
+ * answers the notice `ignored_dim:channel` for it). Other filters narrow inside the scope.
+ */
+export const organicScope = (filters: readonly Filter[]): Filter[] => [ORGANIC_SEARCH, ...filters.filter((f) => f.dim !== "channel")];
+
+/** True for a channel filter that is not the scope itself: the one the report leaves out and says so. */
+export const conflictsWithScope = (f: Filter): boolean => f.dim === "channel" && !(f.op === "is" && f.values.length === 1 && f.values[0] === ORGANIC_SEARCH.values[0]);
+
+/** The reports that cover organic search sessions only. */
+export const SATISFACTION_REPORTS: ReadonlySet<string> = new Set(["satisfaction", "satisfaction_series"]);
 
 /** Typed `raw_only` text beyond the raw window. */
 export const SATISFACTION_RAW_ONLY =
@@ -14,7 +30,7 @@ export const POGO_DEFINITION = "Pogo-sticking: a visitor from a search engine le
 export const RETURNED_DEFINITION = "Returned from search: a search visitor left the landing page with back or forward and came again from a search engine in one session.";
 
 /** Groupings of the `satisfaction` report (`params.by`); `entry` is the landing page. */
-export const SATISFACTION_BY = ["entry", "channel", "source", "device", "country", "browser"] as const;
+export const SATISFACTION_BY = ["entry", "source", "device", "country", "browser"] as const;
 export type SatisfactionBy = (typeof SATISFACTION_BY)[number];
 
 /** Fewest measured sessions a landing page needs to be ranked as a best or worst page (`params.rank`). */

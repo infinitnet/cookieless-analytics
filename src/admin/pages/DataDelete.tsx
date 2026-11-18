@@ -10,6 +10,7 @@ import type { DeleteJobView, DeleteLogEntry, DeletePreview, DeleteSpec, SCREENS 
 import { type Dim, type Filter, TRAFFIC_DIMS } from "../../query/filters.js";
 import { call, errorText, withApiSite } from "../api.js";
 import { DIM_LABELS, FilterBar } from "../components/FilterBar.js";
+import { validRange } from "../state.js";
 import { count } from "../components/format.js";
 import type { View } from "../components/Header.js";
 import { SETTINGS_HREF } from "../components/ReportNotices.js";
@@ -179,7 +180,7 @@ export function FilteredDelete({ view }: { view: View }) {
 						</select>
 					</Field>
 				</div>
-				<FilterBar filters={filters} onChange={edit(setFilters)} dims={DIMS} />
+				<FilterBar filters={filters} onChange={edit(setFilters)} dims={DIMS} suggest={validRange(from, to) ? { site: view.site.id, from, to } : undefined} />
 				<fieldset className="ca-fd-checks">
 					<legend>Screen size</legend>
 					{SCREEN_LABELS.map(([k, l]) => (

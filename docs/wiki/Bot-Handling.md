@@ -60,7 +60,7 @@ Check validates every line (errors with their line number, a click selects the l
 
 ## Client checks
 
-The page script has its own, smaller checks. If any applies, it does nothing at all: it sends nothing and adds no listener.
+The page script has its own, smaller checks. If any applies, it does nothing at all: it sends nothing and adds no listener. A privacy signal or the visitor's opt-out flag only stops sending.
 
 - `navigator.webdriver` is true.
 - The user agent matches a short bot pattern (words such as bot, spider, headless, lighthouse, puppeteer, playwright, preview, python, curl and wget).

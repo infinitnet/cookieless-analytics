@@ -14,6 +14,7 @@ import { planFilters, RAW_ONLY, rawOnly, ROLLUP_REPORTS, runRollupReport } from 
 import { behindNotice, clearOpenDays, clearScanCache, storedSessions } from "./summary.js";
 import { entryPages, exitPages, notFound, pages } from "./pages.js";
 import { satisfaction, satisfactionSeries } from "./satisfaction.js";
+import { conflictsWithScope, organicScope, SATISFACTION_REPORTS } from "./satisfaction-copy.js";
 import { searchCountries, searchDevices, searchOverview, searchPageQueries, searchPages, searchQueries } from "./search.js";
 import {
 	searchCannibalization,
@@ -399,15 +400,20 @@ async function execute(ctx: ReportCtx, req: ReportRequest): Promise<ReportResult
 	validateFilters(filters);
 	if (req.compareFilters) validateFilters(req.compareFilters);
 	if (req.params?.currency !== undefined) currencyOf(rc, { params: req.params });
-	const cur = await runOnce(rc, req, kind, run, from, to, filters, false);
+	// Search Satisfaction covers organic search sessions only: the scope is part of every run, and a channel filter of the caller does not apply.
+	const scoped = SATISFACTION_REPORTS.has(req.report);
+	const channelOff = scoped && [...filters, ...(req.compareFilters ?? [])].some(conflictsWithScope);
+	const scope = (f: readonly Filter[]) => (scoped ? organicScope(f) : f);
+	const cur = await runOnce(rc, req, kind, run, from, to, scope(filters), false);
 	const notices = new Set<string>(kind === "search" ? (cur.input.search?.ignored ?? []).map((d) => `ignored_dim:${d}`) : cur.notices);
 	if (kind === "traffic") for (const d of cur.input.traffic?.ignoredTraffic ?? []) notices.add(`ignored_dim:${d}`);
+	if (channelOff) notices.add("ignored_dim:channel");
 	let data = cur.data;
 	let compareRange: ReportResult["compareRange"] = null;
 	if (compare !== "none" && req.report !== "dimension_values" && !SELF_COMPARED.has(req.report)) {
 		compareRange = compare === "segment" ? { from, to } : compare === "previous" ? previousPeriod({ from, to }) : samePeriodLastYear({ from, to });
 		// Side B: the same range with the compare segment in the primary segment slot.
-		const prev = await runOnce(rc, req, kind, run, compareRange.from, compareRange.to, compare === "segment" ? (req.compareFilters ?? []) : filters, true);
+		const prev = await runOnce(rc, req, kind, run, compareRange.from, compareRange.to, scope(compare === "segment" ? (req.compareFilters ?? []) : filters), true);
 		// The compare side's own range fix would confuse: only its engine and its filters are reported.
 		for (const n of prev.notices) if (!n.startsWith("detail_from:")) notices.add(n === "summary" ? "compare_summary" : n);
 		data = mergeCompare(cur.data, prev.data);

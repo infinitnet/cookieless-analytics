@@ -332,14 +332,15 @@ describe("reports against a row-per-hit reference on traffic written by the real
 		);
 	});
 
-	it("satisfaction totals and the back/forward share", async () => {
+	it("satisfaction totals and the back/forward share, over organic search sessions only", async () => {
 		const long = DEFAULT_SETTINGS.longClickSeconds * 1000;
 		const bad = Math.min(DEFAULT_SETTINGS.badExperienceSeconds * 1000, long);
 		const c = { sessions: 0, measured: 0, long_clicks: 0, short_clicks: 0, bad_experiences: 0, search_sessions: 0, search_measured: 0, pogo_sticks: 0 };
-		for (const v of counted()) {
+		const organic = (v: { channel: string | null }) => v.channel === "Organic Search";
+		for (const v of counted().filter(organic)) {
 			const dur = Math.max((v.last_seen - v.started) * 1000, v.visible_ms);
 			const m = v.visible_ms > 0;
-			const se = v.channel === "Organic Search" || v.channel === "Paid Search";
+			const se = v.channel === "Organic Search";
 			const single = v.pageviews === 1 && v.events === 0;
 			const lexit = v.pageviews === 1 ? Math.max(...ref.hits.filter((h) => h.v === v && h.kind === "pv").map((h) => h.exit ?? -1)) : null;
 			c.sessions++;
@@ -351,10 +352,12 @@ describe("reports against a row-per-hit reference on traffic written by the real
 			if (se && m) c.search_measured++;
 			if (se && m && single && dur <= long && lexit === 2) c.pogo_sticks++;
 		}
-		const pvs = hitsOf("pv").filter((h) => h.nav !== null);
+		const pvs = hitsOf("pv").filter((h) => h.nav !== null && organic(h.v));
 		const r = await run("satisfaction");
 		expect(r.data.totals).toMatchObject({ ...c, back_nav_rate: rnd(rate(pvs.filter((h) => h.nav === 2).length, pvs.length)) });
 		expect(c.long_clicks + c.short_clicks).toBe(c.measured);
+		expect(c.sessions).toBeGreaterThan(0);
+		expect(c.sessions).toBeLessThan(counted().length);
 	});
 
 	it("links by link, with the conversions the server reported without a visit", async () => {

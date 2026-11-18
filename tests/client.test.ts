@@ -18,6 +18,7 @@ const HTML = `<!doctype html><html><head></head><body style="height:5000px">
 <a id="admin" href="/_emdash/admin">admin</a>
 <button id="cta" data-ec-event="cta_click" data-ec-prop-plan="pro">cta</button>
 <button id="buy" data-ec-event="purchase" data-ec-value="49.9" data-ec-currency="EUR" data-ec-id="A-1001">buy</button>
+<button id="oo" type="button" data-ec-optout data-ec-optout-on="Counting stopped" data-ec-optout-off="Stop counting my visits">Stop counting my visits</button>
 <form id="signup" action="/subscribe"><button id="sub" type="submit">go</button></form>
 </body></html>`;
 
@@ -114,9 +115,16 @@ describe("pageview and passive links", () => {
 		expect(pv).toMatchObject({ v: 1, t: "pv", n: 1, u: "/a?b=1", r: "https://search.example/" });
 		expect(pv.sid).toMatch(/^[a-z0-9]{20}$/);
 		expect(pv.h).toMatch(/^[a-z0-9]{12}$/);
-		expect(typeof pv.w).toBe("number");
+		expect(pv.w).toBe(0);
 		expect(validateIngest(pv)).not.toBeNull();
 		expect(p.hrefs()).toEqual(before);
+	});
+
+	it("sends the screen width only when captureScreen is on", () => {
+		const wide = (w: Win) => Object.defineProperty(w.screen, "width", { configurable: true, value: 1280 });
+		expect((page({ before: wide }).sent[0] as Record<string, unknown>).w).toBe(0);
+		expect((page({ before: wide, cfg: { s: 1 } }).sent[0] as Record<string, unknown>).w).toBe(1280);
+		expect(clientConfig(normalizeSettings({ captureScreen: true })).s).toBe(1);
 	});
 
 	it("no click ever changes a link: real or synthetic, any button or modifier, any kind of link", () => {
@@ -767,5 +775,119 @@ describe("link rules", () => {
 			const want = !m || m.event === "-" ? [] : [[m.event, { slug: m.slug }]];
 			expect(got.map((e) => [e.name, e.p]), href).toEqual(want);
 		}
+	});
+});
+
+describe("visitor opt-out control", () => {
+	const KEY = "data-ec-optout";
+	const flagged = (w: Win) => w.localStorage.setItem(KEY, "1");
+
+	it("sends page views by default and shows the counting state on the control", () => {
+		const p = page();
+		expect(p.sent).toHaveLength(1);
+		expect(p.w.localStorage.getItem(KEY)).toBeNull();
+		expect(p.$("oo").getAttribute("aria-pressed")).toBe("false");
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("in");
+		expect(p.$("oo").textContent).toBe("Stop counting my visits");
+	});
+
+	it("a click stores the flag, sends nothing after, updates state and label", () => {
+		const p = page();
+		p.press(p.$("oo"));
+		expect(p.w.localStorage.getItem(KEY)).toBe("1");
+		expect(p.$("oo").getAttribute("aria-pressed")).toBe("true");
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("out");
+		expect(p.$("oo").textContent).toBe("Counting stopped");
+		const n = p.sent.length;
+		p.press(p.$("cta"));
+		p.press(p.$("ext"));
+		p.w.__ec && (p.w.__ec as { event: (n: string) => void }).event("late");
+		p.fire("pagehide");
+		expect(p.sent).toHaveLength(n);
+	});
+
+	it("a click on a child of the control counts, and a control added later works", () => {
+		const p = page();
+		const b = p.w.document.createElement("button");
+		b.setAttribute("data-ec-optout", "");
+		b.innerHTML = "<span>x</span>";
+		p.w.document.body.appendChild(b);
+		p.press(b.firstElementChild as Element);
+		expect(p.w.localStorage.getItem(KEY)).toBe("1");
+		expect(b.getAttribute("data-ec-optout-state")).toBe("out");
+		expect(b.hasAttribute("data-ec-optout-on")).toBe(false);
+	});
+
+	it("a load with the flag set sends nothing, and exposes the state", () => {
+		const p = page({ before: flagged });
+		expect(p.sent).toEqual([]);
+		expect(p.beacons).toEqual([]);
+		p.press(p.$("cta"));
+		p.fire("pagehide");
+		expect(p.sent).toEqual([]);
+		expect(p.$("oo").getAttribute("aria-pressed")).toBe("true");
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("out");
+		expect(p.$("oo").textContent).toBe("Counting stopped");
+	});
+
+	it("the track API is a no-op when opted out", () => {
+		const p = page({ before: flagged });
+		const api = p.w.__ec as { event: (n: string) => void; page: (u?: string) => void };
+		api.event("signup");
+		api.page("/other");
+		expect(p.sent).toEqual([]);
+	});
+
+	it("a second click removes the flag, and the next load sends again", () => {
+		const p = page({ before: flagged });
+		p.press(p.$("oo"));
+		expect(p.w.localStorage.getItem(KEY)).toBeNull();
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("in");
+		expect(p.$("oo").textContent).toBe("Stop counting my visits");
+		const next = page({ before: (w) => w.localStorage.getItem(KEY) });
+		expect(next.sent).toHaveLength(1);
+	});
+
+	it("blocked storage does not throw, and the in-memory state works", () => {
+		const block = (w: Win) => {
+			const boom = () => {
+				throw new Error("blocked");
+			};
+			Object.defineProperty(w, "localStorage", { value: { getItem: boom, setItem: boom, removeItem: boom } });
+		};
+		const p = page({ before: block });
+		expect(p.sent).toHaveLength(1);
+		expect(() => p.press(p.$("oo"))).not.toThrow();
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("out");
+		const n = p.sent.length;
+		p.press(p.$("cta"));
+		expect(p.sent).toHaveLength(n);
+		p.press(p.$("oo"));
+		expect(p.$("oo").getAttribute("data-ec-optout-state")).toBe("in");
+	});
+
+	it("opting out stops a pending retry", () => {
+		vi.useFakeTimers();
+		const p = page({ fetch: () => ({ status: 503, headers: { "retry-after": "1" } }) });
+		return vi.advanceTimersByTimeAsync(0).then(async () => {
+			p.press(p.$("oo"));
+			await vi.advanceTimersByTimeAsync(120000);
+			expect(p.fetches).toHaveLength(1);
+		});
+	});
+
+	it("follows the data attribute prefix and the storage key of a custom namespace", () => {
+		const cfg = clientConfig(normalizeSettings({ namespace: "__zz" }));
+		expect(cfg.a).toBe("data-zz-");
+		const p = page({ cfg });
+		const b = p.w.document.createElement("button");
+		b.setAttribute("data-zz-optout", "");
+		p.w.document.body.appendChild(b);
+		p.press(b);
+		expect(p.w.localStorage.getItem("data-zz-optout")).toBe("1");
+		expect(b.getAttribute("data-zz-optout-state")).toBe("out");
+		p.press(p.$("oo"));
+		expect(p.$("oo").hasAttribute("data-ec-optout-state")).toBe(false);
+		expect(p.w.localStorage.getItem("data-zz-optout")).toBe("1");
 	});
 });

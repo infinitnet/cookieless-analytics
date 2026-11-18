@@ -441,9 +441,10 @@ describe("Search Satisfaction page", () => {
 		expect(getByRole("region", { name: "Key figures" }).querySelector('[data-metric="measured_rate"] button.ca-kpi-btn')).toBeNull();
 	});
 
-	it("breakdown tabs query params.by", async () => {
-		const { findByRole } = await open();
-		for (const [label, by] of [["Channels", "channel"], ["Sources", "source"], ["Devices", "device"], ["Countries", "country"], ["Browsers", "browser"]] as const) {
+	it("breakdown tabs query params.by; no channel tab, every session is organic search", async () => {
+		const { findByRole, queryByRole } = await open();
+		expect(queryByRole("tab", { name: "Channels" })).toBeNull();
+		for (const [label, by] of [["Search engines", "source"], ["Devices", "device"], ["Countries", "country"], ["Browsers", "browser"]] as const) {
 			fireEvent.click(await findByRole("tab", { name: label }));
 			await waitFor(() => expect(queries().some((b) => b.report === "satisfaction" && b.params?.by === by)).toBe(true));
 		}
@@ -458,13 +459,15 @@ describe("Search Satisfaction page", () => {
 		const entry = { dim: "entry", op: "is", values: ["/land"] };
 		await waitFor(() => {
 			const q = queries();
+			// The reports hold the organic search scope themselves: the page sends only the view's own filters.
 			expect(q.some((b) => b.report === "satisfaction_series" && JSON.stringify(b.query.filters) === JSON.stringify([entry]))).toBe(true);
-			expect(q.some((b) => b.report === "satisfaction" && b.params?.by === "source" && JSON.stringify(b.query.filters) === JSON.stringify([entry, { dim: "channel", op: "is", values: ["Organic Search"] }]))).toBe(true);
-			expect(q.some((b) => b.report === "satisfaction" && b.params?.by === "channel" && JSON.stringify(b.query.filters) === JSON.stringify([entry]))).toBe(true);
+			expect(q.some((b) => b.report === "satisfaction" && b.params?.by === "source" && JSON.stringify(b.query.filters) === JSON.stringify([entry]))).toBe(true);
+			expect(q.some((b) => b.report === "satisfaction" && b.params?.by === "device" && JSON.stringify(b.query.filters) === JSON.stringify([entry]))).toBe(true);
 		});
 		expect(within(drawer).getByRole("region", { name: "Pogo-sticking by search engine" })).toBeTruthy();
-		fireEvent.click(within(drawer).getByRole("button", { name: "Devices" }));
-		await waitFor(() => expect(queries().some((b) => b.report === "satisfaction" && b.params?.by === "device")).toBe(true));
+		expect(within(drawer).queryByRole("button", { name: "Channels" })).toBeNull();
+		fireEvent.click(within(drawer).getByRole("button", { name: "Countries" }));
+		await waitFor(() => expect(queries().some((b) => b.report === "satisfaction" && b.params?.by === "country")).toBe(true));
 		fireEvent.click(within(drawer).getByRole("button", { name: "Close" }));
 		expect(container.querySelector(".ca-sat-drawer")).toBeNull();
 		expect(document.activeElement).toBe(row);
@@ -508,19 +511,41 @@ describe("Search Satisfaction page", () => {
 		await waitFor(() => expect(decodeState(window.location.search, "UTC").from).toBe("2025-02-10"));
 	});
 
-	it("presets add their chips to the filter bar, Bing organic included", async () => {
+	it("presets narrow the organic scope with their chips, Bing organic included", async () => {
 		const { findByRole } = await open();
 		fireEvent.click(await findByRole("button", { name: "Google organic" }));
-		await waitFor(() =>
-			expect(decodeState(window.location.search, "UTC").filters).toEqual([
-				{ dim: "channel", op: "is", values: ["Organic Search"] },
-				{ dim: "source", op: "prefix", values: ["google."] },
-			]),
-		);
+		await waitFor(() => expect(decodeState(window.location.search, "UTC").filters).toEqual([{ dim: "source", op: "prefix", values: ["google."] }]));
 		fireEvent.click(await findByRole("button", { name: "Chrome" }));
 		await waitFor(() => expect(decodeState(window.location.search, "UTC").filters).toContainEqual({ dim: "browser", op: "is", values: ["Chrome"] }));
 		fireEvent.click(await findByRole("button", { name: "Bing organic" }));
 		await waitFor(() => expect(decodeState(window.location.search, "UTC").filters).toContainEqual({ dim: "source", op: "prefix", values: ["bing."] }));
+	});
+
+	it("shows the organic search scope as a fixed chip that cannot be removed, and offers no channel filter", async () => {
+		const { findByText, getByLabelText, container, queryByRole } = await open();
+		expect(await findByText("Organic search sessions only, every search engine. Narrow to:")).toBeTruthy();
+		const chip = container.querySelector('.ca-chip[data-fixed="true"]') as HTMLElement;
+		expect(chip.textContent).toBe("Channel is Organic Search, fixed");
+		expect(within(chip).queryByRole("button")).toBeNull();
+		expect(within(chip).queryByRole("combobox")).toBeNull();
+		expect(queryByRole("button", { name: /^Remove Channel/ })).toBeNull();
+		const dims = [...(getByLabelText("Dimension") as HTMLSelectElement).options].map((o) => o.value);
+		expect(dims).not.toContain("channel");
+		expect(dims).toContain("source");
+		await waitFor(() => expect(queries().filter((b) => b.report.startsWith("satisfaction")).length).toBeGreaterThan(0));
+		// No request carries a channel filter: the reports enforce the scope.
+		expect(queries().filter((b) => b.report.startsWith("satisfaction")).every((b) => !JSON.stringify(b.query.filters).includes("channel"))).toBe(true);
+	});
+
+	it("a channel chip carried over from another page shows struck through with the reason", async () => {
+		window.history.replaceState(null, "", `/_emdash/admin/plugins/x/satisfaction?from=2026-03-01&to=2026-03-07&f=${btoa(JSON.stringify([{ dim: "channel", op: "is", values: ["Direct"] }])).replace(/=+$/, "")}`);
+		const { findByRole, container } = render(<Satisfaction />);
+		await findByRole("region", { name: "Key figures" });
+		const chip = container.querySelector('.ca-chip[data-dim="channel"]:not([data-fixed])') as HTMLElement;
+		expect(chip.getAttribute("data-off")).toBe("true");
+		expect(chip.getAttribute("title")).toBe("Channel is Organic Search is fixed on this page");
+		// The chip stays in the view, so it carries on to the next page.
+		expect(decodeState(window.location.search, "UTC").filters).toEqual([{ dim: "channel", op: "is", values: ["Direct"] }]);
 	});
 
 	it("shows the empty state of the ranked lists", async () => {

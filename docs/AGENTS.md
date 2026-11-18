@@ -111,13 +111,17 @@ Responses hold aggregates only: never IP addresses, visitor keys, session ids, u
 
 ## 7. Search Satisfaction
 
-`satisfaction` (landing page rows plus a totals row; `params.by` groups by `channel`, `source`, `device`, `country` or `browser` instead, `params.rank: "best" | "worst"` orders landing pages with at least 30 measured sessions by `score`) and `satisfaction_series` (daily or weekly rates) run through `query` with `read:analytics`. They are computed from session rows at query time, so they answer `raw_only` for ranges that start before the raw window. Definitions, per human session with at least one page view, with `L = longClickSeconds` (default 60) and `B = min(badExperienceSeconds, longClickSeconds)` (default 10):
+`satisfaction` (landing page rows plus a totals row; `params.by` groups by `source`, `device`, `country` or `browser` instead, `params.rank: "best" | "worst"` orders landing pages with at least 30 measured sessions by `score`) and `satisfaction_series` (daily or weekly rates) run through `query` with `read:analytics`. They are computed from session rows at query time, so they answer `raw_only` for ranges that start before the raw window.
+
+Search Satisfaction covers organic search sessions only: both reports always restrict their sessions to the channel `Organic Search`, whatever filters the request carries. Other filters narrow inside that scope (`source` prefix `google.` or `bing.` for one engine, `browser`, `entry`, `page`, `device`, `country`). A `channel` filter does not apply: the answer covers the same organic search sessions and carries the notice `ignored_dim:channel`. `params.by: "channel"` is answered with `invalid_params`.
+
+Definitions, per human organic search session with at least one page view, with `L = longClickSeconds` (default 60) and `B = min(badExperienceSeconds, longClickSeconds)` (default 10):
 
 - Duration: the longer of the time between first and last page view and the visible time.
 - Measured: at least one engagement update arrived (visible time above 0). Unmeasured sessions are left out of every rate denominator; `measured` and `sessions` are both returned.
 - Long click: measured and duration above `L` seconds. Short click: measured and duration at or below `L`.
 - Bad experience: measured, one page view, no events, no interaction and duration below `B` seconds.
-- Search session: channel Organic Search or Paid Search.
+- Search session: channel Organic Search, so every session of these reports is one (`search_sessions` equals `sessions`).
 - Pogo-sticking (estimate, `pogo_stick_rate`): a measured search session with one page view, no events, a short click, and a page left with `pagehide` kept for the back and forward cache. Rate: `pogo_sticks` divided by measured search sessions.
 - Returned from search (estimate, `returned_from_search_rate`): a search session whose first page view was left for the back and forward cache and that a later arrival from a search engine joined. Rate: `returned_from_search` divided by search sessions. A stronger pogo-sticking signal: the visitor demonstrably came back from the results page.
 - Score: long click rate minus bad experience rate minus pogo-sticking rate (0 when no search session is measured).
@@ -127,7 +131,7 @@ Responses hold aggregates only: never IP addresses, visitor keys, session ids, u
 Changing a threshold reclassifies every stored session at once; there is no job to wait for. The catalog marks `pogo_stick_rate`, `returned_from_search_rate`, `search_reentry_rate` and `back_nav_rate` with `estimate: true`. Do not quote them as measurements:
 
 - Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals.
-- The referrer is the search engine's origin only, so the query is never known and a second search cannot be told from the same search again. Surfaces without a referrer count as Direct and are outside every search-based rate.
+- The referrer is the search engine's origin only, so the query is never known and a second search cannot be told from the same search again. Surfaces without a referrer count as Direct and are outside Search Satisfaction.
 - `pagehide` with `persisted` true fires on back and on forward navigation alike: it means the visitor left without closing the tab and without clicking one of the site's links, not that they pressed Back. A tab close or a page the browser does not cache is not counted. Browsers differ, so compare within one browser.
 - A tab or app switch is not an exit. On mobile a page left through the app switcher and later killed never fires `pagehide`.
 - A restore from the back and forward cache is not a page load, so the back/forward load share is a lower bound.

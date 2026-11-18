@@ -64,6 +64,16 @@ describe("recordClientEvent: pageviews and sessions", () => {
 		expect(hits()).toHaveLength(2);
 	});
 
+	it("stores no screen size class by default, whatever the sender puts in w", async () => {
+		await recordClientEvent(deps(), pv(SID, H1, "/a"), info());
+		expect(sessions()[0]?.screen).toBeNull();
+	});
+
+	it("stores the screen size class with captureScreen", async () => {
+		await recordClientEvent(deps({ captureScreen: true }), pv(SID, H1, "/a"), info());
+		expect(sessions()[0]?.screen).toBe("xl");
+	});
+
 	it("aliases a fresh client sid onto the active session of the same visitor", async () => {
 		await recordClientEvent(deps(), pv(SID, H1, "/a"), info());
 		expect(await recordClientEvent(deps({}, T0 + 30), pv(SID2, H2, "/b", { n: 1 }), info())).toBe("ok");

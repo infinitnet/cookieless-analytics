@@ -34,7 +34,7 @@ The file holds the report's rows for the header range and filters, up to 10 000 
 
 ![Privacy receipt tab](images/data-privacy.png)
 
-The receipt states, fixed: "No cookies, no device storage, no raw IP, no raw user agent." Below it:
+The receipt states, fixed: "No cookies, no device storage unless a visitor opts out, no raw IP, no raw user agent." Below it:
 
 - the current salt day, its age and the next rotation;
 - the requests not recorded, by reason, over the detailed window;

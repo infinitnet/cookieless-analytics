@@ -1,8 +1,8 @@
 import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION } from "./contract.mjs";
-import { $ as sitesInTables, $n as nextUtcDay, $r as redact, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as eachDay, An as GoalSchema, Ar as formatAmount, At as revenueOrders, B as KV_WRITE_BUDGET, Bn as SEARCH_DIMS, C as siteProblem, Ci as upsertChanged, Cn as goalPredicate, Cr as isEventName, Ct as WITH_REVENUE, D as readVisits, Di as addDays, Dn as FUNNEL_MODES, Dr as validateIngest, Dt as metaOf, E as MAX_DOC_BYTES, Ei as ident, En as DIM_NAMES, Er as isSid, Et as hasRevenue, F as UTM_KEYS, Fi as saltDay, Fn as PROP_KEY_RE, Fr as eachTarget, Ft as resolveGranularity, G as KV_CURSOR, Gi as vkey, Gn as copyRowsLeft, Gt as openDay, H as budgetTargetOf, Hi as sha256, Hn as COPY_DAY_ROWS, Hr as setPluginFacts, Ht as clearOpenDays, I as cleanHost, Ii as samePeriodLastYear, In as QuerySchema, Ir as ensureHostSchema, It as timeseries, J as clearEstimateDay, Jn as PROVIDER_DAYS, Jr as fromPg, Jt as readSummary, K as KV_DELETE_ROWS, Kn as nextUtcMidnight, Kr as queryCacheOn, Kt as planFilters, Li as zonedToEpoch, Ln as REVENUE_BREAKDOWN_DIMS, Lr as factsDb, Lt as weekStart, M as buildChannelRules, Mi as lastClosedDay, Mn as NEGATED, Mr as normalizeCurrency, Mt as revenueSeries, N as classifyChannel, Ni as previousPeriod, Nn as NUM_OPS, Nr as roundMinor, Nt as withRevenue, Oi as dayInZone, On as FilterSchema, Or as validateRevenue, Ot as revenue, P as CLICK_IDS, Pi as saltBoundary, Pn as OPS, Pr as eachDatabase, Pt as bucketSeries, Q as runRetention, Qn as backfillRange, Qr as pgStatementLimit, Qt as DURATION_MS, R as normalizeUrl, Ri as base64url, Rn as REVENUE_DIMS, Rr as factsTargets, Rt as CUBE_SEG, S as registry, Si as q, Sn as entryProp, Sr as cleanProps, St as REVENUE_REPORTS, Ti as chunk, Tn as validateFilters, Tr as isReservedEvent, Tt as currencyOf, U as dailyRowsApply, Ui as timingSafeEqual, Un as chargeCopyRows, Ur as stateKv, Ut as clearScanCache, V as budgetState, Vi as randomId, Vn as TRAFFIC_DIMS, Vr as pluginFactsOrNull, Vt as behindNotice, Wi as truncateIp, Wn as copiedToday, Wr as statePrefix, X as rawFromDay, Xn as SYNC_BUDGET, Xr as pgOwnScope, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yr as isHyperdrive, Yt as splitRange, Z as runChunk, Zn as SyncRows, Zr as pgScope, Zt as storedThrough, _ as linkedHosts, _i as docPut, _n as and, _r as parseLinkRules, _t as journeyNext, ai as ensureSchemaOnce, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as likeEscape, bn as entriesOf, br as validateSafeRegex, bt as journeysFromSummary, c as ClientSiteSchema, ci as fromKysely, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as isD1, dr as budgetWarning, dt as runRollup, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as workerEnv, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as docObject, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as docJson, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as ensureSchema, in as keysIn, ir as SourceError, it as OTHER, ji as hourInZone, jn as LINK_BY, jr as isCurrency, jt as revenuePlan, k as isActive$1, ki as daysBetween, kn as FunnelStepsSchema, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, li as selfCheck, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as dayInt, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as SCHEMA_VERSION_KEY, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as isOwnDatabase, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as LIKE_ESCAPE, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qn as KV_SYNC_ROWS, qr as INGEST_STATEMENT_MS, ri as TABLES$1, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as schemaVersion, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as SCHEMA_VERSION, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as fromD1, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as docRead, vn as compileSearch, vr as publicNames, vt as journeyPaths, w as drops, wi as visitDayKey, wn as inList, wr as isPath, wt as currencyList, x as newSiteKey, xi as paramRows, xn as entryCols, xr as OID_RE, xt as journeysUnavailable, y as loadSites, yi as isoDay, yn as compileTraffic, yr as compileSafeRegex, yt as journeyPrev, zi as getOrCreateSalt, zn as REVENUE_VALUE_RE, zr as missingDb } from "./queue-sink-CsXeLpUE.mjs";
-import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-q85kV3_A.mjs";
-import { a as runRollupReport, c as SATISFACTION_BY, d as entryPages, f as exitPages, h as overview, l as SATISFACTION_CAVEAT, m as pages, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as notFound$1, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SCORE_DEFINITION } from "./rollup-rJWazoto.mjs";
-import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-C42AfJsx.mjs";
+import { $ as sitesInTables, $n as nextUtcDay, $r as redact, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as eachDay, An as GoalSchema, Ar as formatAmount, At as revenueOrders, B as KV_WRITE_BUDGET, Bn as SEARCH_DIMS, C as siteProblem, Ci as upsertChanged, Cn as goalPredicate, Cr as isEventName, Ct as WITH_REVENUE, D as readVisits, Di as addDays, Dn as FUNNEL_MODES, Dr as validateIngest, Dt as metaOf, E as MAX_DOC_BYTES, Ei as ident, En as DIM_NAMES, Er as isSid, Et as hasRevenue, F as UTM_KEYS, Fi as saltDay, Fn as PROP_KEY_RE, Fr as eachTarget, Ft as resolveGranularity, G as KV_CURSOR, Gi as vkey, Gn as copyRowsLeft, Gt as openDay, H as budgetTargetOf, Hi as sha256, Hn as COPY_DAY_ROWS, Hr as setPluginFacts, Ht as clearOpenDays, I as cleanHost, Ii as samePeriodLastYear, In as QuerySchema, Ir as ensureHostSchema, It as timeseries, J as clearEstimateDay, Jn as PROVIDER_DAYS, Jr as fromPg, Jt as readSummary, K as KV_DELETE_ROWS, Kn as nextUtcMidnight, Kr as queryCacheOn, Kt as planFilters, Li as zonedToEpoch, Ln as REVENUE_BREAKDOWN_DIMS, Lr as factsDb, Lt as weekStart, M as buildChannelRules, Mi as lastClosedDay, Mn as NEGATED, Mr as normalizeCurrency, Mt as revenueSeries, N as classifyChannel, Ni as previousPeriod, Nn as NUM_OPS, Nr as roundMinor, Nt as withRevenue, Oi as dayInZone, On as FilterSchema, Or as validateRevenue, Ot as revenue, P as CLICK_IDS, Pi as saltBoundary, Pn as OPS, Pr as eachDatabase, Pt as bucketSeries, Q as runRetention, Qn as backfillRange, Qr as pgStatementLimit, Qt as DURATION_MS, R as normalizeUrl, Ri as base64url, Rn as REVENUE_DIMS, Rr as factsTargets, Rt as CUBE_SEG, S as registry, Si as q, Sn as entryProp, Sr as cleanProps, St as REVENUE_REPORTS, Ti as chunk, Tn as validateFilters, Tr as isReservedEvent, Tt as currencyOf, U as dailyRowsApply, Ui as timingSafeEqual, Un as chargeCopyRows, Ur as stateKv, Ut as clearScanCache, V as budgetState, Vi as randomId, Vn as TRAFFIC_DIMS, Vr as pluginFactsOrNull, Vt as behindNotice, Wi as truncateIp, Wn as copiedToday, Wr as statePrefix, X as rawFromDay, Xn as SYNC_BUDGET, Xr as pgOwnScope, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yr as isHyperdrive, Yt as splitRange, Z as runChunk, Zn as SyncRows, Zr as pgScope, Zt as storedThrough, _ as linkedHosts, _i as docPut, _n as and, _r as parseLinkRules, _t as journeyNext, ai as ensureSchemaOnce, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as likeEscape, bn as entriesOf, br as validateSafeRegex, bt as journeysFromSummary, c as ClientSiteSchema, ci as fromKysely, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as isD1, dr as budgetWarning, dt as runRollup, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as workerEnv, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as docObject, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as docJson, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as ensureSchema, in as keysIn, ir as SourceError, it as OTHER, ji as hourInZone, jn as LINK_BY, jr as isCurrency, jt as revenuePlan, k as isActive$1, ki as daysBetween, kn as FunnelStepsSchema, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, li as selfCheck, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as dayInt, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as SCHEMA_VERSION_KEY, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as isOwnDatabase, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as LIKE_ESCAPE, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qn as KV_SYNC_ROWS, qr as INGEST_STATEMENT_MS, ri as TABLES$1, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as schemaVersion, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as SCHEMA_VERSION, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as fromD1, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as docRead, vn as compileSearch, vr as publicNames, vt as journeyPaths, w as drops, wi as visitDayKey, wn as inList, wr as isPath, wt as currencyList, x as newSiteKey, xi as paramRows, xn as entryCols, xr as OID_RE, xt as journeysUnavailable, y as loadSites, yi as isoDay, yn as compileTraffic, yr as compileSafeRegex, yt as journeyPrev, zi as getOrCreateSalt, zn as REVENUE_VALUE_RE, zr as missingDb } from "./queue-sink-GZqbpCBQ.mjs";
+import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-DKmOwHfH.mjs";
+import { _ as pages, a as runRollupReport, c as SATISFACTION_BY, d as SCORE_DEFINITION, f as conflictsWithScope, g as notFound$1, h as exitPages, l as SATISFACTION_CAVEAT, m as entryPages, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as organicScope, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SATISFACTION_REPORTS, v as overview } from "./rollup-DycgS_ed.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-CbmOz1Xm.mjs";
 import { PluginRouteError, after, definePlugin, getPluginSettings, pluginResponse } from "emdash";
 import { getDb } from "emdash/runtime";
 import { z } from "zod";
@@ -803,14 +803,14 @@ async function scroll(rc, input) {
 // src/query/reports/satisfaction.ts
 /**
 * Satisfaction reports: long and short clicks, bad experience, estimated pogo-sticking, returns to
-* search, search re-entry and the back/forward load share. Classified at query time from `ca_sessions` and the page view
+* search, search re-entry and the back/forward load share, over organic search sessions only (the dispatcher adds
+* the scope channel is Organic Search to every run, see `organicScope`). Classified at query time from `ca_sessions` and the page view
 * entries of its document
 * with the thresholds of the moment, so a changed threshold reclassifies every stored session at once.
 */
 /** Session column per `params.by`; `entry` is the landing page table. */
 const BY_COL = {
 	entry: "s.entry_path",
-	channel: "COALESCE(s.channel, '(not set)')",
 	source: "COALESCE(s.source, '(not set)')",
 	device: "COALESCE(s.device, '(not set)')",
 	country: "COALESCE(s.country, '(not set)')",
@@ -851,7 +851,7 @@ function countsSql(rc, input, keyExpr, byDay) {
 	const group = [keyExpr ? "t.key" : null, byDay ? "t.day" : null].filter(Boolean);
 	const inner = `SELECT ${keyExpr ? `${keyExpr} AS key, ` : ""}s.day AS day, ${DURATION_MS} AS dur,
 CASE WHEN s.visible_ms > 0 THEN 1 ELSE 0 END AS m,
-CASE WHEN s.channel IN ('Organic Search', 'Paid Search') THEN 1 ELSE 0 END AS se,
+CASE WHEN s.channel = 'Organic Search' THEN 1 ELSE 0 END AS se,
 CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END AS single,
 s.interacted AS inter, s.reentries AS re, s.engaged_ms AS eng,
 CASE WHEN s.pageviews = 1 THEN (SELECT MAX(${x.exit}) ${pvs}) END AS lexit,
@@ -4263,9 +4263,13 @@ async function execute(ctx, req) {
 	validateFilters(filters);
 	if (req.compareFilters) validateFilters(req.compareFilters);
 	if (req.params?.currency !== void 0) currencyOf(rc, { params: req.params });
-	const cur = await runOnce(rc, req, kind, run, from, to, filters, false);
+	const scoped = SATISFACTION_REPORTS.has(req.report);
+	const channelOff = scoped && [...filters, ...req.compareFilters ?? []].some(conflictsWithScope);
+	const scope = (f) => scoped ? organicScope(f) : f;
+	const cur = await runOnce(rc, req, kind, run, from, to, scope(filters), false);
 	const notices = new Set(kind === "search" ? (cur.input.search?.ignored ?? []).map((d) => `ignored_dim:${d}`) : cur.notices);
 	if (kind === "traffic") for (const d of cur.input.traffic?.ignoredTraffic ?? []) notices.add(`ignored_dim:${d}`);
+	if (channelOff) notices.add("ignored_dim:channel");
 	let data = cur.data;
 	let compareRange = null;
 	if (compare !== "none" && req.report !== "dimension_values" && !SELF_COMPARED.has(req.report)) {
@@ -4279,7 +4283,7 @@ async function execute(ctx, req) {
 			from,
 			to
 		});
-		const prev = await runOnce(rc, req, kind, run, compareRange.from, compareRange.to, compare === "segment" ? req.compareFilters ?? [] : filters, true);
+		const prev = await runOnce(rc, req, kind, run, compareRange.from, compareRange.to, scope(compare === "segment" ? req.compareFilters ?? [] : filters), true);
 		for (const n of prev.notices) if (!n.startsWith("detail_from:")) notices.add(n === "summary" ? "compare_summary" : n);
 		data = mergeCompare(cur.data, prev.data);
 	}
@@ -5753,7 +5757,7 @@ const METRICS = {
 	ctr: "clicks / impressions.",
 	position: "Impression weighted mean position: sum of position times impressions, divided by impressions.",
 	measured: "Sessions with at least one engagement update (visible time above 0); the Search Satisfaction rates divide by these.",
-	search_sessions: "Sessions whose channel is Organic Search or Paid Search (Search Satisfaction reports).",
+	search_sessions: "Organic search sessions (Search Satisfaction reports, which cover organic search sessions only).",
 	long_clicks: "Measured sessions longer than the longClickSeconds setting (default 60 s).",
 	short_clicks: "Measured sessions at or below the longClickSeconds setting.",
 	bad_experiences: "Measured single page sessions without events or interaction, shorter than min(badExperienceSeconds, longClickSeconds).",
@@ -6768,7 +6772,7 @@ function inRoute(env) {
 	}
 }
 // src/routes/privacy.ts
-const STATEMENT = "No cookies, no device storage, no raw IP, no raw user agent.";
+const STATEMENT = "No cookies, no device storage unless a visitor opts out, no raw IP, no raw user agent.";
 /** Fixed receipt line for the satisfaction measures. */
 const SATISFACTION_LINE = "Per page view we keep how long the page was visible and active, how far it was scrolled, how it was reached (new, reload, back or forward) and how it was left (hidden, closed, or kept for back and forward). Per session we count repeat arrivals from a search engine. The script never reads or changes your browser history.";
 /** Fixed receipt line for shared dashboard links. */
@@ -6779,6 +6783,8 @@ const REVENUE_LINE = "Order values and currency codes sent with events. We do no
 const ORDER_SESSION_LINE = "If your own server keeps the session token next to an order, that links the order to the pages of that session in your own records. This plugin stores no order id and no buyer data.";
 /** Fixed receipt line for the internal site search report. */
 const SITE_SEARCH_LINE = "If a site search parameter is configured, the words searched for are kept, with emails and long numbers removed.";
+/** Fixed line of the copyable block: the legal basis of counting visits and the right to object. */
+const LEGAL_BASIS_LINE = "Visits are counted on the basis of our legitimate interest in knowing how this site is used (Article 6(1)(f) GDPR). You can object at any time.";
 /** Fixed receipt line for scheduled dashboard email. */
 const EMAIL_LINE = "If you schedule an email, the recipients you enter are kept with the dashboard.";
 /** Fixed receipt line under the drop counters. */
@@ -6798,7 +6804,7 @@ const TABLES = [
 			visible_ms: "Total time the visit's pages were visible on screen, in milliseconds.",
 			reentries: "How many times a later arrival from a search engine joined this visit.",
 			"ref_host, ref_path, channel, source, utm_*": "Where the visit came from: referring site and campaign tags of the first page.",
-			"country, region, device, browser, browser_major, os, lang, screen, host": "Country (and region when enabled) from the edge, device class, browser and OS family, language, screen size class, site host name.",
+			"country, region, device, browser, browser_major, os, lang, screen, host": "Country (and region when enabled) from the edge, device class, browser and OS family, language, screen size class (only with captureScreen), site host name.",
 			hits: "The visit's page views and events: path with allowed campaign parameters, time since the visit started, how the page was reached and left, active and visible time, scroll depth, event names and properties."
 		}
 	},
@@ -7021,19 +7027,18 @@ function receiptMarkdown(s, rawDays) {
 		"",
 		`${STATEMENT} This site counts visits with a cookieless, self-hosted tool that runs on its own server.`,
 		"",
-		"- Nothing is stored on your device. A visit is recognised by a random id that lives only in the open page.",
+		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognised by a random id that lives only in the open page.",
 		"- Visits are counted per day with a key made from a shortened IP address and the browser family, mixed with a random salt that is deleted after two days. The key cannot be turned back into an IP address and cannot link visits across days.",
-		"- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language.",
+		`- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language${s.captureScreen ? ", screen size class" : ""}.`,
 		`- ${SATISFACTION_LINE}`,
 		`- ${SHARING_LINE}`,
 		`- ${REVENUE_LINE}`,
 		`- ${ORDER_SESSION_LINE}`,
 		`- ${SITE_SEARCH_LINE}`,
 		`- Detailed visit records are deleted after ${rawDays} days; daily totals without visitor keys are kept for ${s.rollupRetentionMonths} months.`,
+		`- ${LEGAL_BASIS_LINE}`,
 		s.signals === "none" ? "- Browser privacy signals are not used." : `- Browsers that send ${s.signals === "gpc" ? "Global Privacy Control" : "Global Privacy Control or the DNT header"} are not counted.`,
 		"- Known crawlers and automated clients are not counted.",
-		"",
-		"This text describes the technical setup. It is not legal advice.",
 		""
 	].join("\n");
 }
@@ -12428,7 +12433,7 @@ const BUILTIN_TEMPLATES = {
 		kind: "dashboard-template",
 		v: 1,
 		name: "Search Satisfaction",
-		description: "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages.",
+		description: "Long and short clicks, bad experiences, estimated pogo-sticking and the best and worst landing pages of organic search sessions.",
 		tiles: [
 			{
 				"id": "st0001",
@@ -12457,7 +12462,7 @@ const BUILTIN_TEMPLATES = {
 				"kind": "line",
 				"w": 3,
 				"metrics": ["pct_long"],
-				"title": "Long clicks over time"
+				"title": "Long clicks over time (organic search)"
 			},
 			{
 				"id": "st0005",
@@ -12472,21 +12477,21 @@ const BUILTIN_TEMPLATES = {
 				"kind": "line",
 				"w": 3,
 				"metrics": ["pogo_stick_rate"],
-				"title": "Pogo-sticking over time"
+				"title": "Pogo-sticking over time (organic search)"
 			},
 			{
 				"id": "st0006",
 				"report": "satisfaction",
 				"kind": "table",
 				"w": 2,
-				"title": "Landing pages"
+				"title": "Landing pages (organic search)"
 			},
 			{
 				"id": "st0008",
 				"report": "satisfaction",
 				"kind": "table",
 				"w": 3,
-				"title": "Best pages",
+				"title": "Best pages (organic search)",
 				"params": { "rank": "best" }
 			},
 			{
@@ -12494,7 +12499,7 @@ const BUILTIN_TEMPLATES = {
 				"report": "satisfaction",
 				"kind": "table",
 				"w": 3,
-				"title": "Worst pages",
+				"title": "Worst pages (organic search)",
 				"params": { "rank": "worst" }
 			}
 		],
@@ -14663,6 +14668,7 @@ const SETTINGS_SECTIONS = [
 			"ipTruncation",
 			"captureLanguage",
 			"captureRegion",
+			"captureScreen",
 			"excludePaths",
 			"excludeIpPrefixes",
 			"ignoreReferrerHosts",
@@ -16784,7 +16790,7 @@ const ADMIN_WIDGETS = [{
 */
 const PLUGIN_LABELS = {
 	displayName: PRODUCT_NAME,
-	description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS that stores real sessions in your own database with a page script of about 2.5 KB gzipped."
+	description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped."
 };
 /**
 * `options.sites`: remote satellites; `options.database`: the D1 or Hyperdrive binding of an own analytics database;

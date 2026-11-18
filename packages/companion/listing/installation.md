@@ -20,7 +20,7 @@ These are the steps the companion shows, in short form.
 6. Set `EMDASH_ENCRYPTION_KEY` before you connect Search Console or Bing.
 7. Deploy. Then check that the Analytics folder is in the admin sidebar, that the page source has one script tag for `/_/e.js`, that `/_/e.js` answers 200, and that a page view sends one POST answered with 204.
 8. Add a WAF rate limiting rule for `POST /_/e`.
-9. Publish a privacy notice. The privacy doc in the repository has the text.
+9. Publish a privacy notice. The privacy doc in the repository has the text and the consent rules by country.
 
 Full guide: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/install.md
 

@@ -102,7 +102,7 @@ export const ADMIN_WIDGETS = [{ id: "today", title: "Cookieless Analytics", size
 export const PLUGIN_LABELS = {
 	displayName: PRODUCT_NAME,
 	description:
-		"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS that stores real sessions in your own database with a page script of about 2.5 KB gzipped.",
+		"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.",
 } as const;
 
 /**

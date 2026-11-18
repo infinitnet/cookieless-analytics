@@ -44,7 +44,7 @@ Everything the page script sends, and everything another sender may send, is one
 | `h` | `pv`, `en`, `ev` | hit id, 12 characters `[a-z0-9]`; required for `pv` and `en`. On `ev` the client event id, new for every event and the same on every retry of it; without it every post is a new event |
 | `u` | `pv`, `ev` | path and query, starts with `/`, at most 2,048 characters; required for `pv` |
 | `r` | `pv` | referrer: empty or an absolute `http(s)` URL, at most 2,048 characters |
-| `w` | `pv` | screen width in pixels |
+| `w` | `pv` | screen width in pixels; used only when `captureScreen` is on |
 | `nt` | `pv` | navigation type of the document: 0 navigate, 1 reload, 2 back or forward; first page view of a document only |
 | `d` | `en` | active milliseconds, 0 up to `maxEngagedMsPerPage`; required |
 | `e` | `en` | visible milliseconds, 1 up to `maxEngagedMsPerPage` |

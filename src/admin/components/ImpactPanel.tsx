@@ -60,7 +60,7 @@ export const GROUP_HINTS: Record<string, string> = {
 	Events: "How often one event was sent, inside the scope.",
 	Revenue: "Orders and revenue in the site currency, inside the scope.",
 	Search: "Search Console or Bing data; a query scope measures that query.",
-	"Search Satisfaction": "How visitors from search behaved after they landed.",
+	"Search Satisfaction": "How visitors from organic search behaved after they landed.",
 };
 export const optionId = (o: Option) => `${o[1]}:${o[2]}`;
 /** The options on offer: Search metrics only while a Search source is connected. */

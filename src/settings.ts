@@ -42,6 +42,7 @@ export const settingsSchema = {
 	ipTruncation: { type: "select", label: "IP truncation", description: "Prefix kept for the daily visitor key. The address itself is never stored.", options: opts([["standard", "Standard (/24 and /48)"], ["strict", "Strict (/16 and /32)"]]), default: "standard" },
 	captureLanguage: { type: "boolean", label: "Capture language", description: "Store the primary browser language tag.", default: true },
 	captureRegion: { type: "boolean", label: "Capture region", description: "Store the edge region in addition to the country.", default: false },
+	captureScreen: { type: "boolean", label: "Capture screen size", description: "The page script sends the screen width and the server stores it as a size class (xs to xl), which Delete matching visits can use. Off by default: the script then sends no screen value.", default: false },
 	excludePaths: { type: "string", label: "Excluded path prefixes", description: "One prefix per line or comma separated.", default: "/_emdash/", multiline: true },
 	excludeIpPrefixes: { type: "string", label: "Excluded IP ranges", description: "CIDR list, comma or newline separated.", default: "", multiline: true },
 	ignoreReferrerHosts: { type: "string", label: "Ignored referrer hosts", description: "Extra payment or login hosts that never start a source.", default: "" },
@@ -130,6 +131,7 @@ export interface Settings {
 	queryAllowlist: string[];
 	captureLanguage: boolean;
 	captureRegion: boolean;
+	captureScreen: boolean;
 	autoOutbound: boolean;
 	autoDownloads: boolean;
 	autoForms: boolean;

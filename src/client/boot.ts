@@ -1,7 +1,8 @@
 /**
  * Page script logic. Built to a dependency-free IIFE by `page-script.ts`.
- * Nothing is stored on the device: the session id lives in a closure. The script is passive on
- * links and the address: it never changes a link or the URL.
+ * Nothing is stored on the device except the opt-out flag a visitor sets by clicking a control carrying
+ * the optout attribute: the session id lives in a closure. The script is passive on links and the
+ * address: it never changes a link or the URL.
  */
 
 /** Served configuration, short keys. Built by `src/client/serve.ts`. */
@@ -17,6 +18,8 @@ export interface ClientConfig {
 	/** Auto outbound, download and form events. */
 	o: 0 | 1;
 	dl: 0 | 1;
+	/** Send the screen width (`captureScreen`). */
+	s: 0 | 1;
 	f: 0 | 1;
 	/** Download extensions. */
 	x: string[];
@@ -64,7 +67,14 @@ export function boot(w: Any, cfg: ClientConfig): void {
 	// 1. Bail-outs: any hit means the script does nothing at all.
 	if (nav.webdriver === true || BOT_RE.test(ua) || !nav.languages || !nav.languages.length) return;
 	if (/Chrome\//.test(ua) && !/Mobile|Android/.test(ua) && nav.plugins && nav.plugins.length === 0) return;
-	if ((cfg.g !== "none" && nav.globalPrivacyControl === true) || (cfg.g === "dnt_and_gpc" && nav.doNotTrack === "1")) return;
+
+	// The one place that decides "send nothing": a privacy signal, or the visitor's opt-out flag (read once here, set only by a click on the control below).
+	const OA = `${cfg.a}optout`;
+	let off = false;
+	try {
+		off = !!w.localStorage.getItem(OA);
+	} catch {}
+	let stop = off || (cfg.g !== "none" && nav.globalPrivacyControl === true) || (cfg.g === "dnt_and_gpc" && nav.doNotTrack === "1");
 
 	const rid = (n: number) => {
 		let s = "";
@@ -111,10 +121,11 @@ export function boot(w: Any, cfg: ClientConfig): void {
 				() => 0,
 			)
 			.then((ra: number) => {
-				if (ra >= 0 && n < 3) setTimeout(() => post(b, n + 1), Math.max(ra, RETRY_S[n] as number) * (1 + Math.random() / 2) * 1000);
+				if (ra >= 0 && n < 3) setTimeout(() => stop || post(b, n + 1), Math.max(ra, RETRY_S[n] as number) * (1 + Math.random() / 2) * 1000);
 			});
 	// Engagement updates (and everything where fetch is missing) go as a beacon: written after the response, never retried.
 	const send = (o: Any, retry?: 1) => {
+		if (stop) return;
 		o.v = 1;
 		o.sid = sid;
 		if (key) o.k = key;
@@ -162,7 +173,7 @@ export function boot(w: Any, cfg: ClientConfig): void {
 		mark = now();
 		scroll = 0;
 		inter = 0;
-		const o: Any = { t: "pv", h: hit, u, w: w.screen ? w.screen.width : 0 };
+		const o: Any = { t: "pv", h: hit, u, w: cfg.s && w.screen ? w.screen.width : 0 };
 		if (!sent) {
 			o.r = d.referrer || "";
 			o.n = 1;
@@ -188,6 +199,8 @@ export function boot(w: Any, cfg: ClientConfig): void {
 	const skip = (path: string) => cfg.i.some((x) => path.indexOf(x) === 0);
 
 	const start = () => {
+		paint();
+		d.addEventListener("DOMContentLoaded", paint);
 		for (const t of ["pointerdown", "keydown", "scroll", "touchstart"])
 			w.addEventListener(
 				t,
@@ -215,6 +228,15 @@ export function boot(w: Any, cfg: ClientConfig): void {
 			(e: MouseEvent) => {
 				const t: Any = e.target;
 				if (!t || !t.closest) return;
+				if (t.closest(`[${OA}]`)) {
+					off = !off;
+					stop = stop || off;
+					try {
+						w.localStorage[off ? "setItem" : "removeItem"](OA, "1");
+					} catch {}
+					paint();
+					return;
+				}
 				const de = t.closest(`[${A}event]`);
 				if (de) {
 					const props: Any = {};
@@ -285,6 +307,16 @@ export function boot(w: Any, cfg: ClientConfig): void {
 		w[`${cfg.n}q`] = { push: run };
 		if (q && q.forEach) q.forEach(run);
 		w.dispatchEvent(new w.CustomEvent(`${cfg.n}:ready`, { detail: api }));
+	};
+
+	// Opt-out control: any element with the optout attribute toggles the flag; its state is shown on the element.
+	const paint = () => {
+		for (const el of d.querySelectorAll(`[${OA}]`) as Any) {
+			const l = el.getAttribute(`${OA}-${off ? "on" : "off"}`);
+			el.setAttribute("aria-pressed", off);
+			el.setAttribute(`${OA}-state`, off ? "out" : "in");
+			if (l) el.textContent = l;
+		}
 	};
 
 	// Prerendered or background pages start when they become visible.
