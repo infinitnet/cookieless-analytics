@@ -502,6 +502,10 @@ export const ADMIN_CSS = `@layer components {
 .ca-annotations tr[data-open] > td { border-bottom: 0; }
 .ca-impact-row > td { white-space: normal; }
 .ca-impact-pick { align-items: end; }
+/* A label and its select or input never touch: the field sits a step away from the label text, with or without a notice above. */
+.ca-impact-pick > label { display: inline-flex; align-items: center; gap: var(--ca-2); }
+/* A notice placed straight into a table cell (block layout, no grid gap) keeps a gap from what sits above and below it. */
+.ca-root td > .ca-notice { margin-block: var(--ca-2); }
 .ca-impact-context { grid-template-columns: repeat(3, auto); }
 @media (prefers-reduced-motion: reduce) { .ca-root * { transition: none !important; } }
 }`;

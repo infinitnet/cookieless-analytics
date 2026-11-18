@@ -217,6 +217,32 @@ describe("useQueryState: history and carry-over", () => {
 		expect(result.current[0]).not.toHaveProperty("m");
 	});
 
+	it("a tab chosen before the first-view write has run stays in the URL", async () => {
+		// A click can land before the mount effect that writes the first view (under load the effect runs late).
+		// A layout effect runs before every passive effect, so it puts the tab change deterministically in front of it.
+		const { createRoot } = await import("react-dom/client");
+		const { useLayoutEffect } = await import("react");
+		const env = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
+		const before = env.IS_REACT_ACT_ENVIRONMENT;
+		env.IS_REACT_ACT_ENVIRONMENT = false;
+		function Probe() {
+			const [, update] = useQueryState("UTC");
+			useLayoutEffect(() => update({ tab: "entry" }), []);
+			return null;
+		}
+		const root = createRoot(document.createElement("div"));
+		try {
+			root.render(createElement(Probe));
+			await waitFor(() => expect(window.location.search).toContain("tab=entry"));
+			// Let the passive effects run, then check they did not take the tab back out.
+			await new Promise((r) => setTimeout(r, 50));
+			expect(window.location.search).toBe("?from=2026-02-01&to=2026-02-28&tab=entry");
+		} finally {
+			root.unmount();
+			env.IS_REACT_ACT_ENVIRONMENT = before;
+		}
+	});
+
 	it("the next admin page (a sidebar link without a query) opens with the same range, filters and site", () => {
 		const { result, unmount } = renderHook(() => useQueryState("UTC"));
 		act(() => result.current[1]({ from: "2026-02-10", to: "2026-02-12", site: "blog-2", tab: "entry", m: ["visitors"] }));

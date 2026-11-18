@@ -295,9 +295,12 @@ function Row({ r, open, view, searchOn, goals, onToggle, onEdit, onDeleted }: { 
 			{open && a.id && (
 				<tr className="ca-impact-row">
 					<td colSpan={7}>
-						{first && <Notice tone="warning">{ANNOTATIONS_TEXT.overlapHint}</Notice>}
-						{r.notices?.includes("search_no_data") && <Notice tone="info">{ANNOTATIONS_TEXT.searchOff}</Notice>}
-						<ImpactPanel view={view} annotation={a.id} target={r.target} window={r.window} searchOn={searchOn || r.target.report.startsWith("search_")} goals={goals} />
+						{/* A table cell is not a grid: the stack gives the notices and the panel the same gap as everywhere else. */}
+						<div className="ca-stack">
+							{first && <Notice tone="warning">{ANNOTATIONS_TEXT.overlapHint}</Notice>}
+							{r.notices?.includes("search_no_data") && <Notice tone="info">{ANNOTATIONS_TEXT.searchOff}</Notice>}
+							<ImpactPanel view={view} annotation={a.id} target={r.target} window={r.window} searchOn={searchOn || r.target.report.startsWith("search_")} goals={goals} />
+						</div>
 					</td>
 				</tr>
 			)}

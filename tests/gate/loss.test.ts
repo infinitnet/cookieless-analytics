@@ -90,7 +90,7 @@ async function produce(env: Env, kv: MemoryKv, traffic: Traffic, p: Producer) {
 			const head = queue[0];
 			if (!head) return;
 			if ([...inflight].some((j) => j.at < head.at - 1)) {
-				await new Promise((res) => setTimeout(res, 0));
+				await new Promise((res) => setImmediate(res));
 				continue;
 			}
 			const job = queue.shift() as (typeof queue)[number];
@@ -336,7 +336,7 @@ describe("gate: loss under faults", () => {
 		};
 		const prod = await produce(env, kv, traffic, { isolates: 5, faults: { overload: 0.04, kill: 0.01, stall: 0.2 }, seed: 4, sink: (iso, db) => new iso.queue.QueueSink(q, new iso.apply.D1Sink(db)) });
 		// A kill fails the whole invocation (about 600 statements for 100 messages), so 0.1 percent per statement already kills about half the batches.
-		const cons = await consume(env, sent, { overload: 0.03, kill: 0.001, stall: 0.2 }, 5);
+		const cons = await consume(env, sent, { overload: 0.03, kill: 0.001, stall: 0.2, killAt: 40 }, 5);
 		const got = dumpTables(env.raw);
 		const v = compare(ref, got, prod.items);
 		results.push(summary("queue tier, faults on both sides", v, { sent: sent.length, failedSends, producerStats: prod.stats, consumerStats: cons.stats, batches: cons.batches, invocationsKilled: cons.invocationsKilled, deadLetter: cons.deadLetter, dropsStored: got.drops }));

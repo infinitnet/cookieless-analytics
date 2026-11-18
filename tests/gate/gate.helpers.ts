@@ -28,6 +28,8 @@ export interface Faults {
 	kill: number;
 	/** Probability per statement of a stall (an awaited pause that lets other isolates run first). */
 	stall: number;
+	/** One kill at this statement number of the run, whatever the dice say: a run whose dice never kill would prove nothing about kills. */
+	killAt?: number;
 }
 export const NO_FAULTS: Faults = { overload: 0, kill: 0, stall: 0 };
 
@@ -44,7 +46,7 @@ export interface Life {
 }
 
 /**
- * A `Db` that injects faults: overload errors before a statement, stalls (pauses of up to 3 ms of real time,
+ * A `Db` that injects faults: overload errors before a statement, stalls (pauses of up to 3 event loop turns,
  * which reorder the interleaved isolates), and a kill after a statement committed. After a kill the isolate
  * is gone: every later call throws, and the harness discards whatever the isolate still held in memory.
  */
@@ -53,7 +55,9 @@ export function faultDb(base: Db, f: Faults, r: () => number, life: Life, stats:
 		if (life.dead) throw new Error("isolate gone");
 		if (r() < f.stall) {
 			stats.stalls++;
-			await new Promise((res) => setTimeout(res, Math.floor(r() * 3)));
+			// Event loop turns, not milliseconds: a pause measured in real time makes the interleaving, and with it the
+			// random sequence and the kill count, depend on how loaded the machine is.
+			for (let turns = 1 + Math.floor(r() * 3); turns > 0; turns--) await new Promise((res) => setImmediate(res));
 			if (life.dead) throw new Error("isolate gone");
 		}
 		if (r() < f.overload) {
@@ -63,7 +67,9 @@ export function faultDb(base: Db, f: Faults, r: () => number, life: Life, stats:
 	};
 	const after = () => {
 		stats.statements++;
-		if (r() < f.kill) {
+		// The roll is always taken, so the random sequence is the same with or without `killAt`.
+		const rolled = r() < f.kill;
+		if (rolled || stats.statements === f.killAt) {
 			stats.kills++;
 			life.dead = true;
 			throw new Error("isolate killed");

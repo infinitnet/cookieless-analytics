@@ -3,7 +3,7 @@
  * view is a link. The range, comparison, segment, filters and site are also kept for the browser session
  * (`ca.view.v1`), so they carry over to the next admin page, whose sidebar link has no query string.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { daysBetween, previousPeriod, samePeriodLastYear } from "../core/time.js";
 import { DEFAULT_PRESET, type Preset, PRESETS, presetRange } from "../core/presets.js";
 import { normalizeCurrency } from "../core/currency.js";
@@ -202,8 +202,12 @@ function decodeFilters(f: string | null): Filter[] {
  */
 export function useQueryState(tz: string): [QueryState, (next: Partial<QueryState>) => void] {
 	const [state, setState] = useState(() => decodeState(window.location.search, tz, undefined, readStoredView()));
+	// The newest state, written by `update` the moment it changes the URL.
+	const latest = useRef(state);
 	// The first view becomes a link too: write the decoded (cleaned) state once, without the one-shot `new`.
-	useEffect(() => writeUrl({ ...state, new: undefined }, tz), []);
+	// It writes the newest state, not the first render's: under load this effect can run after a click has already
+	// changed the tab, and writing the first render's state then would drop the new tab from the URL.
+	useEffect(() => writeUrl({ ...latest.current, new: undefined }, tz), []);
 	useEffect(() => {
 		const onPop = () => setState(decodeState(window.location.search, tz));
 		window.addEventListener("popstate", onPop);
@@ -218,6 +222,7 @@ export function useQueryState(tz: string): [QueryState, (next: Partial<QueryStat
 			if (!s.m?.length) delete s.m;
 			if (s.annotations !== false) delete s.annotations;
 			writeUrl(s, tz, s.tab !== cur.tab);
+			latest.current = s;
 			return s;
 		});
 	}, [tz]);

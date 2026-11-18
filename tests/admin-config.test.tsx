@@ -135,7 +135,7 @@ describe("Config page", () => {
 	it("shows every Config tab in order", async () => {
 		render(<Config />);
 		// The first render of the file is cold under load: allow more than the 1 s default.
-		await screen.findByRole("tablist", {}, { timeout: 5000 });
+		await screen.findByRole("tablist", {}, { timeout: 15000 });
 		expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Goals", "Funnels", "Segments", "Channel rules", "User agent rules", "UTM builder", "API keys", "Sites"]);
 		// Titled Definitions; range and filters change nothing here, so one site shows no header.
 		expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Definitions");
@@ -143,7 +143,7 @@ describe("Config page", () => {
 		// The tab is in the URL; Back returns to the previous one.
 		fireEvent.click(screen.getByRole("tab", { name: "Funnels" }));
 		await waitFor(() => expect(new URLSearchParams(window.location.search).get("tab")).toBe("funnels"));
-	}, 20000);
+	}, 40000);
 
 	it("goals: create, edit and delete", async () => {
 		const panel = await openTab("Goals");

@@ -6,6 +6,7 @@ export default defineConfig({
 		include: ["tests/**/*.test.{ts,tsx}"],
 		setupFiles: ["tests/setup.ts"],
 		// Slow CI runners: the default 5 s per test timed out under load.
-		testTimeout: 20000,
+		testTimeout: 30000,
+		hookTimeout: 30000,
 	},
 });
