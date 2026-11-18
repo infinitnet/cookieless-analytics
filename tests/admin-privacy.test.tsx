@@ -44,7 +44,8 @@ describe.each(["none", "gpc", "dnt_and_gpc"])("privacy receipt with signals %s",
 		render(<Data />);
 		fireEvent.click(await screen.findByRole("tab", { name: "Privacy receipt" }));
 		const panel = screen.getByRole("tabpanel", { name: "Privacy receipt" });
-		expect(within(panel).getByText(STATEMENT)).toBeTruthy();
+		// The receipt is fetched when the tab opens: wait for it, then the rest is on the page.
+		expect(await within(panel).findByText(STATEMENT)).toBeTruthy();
 		// Panels like the Storage tab; the counts in a table with the number column on the right.
 		for (const name of ["Statement", "Salt", "Requests not recorded", "What is stored", "For your privacy page"]) expect(within(panel).getByRole("region", { name }).className).toBe("ca-panel");
 		const drops = within(panel).getByRole("table", { name: "Requests not recorded" });
