@@ -239,7 +239,16 @@ describe("Search page", () => {
 		expect(screen.queryByRole("region", { name: "Key figures" })).toBeNull();
 		fireEvent.click(within(first).getByRole("button", { name: "Sync now" }));
 		await waitFor(() => expect(routeCalls("search/sync")).toEqual([{}]));
-		fireEvent.click(within(first).getByRole("button", { name: "Load older days" }));
+		const opener = within(first).getByRole("button", { name: "Load older days" });
+		opener.focus(); // a real click focuses the button; fireEvent does not
+		fireEvent.click(opener);
+		const panel = screen.getByRole("dialog", { name: "Load older days" });
+		// Focus moves into the panel, Escape closes it, and focus goes back to the button that opened it.
+		expect(document.activeElement).toBe(panel);
+		fireEvent.keyDown(panel, { key: "Escape" });
+		expect(screen.queryByRole("dialog", { name: "Load older days" })).toBeNull();
+		expect(document.activeElement).toBe(opener);
+		fireEvent.click(opener);
 		expect(screen.getByRole("dialog", { name: "Load older days" })).toBeTruthy();
 		await settle();
 		expect(queries()).toHaveLength(0);

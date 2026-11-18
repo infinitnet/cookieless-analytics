@@ -130,7 +130,10 @@ describe("Search page SEO tabs", () => {
 		const drawer = await screen.findByRole("dialog", { name: "Pages of blue widgets" });
 		expect(within(drawer).getByText(`Bing: ${SEO_TEXT.bingOnRequest}`)).toBeTruthy();
 		expect(queries("search_cannibalization_query").at(-1)?.params).toEqual({ source: "all", query: "blue widgets" });
-		fireEvent.click(within(drawer).getByRole("button", { name: "Close" }));
+		// Focus is in the drawer; Escape closes it like the Close button does.
+		expect(document.activeElement).toBe(drawer);
+		fireEvent.keyDown(drawer, { key: "Escape" });
+		expect(screen.queryByRole("dialog", { name: "Pages of blue widgets" })).toBeNull();
 		fireEvent.click(within(panel).getByRole("button", { name: "/a" }));
 		await screen.findByRole("dialog", { name: "Competing pages of /a" });
 		expect(queries("search_cannibalization_page").at(-1)?.params).toMatchObject({ page: "/a" });

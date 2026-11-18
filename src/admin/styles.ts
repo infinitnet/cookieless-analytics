@@ -317,6 +317,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-range-option { display: flex; gap: var(--ca-2); align-items: flex-start; min-width: 0; }
 .ca-range-option > span { display: grid; gap: 2px; min-width: 0; }
 .ca-range-option input { margin-top: 3px; }
+.ca-dialog:focus { outline: none; }
 .ca-dialog { background: var(--ca-surface); border: 1px solid var(--ca-line); border-radius: var(--ca-radius); padding: var(--ca-4); display: grid; gap: var(--ca-3); min-width: 0; box-shadow: var(--ca-shadow); }
 
 /* Forms and lists */

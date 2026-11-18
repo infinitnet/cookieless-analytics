@@ -8,6 +8,7 @@
  * The page is also the OAuth return target: `code` and `state` are posted once and stripped from the URL.
  */
 import { Badge, Button, Input, InputArea } from "@cloudflare/kumo";
+import { useDialog } from "../components/useDialog.js";
 import { BingImport } from "../components/BingImport.js";
 import { count } from "../components/format.js";
 import { BingSignIn } from "../components/BingSignIn.js";
@@ -653,6 +654,7 @@ export function BackfillDialog({ sources, budget, yesterday, onClose, onStarted 
 	const [from, setFrom] = useState(addDays(yesterday, 1 - def));
 	const [err, setErr] = useState<string | null>(null);
 	const name = useId();
+	const dialog = useDialog<HTMLDivElement>(onClose);
 	const src = sources.find((s) => s.id === id) ?? sources[0];
 	const small = budget?.profile === "small";
 	const invalid = choice === "custom" ? backfillError(from, yesterday) : null;
@@ -668,7 +670,7 @@ export function BackfillDialog({ sources, budget, yesterday, onClose, onStarted 
 			(e: unknown) => setErr(errorText(e)),
 		);
 	return (
-		<div role="dialog" aria-label="Load older days" className="ca-dialog" onKeyDown={(e) => e.key === "Escape" && onClose()}>
+		<div role="dialog" aria-label="Load older days" className="ca-dialog" {...dialog}>
 			<h3>Load older days</h3>
 			{sources.length > 1 && (
 				<Field label="Source">

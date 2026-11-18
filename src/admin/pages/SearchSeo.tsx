@@ -3,6 +3,7 @@
  * the Pages page. Every view reads at most 93 days, so `12m` and `ytd` show the fixed text instead of data.
  */
 import { Button } from "@cloudflare/kumo";
+import { useDialog } from "../components/useDialog.js";
 import { type ReactNode, useState } from "react";
 import { daysBetween } from "../../core/time.js";
 import type { Params, ReportName } from "../../query/reports/index.js";
@@ -289,10 +290,11 @@ function CannibalizationBody({ view, source }: { view: View; source: Source }) {
 
 function Drawer({ view, source, floors, target, onClose }: { view: View; source: Source; floors: Floors; target: { kind: "page" | "query"; value: string }; onClose(): void }) {
 	const page = target.kind === "page";
+	const dialog = useDialog<HTMLElement>(onClose);
 	const res = useSeo(view, page ? "search_cannibalization_page" : "search_cannibalization_query", page ? { source, ...floors, page: target.value } : { source, query: target.value });
 	const d = res.data?.data;
 	return (
-		<aside role="dialog" aria-label={page ? `Competing pages of ${target.value}` : `Pages of ${target.value}`} className="ca-dialog">
+		<aside role="dialog" aria-label={page ? `Competing pages of ${target.value}` : `Pages of ${target.value}`} className="ca-dialog" {...dialog}>
 			<div className="ca-spread">
 				<h3>{target.value}</h3>
 				<Button size="sm" onClick={onClose}>
