@@ -205,7 +205,7 @@ describe("Dependabot and auto-merge", () => {
 		const job = Object.values(wf.jobs);
 		expect(job).toHaveLength(1);
 		expect(job[0]?.if).toContain("github.event.pull_request.user.login == 'dependabot[bot]'");
-		expect(job[0]?.steps[0]?.uses).toBe("dependabot/fetch-metadata@v2");
+		expect(job[0]?.steps[0]?.uses).toBe("dependabot/fetch-metadata@v3");
 		const merge = job[0]?.steps.find((s) => s.run?.includes("gh pr merge"));
 		expect(merge?.run).toContain("gh pr merge --auto --squash");
 		expect(merge?.if).toContain("version-update:semver-patch");
