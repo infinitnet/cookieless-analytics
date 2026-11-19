@@ -1222,7 +1222,7 @@ const BAND_UPPER = [
 /** Metric key suffix per band: `queries_1_3`, `impressions_51_plus`. */
 const bandSuffix = (b) => b.replace("-", "_").replace("+", "_plus");
 const SEO_TEXT = {
-	coverage: "Based on the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.",
+	coverage: "Based on Google Search Console data of the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.",
 	rangeTooLong: "This view reads detailed rows and is limited to 93 days. Choose a shorter range.",
 	bingNoPairs: "Bing exposes page and query pairs only per page or per query on request; the lists are Google data",
 	bingOnRequest: "Loads from Bing on request, cached one hour.",
@@ -11087,7 +11087,6 @@ function contractRoute(env) {
 /** Fixed caveat and notice texts, shared by the admin info markers and the shared page. No React. */
 /** Notice texts of the SEO views and the impact view. */
 const SEO_NOTICES = {
-	bing_no_pairs: `${SEO_TEXT.bingNoPairs}.`,
 	top3_insufficient: "Potential clicks need at least 1,000 impressions in positions 1 to 3 over this range; not enough top-3 data.",
 	scope_host_not_applied: "Host rules do not apply to Search data; this comparison is not limited by host.",
 	capped: "The list shows the 200 queries with the most impressions; the totals count every query.",
@@ -11154,6 +11153,7 @@ const NOTICE_COPY = {
 	scope_no_search_source: () => "Query rules apply to Search data only; this site has no Search source yet.",
 	...Object.fromEntries(Object.entries(SEO_NOTICES).map(([k, t]) => [k, () => t])),
 	coverage: null,
+	bing_no_pairs: null,
 	no_annotation: null,
 	not_yet: null,
 	incomplete: null,
