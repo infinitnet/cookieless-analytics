@@ -12,6 +12,7 @@ import { useDialog } from "../components/useDialog.js";
 import { BingImport } from "../components/BingImport.js";
 import { count } from "../components/format.js";
 import { BingSignIn } from "../components/BingSignIn.js";
+import { ExternalLink, SETUP_LINKS, SetupSteps } from "../components/SetupSteps.js";
 import { annotationAction } from "../components/AnnotationPopover.js";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { PLUGIN_ID } from "../../contract.js";
@@ -412,8 +413,25 @@ function GoogleSignIn({ run }: { run: Run }) {
 			{mode === "oauth" ? (
 				<div className="ca-form">
 					<div className="ca-stack">
-						<p className="ca-help">Create an OAuth client of type Web application in Google Cloud and add this authorized redirect URI:</p>
+						<SetupSteps
+							label="Google OAuth setup"
+							steps={[
+								<>
+									<ExternalLink href={SETUP_LINKS.googleProject}>Create a Google Cloud project</ExternalLink> or pick an existing one.
+								</>,
+								<>
+									<ExternalLink href={SETUP_LINKS.googleApi}>Enable the Google Search Console API</ExternalLink> in that project.
+								</>,
+								<>
+									On the <ExternalLink href={SETUP_LINKS.googleAudience}>Audience page</ExternalLink>, set the app up with user type External, then choose Publish app so the publishing status is In production. In Testing, Google ends the connection after 7 days.
+								</>,
+								<>
+									On the <ExternalLink href={SETUP_LINKS.googleClients}>Clients page</ExternalLink>, create a client of type Web application and add this authorized redirect URI:
+								</>,
+							]}
+						/>
 						<CopyBlock text={redirectUriOf(window.location.origin)} label="redirect URI" />
+						<p className="ca-help">Paste the client ID and secret below. Google then shows "Google hasn't verified this app": choose Advanced, then continue. That is expected for your own client.</p>
 					</div>
 					<Input label="Client ID" description="Shown on the OAuth client page in Google Cloud." value={clientId} autoComplete="off" onChange={(e) => setClientId(e.target.value)} />
 					<Input label="Client secret" type="password" autoComplete="off" value={clientSecret} onChange={(e) => setClientSecret(e.target.value)} />
@@ -426,7 +444,21 @@ function GoogleSignIn({ run }: { run: Run }) {
 				</div>
 			) : (
 				<div className="ca-form">
-					<InputArea label="Service account JSON key" description="Paste the whole key file. Add the service account email to the Search Console property as a user." rows={5} value={sa} onChange={(e) => setSa(e.target.value)} />
+					<SetupSteps
+						label="Google service account setup"
+						steps={[
+							<>
+								<ExternalLink href={SETUP_LINKS.googleApi}>Enable the Google Search Console API</ExternalLink> in your Google Cloud project.
+							</>,
+							<>
+								<ExternalLink href={SETUP_LINKS.googleServiceAccounts}>Create a service account</ExternalLink>, then open it, Keys, Add key, JSON.
+							</>,
+							<>
+								In <ExternalLink href={SETUP_LINKS.searchConsoleUsers}>Search Console users and permissions</ExternalLink>, add the service account email to the property. Restricted is enough.
+							</>,
+						]}
+					/>
+					<InputArea label="Service account JSON key" description="Paste the whole key file." rows={5} value={sa} onChange={(e) => setSa(e.target.value)} />
 					<div className="ca-actions">
 						<Button variant="primary" size="sm" disabled={!sa.trim()} onClick={() => void run(() => call("search/connect", { gscAuth: "service_account", gscServiceAccount: sa }).then(() => setSa("")), "Service account saved.")}>
 							Save service account

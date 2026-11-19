@@ -106,6 +106,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-field-label { font-size: 12px; font-weight: 500; color: var(--ca-muted-text); }
 :where(.ca-form, .ca-dialog) .ca-field-label { font-size: 14px; color: var(--ca-fg); }
 .ca-help { font-size: 12px; color: var(--ca-muted-text); }
+.ca-setup { margin: 0; padding-left: 18px; display: grid; gap: var(--ca-1); }
 .ca-compare-range { font-size: 12px; color: var(--ca-muted); align-self: center; padding-top: 18px; }
 .ca-head-body { display: grid; gap: var(--ca-3); min-width: 0; }
 .ca-head-toggle { display: none; align-items: center; gap: var(--ca-2); width: 100%; min-height: 32px; font: inherit; font-size: 13px; font-weight: 500; text-align: left; color: var(--ca-fg); background: none; border: 0; padding: var(--ca-1); margin: calc(-1 * var(--ca-1)); border-radius: 6px; cursor: pointer; }

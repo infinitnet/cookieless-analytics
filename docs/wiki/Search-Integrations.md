@@ -13,25 +13,29 @@ The plugin pulls clicks, impressions and positions from Google Search Console an
 
 ### Google Search Console, option 1: OAuth client
 
-1. In the Google Cloud console, create or pick a project and enable the Google Search Console API.
-2. Configure the OAuth consent screen. Add your own address as a test user while the app is in Testing.
-3. Create an OAuth client of type Web application with exactly one authorized redirect URI: `https://example.com/_emdash/admin/plugins/cookieless-analytics/search` (your site origin in place of example.com).
-4. On the Search page, under Google Search Console, choose **OAuth client** and paste the client id and secret.
-5. Choose **Connect Google**, approve read access, and return to the Search page.
-6. Pick the property in the property picker.
+1. [Create a Google Cloud project](https://console.cloud.google.com/projectcreate), or pick an existing one. Keep it selected for the next steps.
+2. [Enable the Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com) in that project (APIs and Services, Library, Google Search Console API, Enable). Sign-in works without it, but every sync then fails with an access error.
+3. Open the [Audience page](https://console.cloud.google.com/auth/audience) of Google Auth Platform and set up the app (Branding asks for an app name and your support email): user type **External**, your own address as contact. Add your Google address as a test user.
+4. On the same Audience page choose **Publish app** and confirm, so the publishing status reads **In production**. Do not leave it in Testing: Google ends every authorization of a Testing app 7 days after consent, including the refresh token, and the plugin cannot renew it. The sync then stops with `invalid_grant` and you must connect again.
+5. Open the [Clients page](https://console.cloud.google.com/auth/clients), choose Create client, type **Web application**, and add exactly one authorized redirect URI: `https://example.com/_emdash/admin/plugins/cookieless-analytics/search` (your site origin in place of example.com; the Search page shows the exact value with a copy button).
+6. Copy the client ID and client secret from the dialog.
+7. On the Search page, under Google Search Console, choose **OAuth client**, paste both and choose **Connect Google**.
+8. Google shows "Google hasn't verified this app". That is expected for your own client: choose **Advanced**, then **Go to (app name)**, and approve read access to Search Console.
+9. You return to the Search page. Pick the property in the property picker.
 
 ### Google Search Console, option 2: service account
 
-1. In the Google Cloud console, enable the Google Search Console API, create a service account and a JSON key.
-2. In Search Console, open the property, Settings, Users and permissions, and add the service account email as a user. Restricted is enough.
-3. On the Search page, choose **Service account**, paste the whole JSON key and save.
-4. Pick the property in the property picker.
+1. [Enable the Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com) in your Google Cloud project.
+2. Open [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts), create a service account, open it, then Keys, Add key, Create new key, **JSON**. The file downloads once.
+3. In [Search Console users and permissions](https://search.google.com/search-console/users) open the property and add the service account email (`...@...iam.gserviceaccount.com`) as a user. Restricted is enough. A service account has no consent screen, so nothing expires.
+4. On the Search page choose **Service account**, paste the whole JSON key and save.
+5. Pick the property in the property picker.
 
 ### Bing Webmaster Tools
 
-1. Add and verify the site in Bing Webmaster Tools (or import it from Search Console).
-2. **API key** (the default): in Bing Webmaster Tools open Settings, API access, generate a key, paste it on the Search page under Bing Webmaster Tools and save.
-3. **OAuth client** (optional): create an OAuth client in Bing Webmaster Tools (Settings, API access, OAuth client) with the redirect URI shown on the Search page, choose **OAuth client**, paste the id and secret, and choose **Connect Bing**.
+1. Open [Bing Webmaster Tools](https://www.bing.com/webmasters) and add and verify the site, or import it from Search Console.
+2. **API key** (the default): open Settings, then API access, choose Generate API key, paste it on the Search page under Bing Webmaster Tools and save.
+3. **OAuth client** (optional): in Settings, API access, create an OAuth client with the redirect URI shown on the Search page, choose **OAuth client** on the Search page, paste the id and secret, and choose **Connect Bing**.
 4. Pick the site in the Bing property picker. It proposes the site whose host name matches.
 
 **Import from a file.** When the Bing API keeps refusing calls, use **Import Bing data from a file**: download the Keywords table and the Pages table from Bing's Search Performance report and import each CSV file. A file without a Date column is stored on the day you choose.
@@ -106,7 +110,7 @@ The sign-in keys show read only in Settings, section Search connections, and are
 - A search query is never joined to a visit. Search and traffic meet per page and period only.
 - Bing has no country or device data, and its query and page rows are weekly sums. Use ranges of whole weeks.
 - Bing sometimes answers shared server addresses with `ThrottleIP`. The page shows Throttled and retries later; stored data stays. A file import always works.
-- While the Google consent screen is in Testing, Google expires the connection after 7 days. Publish the consent screen, then connect again.
+- While the Google app is in Testing, Google ends the connection 7 days after consent and the sync stops with `invalid_grant`. Choose Publish app on the Audience page so the status is In production, then connect again. A service account never expires.
 - One connection serves the local site and its client sites. Select a client site to map its own property. A connected remote site keeps its own Search connection.
 
 Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/search-sources.md

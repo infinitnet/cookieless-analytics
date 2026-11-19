@@ -141,6 +141,24 @@ describe("Search page", () => {
 		expect(routeCalls("search/oauth/start")).toHaveLength(1);
 	});
 
+	it("guides the Google OAuth setup with console links, the API step and the In production step", async () => {
+		sources = [src("google", OFF), src("bing", OFF)];
+		render(<Search />);
+		fireEvent.click(await screen.findByRole("button", { name: "Connect Google Search Console" }));
+		const steps = screen.getByRole("list", { name: "Google OAuth setup" });
+		const hrefs = [...steps.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+		expect(hrefs).toEqual([
+			"https://console.cloud.google.com/projectcreate",
+			"https://console.cloud.google.com/apis/library/searchconsole.googleapis.com",
+			"https://console.cloud.google.com/auth/audience",
+			"https://console.cloud.google.com/auth/clients",
+		]);
+		expect([...steps.querySelectorAll("a")].every((a) => a.getAttribute("rel") === "noopener noreferrer" && a.getAttribute("target") === "_blank")).toBe(true);
+		expect(steps.textContent).toContain("Enable the Google Search Console API");
+		expect(steps.textContent).toContain("Publish app");
+		expect(steps.textContent).toContain("In Testing, Google ends the connection after 7 days");
+	});
+
 	it("saves a service account and a Bing key through search/connect", async () => {
 		sources = [src("google", OFF), src("bing", OFF)];
 		render(<Search />);

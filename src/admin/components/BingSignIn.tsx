@@ -3,6 +3,7 @@
  * Bing Webmaster Tools. OAuth saves the client, asks `search/oauth/start` with `source: "bing"` and opens
  * Bing; the Search page finishes the return like Google's. `redirect` is the copyable redirect URI.
  */
+import { ExternalLink, SETUP_LINKS, SetupSteps } from "./SetupSteps.js";
 import { Button, Input } from "@cloudflare/kumo";
 import { type ReactNode, useState } from "react";
 import { call } from "../api.js";
@@ -23,7 +24,16 @@ export function BingSignIn({ configured, auth, run, redirect }: { configured: bo
 			<Segmented label="Bing sign-in" value={mode} options={[["apikey", "API key"], ["oauth", "OAuth client"]]} onChange={setMode} radio />
 			{mode === "apikey" ? (
 				<div className="ca-form">
-					<Input label="API key" description="In Bing Webmaster Tools: Settings, API access, API key." type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} />
+					<SetupSteps
+						label="Bing API key setup"
+						steps={[
+							<>
+								Open <ExternalLink href={SETUP_LINKS.bing}>Bing Webmaster Tools</ExternalLink> and add and verify the site (or import it from Search Console).
+							</>,
+							<>Open Settings, API access, and choose Generate API key.</>,
+						]}
+					/>
+					<Input label="API key" description="Generated once; Bing shows it in API access." type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} />
 					<div className="ca-actions">
 						<Button variant="primary" size="sm" disabled={!key.trim()} onClick={() => void run(() => call("search/connect", { bingEnabled: true, bingAuth: "apikey", bingApiKey: key }).then(() => setKey("")), "Bing key saved. Pick the site below.")}>
 							Save Bing key
@@ -34,7 +44,7 @@ export function BingSignIn({ configured, auth, run, redirect }: { configured: bo
 			) : (
 				<div className="ca-form">
 					<div className="ca-stack">
-						<p className="ca-help">In Bing Webmaster Tools open Settings, API access, OAuth client, create a client and add this redirect URI:</p>
+						<p className="ca-help">In <ExternalLink href={SETUP_LINKS.bing}>Bing Webmaster Tools</ExternalLink> open Settings, API access, OAuth client, create a client and add this redirect URI:</p>
 						{redirect}
 					</div>
 					<Input label="Bing client ID" value={clientId} autoComplete="off" onChange={(e) => setClientId(e.target.value)} />

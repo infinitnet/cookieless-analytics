@@ -15,30 +15,34 @@ Do not save the host's own settings form of the plugin after connecting: it save
 
 ## Option 1: OAuth (sign in with your Google account)
 
-1. In the Google Cloud console, create a project (or pick one) and enable the **Google Search Console API**.
-2. Configure the OAuth consent screen. User type External is fine for a personal account; add your own address as a test user while the app is in Testing.
-3. Create an OAuth client of type **Web application**. Add exactly one authorized redirect URI: `<site origin>/_emdash/admin/plugins/cookieless-analytics/search`, for example `https://example.com/_emdash/admin/plugins/cookieless-analytics/search`.
-4. On the Search page, under Google Search Console, choose **OAuth client**, paste the client id and the client secret.
-5. Choose **Connect Google**. You are sent to Google, approve read access to Search Console (`webmasters.readonly`), and return to the Search page, which finishes the connection. The refresh token is stored encrypted and is never shown again.
-6. Pick the property for the site in the property picker.
+1. [Create a Google Cloud project](https://console.cloud.google.com/projectcreate), or pick an existing one. Keep it selected for the next steps.
+2. [Enable the Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com) in that project (APIs and Services, Library, Google Search Console API, Enable). Sign-in works without it, but every sync then fails with an access error.
+3. Open the [Audience page](https://console.cloud.google.com/auth/audience) of Google Auth Platform and set up the app (Branding asks for an app name and your support email): user type **External**, your own address as contact. Add your Google address as a test user.
+4. On the same Audience page choose **Publish app** and confirm, so the publishing status reads **In production**. Do not leave it in Testing: Google ends every authorization of a Testing app 7 days after consent, including the refresh token, and the plugin cannot renew it. The sync then stops with `invalid_grant` and you must connect again.
+5. Open the [Clients page](https://console.cloud.google.com/auth/clients), choose Create client, type **Web application**, and add exactly one authorized redirect URI: `https://example.com/_emdash/admin/plugins/cookieless-analytics/search` (your site origin in place of example.com; the Search page shows the exact value with a copy button).
+6. Copy the client ID and client secret from the dialog.
+7. On the Search page, under Google Search Console, choose **OAuth client**, paste both and choose **Connect Google**.
+8. Google shows "Google hasn't verified this app". That is expected for your own client: choose **Advanced**, then **Go to (app name)**, and approve read access to Search Console.
+9. You return to the Search page. Pick the property in the property picker.
 
 Two things to know:
 
-- **Testing mode expires the connection after 7 days.** While the consent screen is in Testing, Google expires refresh tokens after 7 days and the sync stops with an `invalid_grant` error. Publish the consent screen (Publishing status: In production), or use an Internal app in a Google Workspace organization, then connect again.
+- **Testing mode expires the connection after 7 days.** While the consent screen is in Testing, Google expires refresh tokens after 7 days and the sync stops with an `invalid_grant` error. Choose Publish app on the Audience page (Publishing status: In production), or use an Internal app in a Google Workspace organization, then connect again.
 - **"Google hasn't verified this app"** is expected for your own private client. Continue through Advanced. Verification is not needed for a client only you use.
 
 ## Option 2: Service account
 
-1. In the Google Cloud console, enable the **Google Search Console API**, create a service account and create a JSON key for it.
-2. In Search Console, open the property, then Settings, Users and permissions, and add the service account email (`...@...iam.gserviceaccount.com`) as a user. Restricted is enough.
-3. On the Search page, under Google Search Console, choose **Service account**, paste the whole JSON key file and save it.
-4. Pick the property for the site in the property picker.
+1. [Enable the Google Search Console API](https://console.cloud.google.com/apis/library/searchconsole.googleapis.com) in your Google Cloud project.
+2. Open [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts), create a service account, open it, then Keys, Add key, Create new key, **JSON**. The file downloads once.
+3. In [Search Console users and permissions](https://search.google.com/search-console/users) open the property and add the service account email (`...@...iam.gserviceaccount.com`) as a user. Restricted is enough. A service account has no consent screen, so nothing expires.
+4. On the Search page choose **Service account**, paste the whole JSON key and save.
+5. Pick the property in the property picker.
 
 The plugin signs a short-lived assertion with the key (RS256 through WebCrypto) and exchanges it for an access token. Access tokens are kept in memory until one minute before they expire; they are never stored.
 
 ## Bing Webmaster Tools
 
-In Bing Webmaster Tools, add and verify the site (or import it from Search Console). Then connect with an API key (the default) or with your own OAuth client; both read every site the Microsoft account can see. Pick the site in the Bing property picker afterwards: it lists the verified sites of the account (`GetUserSites`) and proposes the one whose host name equals the site's host name.
+In [Bing Webmaster Tools](https://www.bing.com/webmasters), add and verify the site (or import it from Search Console). Then connect with an API key (the default) or with your own OAuth client; both read every site the Microsoft account can see. Pick the site in the Bing property picker afterwards: it lists the verified sites of the account (`GetUserSites`) and proposes the one whose host name equals the site's host name.
 
 ### API key
 
