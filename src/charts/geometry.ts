@@ -11,6 +11,7 @@ export const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#db2777", "#7c3aed", "#
 export const color = (i: number) => `var(--ca-series-${i + 1}, ${COLORS[i % COLORS.length]})`;
 export const MUTED = "var(--ca-muted, #94a3b8)";
 export const r1 = (v: number) => Math.round(v * 10) / 10;
+const r2 = (v: number) => Math.round(v * 100) / 100;
 
 const nf = new Intl.NumberFormat("en-US");
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
@@ -215,16 +216,26 @@ export interface Arc {
 	dashoffset: number;
 }
 
-/** Donut slices as circle stroke dashes (radius DONUT_R in a 100 by 100 box); empty when the total is 0. */
+/**
+ * Donut slices as circle stroke dashes (radius DONUT_R in a 100 by 100 box); empty when the total is 0.
+ * Each slice is one dash from its start to its end, and the gap is longer than the circle, so the pattern never
+ * repeats. Slice boundaries are rounded down to 0.01 and the next slice starts where the last one ended, so the
+ * last dash cannot run past the end of the circle and wrap into a sliver at 12 o'clock.
+ */
 export function donutArcs(slices: ReadonlyArray<{ label: string; value: number }>): Arc[] {
 	const total = slices.reduce((a, s) => a + s.value, 0);
 	if (total <= 0) return [];
 	const c = 2 * Math.PI * DONUT_R;
-	let off = 0;
+	const down = (v: number) => Math.floor(v * 100) / 100;
+	const gap = Math.ceil(c) + 1;
+	let sum = 0;
+	let start = 0;
 	return slices.map((s) => {
-		const len = (s.value / total) * c;
-		const arc = { label: s.label, share: s.value / total, dasharray: `${r1(len)} ${r1(c - len)}`, dashoffset: r1(-off) };
-		off += len;
+		sum += s.value;
+		const end = down((sum / total) * c);
+		const len = Math.max(0, end - start);
+		const arc = { label: s.label, share: s.value / total, dasharray: `${r2(len)} ${gap}`, dashoffset: r2(-start) };
+		start = end;
 		return arc;
 	});
 }

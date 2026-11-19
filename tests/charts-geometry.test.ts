@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { annotationCount, areaPath, axisScale, barWidth, bucketText, fmtTick, formatFamily, niceMax, rangeText, shapePath, slotColor, tickIndexes, donutArcs, fmt, foldSlices, groupDate, linePath, lineScale, MARKER_MIN_GAP, markerGroups, sparkPath, stackedRects, W } from "../src/charts/geometry.js";
+import { DONUT_R, annotationCount, areaPath, axisScale, barWidth, bucketText, fmtTick, formatFamily, niceMax, rangeText, shapePath, slotColor, tickIndexes, donutArcs, fmt, foldSlices, groupDate, linePath, lineScale, MARKER_MIN_GAP, markerGroups, sparkPath, stackedRects, W } from "../src/charts/geometry.js";
 
 describe("chart geometry", () => {
 	it("scales an empty series without dividing by zero", () => {
@@ -49,8 +49,29 @@ describe("chart geometry", () => {
 
 	it("donut arcs: a 100 percent slice and an empty total", () => {
 		const [a] = donutArcs([{ label: "all", value: 7 }]);
-		expect(a).toMatchObject({ share: 1, dasharray: "251.3 0", dashoffset: -0 });
+		expect(a).toMatchObject({ share: 1, dasharray: "251.32 253", dashoffset: -0 });
 		expect(donutArcs([{ label: "x", value: 0 }])).toEqual([]);
+	});
+
+	it("donut arcs: no dash runs past the end of the circle or repeats, whatever the split", () => {
+		const c = 2 * Math.PI * DONUT_R;
+		for (let a = 1; a <= 120; a++) {
+			for (let b = 1; b <= 120; b++) {
+				for (const slices of [[a, b], [a, b, 3]]) {
+					const arcs = donutArcs(slices.map((value, i) => ({ label: `s${i}`, value })));
+					let prevEnd = 0;
+					for (const arc of arcs) {
+						const [len = 0, gap = 0] = arc.dasharray.split(" ").map(Number);
+						const start = -arc.dashoffset;
+						expect(start).toBeCloseTo(prevEnd, 6);
+						expect(start + len).toBeLessThanOrEqual(c);
+						expect(len + gap).toBeGreaterThan(c);
+						prevEnd = start + len;
+					}
+					expect(c - prevEnd).toBeLessThan(0.011);
+				}
+			}
+		}
 		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 })))).toHaveLength(8);
 		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 }))).at(-1)).toEqual({ label: "other", value: 3 });
 	});
