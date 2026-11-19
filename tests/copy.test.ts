@@ -325,7 +325,7 @@ describe("copy rules", () => {
 			for (const w of FORBIDDEN_PUBLIC_WORDS) expect(t.toLowerCase().includes(w), `${t}: ${w}`).toBe(false);
 		}
 		expect(SEO_TEXT.caution).toBe("Before and after comparisons show correlation, not causation. Seasonality, other changes and search engine updates overlap; annotations in the same window are listed.");
-		expect(SEO_TEXT.coverage).toBe("Based on the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.");
+		expect(SEO_TEXT.coverage).toBe("Based on Google Search Console data of the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.");
 		expect(SEO_TEXT.rangeTooLong).toBe("This view reads detailed rows and is limited to 93 days. Choose a shorter range.");
 		expect(periodLine({ current: { from: "2026-10-14", to: "2026-11-10" }, previous: { from: "2026-09-16", to: "2026-10-13" }, days: 28, excluded: 3, reason: "provisional" })).toBe(
 			"Comparing 2026-10-14 to 2026-11-10 with the 28 days before; the newest 3 days are excluded as provisional",

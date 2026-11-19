@@ -5,7 +5,7 @@
  */
 import { Button } from "@cloudflare/kumo";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useId, useState } from "react";
-import { filterReason, type NoticeCtx, noticeText, SITE_NOTICES } from "../../charts/caveats.js";
+import { ACTIONABLE_NOTICES, filterReason, type NoticeCtx, noticeText, SITE_NOTICES } from "../../charts/caveats.js";
 import type { Dim } from "../../query/filters.js";
 import { DIM_LABELS } from "./FilterBar.js";
 import type { View } from "./Header.js";
@@ -99,7 +99,15 @@ export function ReportNotices({ notices, view }: { notices: readonly string[]; v
 				</Notice>
 			)}
 			{noticeText(
-				notices.filter((n) => !BADGE.test(n)),
+				notices.filter((n) => !BADGE.test(n) && !ACTIONABLE_NOTICES.has(n.split(":")[0] ?? "")),
+				ctx,
+			).map((t) => (
+				<Notice key={t} tone="info" label="Note">
+					{t}
+				</Notice>
+			))}
+			{noticeText(
+				notices.filter((n) => !BADGE.test(n) && ACTIONABLE_NOTICES.has(n.split(":")[0] ?? "")),
 				ctx,
 			).map((t) => (
 				<Notice key={t} tone="warning" action={SETTING_NOTICES.has(t) ? <a href={`${SETTINGS_HREF}?tab=${SETTING_NOTICES.get(t)}`}>Open plugin settings</a> : undefined}>

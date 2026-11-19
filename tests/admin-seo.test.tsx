@@ -113,12 +113,13 @@ describe("Search page SEO tabs", () => {
 		expect(queries("search_position_moves").every((q) => q.query.compare === "none")).toBe(true);
 	});
 
-	it("Cannibalization: coverage line with the visible share, floors prefilled and posted, expandable rows, drawers, Bing notice", async () => {
+	it("Cannibalization: coverage line with the visible share, floors prefilled and posted, expandable rows, drawers", async () => {
 		render(<Search />);
 		await openTab("Cannibalization");
 		const panel = await screen.findByRole("region", { name: "Cannibalization" });
 		expect(await within(panel).findByText(/Visible share of impressions: 71\.2%/)).toBeTruthy();
-		expect(within(panel).getByText(`${SEO_TEXT.bingNoPairs}.`)).toBeTruthy();
+		expect(within(panel).getByText(/Based on Google Search Console data/)).toBeTruthy();
+		expect(within(panel).queryByText(`${SEO_TEXT.bingNoPairs}.`)).toBeNull();
 		const imp = within(panel).getByLabelText("Minimum impressions") as HTMLInputElement;
 		await waitFor(() => expect(imp.value).toBe("50"));
 		fireEvent.change(imp, { target: { value: "80" } });
@@ -142,12 +143,13 @@ describe("Search page SEO tabs", () => {
 		await waitFor(() => expect(queries("search_cannibalization_pages").length).toBeGreaterThan(0));
 	});
 
-	it("Bing only: the bing_no_pairs notice, and bands and movers still render from Bing rows", async () => {
+	it("Bing only: the pair lists say they are Google data in the coverage line, and bands and movers still render from Bing rows", async () => {
 		sources = [src("google", false), src("bing")];
 		render(<Search />);
 		// One mapped source: no switch, the reports ask for Bing.
 		await openTab("Cannibalization");
-		expect(await screen.findByText(`${SEO_TEXT.bingNoPairs}.`)).toBeTruthy();
+		expect(await screen.findByText(/Based on Google Search Console data/)).toBeTruthy();
+		expect(screen.queryByText(`${SEO_TEXT.bingNoPairs}.`)).toBeNull();
 		await openTab("Positions");
 		await screen.findByRole("table", { name: "Position bands" });
 		expect(queries("search_position_bands").at(-1)?.params.source).toBe("bing");

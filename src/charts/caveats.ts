@@ -4,7 +4,6 @@ import { SEO_TEXT } from "../query/reports/seo-copy.js";
 
 /** Notice texts of the SEO views and the impact view. */
 export const SEO_NOTICES: Record<string, string> = {
-	bing_no_pairs: `${SEO_TEXT.bingNoPairs}.`,
 	top3_insufficient: "Potential clicks need at least 1,000 impressions in positions 1 to 3 over this range; not enough top-3 data.",
 	scope_host_not_applied: "Host rules do not apply to Search data; this comparison is not limited by host.",
 	capped: "The list shows the 200 queries with the most impressions; the totals count every query.",
@@ -82,6 +81,8 @@ export const NOTICE_COPY: Record<string, ((args: readonly string[], c: NoticeCtx
 	scope_no_search_source: () => "Query rules apply to Search data only; this site has no Search source yet.",
 	...Object.fromEntries(Object.entries(SEO_NOTICES).map(([k, t]) => [k, () => t])),
 	coverage: null,
+	// The coverage line of the pair views says the lists are Google data.
+	bing_no_pairs: null,
 	no_annotation: null,
 	not_yet: null,
 	incomplete: null,
@@ -89,6 +90,17 @@ export const NOTICE_COPY: Record<string, ((args: readonly string[], c: NoticeCtx
 	search_lags: null,
 	search_no_data: null,
 };
+
+/** Codes of notices about something the reader can change (a filter, a setting, a metric); every other notice is plain information. */
+export const ACTIONABLE_NOTICES: ReadonlySet<string> = new Set([
+	"filters_not_applied",
+	"metric_unavailable",
+	"scope_query_not_applied",
+	"scope_no_search_source",
+	"site_search_off",
+	"segment_missing",
+	"compare_segment_missing",
+]);
 
 /** The text of one notice code, or null (unknown, or shown by its own view). */
 export function noticeCopy(code: string, c: NoticeCtx = {}): string | null {

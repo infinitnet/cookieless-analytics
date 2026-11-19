@@ -8,7 +8,7 @@ export const BAND_UPPER = [4, 11, 21, 51] as const;
 export const bandSuffix = (b: string) => b.replace("-", "_").replace("+", "_plus");
 
 export const SEO_TEXT = {
-	coverage: "Based on the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.",
+	coverage: "Based on Google Search Console data of the stored page and query rows. Google omits rare queries and keeps top rows only, so shares are of visible queries.",
 	rangeTooLong: "This view reads detailed rows and is limited to 93 days. Choose a shorter range.",
 	bingNoPairs: "Bing exposes page and query pairs only per page or per query on request; the lists are Google data",
 	bingOnRequest: "Loads from Bing on request, cached one hour.",

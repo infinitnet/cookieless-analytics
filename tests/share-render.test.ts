@@ -248,7 +248,7 @@ describe("SEO and impact tiles", () => {
 		expect(doc.querySelector('[aria-labelledby="t-i00002"] [data-marker="2026-10-10"]')).not.toBeNull();
 		expect(doc.querySelector('[aria-labelledby="t-i00003"]')?.textContent).toContain("No annotation yet");
 		const foot = doc.querySelector("footer")?.textContent ?? "";
-		expect(foot).toContain("Based on the stored page and query rows.");
+		expect(foot).toContain("Based on Google Search Console data of the stored page and query rows.");
 		expect(foot).toContain("Comparing 2026-10-01 to 2026-10-28 with the 28 days before");
 		expect(foot).toContain("Before and after comparisons show correlation, not causation.");
 		expect(html).not.toMatch(/<script|\u2014|\u2013/i);
