@@ -5,9 +5,9 @@ import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef
 import { PRESETS, type Preset, presetRange } from "../../core/presets.js";
 import { distinctRequests, tileRequest } from "../../dashboards/run.js";
 import { IMPACT_METRICS, IMPACT_REPORTS } from "../../query/reports/seo-copy.js";
-import { type Dashboard, DashboardInput, isSearchReport, MAX_TILE_METRICS, TILE_KINDS, tileMetricsProblem, tileNeedsSearch, TILE_METRICS, TILE_PARAMS, TILE_REPORTS, type Tile, type TileKind, type TileReport, TileSchema } from "../../dashboards/schema.js";
+import { type Dashboard, DashboardInput, isSearchReport, MAX_TILE_COLUMNS, MAX_TILE_METRICS, TILE_KINDS, tileMetricsProblem, tileNeedsSearch, TILE_METRICS, TILE_PARAMS, TILE_REPORTS, type Tile, type TileKind, type TileReport, TileSchema } from "../../dashboards/schema.js";
 import { BUILTIN_GROUPS, BUILTIN_NAMES, BUILTIN_TEMPLATES, TEMPLATE_GROUPS } from "../../dashboards/templates.js";
-import { currencyLines, lineAxes, metricLabel, type TileData, tileData, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "../../dashboards/tiles.js";
+import { currencyLines, lineAxes, metricLabel, type TileData, tableColumnKeys, tileData, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "../../dashboards/tiles.js";
 import type { Filter } from "../../query/filters.js";
 import { MAX_SHARES_PER_DASHBOARD } from "../../dashboards/limits.js";
 import { MAX_SHARE_LABEL, type ShareState, shareState as stateOf, type ShareSummary, type ShareView } from "../../dashboards/share-view.js";
@@ -781,7 +781,7 @@ function ShareDialog({ view, dashboard, saved, counted, close }: { view: View; d
 
 // ── editor ────────────────────────────────────────────────────────────────────
 
-function TileForm({ initial, onSave, onCancel, goals, funnels }: { initial: Tile | null; onSave: (t: Tile) => void; onCancel: () => void; goals: ReadonlyArray<{ id: string; name: string }>; funnels: ReadonlyArray<{ id: string; name: string }> }) {
+function TileForm({ view, initial, onSave, onCancel, goals, funnels }: { view: View; initial: Tile | null; onSave: (t: Tile) => void; onCancel: () => void; goals: ReadonlyArray<{ id: string; name: string }>; funnels: ReadonlyArray<{ id: string; name: string }> }) {
 	const [t, setT] = useState<Tile>(initial ?? { id: newTileId(), report: "overview", kind: "kpi", metric: "visitors", w: 1 });
 	const kinds: readonly TileKind[] = TILE_KINDS[t.report];
 	const metrics = t.report === "impact" ? IMPACT_METRICS[t.params?.report ?? "overview"] : t.kind === "stacked" ? ["queries", "impressions"] : (TILE_METRICS[t.report] ?? []);
@@ -790,6 +790,11 @@ function TileForm({ initial, onSave, onCancel, goals, funnels }: { initial: Tile
 	const needsMetric = t.kind === "kpi";
 	const check = TileSchema.safeParse(t);
 	const [refused, setRefused] = useState<string | null>(null);
+	// The columns a table tile can show are those its report returns: one small request for the draft tile reads them.
+	const sample = tileRequest({ ...t, columns: undefined, limit: 5 }, { from: view.state.from, to: view.state.to, compare: "none", site: view.site.id, filters: [] });
+	const sampled = useReport(view.site.id, t.kind === "table" && check.success && !tileNeedsSearch(t) ? sample : null);
+	const available = tableColumnKeys((sampled.data?.data.rows ?? []) as Array<Record<string, unknown>>).slice(1);
+	const currency = sampled.data?.data.currency as string | undefined;
 	/** The metric fields of `kind` for `report`: `metrics` for lines, `metric` for a number; what still fits is kept, else the report's first. */
 	const metricFields = (kind: TileKind, report: TileReport): Pick<Tile, "metric" | "metrics"> => {
 		const fit = (report === "impact" ? IMPACT_METRICS[t.report === "impact" ? (t.params?.report ?? "overview") : "overview"] : TILE_METRICS[report]) ?? [];
@@ -975,6 +980,30 @@ function TileForm({ initial, onSave, onCancel, goals, funnels }: { initial: Tile
 					Event name <input value={t.params?.event ?? ""} onChange={(e) => setParam("event", e.target.value)} />
 				</label>
 			)}
+			{t.kind === "table" && available.length > 0 && (
+				<fieldset>
+					<legend>Columns</legend>
+					<p className="ca-help">Shown after the name, in the report's order. None checked shows the first three.</p>
+					{available.map((k) => {
+						const on = t.columns?.includes(k) ?? false;
+						return (
+							<label key={k}>
+								<input
+									type="checkbox"
+									checked={on}
+									disabled={!on && (t.columns?.length ?? 0) >= MAX_TILE_COLUMNS}
+									onChange={(e) => {
+										const picked = e.target.checked ? [...(t.columns ?? []), k] : (t.columns ?? []).filter((x) => x !== k);
+										const ordered = available.filter((x) => picked.includes(x));
+										setT({ ...t, columns: ordered.length ? ordered : undefined });
+									}}
+								/>{" "}
+								{valueLabel(k, currency)}
+							</label>
+						);
+					})}
+				</fieldset>
+			)}
 			{!needsMetric && !lines && (
 				<label>
 					Rows{" "}
@@ -1129,6 +1158,7 @@ function Editor({ view, initial, saved, cancel }: { view: View; initial: Draft; 
 				)}
 				{editing !== null && (
 					<TileForm
+						view={view}
 						key={editing}
 						initial={editing === "new" ? null : (tiles.find((x) => x.id === editing) ?? null)}
 						goals={goals}

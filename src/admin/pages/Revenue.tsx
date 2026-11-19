@@ -102,6 +102,8 @@ function AttributionPanel({ view, dim, code, total, refunds }: { view: View; dim
 				{ key: "orders", label: "Orders" },
 				money("aov", "Average order value"),
 				money("revenue_per_visitor", "Revenue per visitor"),
+				{ key: "visitors", label: "Visitors", optional: true },
+				{ key: "sessions", label: "Sessions", optional: true },
 			]}
 			// Visitors rows without an order stay out: these panels rank where the money came from.
 			// A funnel table is too wide for a grid cell: its stepwise revenue lives on the Funnels tab, linked from the goals panel.

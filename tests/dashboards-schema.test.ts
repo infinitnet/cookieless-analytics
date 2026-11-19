@@ -97,6 +97,19 @@ describe("dashboard schema", () => {
 	});
 });
 
+describe("table tile columns", () => {
+	const table = { id: "abc123", report: "channels", kind: "table", w: 2 } as const;
+	it("a table tile names up to six figure columns, once each; other kinds name none", () => {
+		expect(TileSchema.safeParse({ ...table, columns: ["sessions", "bounce_rate"] }).success).toBe(true);
+		expect(TileSchema.safeParse({ ...table, columns: ["a", "b", "c", "d", "e", "f"] }).success).toBe(true);
+		expect(TileSchema.safeParse({ ...table, columns: ["a", "b", "c", "d", "e", "f", "g"] }).success).toBe(false);
+		expect(TileSchema.safeParse({ ...table, columns: [] }).success).toBe(false);
+		expect(TileSchema.safeParse({ ...table, columns: ["sessions", "sessions"] }).success).toBe(false);
+		expect(TileSchema.safeParse({ ...table, kind: "bars", columns: ["sessions"] }).success).toBe(false);
+		expect(TileSchema.safeParse({ ...table, columns: ["Not A Key"] }).success).toBe(false);
+	});
+});
+
 describe("dashboard store", () => {
 	it("saves, lists by site, reads, updates and deletes", async () => {
 		const coll = memColl();

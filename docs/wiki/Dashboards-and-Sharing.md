@@ -38,7 +38,8 @@ A dashboard is a saved view of your reports: up to 12 tiles, each one report sho
 - A Goals number tile shows one goal, a Funnels tile one funnel, an Event properties tile needs the event name.
 - Search tiles take a source (all, Google, Bing) and stay empty until a Search source is connected.
 - Revenue tiles show one currency: the chosen one, or the site's default currency when the tile runs.
-- A donut shows at most 8 slices; the rest is folded into "other".
+- A donut shows at most 7 slices, one colour each; the rest is folded into "other".
+- A table tile shows the name and the first three figures of its report, or the columns you check in the tile editor (up to 6, in the report's order).
 - Line and area tiles show matching annotations. The Annotations button of the dashboard view hides them.
 - Tiles with the same report, filters and options share one request. The editor shows the number of distinct requests.
 

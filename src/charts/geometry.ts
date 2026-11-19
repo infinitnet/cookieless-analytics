@@ -241,7 +241,7 @@ export function donutArcs(slices: ReadonlyArray<{ label: string; value: number }
 }
 
 /** At most `max` slices: the rest is folded into one "other" slice. */
-export function foldSlices(rows: ReadonlyArray<{ label: string; value: number }>, max = 8): Array<{ label: string; value: number }> {
+export function foldSlices(rows: ReadonlyArray<{ label: string; value: number }>, max = COLORS.length): Array<{ label: string; value: number }> {
 	if (rows.length <= max) return [...rows];
 	const rest = rows.slice(max - 1).reduce((a, r) => a + r.value, 0);
 	return [...rows.slice(0, max - 1), { label: "other", value: rest }];

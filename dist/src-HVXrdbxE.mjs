@@ -2386,7 +2386,7 @@ function donutArcs(slices) {
 	});
 }
 /** At most `max` slices: the rest is folded into one "other" slice. */
-function foldSlices(rows, max = 8) {
+function foldSlices(rows, max = COLORS.length) {
 	if (rows.length <= max) return [...rows];
 	const rest = rows.slice(max - 1).reduce((a, r) => a + r.value, 0);
 	return [...rows.slice(0, max - 1), {
@@ -5246,6 +5246,8 @@ const TileSchema = z.object({
 	metric: ColumnKey.optional(),
 	/** `line` and `area`: the charted metrics, 1 to 4 on at most two scales. */
 	metrics: z.array(ColumnKey).min(1).max(4).optional(),
+	/** `table`: the figure columns to show after the name, in this order (at most 6); absent means the first three of the report. */
+	columns: z.array(ColumnKey).min(1).max(6).optional(),
 	filters: z.array(FilterSchema).max(5).optional(),
 	params: z.object({
 		source: z.enum([
@@ -5316,6 +5318,8 @@ const TileSchema = z.object({
 	const p = t.params ?? {};
 	const metrics = t.report === "impact" ? p.report ? IMPACT_METRICS[p.report] : [] : TILE_METRICS[t.report];
 	if (t.kind === "kpi" && !t.metric) issue("a kpi tile needs a metric", "metric");
+	if (t.columns && t.kind !== "table") issue("only a table tile names columns", "columns");
+	if (t.columns && new Set(t.columns).size !== t.columns.length) issue("a column is named twice", "columns");
 	if (t.kind === "kpi" && t.metric && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
 	if (series && t.metric) issue(`a ${t.kind} tile names its metrics in metrics`, "metric");
 	if (!series && t.metrics) issue("metrics is for line and area tiles", "metrics");
@@ -11116,6 +11120,7 @@ const CAVEATS = {
 	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
 	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
 	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
+	exit_rate: "Blank for pages whose exits or page views were folded into other pages on some days of this range.",
 	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions."
 };
 /** Notices of the collections and site search reports. */
@@ -11225,6 +11230,12 @@ const SKIP = /* @__PURE__ */ new Set([
 	"currency",
 	"revenue_currency"
 ]);
+/** Columns a table tile can show for these rows: the name column, then every plain value of the first row in the report's order. */
+function tableColumnKeys(rows) {
+	const first = rows[0] ?? {};
+	const label = "query" in first ? "query" : "key";
+	return [label, ...Object.keys(first).filter((k) => !SKIP.has(k) && k !== label && (first[k] === null || typeof first[k] !== "object"))];
+}
 const REVENUE_EMPTY = "No revenue recorded yet";
 /** Format of a value: amounts as `money:<code>` when the tile has a currency, else the metric's format. */
 const valueFormat = (key, currency) => currency && MONEY_KEYS.has(key) ? `money:${currency}` : metricFormat(key);
@@ -11399,9 +11410,9 @@ function tileData(tile, result, opts = {}) {
 	}
 	const limited = rows.slice(0, tile.limit ?? 10);
 	const first = limited[0] ?? {};
-	const label = "query" in first ? "query" : "key";
-	const columns = [label, ...Object.keys(first).filter((k) => !SKIP.has(k) && k !== label && (first[k] === null || typeof first[k] !== "object"))];
-	out.columns = tile.kind === "table" ? columns.slice(0, 4) : columns;
+	const columns = tableColumnKeys(limited);
+	const named = tile.kind === "table" && tile.columns ? tile.columns.filter((k) => columns.includes(k) && k !== columns[0]) : [];
+	out.columns = tile.kind !== "table" ? columns : named.length ? [columns[0], ...named] : columns.slice(0, 4);
 	if (tile.kind === "table") {
 		out.rows = limited.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? v ? "yes" : "no" : v])));
 		return out;

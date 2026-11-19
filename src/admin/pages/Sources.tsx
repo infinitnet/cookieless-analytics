@@ -66,6 +66,9 @@ export default function Sources() {
 								{ key: "visitors", label: "Visitors" },
 								{ key: "sessions", label: "Sessions" },
 								{ key: "landing", label: "Top landing pages", format: "text" },
+								{ key: "bounce_rate", label: "Bounce rate", format: "percent", optional: true },
+								{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration", optional: true },
+								{ key: "pageviews", label: "Pageviews", optional: true },
 							]}
 							mapRows={(rows) => rows.map((r) => ({ ...r, landing: ((r.landing ?? []) as Array<{ path: string }>).map((l) => l.path).join(", ") }))}
 						/>

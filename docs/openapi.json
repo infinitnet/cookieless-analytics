@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Cookieless Analytics agent API",
-    "version": "1.1.3",
+    "version": "1.2.0",
     "description": "Aggregated analytics for agents and scripts. Send the key in the X-Api-Key header; Authorization: Bearer cannot be used because the host rejects unknown bearer tokens. Scopes: read:analytics, read:search, sync:search, write:annotations, write:dashboards, write:events, data:export, data:import."
   },
   "servers": [
@@ -1637,6 +1637,15 @@
                             "metrics": {
                               "minItems": 1,
                               "maxItems": 4,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9_]{1,32}$"
+                              }
+                            },
+                            "columns": {
+                              "minItems": 1,
+                              "maxItems": 6,
                               "type": "array",
                               "items": {
                                 "type": "string",

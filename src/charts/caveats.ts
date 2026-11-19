@@ -23,6 +23,7 @@ export const CAVEATS = {
 	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
 	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
 	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
+	exit_rate: "Blank for pages whose exits or page views were folded into other pages on some days of this range.",
 	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions.",
 } as const;
 export type Caveat = keyof typeof CAVEATS;

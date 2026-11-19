@@ -52,7 +52,7 @@ export interface TileLine {
 /** Most lines drawn while a comparison is on: each has a dashed twin. */
 export const COMPARE_LINES = 2;
 export const TRIMMED_COMPARE = "Comparison on: showing the first 2 metrics.";
-/** Columns of a table tile: the name and the first three figures of the report. */
+/** Columns of a table tile that names none: the name and the first three figures of the report. */
 export const TABLE_TILE_COLUMNS = 4;
 /** A series more than this many times another of its family moves to the right axis (as on the report pages). */
 const SCALE_RATIO = 20;
@@ -77,6 +77,13 @@ export function lineAxes(lines: ReadonlyArray<Pick<TileLine, "key" | "values" | 
 export const hiddenTermsText = (n: number) => `${n} search term${n === 1 ? "" : "s"} used in fewer than 2 sessions ${n === 1 ? "is" : "are"} not shown.`;
 
 const SKIP = new Set(["key", "previous", "delta", "page_list", "periods", "currency", "revenue_currency"]);
+
+/** Columns a table tile can show for these rows: the name column, then every plain value of the first row in the report's order. */
+export function tableColumnKeys(rows: ReadonlyArray<Record<string, unknown>>): string[] {
+	const first = rows[0] ?? {};
+	const label = "query" in first ? "query" : "key";
+	return [label, ...Object.keys(first).filter((k) => !SKIP.has(k) && k !== label && (first[k] === null || typeof first[k] !== "object"))];
+}
 
 export const REVENUE_EMPTY = "No revenue recorded yet";
 
@@ -219,9 +226,10 @@ export function tileData(tile: Tile, result: ReportResult, opts: { goalName?: st
 	const limited = rows.slice(0, tile.limit ?? DEFAULT_TILE_LIMIT);
 	const first = limited[0] ?? {};
 	// Rows that name their query use it as the first column instead of the internal key.
-	const label = "query" in first ? "query" : "key";
-	const columns = [label, ...Object.keys(first).filter((k) => !SKIP.has(k) && k !== label && (first[k] === null || typeof first[k] !== "object"))];
-	out.columns = tile.kind === "table" ? columns.slice(0, TABLE_TILE_COLUMNS) : columns;
+	const columns = tableColumnKeys(limited);
+	// A table tile that names its columns shows those the report returns (in the tile's order); with none left it shows the first figures.
+	const named = tile.kind === "table" && tile.columns ? tile.columns.filter((k) => columns.includes(k) && k !== columns[0]) : [];
+	out.columns = tile.kind !== "table" ? columns : named.length ? [columns[0] as string, ...named] : columns.slice(0, TABLE_TILE_COLUMNS);
 	if (tile.kind === "table") {
 		out.rows = limited.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? (v ? "yes" : "no") : v])));
 		return out;

@@ -198,6 +198,26 @@ describe("Dashboards page", () => {
 		expect(routeCalls("dashboards/list").length).toBeGreaterThanOrEqual(2);
 	});
 
+	it("a table tile lists the report's columns, saves the checked ones in the report's order and none by default", async () => {
+		render(<Dashboards />);
+		fireEvent.click(await screen.findByRole("button", { name: "New dashboard" }));
+		click("Start blank");
+		click("Add tile");
+		const form = screen.getByRole("form", { name: "Tile" });
+		fireEvent.change(within(form).getByLabelText("Report"), { target: { value: "channels" } });
+		fireEvent.change(within(form).getByLabelText("Chart"), { target: { value: "table" } });
+		const columns = await within(form).findByRole("group", { name: "Columns" });
+		expect(within(columns).getAllByRole("checkbox").map((c) => (c as HTMLInputElement).checked)).toEqual([false, false]);
+		fireEvent.click(within(columns).getByLabelText("Sessions"));
+		fireEvent.click(within(columns).getByLabelText("Visitors"));
+		fireEvent.click(within(form).getByRole("button", { name: "Save tile" }));
+		fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Columns" } });
+		click("Save dashboard");
+		await waitFor(() => expect(routeCalls("dashboards/save")).toHaveLength(1));
+		const saved = routeCalls("dashboards/save")[0]?.dashboard as { tiles: Array<{ kind: string; columns?: string[] }> };
+		expect(saved.tiles[0]).toMatchObject({ kind: "table", columns: ["visitors", "sessions"] });
+	});
+
 	it("creates a dashboard: add three tiles, move, resize, remove, save", async () => {
 		render(<Dashboards />);
 		fireEvent.click(await screen.findByRole("button", { name: "New dashboard" }));

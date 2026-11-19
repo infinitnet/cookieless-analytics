@@ -120,6 +120,8 @@ export default function Pages() {
 								{ key: "visitors", label: "Visitors" },
 								{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
 								{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
+								{ key: "views_per_session", label: "Views per session", format: "decimal", optional: true },
+								{ key: "engaged_rate", label: "Engaged rate", format: "percent", optional: true },
 							]}
 						/>
 					),

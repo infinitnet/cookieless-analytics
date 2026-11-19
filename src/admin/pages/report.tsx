@@ -46,12 +46,22 @@ export function sessionColumns(label: string, dim?: Dim): Column[] {
 		{ key: "sessions", label: "Sessions" },
 		{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
 		{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
+		...SESSION_EXTRA,
 	];
 }
+
+/** Session metrics every session breakdown returns that are not shown until the visitor switches them on. */
+export const SESSION_EXTRA: Column[] = [
+	{ key: "pageviews", label: "Pageviews", optional: true },
+	{ key: "views_per_session", label: "Views per session", format: "decimal", optional: true },
+	{ key: "engaged_rate", label: "Engaged rate", format: "percent", optional: true },
+];
 
 export interface PanelProps {
 	view: View;
 	report: ReportName;
+	/** The id of the column choice in this browser; the report name unless the panel has its own columns (Overview previews). */
+	columnsId?: string;
 	columns: readonly Column[];
 	/** Required: a panel head without a title would hold only the menu. */
 	title: string;
@@ -116,7 +126,7 @@ export const compareNames = (r: ReportResult | null | undefined): readonly [stri
 	r?.compare === "segment" && r.compareSegment ? [r.segment?.name ?? "All visitors", r.compareSegment.name] : undefined;
 
 /** One report as a table: click a value to filter, export, notices and errors. */
-export function ReportPanel({ view, report, columns: baseColumns, title, info, params: baseParams, limit = 100, pageSize, mapRows, showNotices = true, action, extra, revenue, more, moreLabel, setup }: PanelProps) {
+export function ReportPanel({ view, report, columnsId, columns: baseColumns, title, info, params: baseParams, limit = 100, pageSize, mapRows, showNotices = true, action, extra, revenue, more, moreLabel, setup }: PanelProps) {
 	const { state, update, site } = view;
 	const query = toQuery(state, report);
 	const rev = useRevenue(view, !!revenue);
@@ -139,8 +149,8 @@ export function ReportPanel({ view, report, columns: baseColumns, title, info, p
 	const skeletonRows = Math.min(pageSize ?? SKELETON_ROWS, limit, SKELETON_ROWS);
 	const all = (res.data?.data.rows ?? []) as TableRow[];
 	const rows = mapRows ? mapRows(all) : all;
-	// One column choice per report in this browser, on every page that shows the report.
-	const picked = useColumns(report, columns, rows);
+	// One column choice per report in this browser, on every page that shows the report; a panel with its own columns names its own id.
+	const picked = useColumns(columnsId ?? report, columns, rows);
 	const narrowed = state.filters.length > 0 || !!state.segment;
 	const empty = !!res.data && !res.loading && !rows.length;
 	const defined = setup && setup !== "links" ? setup : "goals";

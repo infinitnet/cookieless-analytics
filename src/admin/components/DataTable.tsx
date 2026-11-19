@@ -46,14 +46,17 @@ export function useColumns(id: string, columns: readonly Column[], rows: readonl
 	const [picks, setPicks] = useState<Record<string, boolean>>(() => readPref("local", COLS_KEY, colsMap)?.[id] ?? {});
 	const offered = withData(columns, rows);
 	const on = (c: Column) => picks[c.key] ?? !c.optional;
-	const shown = offered.filter((c, i) => i === 0 || on(c));
+	const chosen = offered.filter((c, i) => i === 0 || on(c));
+	// Hiding every column but the first would leave a table of names: the defaults show instead.
+	const shown = chosen.length < 2 ? offered.filter((c, i) => i === 0 || !c.optional) : chosen;
 	const pick = (key: string, value: boolean) => {
-		const next = { ...picks, [key]: value };
+		// Read again before writing: other tables on the page keep their own choices in the same key, and tables that share this id add theirs.
+		const stored = readPref("local", COLS_KEY, colsMap) ?? {};
+		const next = { ...stored[id], ...picks, [key]: value };
 		setPicks(next);
-		// Read again before writing: other tables on the page keep their own choices in the same key.
-		writePref("local", COLS_KEY, { ...readPref("local", COLS_KEY, colsMap), [id]: next });
+		writePref("local", COLS_KEY, { ...stored, [id]: next });
 	};
-	const checks = offered.length > 2 ? offered.slice(1).map((c) => ({ label: c.label, checked: on(c), disabled: on(c) && shown.length <= 2, onChange: (v: boolean) => pick(c.key, v) })) : [];
+	const checks = offered.length > 2 ? offered.slice(1).map((c) => ({ label: c.label, checked: shown.includes(c), disabled: shown.includes(c) && shown.length <= 2, onChange: (v: boolean) => pick(c.key, v) })) : [];
 	return { columns: shown, checks };
 }
 
@@ -113,13 +116,17 @@ function compare(a: unknown, b: unknown): number {
 
 export function DataTable({ label, columns: all, rows, pageSize = 25, truncated, onFilter, loading, action, compareNames, emptyAction, search = true }: DataTableProps) {
 	const columns = withData(all, rows);
-	const [sort, setSort] = useState<{ key: string; desc: boolean } | null>(null);
+	const [picked, setSort] = useState<{ key: string; desc: boolean } | null>(null);
+	// A sort on a column the visitor hid is dropped.
+	const sort = picked && columns.some((c) => c.key === picked.key) ? picked : null;
 	const [page, setPage] = useState(0);
 	// The body's one tab stop: [row on this page, control in that row].
 	const [cur, setCur] = useState<readonly [number, number]>([0, 0]);
 	// The search term belongs to the loaded rows: a new report, range or filter clears it.
 	const [q, setQ] = useState("");
-	useEffect(() => (setPage(0), setQ("")), [rows]);
+	// Rows of the same keys (a table that maps its rows on every render) keep the page and the search.
+	const rowsKey = rows.length + "\u0000" + rows.map((r) => r.key).join("\u0000");
+	useEffect(() => (setPage(0), setQ("")), [rowsKey]);
 	const searchable = search && rows.length > pageSize;
 	// The row's key and label, and every text column.
 	const textKeys = ["key", "label", ...columns.filter((c) => c.format === "text").map((c) => c.key)];

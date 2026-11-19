@@ -14,17 +14,21 @@ import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
 import { presetRange } from "../state.js";
 import { RevenueKpis } from "./Revenue.js";
 import { adminHref, ErrorScope, ReportNotices, SETTINGS_HREF, usePageError } from "../components/ReportNotices.js";
-import { allNotices, ReportPanel, useRevenue } from "./report.js";
+import { allNotices, ReportPanel, SESSION_EXTRA, useRevenue } from "./report.js";
+import type { Column } from "../components/DataTable.js";
 import { SitesSummary } from "./SitesSummary.js";
 
 const KPIS = ["visitors", "sessions", "pageviews", "views_per_session", "bounce_rate", "avg_duration"] as const;
 
 /** Overview panels: the first 8 rows each, so the grid is even; notices once at the top of the page. */
 const ROWS = 8;
-const SHORT = [
+const SHORT: Column[] = [
 	{ key: "visitors", label: "Visitors" },
 	{ key: "sessions", label: "Sessions" },
-] as const;
+	{ key: "bounce_rate", label: "Bounce rate", format: "percent", optional: true },
+	{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration", optional: true },
+	...SESSION_EXTRA,
+];
 
 export function OverviewBody(view: View) {
 	return (
@@ -104,13 +108,29 @@ function OverviewReport(view: View) {
 				</section>
 			)}
 			<div className="ca-panels">
-				<ReportPanel {...p} report="channels" title="Channels" more="/sources" columns={[{ key: "key", label: "Channel", format: "text", dim: "channel" }, ...SHORT]} />
-				<ReportPanel {...p} report="pages" title="Top pages" more="/pages" columns={[{ key: "key", label: "Page", format: "text", dim: "page" }, { key: "visitors", label: "Visitors" }, { key: "pageviews", label: "Pageviews" }]} />
-				<ReportPanel {...p} report="sources" title="Sources" more="/sources?tab=sources" columns={[{ key: "key", label: "Source", format: "text", dim: "source" }, ...SHORT]} />
-				<ReportPanel {...p} report="countries" title="Countries" more="/audience" columns={[{ key: "key", label: "Country", format: "text", dim: "country" }, ...SHORT]} />
+				<ReportPanel {...p} report="channels" columnsId="overview.channels" title="Channels" more="/sources" columns={[{ key: "key", label: "Channel", format: "text", dim: "channel" }, ...SHORT]} />
+				<ReportPanel
+					{...p}
+					report="pages"
+					columnsId="overview.pages"
+					title="Top pages"
+					more="/pages"
+					columns={[
+						{ key: "key", label: "Page", format: "text", dim: "page" },
+						{ key: "visitors", label: "Visitors" },
+						{ key: "pageviews", label: "Pageviews" },
+						{ key: "avg_time", label: "Avg. active time", format: "duration", caveat: "active_time", optional: true },
+						{ key: "avg_visible", label: "Avg. visible time", format: "duration", caveat: "visible_time", optional: true },
+						{ key: "exit_rate", label: "Exit rate", format: "percent", caveat: "exit_rate", optional: true },
+						{ key: "scroll_median", label: "Median scroll (%)", format: "number", optional: true },
+					]}
+				/>
+				<ReportPanel {...p} report="sources" columnsId="overview.sources" title="Sources" more="/sources?tab=sources" columns={[{ key: "key", label: "Source", format: "text", dim: "source" }, ...SHORT]} />
+				<ReportPanel {...p} report="countries" columnsId="overview.countries" title="Countries" more="/audience" columns={[{ key: "key", label: "Country", format: "text", dim: "country" }, ...SHORT]} />
 				<ReportPanel
 					{...p}
 					report="devices"
+					columnsId="overview.devices"
 					title="Devices"
 					more="/audience?tab=devices"
 					columns={[{ key: "key", label: "Device", format: "text", dim: "device" }, ...SHORT]}
@@ -122,10 +142,12 @@ function OverviewReport(view: View) {
 					title="Goals"
 					more="/behaviour?tab=goals"
 					setup="goals"
+					columnsId="overview.goals"
 					columns={[
 						{ key: "key", label: "Goal", format: "text", dim: "goal" },
 						{ key: "converting", label: "Conversions" },
 						{ key: "conversion_rate", label: "Rate", format: "percent" },
+						{ key: "completions", label: "Completions", optional: true },
 					]}
 				/>
 			</div>

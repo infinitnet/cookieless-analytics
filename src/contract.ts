@@ -6,7 +6,7 @@
 export const PLUGIN_ID = "cookieless-analytics";
 export const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-export const VERSION = "1.1.3";
+export const VERSION = "1.2.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 export const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */

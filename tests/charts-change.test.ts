@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { changeText, describeChange, LOWER_IS_BETTER, MISSING_NOTE, NO_JUDGEMENT, rateBase, SMALL_NOTE } from "../src/charts/change.js";
-import { tileChange, tileData } from "../src/dashboards/tiles.js";
+import { tableColumnKeys, tileChange, tileData } from "../src/dashboards/tiles.js";
 import type { ReportResult } from "../src/query/reports/index.js";
 
 describe("describeChange", () => {
@@ -112,6 +112,21 @@ describe("describeChange", () => {
 		expect(rateBase({ impressions: 9000 })).toBe(9000);
 		expect(rateBase({ orders: 3 })).toBe(3);
 		expect(rateBase(null)).toBeUndefined();
+	});
+});
+
+describe("table tile columns", () => {
+	const res = (rows: Array<Record<string, unknown>>): ReportResult => ({ report: "channels", range: { from: "2026-03-01", to: "2026-03-07" }, compare: "none", compareRange: null, notices: [], data: { rows } }) as unknown as ReportResult;
+	const rows = [{ key: "Organic", visitors: 10, sessions: 12, bounce_rate: 0.4, avg_duration: 30, pageviews: 20, previous: null, nested: { a: 1 } }];
+	const tile = (columns?: string[]) => ({ id: "t00001", report: "channels", kind: "table", w: 2, ...(columns ? { columns } : {}) }) as never;
+
+	it("shows the name and the first three figures unless the tile names columns", () => {
+		expect(tileData(tile(), res(rows)).columns).toEqual(["key", "visitors", "sessions", "bounce_rate"]);
+	});
+	it("shows the named columns in the tile's order, leaving out those the report does not return", () => {
+		expect(tileData(tile(["avg_duration", "pageviews", "nope"]), res(rows)).columns).toEqual(["key", "avg_duration", "pageviews"]);
+		expect(tileData(tile(["nope"]), res(rows)).columns).toEqual(["key", "visitors", "sessions", "bounce_rate"]);
+		expect(tableColumnKeys(rows)).toEqual(["key", "visitors", "sessions", "bounce_rate", "avg_duration", "pageviews"]);
 	});
 });
 

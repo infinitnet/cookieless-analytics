@@ -72,8 +72,8 @@ describe("chart geometry", () => {
 				}
 			}
 		}
-		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 })))).toHaveLength(8);
-		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 }))).at(-1)).toEqual({ label: "other", value: 3 });
+		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 })))).toHaveLength(7);
+		expect(foldSlices(Array.from({ length: 10 }, (_, i) => ({ label: `k${i}`, value: 1 }))).at(-1)).toEqual({ label: "other", value: 4 });
 	});
 
 	it("formats numbers, percents and durations", () => {

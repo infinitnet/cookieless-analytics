@@ -68,6 +68,8 @@ export const scoreRows = (rows: TableRow[]): TableRow[] =>
 const RATE_COLUMNS: Column[] = [
 	{ key: "sessions", label: "Sessions", note: (r) => `${String(r.measured ?? 0)} measured` },
 	{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
+	{ key: "avg_engaged", label: "Avg. active time", format: "duration", caveat: "active_time", optional: true },
+	{ key: "measured_rate", label: "Measured sessions", format: "percent", caveat: "satisfaction_measured", optional: true },
 	{ key: "pct_long", label: "Long clicks %", format: "percent" },
 	{ key: "pct_short", label: "Short clicks %", format: "percent" },
 	{ key: "pct_bad", label: "Bad experience %", format: "percent" },

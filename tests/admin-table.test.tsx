@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 /** DataTable: sorting, click-to-filter, paging, deltas, empty state, empty columns, one tab stop, column choice. */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Column, DataTable, type TableRow, useColumns } from "../src/admin/components/DataTable.js";
 import { KebabMenu } from "../src/admin/components/ui.js";
@@ -223,6 +224,72 @@ describe("column choice", () => {
 		await waitFor(() => expect(heads()).toEqual(["Page", "Visitors", "Pageviews"]));
 		// Other reports' choices stay.
 		expect(JSON.parse(localStorage.getItem("ca.cols.v1") ?? "null").other).toEqual({ x: true });
+	});
+
+	it("two tables of one report keep both choices", async () => {
+		render(
+			<>
+				<Panel />
+				<Panel />
+			</>,
+		);
+		const first = (await screen.findAllByRole("button", { name: "Export and columns: Pages" }))[0] as HTMLElement;
+		fireEvent.click(first);
+		fireEvent.click((await screen.findAllByRole("menuitemcheckbox"))[0] as HTMLElement);
+		await waitFor(() => expect(JSON.parse(localStorage.getItem("ca.cols.v1") ?? "null").pages).toEqual({ visitors: false }));
+		const second = screen.getAllByRole("button", { name: "Export and columns: Pages" })[1] as HTMLElement;
+		fireEvent.keyDown(document.body, { key: "Escape" });
+		fireEvent.click(second);
+		const checks = (await screen.findAllByRole("menuitemcheckbox")) as HTMLElement[];
+		fireEvent.click(checks.find((c) => c.textContent === "Median scroll") as HTMLElement);
+		await waitFor(() => expect(JSON.parse(localStorage.getItem("ca.cols.v1") ?? "null").pages).toEqual({ visitors: false, scroll: true }));
+	});
+
+	it("falls back to the default set when the choice would leave only names", () => {
+		localStorage.setItem("ca.cols.v1", JSON.stringify({ pages: { visitors: false, pageviews: false } }));
+		render(<Panel />);
+		expect(heads()).toEqual(["Page", "Visitors", "Pageviews"]);
+	});
+
+	it("drops the sort of a column the visitor hides", async () => {
+		const two: TableRow[] = [{ key: "/a", visitors: 1, pageviews: 9 }, { key: "/b", visitors: 2, pageviews: 3 }];
+		function Sorted() {
+			const picked = useColumns("sorted", cols.slice(0, 3), two);
+			return (
+				<>
+					<KebabMenu label="Export and columns: Pages" items={[{ label: "Export CSV", onSelect: () => {} }]} checks={picked.checks} />
+					<DataTable label="Pages" columns={picked.columns} rows={two} />
+				</>
+			);
+		}
+		render(<Sorted />);
+		fireEvent.click(screen.getByRole("button", { name: /Pageviews/ }));
+		expect([...document.querySelectorAll("thead th")].map((th) => th.getAttribute("aria-sort"))).toContain("descending");
+		fireEvent.click(await screen.findByRole("button", { name: "Export and columns: Pages" }));
+		const checks = (await screen.findAllByRole("menuitemcheckbox")) as HTMLElement[];
+		fireEvent.click(checks.find((c) => c.textContent === "Pageviews") as HTMLElement);
+		await waitFor(() => expect(heads()).toEqual(["Page", "Visitors"]));
+		expect([...document.querySelectorAll("thead th")].map((th) => th.getAttribute("aria-sort"))).not.toContain("descending");
+	});
+
+	it("keeps the page when the rows are rebuilt with the same keys", () => {
+		const many: TableRow[] = Array.from({ length: 30 }, (_, i) => ({ key: `/p${i}`, visitors: i, pageviews: i }));
+		function Rebuilt() {
+			const [n, setN] = useState(0);
+			return (
+				<>
+					<button type="button" onClick={() => setN(n + 1)}>
+						Rerender
+					</button>
+					<DataTable label="Pages" columns={cols.slice(0, 3)} rows={many.map((r) => ({ ...r }))} pageSize={10} />
+				</>
+			);
+		}
+		render(<Rebuilt />);
+		fireEvent.click(screen.getByRole("button", { name: "Next" }));
+		expect(screen.getByText(/Page 2 of 3/)).toBeTruthy();
+		fireEvent.click(screen.getByRole("button", { name: "Rerender" }));
+		expect(screen.getByText(/Page 2 of 3/)).toBeTruthy();
 	});
 
 	it("ignores a stored value of the wrong shape and offers no choice for two columns", () => {

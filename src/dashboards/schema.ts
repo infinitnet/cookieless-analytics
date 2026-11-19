@@ -117,6 +117,8 @@ export const metricFamily = (key: string): string => (key === "position" ? "rank
 
 /** Most metrics of one line or area tile. */
 export const MAX_TILE_METRICS = 4;
+/** Most figure columns a table tile can name (the name column comes first). */
+export const MAX_TILE_COLUMNS = 6;
 
 /** Why a metric list cannot be one line or area tile, else null. */
 export function tileMetricsProblem(list: readonly string[]): string | null {
@@ -163,6 +165,8 @@ export const TileSchema = z
 		metric: ColumnKey.optional(),
 		/** `line` and `area`: the charted metrics, 1 to 4 on at most two scales. */
 		metrics: z.array(ColumnKey).min(1).max(MAX_TILE_METRICS).optional(),
+		/** `table`: the figure columns to show after the name, in this order (at most 6); absent means the first three of the report. */
+		columns: z.array(ColumnKey).min(1).max(MAX_TILE_COLUMNS).optional(),
 		filters: z.array(FilterSchema).max(5).optional(),
 		params: z
 			.object({
@@ -216,6 +220,8 @@ export const TileSchema = z
 		const p = t.params ?? {};
 		const metrics = t.report === "impact" ? (p.report ? IMPACT_METRICS[p.report] : []) : TILE_METRICS[t.report];
 		if (t.kind === "kpi" && !t.metric) issue("a kpi tile needs a metric", "metric");
+		if (t.columns && t.kind !== "table") issue("only a table tile names columns", "columns");
+		if (t.columns && new Set(t.columns).size !== t.columns.length) issue("a column is named twice", "columns");
 		if (t.kind === "kpi" && t.metric && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
 		if (series && t.metric) issue(`a ${t.kind} tile names its metrics in metrics`, "metric");
 		if (!series && t.metrics) issue("metrics is for line and area tiles", "metrics");

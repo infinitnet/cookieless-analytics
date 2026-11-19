@@ -179,7 +179,7 @@ Design decisions with their evidence. Most follow the installed EmDash source (`
 | Search Satisfaction catalog | Every entry of `metrics` is `{ definition, estimate }`; the three estimates also carry `caveat` with the fixed caveat text. The texts live in `src/query/reports/satisfaction-copy.ts` so the admin bundle does not import report SQL. `ReportCtx.settings` takes the two thresholds as optional fields with the documented defaults. |
 | "Google organic" preset | Organic search visits store the referrer host as `source` (`src/core/channels.ts`, `tests/channels.test.ts`), so `source is google` would match nothing. The preset adds `source prefix google.` instead; the reports already restrict every run to `channel is Organic Search`. "Chrome" adds `browser is Chrome` as expected. |
 | Thresholds line | Plain text "Change them in Settings" without a link: the host admin route of the plugin settings form could not be verified in `@emdash-cms/admin` 1.4.0. The thresholds come from the `satisfaction` answer (`thresholds`), so the line shows `B' = min(bad, long)`. |
-| Revenue columns | No separate control: the Revenue and Orders columns appear on Sources, Pages, Audience and Goals whenever the site has revenue (`hasRevenue`) and never otherwise. A toggle would need a stored preference, and the admin stores none. |
+| Revenue columns | No separate control: the Revenue and Orders columns appear on Sources, Pages, Audience and Goals whenever the site has revenue (`hasRevenue`) and never otherwise. |
 
 ## Admin Config and Data pages
 

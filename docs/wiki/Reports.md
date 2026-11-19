@@ -41,7 +41,7 @@ Every view is also a link: the range, filters, comparison, segment and site are 
 - **Info markers**: the small "i" on a card or panel opens the definition of its number.
 - **Active now**: a live badge in the page head with the sessions seen within the realtime window (`realtimeWindowMinutes`, default 5).
 - **Revenue strip**: revenue, orders, average order value and revenue per visitor, shown only when the site has recorded orders. See [Revenue and Refunds](Revenue-and-Refunds).
-- **Panels**: Channels, Top pages, Sources, Countries, Devices (with a donut) and Goals, top 10 each. Click a value to filter.
+- **Panels**: Channels, Top pages, Sources, Countries, Devices (with a donut) and Goals, top 8 each. Click a value to filter. The panel menu lists more columns, off until you switch them on: Bounce rate, Avg. duration, Pageviews, Views per session and Engaged rate on the session panels; Avg. active time, Avg. visible time, Exit rate and Median scroll on Top pages; Completions on Goals. Each panel keeps its own choice in this browser.
 - **Annotations**: markers on the chart. The Annotations button hides them. See [Annotations and Impact](Annotations-and-Impact).
 
 ![Overview with the info marker of a metric card open](images/overview-info.png)
@@ -58,7 +58,7 @@ With "All sites" selected in the site select, the Overview shows the All sites t
 
 ![Pages report](images/pages.png)
 
-A trend chart with cards for pageviews and visitors per day, above the tabs **Pages**, **Entry pages**, **Exit pages**, **Not found** and **Changes** (pages rising and declining by page views). The Pages table shows pageviews, visitors, **Avg. active time** (time with interaction, so an open but untouched page counts 0 s), **Avg. visible time** (time the page was in view, from detailed data only), exit rate and median scroll; see [Definitions](Definitions#active-time-and-duration). A page row opens its Search queries when a Search source is connected and mapped. The Pages table has a column picker in the panel menu: Search columns (impressions, clicks, CTR, position) and Revenue columns are hidden unless a source is connected or orders exist, and one click adds them.
+A trend chart with cards for pageviews and visitors per day, above the tabs **Pages**, **Entry pages**, **Exit pages**, **Not found** and **Changes** (pages rising and declining by page views). The Pages table shows pageviews, visitors, **Avg. active time** (time with interaction, so an open but untouched page counts 0 s), **Avg. visible time** (time the page was in view, from detailed data only), and exit rate; **Median scroll (%)** is off until you switch it on in the panel menu; see [Definitions](Definitions#active-time-and-duration). A page row opens its Search queries when a Search source is connected and mapped. The Pages table has a column picker in the panel menu: Search columns (impressions, clicks, CTR, position) and Revenue columns are hidden unless a source is connected or orders exist, and one click adds them.
 
 ### Sources
 
@@ -98,7 +98,7 @@ Overview, Pages, Sources, Audience, Search Satisfaction, Search, Revenue and Lin
 - Click a value to add it as an `is` filter. "(not set)" values cannot be clicked.
 - Sort by a column header; long tables are paged.
 - A table with more than one page of rows has a search box above it that keeps the rows whose text columns contain what you type, in any case; when the report has more rows than it loaded, the search covers the rows shown, so narrow the range or add a filter to search the rest. A new range, filter or report clears it.
-- **Panel menu** (the button at the top right of a panel): Export CSV, Export JSON, and the column picker where a table has optional columns. Your column choice is remembered per report in this browser.
+- **Panel menu** (the button at the top right of a panel): Export CSV, Export JSON, and the column picker, which lists every column the table has data for. Optional columns start off: the session breakdowns (Channels, Sources, Campaigns and the Audience tabs) offer Pageviews, Views per session and Engaged rate, Entry pages offers Views per session and Engaged rate, AI assistants offer Bounce rate, Avg. duration and Pageviews, Search Satisfaction offers Avg. active time and Measured sessions, and the Revenue panels offer Visitors and Sessions. Your column choice is remembered per table in this browser; hiding every column but the name shows the default set again.
 - The export runs the same report with the header range, segment and filters.
 
 ## Settings
@@ -114,7 +114,7 @@ Overview, Pages, Sources, Audience, Search Satisfaction, Search, Revenue and Lin
 
 - A range is at most 1,000 days.
 - Up to 4 metrics on a chart, 2 scales, 2 metrics with a comparison.
-- Overview panels show the top 10 rows.
+- Overview panels show the top 8 rows.
 - An export is capped at 10,000 rows.
 
 ## Gotchas
