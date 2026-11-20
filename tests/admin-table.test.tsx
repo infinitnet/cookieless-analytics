@@ -300,3 +300,4 @@ describe("column choice", () => {
 		expect(screen.getByRole("button", { name: "Export CSV" }).getAttribute("aria-haspopup")).toBeNull();
 	});
 });
+

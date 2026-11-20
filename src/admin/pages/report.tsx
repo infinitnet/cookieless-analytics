@@ -191,7 +191,8 @@ export function ReportPanel({ view, report, columnsId, columns: baseColumns, tit
 				label={label}
 				columns={picked.columns}
 				rows={rows}
-				truncated={res.data?.data.truncated}
+				// A preview cut at its row count says so with its "Show all" link, not with a pager of one page.
+				truncated={more ? undefined : res.data?.data.truncated}
 				loading={res.loading}
 				pageSize={pageSize}
 				action={action}

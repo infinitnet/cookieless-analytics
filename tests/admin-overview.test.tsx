@@ -62,7 +62,7 @@ function answer(body: Body) {
 				},
 			};
 		default:
-			return { ...base, data: { rows: [{ key: `${body.report} one`, visitors: 5, sessions: 6, converting: 2, conversion_rate: 0.1 }] } };
+			return { ...base, data: { truncated: true, rows: [{ key: `${body.report} one`, visitors: 5, sessions: 6, converting: 2, conversion_rate: 0.1 }] } };
 	}
 }
 
@@ -143,6 +143,8 @@ describe("Overview", () => {
 		const { findByText, container } = render(<Overview />);
 		await findByText("/a");
 		await waitFor(() => expect(container.querySelectorAll(".ca-more")).toHaveLength(6));
+		// A preview cut at its row count shows no pager of one page; the Show all link is the way on.
+		expect(container.querySelector(".ca-pager")).toBeNull();
 		expect(queries().filter((b) => ["channels", "pages", "sources", "countries", "devices", "goals"].includes(b.report)).every((b) => b.limit === 8)).toBe(true);
 		const more = (report: string) => container.querySelector(`[data-report="${report}"] .ca-more`)?.getAttribute("href");
 		expect([more("channels"), more("sources"), more("devices"), more("goals")]).toEqual([
