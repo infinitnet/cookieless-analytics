@@ -1,6 +1,6 @@
 {
   "name": "@infinitnet/cookieless-analytics",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.",
   "keywords": [
     "cookieless analytics",

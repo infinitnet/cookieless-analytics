@@ -301,3 +301,12 @@ describe("column choice", () => {
 	});
 });
 
+describe("truncated table on one page", () => {
+	it("says more rows exist and shows no pager of one page", () => {
+		const rows: TableRow[] = [{ key: "/a", visitors: 1 }, { key: "/b", visitors: 2 }];
+		render(<DataTable label="Orders" columns={[{ key: "key", label: "Page", format: "text" }, { key: "visitors", label: "Visitors" }]} rows={rows} truncated />);
+		expect(screen.getByText(/More rows exist/)).toBeTruthy();
+		expect(screen.queryByText(/Page 1 of 1/)).toBeNull();
+		expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+	});
+});

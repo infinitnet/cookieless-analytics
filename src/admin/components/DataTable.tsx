@@ -260,7 +260,14 @@ export function DataTable({ label, columns: all, rows, pageSize = 25, truncated,
 					</table>
 				</div>
 			)}
-			{(pages > 1 || truncated) && (
+			{truncated && pages <= 1 && (
+				<div className="ca-table-foot">
+					<div className="ca-pager">
+						<span>More rows exist; export for the full list.</span>
+					</div>
+				</div>
+			)}
+			{pages > 1 && (
 				<div className="ca-table-foot">
 					<div className="ca-pager">
 						{truncated && <span>More rows exist; export for the full list.</span>}
