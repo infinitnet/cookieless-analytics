@@ -25,7 +25,7 @@ To change the order in the editor, drag a tile by its handle (the "Drag to reord
 | Revenue over time | Line, Area |
 | Every other report, Revenue breakdown | Bars, Donut, Table |
 
-- A Goals number tile shows one goal; a Funnels tile shows one funnel; an Event properties tile needs the event name.
+- A Goals number tile shows one goal; a Funnels tile shows one funnel; an Event properties tile needs the event name, which the field suggests from the events seen in the dashboard range.
 - Search tiles take a source (all, Google, Bing) and show an empty state until a Search source is connected.
 - **Revenue** tiles (`revenue`, `revenue_series`, `revenue_breakdown`) show one currency: `params.currency`, or when it is absent the site's default currency at the time the tile runs, so a template or a copied dashboard shows each site in its own currency. A Revenue breakdown tile needs `params.dim` (`channel`, `source`, `campaign`, `entry`, `page`, `country`, `device`, `goal`, `event`). Titles, values and column headers carry the code ("Revenue (USD)", `1,234.50 USD`); under the tile the line "Amounts in USD." and, when other currencies have orders in the range, "Also recorded: 120.00 EUR (3 orders)." (at most five). A site without revenue shows "No revenue recorded yet". See `docs/revenue.md`.
 - A donut shows at most 7 slices, one colour each; the rest is folded into "other".

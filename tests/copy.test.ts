@@ -28,6 +28,7 @@ import { SITE_SEARCH_LINE } from "../src/routes/privacy.js";
 import { hiddenTermsText, tileTitle } from "../src/dashboards/tiles.js";
 import { CONTENT_CATALOG } from "../src/agent/schemas.js";
 import { HOST_FORM_POINTER, settingsSchema } from "../src/settings.js";
+import { UNSEEN_TEXT } from "../src/admin/components/ValueInput.js";
 import { SETTINGS_TEXT } from "../src/admin/pages/Settings.js";
 import { fieldMeta, SETTINGS_SECTIONS, validateSettings } from "../src/routes/settings.js";
 import { headSummary } from "../src/admin/components/Header.js";
@@ -121,6 +122,7 @@ describe("copy rules", () => {
 	it("funnel mode, segment comparison and journey strings carry no dash and no forbidden word", () => {
 		const strings = [
 			...Object.values(FUNNEL_MODE_TEXT),
+			UNSEEN_TEXT,
 			...Object.values(BEHAVIOUR_CATALOG.funnels.modes),
 			BEHAVIOUR_CATALOG.funnels.modeRule,
 			BEHAVIOUR_CATALOG.funnels.revenueRule,

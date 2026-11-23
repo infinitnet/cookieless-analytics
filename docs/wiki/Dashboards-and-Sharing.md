@@ -35,7 +35,7 @@ A dashboard is a saved view of your reports: up to 12 tiles, each one report sho
 | Revenue over time | Line, Area |
 | Every other report, Revenue breakdown | Bars, Donut, Table |
 
-- A Goals number tile shows one goal, a Funnels tile one funnel, an Event properties tile needs the event name.
+- A Goals number tile shows one goal, a Funnels tile one funnel, an Event properties tile needs the event name, which the field suggests from the events seen in the dashboard range.
 - Search tiles take a source (all, Google, Bing) and stay empty until a Search source is connected.
 - Revenue tiles show one currency: the chosen one, or the site's default currency when the tile runs.
 - A donut shows at most 7 slices, one colour each; the rest is folded into "other".

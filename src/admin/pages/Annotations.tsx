@@ -14,6 +14,7 @@ import { dayInZone, zonedToEpoch } from "../../core/time.js";
 import { deleteConfig, errorText, listConfig, saveConfig, useReport, useSearchStatus } from "../api.js";
 import { isRemote, Shell, toQuery, type View } from "../components/Header.js";
 import { count } from "../components/format.js";
+import type { SuggestSource } from "../components/ValueInput.js";
 import { GROUP_HINTS, IMPACT_OPTIONS, ImpactPanel, KeyInput, type KeyKind, optionId, optionOf, targetLabel, targetOf, TargetSelect } from "../components/ImpactPanel.js";
 import { ErrorScope, ReportError } from "../components/ReportNotices.js";
 import { ScopeEditor } from "../components/ScopeEditor.js";
@@ -163,7 +164,7 @@ export function draftTarget(d: Pick<Draft, "choice" | "key" | "source">): Target
 	return Object.keys(rest).length ? { ...t, params: { ...t.params, ...rest } } : t;
 }
 
-function Editor({ draft, tz, searchOn, goals, onCancel, onSaved }: { draft: Draft; tz: string; searchOn: boolean; goals: ReadonlyMap<string, string>; onCancel(): void; onSaved(): void }) {
+function Editor({ draft, tz, searchOn, goals, source, onCancel, onSaved }: { draft: Draft; tz: string; searchOn: boolean; goals: ReadonlyMap<string, string>; source: SuggestSource; onCancel(): void; onSaved(): void }) {
 	const [d, setD] = useState(draft);
 	const [scopeValid, setScopeValid] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -203,7 +204,7 @@ function Editor({ draft, tz, searchOn, goals, onCancel, onSaved }: { draft: Draf
 			<Field label="Target KPI" error={targetError}>
 				<TargetSelect label="Target KPI" value={d.choice} searchOn={searchOn || opt?.[5] === "search"} defaultLabel={ANNOTATIONS_TEXT.defaultTarget} onChange={(choice) => setD({ ...d, choice, key: "" })} />
 			</Field>
-			{opt?.[5] && opt[5] !== "search" && <KeyInput kind={opt[5] as KeyKind} value={d.key} goals={goals} onChange={(key) => setD({ ...d, key })} />}
+			{opt?.[5] && opt[5] !== "search" && <KeyInput kind={opt[5] as KeyKind} value={d.key} goals={goals} onChange={(key) => setD({ ...d, key })} source={source} />}
 			<p className="ca-small">{opt ? GROUP_HINTS[opt[0]] : ANNOTATIONS_TEXT.targetHint}</p>
 			<div className="ca-actions">
 				<Button variant="primary" size="sm" disabled={!d.text.trim() || !!targetError || !scopeValid} onClick={() => void save()}>
@@ -388,7 +389,7 @@ function Body({ view }: { view: View }) {
 					<ImpactPanel view={view} annotation={state.a} window={win} searchOn={searchOn} goals={goals} onClose={() => update({ a: undefined })} />
 				</div>
 			)}
-			{edit && <Editor key={edit.id ?? "new"} draft={edit} tz={tz} searchOn={searchOn} goals={goals} onCancel={() => setEdit(null)} onSaved={saved} />}
+			{edit && <Editor key={edit.id ?? "new"} draft={edit} tz={tz} searchOn={searchOn} goals={goals} source={{ site: site.id, from: state.from, to: state.to }} onCancel={() => setEdit(null)} onSaved={saved} />}
 			{res.error ? (
 				<ReportError error={res.error} view={view} />
 			) : !res.data ? (

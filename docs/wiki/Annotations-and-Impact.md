@@ -10,7 +10,7 @@ An annotation is a dated note on your charts: a release, a published post, a cam
 2. Pick the date and write the text (up to 200 characters).
 3. Choose the scope. Simple mode offers **Site-wide**, **This page** (one path) and **This section** (a path prefix). Advanced mode has rule lists for Host, Path and Query, each with an operator (is, starts with for paths, contains, regex).
 4. Check the summary line and the preview, which counts what the scope matched in the last 30 days ("n hosts, n pages, n queries in the last 30 days", with up to five samples).
-5. Optionally choose the **Target KPI**, the one metric the page measures for this annotation (for example bounce rate of the page, completions of a goal, sessions of a channel, Search clicks). Without one the page measures visitors of the scope (Search clicks for a query scope while Search is connected). Search metrics are offered only while Google or Bing is connected.
+5. Optionally choose the **Target KPI**, the one metric the page measures for this annotation (for example bounce rate of the page, completions of a goal, sessions of a channel, Search clicks). Without one the page measures visitors of the scope (Search clicks for a query scope while Search is connected). Search metrics are offered only while Google or Bing is connected. The key field suggests the channels, pages, events or queries seen in the chosen range.
 6. Save. The marker shows on every chart whose range and filters match.
 
 ### Read impact

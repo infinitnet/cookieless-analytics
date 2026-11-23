@@ -4,7 +4,7 @@
  * picked metric; the page filters carry over. The target picker parts serve the annotation editor too.
  */
 import { Button } from "@cloudflare/kumo";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { KIND_LABELS, type Scope } from "../../annotations/scope.js";
 import type { Target } from "../../annotations/target.js";
 import { describeChange } from "../../charts/change.js";
@@ -13,8 +13,9 @@ import { ChangeMark } from "./Change.js";
 import { addDays, dayInZone } from "../../core/time.js";
 import type { Params } from "../../query/reports/index.js";
 import { IMPACT_WINDOWS, type ImpactReport, SEO_TEXT } from "../../query/reports/seo-copy.js";
-import { queryReport, useReport } from "../api.js";
+import { useReport } from "../api.js";
 import { LineChart } from "./Chart.js";
+import { type SuggestSource, SuggestInput } from "./ValueInput.js";
 import { toQuery, type View } from "./Header.js";
 import { METRICS } from "./format.js";
 import { InfoMark, Notice } from "./ui.js";
@@ -118,7 +119,7 @@ export function TargetSelect({ label, value, searchOn, onChange, defaultLabel }:
 }
 
 /** The row input of an option: a goal by name, a channel, a page or an event. */
-export function KeyInput({ kind, value, goals, onChange }: { kind: KeyKind; value: string; goals: ReadonlyMap<string, string>; onChange(v: string): void }) {
+export function KeyInput({ kind, value, goals, onChange, source }: { kind: KeyKind; value: string; goals: ReadonlyMap<string, string>; onChange(v: string): void; source?: SuggestSource | undefined }) {
 	if (kind === "goal")
 		return (
 			<label>
@@ -136,7 +137,15 @@ export function KeyInput({ kind, value, goals, onChange }: { kind: KeyKind; valu
 	const label = kind === "channel" ? "Channel" : kind === "page" ? "Page" : kind === "event" ? "Event" : "Query";
 	return (
 		<label>
-			{label} <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={kind === "channel" ? "Organic Search" : kind === "page" ? "/pricing/" : kind === "event" ? "signup" : ""} />
+			{label}{" "}
+			<SuggestInput
+				dim={kind === "channel" ? "channel" : kind === "page" ? "page" : kind === "event" ? "event" : "query"}
+				value={value}
+				onChange={onChange}
+				source={source}
+				label={label}
+				placeholder={kind === "channel" ? "Organic Search" : kind === "page" ? "/pricing" : kind === "event" ? "signup" : ""}
+			/>
 		</label>
 	);
 }
@@ -163,22 +172,6 @@ interface ImpactData {
 	context?: { before: Record<string, number | null> | null; after: Record<string, number | null> | null };
 }
 
-/** Pages of the range for the page picker (`dimension_values`). */
-function usePages(view: View): string[] {
-	const [pages, setPages] = useState<string[]>([]);
-	useEffect(() => {
-		let live = true;
-		queryReport(view.site.id, { report: "dimension_values", query: { from: view.state.from, to: view.state.to, filters: [], compare: "none" }, params: { dim: "page" }, limit: 50 }).then(
-			(r) => live && setPages((r.data.rows ?? []).map((x) => String(x.key))),
-			() => live && setPages([]),
-		);
-		return () => {
-			live = false;
-		};
-	}, [view.site.id, view.state.from, view.state.to]);
-	return pages;
-}
-
 interface PanelProps {
 	view: View;
 	/** Annotation id, or null for any date. */
@@ -203,7 +196,6 @@ export function ImpactPanel({ view, annotation, target, window: fixedWindow, sea
 	const [scope, setScope] = useState<"annotation" | "none">("annotation");
 	const [path, setPath] = useState("");
 	const [at, setAt] = useState(() => addDays(dayInZone(Math.floor(Date.now() / 1000), tz), -29));
-	const pages = usePages(view);
 	const opt = IMPACT_OPTIONS.find((o) => optionId(o) === choice) ?? (IMPACT_OPTIONS[0] as Option);
 	const report = opt[5] === "search" && searchBy !== "site" ? (searchBy === "page" ? "search_pages" : "search_queries") : opt[1];
 	const needsKey = (!!opt[5] && opt[5] !== "search") || (opt[5] === "search" && searchBy !== "site");
@@ -271,7 +263,7 @@ export function ImpactPanel({ view, annotation, target, window: fixedWindow, sea
 						</select>
 					</label>
 				)}
-				{needsKey && <KeyInput kind={opt[5] === "search" ? (searchBy === "page" ? "page" : "search") : (opt[5] as KeyKind)} value={key} goals={goals} onChange={setKey} />}
+				{needsKey && <KeyInput kind={opt[5] === "search" ? (searchBy === "page" ? "page" : "search") : (opt[5] as KeyKind)} value={key} goals={goals} onChange={setKey} source={{ site: site.id, from: state.from, to: state.to, ...(opt[5] === "search" ? { scope: "search" as const } : {}) }} />}
 			</div>
 			<p className="ca-small">{GROUP_HINTS[opt[0]]}</p>
 			{annotation && (
@@ -287,12 +279,7 @@ export function ImpactPanel({ view, annotation, target, window: fixedWindow, sea
 			{(!annotation || !hasPath || scope === "none") && (
 				<label className="ca-check">
 					{IMPACT_TEXT.pagePicker}{" "}
-					<input list="ca-impact-pages" value={path} onChange={(e) => setPath(e.target.value)} placeholder="/" aria-label={IMPACT_TEXT.pagePicker} />
-					<datalist id="ca-impact-pages">
-						{pages.map((p) => (
-							<option key={p} value={p} />
-						))}
-					</datalist>
+					<SuggestInput dim="page" value={path} onChange={setPath} source={{ site: site.id, from: state.from, to: state.to }} label={IMPACT_TEXT.pagePicker} placeholder="/" />
 				</label>
 			)}
 			{res.error && <Notice tone="error">{res.error}</Notice>}

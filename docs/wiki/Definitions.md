@@ -81,6 +81,7 @@ Definitions have no settings of their own. Related settings live on the Settings
 - Channel rules: up to 10 conditions per rule (one is editable in the admin).
 - User agent rules: at most 500 in total, of them at most 50 regex rules; pattern up to 512 characters.
 - Annotations: text up to 200 characters, at most 10 scope rules per kind and 20 in total.
+- Suggestions in the goal, funnel step and channel rule fields list up to 50 values of the last 90 days, ordered by count; property keys come from up to 10 keys and 50 values per key of the chosen event. Reserved event names starting with an underscore are not listed.
 - Regex fields follow the safe regex limits: up to 200 characters, see [Filters and Segments](Filters-and-Segments).
 
 ## Gotchas

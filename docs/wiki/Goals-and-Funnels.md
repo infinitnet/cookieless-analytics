@@ -9,6 +9,8 @@ A goal marks a visit as converted when it reaches a page, sends an event or clic
 1. Open Definitions, Goals.
 2. Add a goal: a name (1 to 64 characters), a type, a match and a value.
 3. For an event goal, add properties when only some events should count (for example `slug` for one short link).
+
+The event name, path, link host, property and funnel step fields suggest what the site recorded in the last 90 days, with counts; pick one or type your own. After you leave the field, a note says when an exact value was not seen in that time. A new goal for an event that has not fired yet still works: it counts once the event occurs.
 4. Save. On detailed data goals are matched when reports run, so a new goal also covers past days inside the detailed window.
 5. Open Behaviour, Goals to see completions, converting sessions and the conversion rate.
 

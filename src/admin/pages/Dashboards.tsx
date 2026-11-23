@@ -20,6 +20,7 @@ import { FilterBar } from "../components/FilterBar.js";
 import { fmt } from "../components/format.js";
 import { isRemote, Shell, type View } from "../components/Header.js";
 import { decodeState, readStoredView } from "../state.js";
+import { SuggestInput } from "../components/ValueInput.js";
 import { KpiCard } from "../components/KpiCard.js";
 import { TileList } from "../components/TileList.js";
 import { DIGEST_SCHEDULE, ScheduleDialog } from "../components/ScheduleDialog.js";
@@ -977,7 +978,8 @@ function TileForm({ view, initial, onSave, onCancel, goals, funnels }: { view: V
 			)}
 			{t.report === "event_props" && (
 				<label>
-					Event name <input value={t.params?.event ?? ""} onChange={(e) => setParam("event", e.target.value)} />
+					Event name{" "}
+					<SuggestInput dim="event" value={t.params?.event ?? ""} onChange={(v) => setParam("event", v)} source={{ site: view.site.id, from: view.state.from, to: view.state.to }} label="Event name" check />
 				</label>
 			)}
 			{t.kind === "table" && available.length > 0 && (

@@ -1,7 +1,7 @@
 /** Definitions page (route `/config`): goals, funnels, segments, channel rules, user agent rules, UTM builder, API keys, Sites. Annotations have their own page. */
 import { Button } from "@cloudflare/kumo";
 import { activeTab, tabParam } from "./report.js";
-import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, type FormEvent, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { PLUGIN_ID } from "../../contract.js";
 import { AGENT_CATEGORIES, type AgentCategory, MAX_USER_REGEX_RULES, MAX_USER_RULES } from "../../agents/rules.js";
 import { formatRule, formatRules, type LineIssue, type LineRule, parseRuleLines, RULE_TEXT } from "../../agents/lines.js";
@@ -14,6 +14,7 @@ import type { Filter, FunnelMode, FunnelStep, Goal } from "../../query/filters.j
 import type { SiteEntry } from "../../routes/sites.js";
 import { call, deleteConfig, errorText, type Item, listConfig, saveConfig, withApiSite } from "../api.js";
 import { FilterBar, chipText, regexError } from "../components/FilterBar.js";
+import { propOptions, type SuggestSource, SuggestInput, suggestRange, useEventProps } from "../components/ValueInput.js";
 import { count } from "../components/format.js";
 import { isRemote, Shell, type View } from "../components/Header.js";
 import { Sites } from "./Sites.js";
@@ -223,6 +224,57 @@ const OUTBOUND_MATCHES = MATCHES.filter((m) => m[0] !== "regex");
 /** A goal's match after a type change: "is" for an event, and for an outbound goal that held regex. */
 const goalMatch = (type: Goal["type"], match: Goal["match"]): Goal["match"] => (type === "event" || (type === "outbound" && match === "regex") ? "is" : match);
 
+/** Site and last 90 days for the suggestions of the definition forms; absent on a remote site. */
+const SuggestCtx = createContext<SuggestSource | undefined>(undefined);
+
+type Matcher = { type: "page" | "event" | "outbound"; match: string; value: string };
+
+/** The value of a goal or funnel step: the pages, event names or outbound hosts seen in the last 90 days. */
+function MatchValue({ type, match, value, label, onChange }: Matcher & { label: string; onChange: (v: string) => void }) {
+	const src = useContext(SuggestCtx);
+	const exact = match === "is";
+	const error = type === "page" && match === "regex" ? regexError(value) : null;
+	const input =
+		type === "event" ? (
+			<SuggestInput dim="event" value={value} onChange={onChange} source={src} label={label} check />
+		) : type === "page" ? (
+			<SuggestInput dim="page" value={value} onChange={onChange} source={match === "regex" ? undefined : src} label={label} check={exact} />
+		) : (
+			<SuggestInput dim="event_prop" kind="outbound" value={value} onChange={onChange} source={src} label={label} check={exact} />
+		);
+	return (
+		<Field label={label} error={error}>
+			{input}
+		</Field>
+	);
+}
+
+/** The channel of a rule: the channels seen in the last 90 days. */
+function ChannelField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+	return (
+		<Field label="Channel">
+			<SuggestInput dim="channel" value={value} onChange={onChange} source={useContext(SuggestCtx)} label="Channel" />
+		</Field>
+	);
+}
+
+/** Property key and value of an event goal, from the keys and values the event carried. */
+function PropFields({ event, pk, pv, setProp }: { event: string; pk: string; pv: string; setProp: (k: string, v: string) => void }) {
+	const src = useContext(SuggestCtx);
+	const [touched, setTouched] = useState(false);
+	const { keys, values } = propOptions(useEventProps(src, event, touched), pk);
+	return (
+		<>
+			<Field label="Property (optional)">
+				<SuggestInput dim="event_prop" value={pk} onChange={(k) => setProp(k, pv)} options={src ? keys : undefined} label="Property (optional)" onFocusChange={(f) => f && setTouched(true)} />
+			</Field>
+			<Field label="Property value">
+				<SuggestInput dim="event_prop" value={pv} onChange={(v) => setProp(pk, v)} options={src ? values : undefined} label="Property value" onFocusChange={(f) => f && setTouched(true)} />
+			</Field>
+		</>
+	);
+}
+
 function Goals({ startNew }: { startNew?: boolean | undefined }) {
 	const store = useItems<Goal>("goals");
 	return (
@@ -240,7 +292,8 @@ function Goals({ startNew }: { startNew?: boolean | undefined }) {
 			toSave={(g) => {
 				const props = Object.fromEntries(Object.entries(g.props ?? {}).filter(([k]) => k));
 				const { props: _p, ...rest } = g;
-				return g.type === "event" && Object.keys(props).length ? { ...rest, props } : rest;
+				const trimmed = { ...rest, value: g.value.trim() };
+				return g.type === "event" && Object.keys(props).length ? { ...trimmed, props } : trimmed;
 			}}
 			form={(g, set) => {
 				// The form edits the first property; any others saved through the route are kept.
@@ -251,18 +304,8 @@ function Goals({ startNew }: { startNew?: boolean | undefined }) {
 						<Text label="Name" value={g.name} onChange={(name) => set({ ...g, name })} />
 						<Select label="Type" value={g.type} options={["page", "event", "outbound"]} onChange={(type) => set({ ...g, type, match: goalMatch(type, g.match) })} />
 						{g.type !== "event" && <Select label="Match" value={g.match} options={g.type === "page" ? MATCHES : OUTBOUND_MATCHES} onChange={(match) => set({ ...g, match })} />}
-						<Text
-							label={g.type === "page" ? "Path" : g.type === "event" ? "Event name" : "Link host"}
-							value={g.value}
-							onChange={(value) => set({ ...g, value })}
-							error={g.type === "page" && g.match === "regex" ? regexError(g.value) : null}
-						/>
-						{g.type === "event" && (
-							<>
-								<Text label="Property (optional)" value={pk} onChange={(k) => setProp(k, pv)} />
-								<Text label="Property value" value={pv} onChange={(v) => setProp(pk, v)} />
-							</>
-						)}
+						<MatchValue type={g.type} match={g.match} value={g.value} label={g.type === "page" ? "Path" : g.type === "event" ? "Event name" : "Link host"} onChange={(value) => set({ ...g, value })} />
+						{g.type === "event" && <PropFields event={g.value} pk={pk} pv={pv} setProp={setProp} />}
 						<Field label="Active">
 							<input type="checkbox" checked={g.active !== false} onChange={(e) => set({ ...g, active: e.target.checked })} />
 						</Field>
@@ -294,6 +337,7 @@ function Funnels({ startNew }: { startNew?: boolean | undefined }) {
 			store={store}
 			noun="Funnel"
 			blank={(): Funnel => ({ name: "", steps: [step(), step()] })}
+			toSave={(f) => ({ ...f, steps: f.steps.map((x) => ({ ...x, value: x.value.trim() })) })}
 			columns={[
 				["Name", (f) => f.name],
 				["Steps", (f) => f.steps.map((s) => s.label || s.value).join(" > ")],
@@ -316,7 +360,7 @@ function Funnels({ startNew }: { startNew?: boolean | undefined }) {
 								<li key={i}>
 									<Select label={`Step ${i + 1} type`} value={s.type} options={["page", "event"]} onChange={(type) => setStep(i, { ...s, type, ...(type === "event" ? { match: "is" as const } : {}) })} />
 									{s.type === "page" && <Select label={`Step ${i + 1} match`} value={s.match} options={STEP_MATCHES} onChange={(match) => setStep(i, { ...s, match })} />}
-									<Text label={`Step ${i + 1} value`} value={s.value} onChange={(value) => setStep(i, { ...s, value })} error={s.type === "page" && s.match === "regex" ? regexError(s.value) : null} />
+									<MatchValue type={s.type} match={s.match} value={s.value} label={`Step ${i + 1} value`} onChange={(value) => setStep(i, { ...s, value })} />
 									<Button variant="secondary-destructive" size="sm" disabled={f.steps.length <= 2} onClick={() => set({ ...f, steps: f.steps.filter((_, j) => j !== i) })}>
 										Remove step {i + 1}
 									</Button>
@@ -483,7 +527,7 @@ function ChannelRules() {
 					const setC = (n: ChannelCondition) => set({ ...r, any: [n, ...r.any.slice(1)] });
 					return (
 						<>
-							<Text label="Channel" value={r.channel} onChange={(channel) => set({ ...r, channel })} />
+							<ChannelField value={r.channel} onChange={(channel) => set({ ...r, channel })} />
 							<Field label="Priority (lower runs first; built-ins use 10 to 200)">
 								<input type="number" value={r.priority} onChange={(e) => set({ ...r, priority: Math.trunc(Number(e.target.value)) })} />
 							</Field>
@@ -1177,9 +1221,12 @@ function Body({ view }: { view: View }) {
 	useEffect(() => {
 		if (view.state.new) view.update({ new: undefined });
 	}, []);
+	// The last 90 days up to today in the site's timezone: the definitions have no range of their own.
+	const today = dayInZone(Math.floor(Date.now() / 1000), view.tz);
+	const suggest = useMemo<SuggestSource>(() => ({ site: view.site.id, ...suggestRange(today, addDays) }), [view.site.id, today]);
 	if (isRemote(view.site)) return <RemoteNotice site={view.site} path="/config" />;
 	return (
-		<>
+		<SuggestCtx.Provider value={suggest}>
 			{!view.site.local && <Notice>Definitions of the client site {view.site.label}. User agent rules, API keys and client sites are managed with this install selected.</Notice>}
 			<Tabs tabs={tabs} value={current} onChange={(id) => view.update({ tab: tabParam(tabs, id) })} />
 			<div role="tabpanel" aria-label={label}>
@@ -1192,7 +1239,7 @@ function Body({ view }: { view: View }) {
 				{current === "keys" && <ApiKeys tz={view.tz} sites={view.sites} />}
 				{current === "sites" && <Sites />}
 			</div>
-		</>
+		</SuggestCtx.Provider>
 	);
 }
 

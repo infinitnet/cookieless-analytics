@@ -54,6 +54,11 @@ async function handle(route: string, body: Body): Promise<Response> {
 	}
 	if (route === "tools/test-agent") return ok(await tester.handler({ input: body, kv: {} as never }));
 	if (route === "keys/list") return ok({ items: keys });
+	if (route === "data/query") {
+		const dim = (body.params as { dim?: string } | undefined)?.dim;
+		const rows = body.report === "outbound" ? [{ key: "example.org/a", events: 4 }] : body.report === "event_props" ? [{ key: "plan=pro", prop: "plan", value: "pro", count: 4 }] : dim === "event" ? [{ key: "signup", count: 9 }] : dim === "page" ? [{ key: "/pricing", count: 7 }] : dim === "channel" ? [{ key: "Direct", count: 3 }] : [];
+		return ok({ report: body.report, range: {}, compare: "none", compareRange: null, notices: [], data: { rows } });
+	}
 	if (route === "tools/reclassify-channels") return ok(reclassify.shift());
 	if (route === "tools/rollup-now") {
 		const r = rollups.shift();
@@ -173,6 +178,74 @@ describe("Config page", () => {
 
 		await deleteRow(panel, "Signup pro");
 		expect(store.goals?.size).toBe(0);
+	});
+
+	it("goals: the value field suggests what the site saw, per type, over the last 90 days up to today", async () => {
+		const panel = await openTab("Goals");
+		await within(panel).findByText("No goals yet.");
+		click(panel, "New goal");
+		const form = within(panel).getByRole("form", { name: "New goal" });
+		const asked = () => calls.filter((c) => c.route === "data/query").map((c) => c.body as { report: string; query: { from: string; to: string }; params: { dim?: string } });
+		set(form, "Type", "event");
+		fireEvent.focus(within(form).getByLabelText("Event name"));
+		fireEvent.click(await within(form).findByRole("option", { name: /signup/ }));
+		expect((within(form).getByLabelText("Event name") as HTMLInputElement).value).toBe("signup");
+		const q = asked().find((b) => b.params.dim === "event");
+		const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Pacific/Auckland" }).format(new Date());
+		expect(q?.query.to).toBe(today);
+		expect(q?.query.from).toBe(new Date(Date.parse(`${today}T00:00:00Z`) - 89 * 86400000).toISOString().slice(0, 10));
+		fireEvent.focus(within(form).getByLabelText("Property (optional)"));
+		fireEvent.click(await within(form).findByRole("option", { name: /plan/ }));
+		expect((within(form).getByLabelText("Property (optional)") as HTMLInputElement).value).toBe("plan");
+		fireEvent.focus(within(form).getByLabelText("Property value"));
+		fireEvent.click(await within(form).findByRole("option", { name: /pro/ }));
+		expect((within(form).getByLabelText("Property value") as HTMLInputElement).value).toBe("pro");
+		set(form, "Type", "page");
+		set(form, "Path", "");
+		fireEvent.focus(within(form).getByLabelText("Path"));
+		expect(await within(form).findByRole("option", { name: /pricing/ })).toBeTruthy();
+		set(form, "Type", "outbound");
+		set(form, "Link host", "");
+		fireEvent.focus(within(form).getByLabelText("Link host"));
+		expect(await within(form).findByRole("option", { name: /example\.org/ })).toBeTruthy();
+		expect(asked().some((b) => b.report === "outbound")).toBe(true);
+	});
+
+	it("goals: a regex path asks for nothing, and a value is saved trimmed", async () => {
+		const panel = await openTab("Goals");
+		await within(panel).findByText("No goals yet.");
+		click(panel, "New goal");
+		const form = within(panel).getByRole("form", { name: "New goal" });
+		set(form, "Name", "Pricing");
+		set(form, "Match", "regex");
+		fireEvent.focus(within(form).getByLabelText("Path"));
+		set(form, "Path", "^/pricing");
+		await new Promise((r) => setTimeout(r, 350));
+		expect(calls.filter((c) => c.route === "data/query")).toHaveLength(0);
+		expect(within(form).getByLabelText("Path").getAttribute("role")).toBeNull();
+		set(form, "Match", "is");
+		set(form, "Path", " /pricing ");
+		click(form, "Save");
+		await within(panel).findByRole("cell", { name: "Pricing" });
+		expect(items("goals")[0]).toMatchObject({ value: "/pricing" });
+	});
+
+	it("funnel steps and channel rules suggest the event names, pages and channels seen", async () => {
+		const funnels = await openTab("Funnels");
+		await within(funnels).findByText("No funnels yet.");
+		click(funnels, "New funnel");
+		const form = within(funnels).getByRole("form", { name: "New funnel" });
+		fireEvent.focus(within(form).getByLabelText("Step 1 value"));
+		expect(await within(form).findByRole("option", { name: /pricing/ })).toBeTruthy();
+		set(form, "Step 2 type", "event");
+		fireEvent.focus(within(form).getByLabelText("Step 2 value"));
+		expect(await within(form).findByRole("option", { name: /signup/ })).toBeTruthy();
+		cleanup();
+		const rules = await openTab("Channel rules");
+		click(rules, "New rule");
+		const rule = within(rules).getByRole("form", { name: "New rule" });
+		fireEvent.focus(within(rule).getByLabelText("Channel"));
+		expect(await within(rule).findByRole("option", { name: /Direct/ })).toBeTruthy();
 	});
 
 	it("goals: a regex is checked live and the route error is shown", async () => {

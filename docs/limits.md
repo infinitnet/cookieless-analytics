@@ -211,6 +211,10 @@ Rows written: 2 per deleted visit and per deleted `ca_events` row (the row and i
 
 On `small` the job writes at most 15,000 rows per UTC day and waits for the next UTC day while the write guard's estimate for today is at 51,000 rows (60 percent of the guard) or more, so recording keeps priority. Its rows count toward the guard's estimate like the rows retention deletes. The preview shows how many UTC days the job takes on `small`. Other profiles have no daily cap.
 
+## Definition field suggestions
+
+The goal, funnel step and channel rule fields of Definitions, and the key fields of an annotation target, read the last 90 days only after the field has focus: one `dimension_values` request per dimension, answered from memory while the list holds fewer than 50 values, a prefix request otherwise. Outbound link hosts come from one `outbound` request of at most 500 links, event properties from one `event_props` request per event. Each request reads the visits of its range like any detailed report, so on the Workers Free plan a form that is opened and left alone costs nothing.
+
 ## Search sync
 
 The Worker's per-invocation request limit ("Too many subrequests by single Worker invocation"; 50 on the Free plan, measured on a Free account; on a paid plan Workers allow 10,000 subrequests and D1 1,000 queries per invocation, published limits) counts every outbound fetch, every D1 statement and every plugin storage call (storage lives in D1). The host's cron executor runs every due plugin task in one invocation and spends some of it on its own bookkeeping, settings and storage reads. A Search run therefore meters all three kinds against **Sync request budget** (`syncSubrequestBudget`, default 40, 20 to 950) and stops before it: before each window it checks room for the window's calls and writes, before each write it reserves the exact statement count, and 3 requests stay reserved for the end of the run (cursor, lock, pair state). Keep 40 on the Free plan; on a Paid plan set it to about 900.
