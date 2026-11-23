@@ -10352,6 +10352,103 @@ async function writeReplace(db, stmts, inserted) {
 	const iw = ins.length ? db.meta?.rows_written : 0;
 	return typeof dw === "number" && typeof iw === "number" ? dw + iw : changes * 1 + inserted * 2;
 }
+const DIFF_TYPES = [
+	"",
+	"",
+	"",
+	"",
+	"",
+	"BIGINT",
+	"BIGINT",
+	"DOUBLE PRECISION",
+	"BIGINT"
+];
+const DIFF_COLS = "day, page_key, query, country, device, clicks, impressions, pos_sum, provisional";
+/**
+* One read: the days of a JSON list whose pulled rows (a JSON array of rows as `replaceStatements` inserts them)
+* differ from the stored rows in either direction. EXCEPT compares every column, so a row that moved between keys
+* with equal totals, a vanished row and an emptied day all count as a difference. Both sides are materialized, so
+* each is read once.
+*/
+function diffSql(dialect) {
+	const pg = dialect === "postgres";
+	const cols = DIFF_TYPES.map((t, i) => pg ? t ? `CAST(value->>${i} AS ${t})` : `value->>${i}` : `json_extract(value, '$[${i}]')`);
+	const from = pg ? "jsonb_array_elements(CAST(? AS jsonb))" : "json_each(?)";
+	return `WITH f(${DIFF_COLS}) AS MATERIALIZED (SELECT ${cols.join(", ")} FROM ${from}), s AS MATERIALIZED (SELECT ${DIFF_COLS} FROM ca_search_daily WHERE site = ? AND source = ? AND ${daysIn(dialect)}) SELECT day FROM (SELECT * FROM f EXCEPT SELECT * FROM s) x UNION SELECT day FROM (SELECT * FROM s EXCEPT SELECT * FROM f) y`;
+}
+/**
+* The days of `days` that differ from what is stored (the rows a write would replace), and the stored row count of
+* every day with stored rows. One read counts the stored rows per day; a day with nothing stored is changed when it
+* has rows, without a comparison, so a backfill window costs that one read as before. The other days are compared in
+* groups under `INSERT_JSON_CHARS` of JSON, one read each (`onRead` runs before every read, so a caller can count it);
+* a single day over that size is not compared and counts as changed.
+*/
+async function changedDays(db, site, source, days, provisional, onRead = () => {}) {
+	const changed = /* @__PURE__ */ new Map();
+	const had = /* @__PURE__ */ new Map();
+	const sorted = [...days.keys()].sort();
+	if (!sorted.length) return {
+		changed,
+		had
+	};
+	onRead();
+	for (const r of await db.all(`SELECT day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? AND source = ? AND ${daysIn(db.dialect)} GROUP BY day`, [
+		site,
+		source,
+		JSON.stringify(sorted)
+	])) had.set(String(r.day), Number(r.n));
+	const groups = [];
+	for (const day of sorted) {
+		const list = days.get(day) ?? [];
+		if (!had.has(day)) {
+			if (list.length) changed.set(day, [...list]);
+			continue;
+		}
+		const json = mergeRows(list).map((r) => JSON.stringify([
+			day,
+			r.page_key,
+			r.query,
+			r.country,
+			r.device,
+			r.clicks,
+			r.impressions,
+			r.pos_sum,
+			provisional(day) ? 1 : 0
+		]));
+		const size = json.reduce((n, j) => n + j.length + 1, 0);
+		if (size > 4e5) {
+			changed.set(day, [...list]);
+			continue;
+		}
+		let g = groups[groups.length - 1];
+		if (!g || g.size + size > 4e5) {
+			g = {
+				days: [],
+				json: [],
+				size: 0
+			};
+			groups.push(g);
+		}
+		g.days.push(day);
+		g.json.push(...json);
+		g.size += size;
+	}
+	const sql = diffSql(db.dialect);
+	for (const g of groups) {
+		onRead();
+		const diff = new Set((await db.all(sql, [
+			`[${g.json.join(",")}]`,
+			site,
+			source,
+			JSON.stringify(g.days)
+		])).map((r) => String(r.day)));
+		for (const day of g.days) if (diff.has(day)) changed.set(day, [...days.get(day) ?? []]);
+	}
+	return {
+		changed: new Map([...changed].sort(([a], [b]) => a < b ? -1 : 1)),
+		had
+	};
+}
 // src/sources/sync.ts
 const SOURCES = {
 	google,
@@ -10573,33 +10670,37 @@ async function pullRange(ctx, p, src, budget, rows, today, pos, last, stored, pa
 			const { days, largest } = r.value;
 			pace.perDay = Math.max(1, Math.ceil([...days.values()].reduce((n, l) => n + l.length, 0) / Math.max(1, days.size)));
 			const db = await siteDb(ctx, p.site);
-			const [wFrom, wTo] = ranges[i];
-			budget.need(1);
-			const had = new Map((await db.all("SELECT day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? AND source = ? AND day >= ? AND day <= ? GROUP BY day", [
-				p.site,
-				p.source,
-				wFrom,
-				wTo
-			])).map((x) => [String(x.day), Number(x.n)]));
-			const fit = fitting(await rows.allowance(), days, false, had);
+			let found;
+			try {
+				found = await yieldOnPlatformLimit(() => changedDays(db, p.site, p.source, days, provisional(today), () => budget.need(1)));
+			} catch (e) {
+				if (i === 0 && e instanceof BudgetExhausted) pos.win = Math.max(1, Math.floor(pos.win / 2));
+				throw e;
+			}
+			const { changed, had } = found;
+			const fit = fitting(await rows.allowance(), changed, false, had);
+			let n = 0;
 			if (fit.size) {
-				const { stmts, rows: n } = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
+				const w = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
+				n = w.rows;
 				try {
-					budget.need(stmts.length + 2);
+					budget.need(w.stmts.length + 2);
 				} catch (e) {
 					if (i === 0) pos.win = Math.max(1, Math.floor(pos.win / 2));
 					throw e;
 				}
-				await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, stmts, n)));
-				pos.cursor = addDays([...fit.keys()].sort().pop(), 1);
+				await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, w.stmts, n)));
+			}
+			if (fit.size || !changed.size && days.size) {
+				pos.cursor = [...changed.keys()].sort().find((d) => !fit.has(d)) ?? addDays([...days.keys()].sort().pop(), 1);
 				if (largest >= 25e3) pos.win = Math.max(1, Math.floor(pos.win / 2));
 				else if (largest < 6250 && !grown) {
 					pos.win = Math.min(32, pos.win * 2);
 					grown = true;
 				}
-				await stored(n);
+				await stored([...days].filter(([d]) => d < pos.cursor).reduce((t, [, l]) => t + mergeRows(l).length, 0));
 			}
-			if (fit.size < days.size) throw new RowsPaused(nextUtcDay(ctx.now()));
+			if (fit.size < changed.size) throw new RowsPaused(nextUtcDay(ctx.now()));
 		}
 	}
 }
@@ -10675,11 +10776,12 @@ async function runWindowPair(ctx, p, src, budget, rows, today, force) {
 			p.source,
 			addDays(today, -7)
 		])) keep.delete(String(r.day));
-		const fit = fitting(a, keep, true);
+		const { changed, had } = await yieldOnPlatformLimit(() => changedDays(db, p.site, p.source, keep, provisional(today), () => budget.need(1)));
+		const fit = fitting(a, changed, true, had);
 		const { stmts, rows: n } = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
 		budget.need(stmts.length + 3);
 		if (stmts.length) await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, stmts, n)));
-		if (fit.size < keep.size) throw new RowsPaused(nextUtcDay(ctx.now()));
+		if (fit.size < changed.size) throw new RowsPaused(nextUtcDay(ctx.now()));
 		Object.assign(st, {
 			cursorDay: null,
 			lastRun: nowIso,
@@ -10693,7 +10795,7 @@ async function runWindowPair(ctx, p, src, budget, rows, today, force) {
 			cursor: addDays(pending.to, 1),
 			done: true,
 			error: null,
-			rows: n
+			rows: [...keep.values()].reduce((t, l) => t + mergeRows(l).length, 0)
 		});
 		return null;
 	} catch (e) {

@@ -44,6 +44,44 @@ async function harness(over: Record<string, unknown> = {}) {
 /** Rows of one synthetic day as the store keeps them (one row per key of every grain). */
 const syntheticRows = (day: string) => [[], ["page"], ["query"], ["page", "query"], ["country"], ["device"]].reduce((n, dims) => n + syntheticDay(day, ["date", ...dims]).length, 0);
 
+describe("a sync window that did not change", () => {
+	it("is pulled again without writing a row, and a changed day is rewritten alone", async () => {
+		const h = await harness();
+		const due = async () => {
+			await h.env.kv.set(stateKey("default", "google"), { lastRun: new Date(T0 - 7 * 3_600_000).toISOString() });
+		};
+		await due();
+		const first = await runSearchTick(h.ctx());
+		expect(first.rows).toBeGreaterThan(0);
+		expect(h.meter.stats.rowsWritten).toBe(first.rows);
+		const stored = h.env.raw.prepare("SELECT COUNT(*) AS n FROM ca_search_daily").get() as { n: number };
+		const before = h.env.raw.prepare("SELECT * FROM ca_search_daily ORDER BY day, page_key, query, country, device").all();
+		// The sync window is due again: the provider answers the same rows, so the pull writes nothing and the state moves on.
+		h.clock.now = T0 + 7 * 3_600_000;
+		await h.env.kv.set(stateKey("default", "google"), { lastRun: new Date(T0).toISOString() });
+		h.meter.reset();
+		const again = await runSearchTick(h.ctx());
+		expect(again.rows).toBe(0);
+		expect(h.meter.stats.rowsWritten).toBe(0);
+		expect(h.env.raw.prepare("SELECT * FROM ca_search_daily ORDER BY day, page_key, query, country, device").all()).toEqual(before);
+		expect(h.env.raw.prepare("SELECT COUNT(*) AS n FROM ca_search_daily").get()).toEqual(stored);
+		const st = await h.env.kv.get<{ lastRun?: string; status?: string }>(stateKey("default", "google"));
+		expect(st?.status).toBe("ok");
+		expect(Date.parse(st?.lastRun ?? "")).toBe(h.clock.now);
+		// One stored day changes at the provider: only that day costs rows.
+		const day = (h.env.raw.prepare("SELECT MAX(day) AS d FROM ca_search_daily").get() as { d: string }).d;
+		const n = (h.env.raw.prepare("SELECT COUNT(*) AS n FROM ca_search_daily WHERE day = ?").get(day) as { n: number }).n;
+		h.env.raw.prepare("UPDATE ca_search_daily SET clicks = clicks + 1 WHERE day = ? AND page_key = '' AND query = '' AND country = '' AND device = ''").run(day);
+		h.clock.now += 7 * 3_600_000;
+		await h.env.kv.set(stateKey("default", "google"), { lastRun: new Date(T0).toISOString() });
+		h.meter.reset();
+		const fixed = await runSearchTick(h.ctx());
+		expect(fixed.rows).toBe(n * (ROWS_PER_DELETE + ROWS_PER_INSERT));
+		expect(h.meter.stats.rowsWritten).toBe(fixed.rows);
+		expect(h.env.raw.prepare("SELECT * FROM ca_search_daily ORDER BY day, page_key, query, country, device").all()).toEqual(before);
+	}, 60_000);
+});
+
 describe("rows written per stored search row (counting Db)", () => {
 	it("measures 2 per new row (WITHOUT ROWID table plus the page index) and 1 more per row written again", async () => {
 		const env = await schemaDb();

@@ -92,7 +92,7 @@ How Bing data differs from Google data:
 - Bing's totals are daily. Its query and page rows come as weekly sums, each dated on one day of the week, so query and page tables are right for ranges of whole weeks and uneven day by day.
 - Bing has no country or device breakdown and no stored page with query pairs. The Queries list of a page (the drawer on the Pages report) asks Bing on request (`GetPageQueryStats`) and keeps the answer for one hour.
 - Position is Bing's average impression position, weighted by impressions like Google's.
-- One pull costs three API calls and one database write of every returned day (one delete and a few inserts). Bing updates its data about once a week.
+- One pull costs three API calls and one comparison with the stored rows, then one database write (one delete and a few inserts) of the returned days that differ. Bing updates its data about once a week.
 - Turn Bing off under Connections with **Turn Bing off**; stored rows stay until `searchRetentionDays`.
 
 ## Several sites, one connection
@@ -113,7 +113,7 @@ Search pages are keyed by path on the site's canonical host (for a client site: 
 ## Sync and backfill
 
 - The `search` cron job runs hourly and pulls a site only every **Search sync interval** hours (`searchSyncHours`, default 6) per site and provider.
-- Each Google pull fetches the last 7 days (today minus 7 to yesterday) and replaces the stored rows of those days. The three newest days are marked provisional because Google keeps updating them for 2 to 3 days.
+- Each Google pull fetches the last 7 days (today minus 7 to yesterday) and replaces the stored rows of the days whose rows differ; a day equal to its stored rows is not written again. The three newest days are marked provisional because Google keeps updating them for 2 to 3 days.
 - The plugin asks for totals, pages, queries, pages with queries (at most `searchMaxRowsPerDay` rows per day, default 5000), countries and devices. It asks for a window of several days at once with the `date` dimension, so one call per grain returns every day of the window; each day is then cut to `searchMaxRowsPerDay` page with query rows by clicks, exactly the rows a one-day request returns. A window of one day sends the one-day request unchanged.
 - The window adapts: it starts at 8 days, doubles (up to 32) while the biggest grain of a window stays under a quarter of Google's page of 25,000 rows, and halves when a grain fills a page, when Google answers 429 or 5xx, or when a window did not fit a run. Google recommends one day per query to keep its load low and notes that page with query requests get more expensive with the range; the adaptive window uses long ranges only for days with few rows.
 - One run fetches up to three windows at once (18 calls; Google allows 1,200 queries per minute per site) and writes them one after the other.

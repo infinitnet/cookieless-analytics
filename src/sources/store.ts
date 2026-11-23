@@ -1,6 +1,7 @@
 /**
  * Search row store: the provider days of one site replace the stored rows of those
- * `(site, source, day)`, so a re-pull leaves exactly one row set. One window costs one DELETE over a
+ * `(site, source, day)`, so a re-pull leaves exactly one row set. A day whose pulled rows equal the stored
+ * rows is not written again (`changedDays`), so a re-pull of unchanged days writes nothing. One window costs one DELETE over a
  * JSON list of its days plus one `INSERT ... SELECT` over a JSON array per 400,000 characters of rows
  * (the `json_each` pattern of the rollup; about 3,000 rows of real keys), so a statement binds three
  * parameters whatever the row count. Rows
@@ -92,6 +93,74 @@ export async function writeReplace(db: Db, stmts: readonly Stmt[], inserted: num
 	if (ins.length) await db.batch(ins);
 	const iw = ins.length ? db.meta?.rows_written : 0;
 	return typeof dw === "number" && typeof iw === "number" ? dw + iw : changes * ROWS_PER_DELETE + inserted * ROWS_PER_INSERT;
+}
+
+const DIFF_TYPES = ["", "", "", "", "", "BIGINT", "BIGINT", "DOUBLE PRECISION", "BIGINT"];
+const DIFF_COLS = "day, page_key, query, country, device, clicks, impressions, pos_sum, provisional";
+
+/**
+ * One read: the days of a JSON list whose pulled rows (a JSON array of rows as `replaceStatements` inserts them)
+ * differ from the stored rows in either direction. EXCEPT compares every column, so a row that moved between keys
+ * with equal totals, a vanished row and an emptied day all count as a difference. Both sides are materialized, so
+ * each is read once.
+ */
+function diffSql(dialect: Db["dialect"]): string {
+	const pg = dialect === "postgres";
+	const cols = DIFF_TYPES.map((t, i) => (pg ? (t ? `CAST(value->>${i} AS ${t})` : `value->>${i}`) : `json_extract(value, '$[${i}]')`));
+	const from = pg ? "jsonb_array_elements(CAST(? AS jsonb))" : "json_each(?)";
+	return `WITH f(${DIFF_COLS}) AS MATERIALIZED (SELECT ${cols.join(", ")} FROM ${from}), s AS MATERIALIZED (SELECT ${DIFF_COLS} FROM ca_search_daily WHERE site = ? AND source = ? AND ${daysIn(dialect)}) SELECT day FROM (SELECT * FROM f EXCEPT SELECT * FROM s) x UNION SELECT day FROM (SELECT * FROM s EXCEPT SELECT * FROM f) y`;
+}
+
+/**
+ * The days of `days` that differ from what is stored (the rows a write would replace), and the stored row count of
+ * every day with stored rows. One read counts the stored rows per day; a day with nothing stored is changed when it
+ * has rows, without a comparison, so a backfill window costs that one read as before. The other days are compared in
+ * groups under `INSERT_JSON_CHARS` of JSON, one read each (`onRead` runs before every read, so a caller can count it);
+ * a single day over that size is not compared and counts as changed.
+ */
+export async function changedDays(
+	db: Db,
+	site: string,
+	source: SourceId,
+	days: ReadonlyMap<string, readonly SearchRow[]>,
+	provisional: (day: string) => boolean,
+	onRead: () => void = () => {},
+): Promise<{ changed: Map<string, SearchRow[]>; had: Map<string, number> }> {
+	const changed = new Map<string, SearchRow[]>();
+	const had = new Map<string, number>();
+	const sorted = [...days.keys()].sort();
+	if (!sorted.length) return { changed, had };
+	onRead();
+	for (const r of await db.all<{ day: string; n: number }>(`SELECT day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? AND source = ? AND ${daysIn(db.dialect)} GROUP BY day`, [site, source, JSON.stringify(sorted)])) had.set(String(r.day), Number(r.n));
+	const groups: Array<{ days: string[]; json: string[]; size: number }> = [];
+	for (const day of sorted) {
+		const list = days.get(day) ?? [];
+		if (!had.has(day)) {
+			if (list.length) changed.set(day, [...list]);
+			continue;
+		}
+		const json = mergeRows(list).map((r) => JSON.stringify([day, r.page_key, r.query, r.country, r.device, r.clicks, r.impressions, r.pos_sum, provisional(day) ? 1 : 0]));
+		const size = json.reduce((n, j) => n + j.length + 1, 0);
+		if (size > INSERT_JSON_CHARS) {
+			changed.set(day, [...list]);
+			continue;
+		}
+		let g = groups[groups.length - 1];
+		if (!g || g.size + size > INSERT_JSON_CHARS) {
+			g = { days: [], json: [], size: 0 };
+			groups.push(g);
+		}
+		g.days.push(day);
+		g.json.push(...json);
+		g.size += size;
+	}
+	const sql = diffSql(db.dialect);
+	for (const g of groups) {
+		onRead();
+		const diff = new Set((await db.all<{ day: string }>(sql, [`[${g.json.join(",")}]`, site, source, JSON.stringify(g.days)])).map((r) => String(r.day)));
+		for (const day of g.days) if (diff.has(day)) changed.set(day, [...(days.get(day) ?? [])]);
+	}
+	return { changed: new Map([...changed].sort(([a], [b]) => (a < b ? -1 : 1))), had };
 }
 
 /**

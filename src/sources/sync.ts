@@ -24,7 +24,7 @@ import { GSC_GRAINS, GSC_PAGE_ROWS, google } from "./gsc.js";
 import { canonicalOrigin, pageKeyFor } from "./page-key.js";
 import { budgetState, dailyRowsApply } from "../query/storage.js";
 import { nextUtcDay, ROWS_PER_DELETE, ROWS_PER_INSERT, ROWS_PER_ROW_BOUND, RowsPaused, type SyncAllowance, SyncRows } from "./budget.js";
-import { replaceStatements, writeReplace } from "./store.js";
+import { changedDays, mergeRows, replaceStatements, writeReplace } from "./store.js";
 import { type Budget, BudgetExhausted, type Http, MAPPING_FIELD, type SearchRow, type SearchSource, SOURCE_IDS, type SiteTarget, SourceError, type SourceId, ThrottledError } from "./types.js";
 
 export const SOURCES: Record<SourceId, SearchSource> = { google, bing };
@@ -281,7 +281,7 @@ const backoff = (count: number, s: Settings) => Math.min(RETRY_BASE_MS * 2 ** Ma
 async function pullRange(ctx: SyncCtx, p: Pair, src: SearchSource, budget: Budget, rows: SyncRows, today: string, pos: { cursor: string; win: number }, last: string, stored: (rows: number) => Promise<void>, pace: { perDay?: number } = {}): Promise<void> {
 	const fetchRange = src.fetchRange;
 	if (!fetchRange) return;
-	// A window costs one call per grain, the stored rows count, its writes (at least two statements), the cursor save and the rows charge.
+	// A window costs one call per grain, the stored rows count (and a comparison per 400,000 characters of rows of stored days), its writes (at least two statements), the cursor save and the rows charge.
 	const perWindow = GSC_GRAINS.length + 5;
 	while (pos.cursor <= last) {
 		const a = await rows.allowance();
@@ -311,31 +311,44 @@ async function pullRange(ctx: SyncCtx, p: Pair, src: SearchSource, budget: Budge
 			const { days, largest } = r.value;
 			pace.perDay = Math.max(1, Math.ceil([...days.values()].reduce((n, l) => n + l.length, 0) / Math.max(1, days.size)));
 			const db = await siteDb(ctx, p.site);
-			const [wFrom, wTo] = ranges[i] as [string, string];
-			budget.need(1);
-			// Rows already stored per day (a re-pull, or a window resumed after a crash): their delete counts too.
-			const had = new Map((await db.all<{ day: string; n: number }>("SELECT day, COUNT(*) AS n FROM ca_search_daily WHERE site = ? AND source = ? AND day >= ? AND day <= ? GROUP BY day", [p.site, p.source, wFrom, wTo])).map((x) => [String(x.day), Number(x.n)]));
-			const fit = fitting(await rows.allowance(), days, false, had);
+			// A day that equals its stored rows is not written again; the others cost their stored rows deleted plus their rows inserted.
+			let found: Awaited<ReturnType<typeof changedDays>>;
+			try {
+				found = await yieldOnPlatformLimit(() => changedDays(db, p.site, p.source, days, provisional(today), () => budget.need(1)));
+			} catch (e) {
+				// The comparison reads of the first window do not fit what the fetches left: a smaller window next time, so a run always makes progress.
+				if (i === 0 && e instanceof BudgetExhausted) pos.win = Math.max(1, Math.floor(pos.win / 2));
+				throw e;
+			}
+			const { changed, had } = found;
+			const fit = fitting(await rows.allowance(), changed, false, had);
+			let n = 0;
 			if (fit.size) {
-				const { stmts, rows: n } = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
+				const w = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
+				n = w.rows;
 				try {
-					budget.need(stmts.length + 2);
+					budget.need(w.stmts.length + 2);
 				} catch (e) {
 					// The first window's writes do not fit what the fetches left: a smaller window next time, so a run always makes progress.
 					if (i === 0) pos.win = Math.max(1, Math.floor(pos.win / 2));
 					throw e;
 				}
-				await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, stmts, n)));
-				pos.cursor = addDays([...fit.keys()].sort().pop() as string, 1);
+				await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, w.stmts, n)));
+			}
+			// The cursor passes the unchanged days and the days written, up to the first changed day that waits for the next UTC day.
+			if (fit.size || (!changed.size && days.size)) {
+				const waiting = [...changed.keys()].sort().find((d) => !fit.has(d));
+				pos.cursor = waiting ?? addDays([...days.keys()].sort().pop() as string, 1);
 				if (largest >= GSC_PAGE_ROWS) pos.win = Math.max(1, Math.floor(pos.win / 2));
 				else if (largest < GSC_PAGE_ROWS / 4 && !grown) {
 					pos.win = Math.min(WINDOW_MAX, pos.win * 2);
 					grown = true;
 				}
-				await stored(n);
+				// The rows stored count is the pulled rows of the days the cursor passed, written or equal to what was stored.
+				await stored([...days].filter(([d]) => d < pos.cursor).reduce((t, [, l]) => t + mergeRows(l).length, 0));
 			}
 			// The rest of the window waits for the next UTC day's rows.
-			if (fit.size < days.size) throw new RowsPaused(nextUtcDay(ctx.now()));
+			if (fit.size < changed.size) throw new RowsPaused(nextUtcDay(ctx.now()));
 		}
 	}
 }
@@ -389,15 +402,17 @@ async function runWindowPair(ctx: SyncCtx, p: Pair, src: SearchSource & Required
 		budget.need(1);
 		// Stored days older than the sync window are final and not written again; the rest goes newest first as far as today's rows allow.
 		for (const r of await db.all<{ day: string }>("SELECT DISTINCT day FROM ca_search_daily WHERE site = ? AND source = ? AND day < ?", [p.site, p.source, addDays(today, -SYNC_DAYS)])) keep.delete(String(r.day));
-		const fit = fitting(a, keep, true);
+		// Days that equal their stored rows are not written again.
+		const { changed, had } = await yieldOnPlatformLimit(() => changedDays(db, p.site, p.source, keep, provisional(today), () => budget.need(1)));
+		const fit = fitting(a, changed, true, had);
 		const { stmts, rows: n } = replaceStatements(db.dialect, p.site, p.source, fit, provisional(today));
 		budget.need(stmts.length + 3);
 		// Each day is replaced whole, so stopping at the platform limit and pulling the window again is safe.
 		if (stmts.length) await rows.charge(await yieldOnPlatformLimit(() => writeReplace(db, stmts, n)));
-		if (fit.size < keep.size) throw new RowsPaused(nextUtcDay(ctx.now()));
+		if (fit.size < changed.size) throw new RowsPaused(nextUtcDay(ctx.now()));
 		Object.assign(st, { cursorDay: null, lastRun: nowIso, status: "ok", lastError: null, ...clearThrottle });
 		await ctx.kv.set(key, st);
-		if (pending) await ctx.kv.set(bkey, { ...pending, cursor: addDays(pending.to, 1), done: true, error: null, rows: n });
+		if (pending) await ctx.kv.set(bkey, { ...pending, cursor: addDays(pending.to, 1), done: true, error: null, rows: [...keep.values()].reduce((t, l) => t + mergeRows(l).length, 0) });
 		return null;
 	} catch (e) {
 		// `cursorDay` only flags the window as unfinished here: the next tick pulls it again.

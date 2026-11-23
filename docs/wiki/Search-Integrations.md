@@ -72,7 +72,7 @@ The Pages report of the traffic pages also gets impressions, clicks, CTR and pos
 ### Sync and Load older days
 
 - The plugin checks hourly and pulls a site at most every `searchSyncHours` hours per source.
-- Each Google pull refreshes the last 7 days. The newest three days are provisional, because Google updates them for 2 to 3 days.
+- Each Google pull refreshes the last 7 days. The newest three days are provisional, because Google updates them for 2 to 3 days. A day whose rows equal the stored rows is not written again, so a pull of unchanged days writes nothing.
 - **Load older days** fills older dates: Last 30 days, Last 90 days, Last 180 days, Last 12 months, Everything the source offers, or from a date. Each option shows its estimate (days, rows, budget) before Start. It runs in batches across runs and days and can be cancelled.
 - The first connect of a source loads `backfillDays` days by itself, except on the `small` capacity profile, where you press Start.
 

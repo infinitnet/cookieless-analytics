@@ -25,8 +25,8 @@ importers:
         specifier: ^0.18.5
         version: 0.18.5
       '@electric-sql/pglite':
-        specifier: 0.5.17
-        version: 0.5.17
+        specifier: 0.5.16
+        version: 0.5.16
       '@testing-library/react':
         specifier: ^16.3.0
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -47,13 +47,13 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       astro:
         specifier: ^7.3.2
-        version: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+        version: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
       better-sqlite3:
         specifier: ^13.2.0
         version: 13.2.0
       emdash:
         specifier: ~1.4.0
-        version: 1.4.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@7.0.2)
+        version: 1.4.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@7.0.2)
       jsdom:
         specifier: ^31.0.1
         version: 31.0.1
@@ -79,8 +79,8 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
       vitest:
-        specifier: 5.1.1
-        version: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+        specifier: 5.1.0
+        version: 5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       yaml:
         specifier: 2.9.1
         version: 2.9.1
@@ -95,10 +95,10 @@ importers:
         version: 0.13.6(@arethetypeswrong/core@0.18.5)(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(publint@0.3.25)
       '@emdash-cms/plugin-test':
         specifier: 0.2.12
-        version: 0.2.12(96b9ca160a96572af1c55fdc77c7ce3a)
+        version: 0.2.12(f5b3e1be372256bd945ac8a866b2d539)
       emdash:
         specifier: 1.5.0
-        version: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
+        version: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -106,8 +106,8 @@ importers:
         specifier: ^8.3.0
         version: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
       vitest:
-        specifier: 5.1.1
-        version: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+        specifier: 5.1.0
+        version: 5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
 
 packages:
 
@@ -203,8 +203,8 @@ packages:
   '@astrojs/internal-helpers@0.13.2':
     resolution: {integrity: sha512-SWiNS+OMrhwWYzJENTekHUyUCMKB+tdU6D4v1ZNIU1ZHh2mScQ8WIs0J6AJ8KPXkIrs9+EZU7Rm2CstfThyVnw==}
 
-  '@astrojs/markdown-satteri@0.4.10':
-    resolution: {integrity: sha512-3h/wheVjZIcP/m295nkiUjOvCsCs6QpvZ3l4BfDU4ghNQcrcFrNVu1+K+I+YT61hH9tuCDQiGdF8QDzfDoG42w==}
+  '@astrojs/markdown-satteri@0.4.9':
+    resolution: {integrity: sha512-ixhXGrlvYNdVvSLU3L+ju+tGoMbRdH1iXee593xReVAcDhXJ7yvuNIV8M0KzCQAeiZo1VIleaaI9lH4RzCKYWA==}
 
   '@astrojs/prism@4.1.2':
     resolution: {integrity: sha512-jMrUEpFDarDO1KWPvVc9eSa8DSfwBlwEOHwX+8zvZQpiqXRGDxFnOXHsYqV6DP7w+0qIgTr98gS1GdQlm8ypWg==}
@@ -234,9 +234,6 @@ packages:
   '@astrojs/runtime@0.1.1':
     resolution: {integrity: sha512-2Tr9IJ4aQBPDFzlSLq139eWS9OZnuhL0yU2al8cCpnTE/RszygSyGIP8piBmEio1zDUaItb/+YxxsrmldUCBmg==}
 
-  '@astrojs/runtime@0.1.2':
-    resolution: {integrity: sha512-qLNoKPjASZmKtkvQNYqax7DHIe5+0TC1PX8n2AkA87Bv+JxiaFZtPepdm0lwcRbL/jLoiRvHXVCliFC1CRFQxA==}
-
   '@astrojs/telemetry@3.4.2':
     resolution: {integrity: sha512-2JOMRUxJrBSfiVDfeKLv1wBmvSIx1Y6u2YEO8awZ9qSq3u/rNAiUyFdOYi8dHv91kHrmYEQX7pRDw0J4xyj3UA==}
     engines: {node: '>=22.23.4'}
@@ -244,8 +241,8 @@ packages:
   '@astrojs/underscore-redirects@1.0.4':
     resolution: {integrity: sha512-sD3bn7i2yC+ocxlhCTshdg3gUM471Nag3wgyHilA+kpmufokvmUu1p5Mw5GT5Xp8SPC1Nlq0BJAgV/lslnWvRw==}
 
-  '@astrojs/vite-plugin-astro@0.1.3':
-    resolution: {integrity: sha512-yj+xGnr3HeHUtIdra/tWizJuisBoxAuWlBTElMlf22FpSxinrTwTl/dqftG0D2BsQTcn4/shgCCUwcnkcZ8buA==}
+  '@astrojs/vite-plugin-astro@0.1.2':
+    resolution: {integrity: sha512-tDlT8Gp6fX3Km7yGeZSG1xaPfVhcXgmYHp/lKcXf3Rc3fZF4NTeWMwtXVbJy40lvrD7iDxpXN7vAHH2tQSZGWg==}
     peerDependencies:
       vite: ^8.3.3
 
@@ -695,8 +692,8 @@ packages:
     peerDependencies:
       react: '>=16.8.0'
 
-  '@electric-sql/pglite@0.5.17':
-    resolution: {integrity: sha512-8SvKjiUjaU+0O0dbxjOfN+jXz14TEqDWbwDkYOW1aQ11y/ph2JvFVI27ABBo5nfw+ZfSqy4hKCNlbnbB1TDE+g==}
+  '@electric-sql/pglite@0.5.16':
+    resolution: {integrity: sha512-Nj8KcIsJL748W408U2N8q4+9IlONdpRIU8MJypIAAINMJ5nqKyqpX7Mgg/5XKkXiAib3AoZGR6hnJFlrlLBrcg==}
 
   '@emdash-cms/admin@1.4.0':
     resolution: {integrity: sha512-nHnU5PJeh5AU69WLKldoTiAF4TnpNZ1eQy6VbbT8rtsdLZUfawyDgXEkY8DaIWBlZb32Eqcti/8AoF29NmE48Q==}
@@ -2799,8 +2796,8 @@ packages:
       oxc-transform-react:
         optional: true
 
-  '@vitest/mocker@5.1.1':
-    resolution: {integrity: sha512-b2OgTB4+3ImWIVafXKazJXwLKwQxUNnix6b3xUvUTMh7RyXlrtzoxfZr8aEz9zkHOMAS4K5lu3TvFWoiVeVTQg==}
+  '@vitest/mocker@5.1.0':
+    resolution: {integrity: sha512-5umB9/jlWcqVS6fsrFmv5Gdnpu6wAUio/lEOwAmvB7v+lFo/IW2B9FhAD0p19GCULTgMzLCdUmuCDCnAzWgppQ==}
     peerDependencies:
       msw: ^2.4.9 || ^3.0.0
       vite: ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -2810,8 +2807,8 @@ packages:
       vite:
         optional: true
 
-  '@vitest/spy@5.1.1':
-    resolution: {integrity: sha512-6K8C6alQG1/Yc8/ZI22iJS7JEsxPdVzqtqDq+/xM4Z0mGVykemMVjLhqMy/q6/IHYG3kKD8hKSwRen/ZdyI9vQ==}
+  '@vitest/spy@5.1.0':
+    resolution: {integrity: sha512-2DPO5OMHWKrBngC+fCmTQqemNF0gidRhp3lxbBmRhW+M1XJrfgPpqNqWVevXtn2f2ufD5ZaR1B6B641aAlcX5A==}
 
   '@wordpress/block-serialization-default-parser@5.57.0':
     resolution: {integrity: sha512-gxqS1TIMiWcIIsPTPdvztOZNEl7+TkVJ5WHk8BWOe2+WsaEcjL44heSceDl873+WZQ1RIAOBdHDyds8h4FjiaQ==}
@@ -2921,8 +2918,8 @@ packages:
     peerDependencies:
       astro: '>=4.6.0'
 
-  astro@7.4.13:
-    resolution: {integrity: sha512-tcpMXEB9jypYzbnzT/g6yxL0jRkFlj3WsvxcWgsxRjPBUE6r81qLo/7kN5GMWz6hC7spzrg6fvCeL2HG0Bl68g==}
+  astro@7.4.11:
+    resolution: {integrity: sha512-c8gibLFCnzuXCXqsvTiMXbjCnuIjxGhWw6TO5n11cXzNrw36P3ZgBzsOoRUR4raG1r6cKWeE5oXQu4F3GCBofg==}
     engines: {node: '>=22.23.4', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
     peerDependencies:
@@ -4916,20 +4913,20 @@ packages:
       vite:
         optional: true
 
-  vitest@5.1.1:
-    resolution: {integrity: sha512-trVmzUFOSraCZcI3uZIMD5FqBh4atFkC/XuJP/IU7qtyQay0FCs3Ia+0QiQ2JJwGyWG/xrcBoJNel2+O7kEZ0g==}
+  vitest@5.1.0:
+    resolution: {integrity: sha512-MzmNFnrwa8v8lF1bLxw3UJ4EREwVOVb75VqJZmUDRjJ6EluK/x9th7qTbaeDk41WxE1GxWqmTXcdsfobfH5sOA==}
     engines: {node: ^22.12.0 || ^24.0.0 || >=26.0.0}
     hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@opentelemetry/api': ^1.9.0
       '@types/node': ^22.0.0 || >=24.0.0
-      '@vitest/browser-playwright': 5.1.1
-      '@vitest/browser-preview': 5.1.1
+      '@vitest/browser-playwright': 5.1.0
+      '@vitest/browser-preview': 5.1.0
       '@vitest/browser-webdriverio': ^5.0.0-beta.5 || >=5.0.0
-      '@vitest/coverage-istanbul': 5.1.1
-      '@vitest/coverage-v8': 5.1.1
-      '@vitest/ui': 5.1.1
+      '@vitest/coverage-istanbul': 5.1.0
+      '@vitest/coverage-v8': 5.1.0
+      '@vitest/ui': 5.1.0
       happy-dom: '*'
       jsdom: '*'
       vite: ^6.4.0 || ^7.0.0 || ^8.0.0
@@ -5152,12 +5149,12 @@ snapshots:
       typescript: 5.6.1-rc
       validate-npm-package-name: 5.0.1
 
-  '@astrojs/cloudflare@14.4.8(@types/node@24.19.2)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(esbuild@0.28.2)(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))(yaml@2.9.1)':
+  '@astrojs/cloudflare@14.4.8(@types/node@24.19.2)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(esbuild@0.28.2)(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))(yaml@2.9.1)':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
       '@astrojs/underscore-redirects': 1.0.4
       '@cloudflare/vite-plugin': 1.69.1(@types/node@24.19.2)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
       piccolore: 0.1.3
       prismjs: 1.30.0
       vite: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
@@ -5242,7 +5239,7 @@ snapshots:
       unified: 11.0.5
       yaml: 2.9.1
 
-  '@astrojs/markdown-satteri@0.4.10':
+  '@astrojs/markdown-satteri@0.4.9':
     dependencies:
       '@astrojs/internal-helpers': 0.13.2
       '@astrojs/prism': 4.1.2
@@ -5288,11 +5285,6 @@ snapshots:
       '@oslojs/encoding': 1.1.0
       clsx: 2.1.1
 
-  '@astrojs/runtime@0.1.2':
-    dependencies:
-      '@oslojs/encoding': 1.1.0
-      clsx: 2.1.1
-
   '@astrojs/telemetry@3.4.2':
     dependencies:
       ci-info: 4.5.0
@@ -5302,7 +5294,7 @@ snapshots:
 
   '@astrojs/underscore-redirects@1.0.4': {}
 
-  '@astrojs/vite-plugin-astro@0.1.3(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))':
+  '@astrojs/vite-plugin-astro@0.1.2(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))':
     dependencies:
       '@astrojs/compiler-rs': 0.5.3
       '@astrojs/internal-helpers': 0.13.2
@@ -5707,12 +5699,12 @@ snapshots:
       - utf-8-validate
       - workerd
 
-  '@cloudflare/vitest-plugin@1.8.3(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))':
+  '@cloudflare/vitest-plugin@1.8.3(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2)(vitest@5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))':
     dependencies:
       cjs-module-lexer: 1.2.3
       esbuild: 0.28.2
       miniflare: 5.20261116.0-beta(@types/node@24.19.2)
-      vitest: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      vitest: 5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       wrangler: 4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2)
       zod: 4.6.7
     transitivePeerDependencies:
@@ -5861,7 +5853,7 @@ snapshots:
       react: 19.3.1
       tslib: 2.9.1
 
-  '@electric-sql/pglite@0.5.17': {}
+  '@electric-sql/pglite@0.5.16': {}
 
   '@emdash-cms/admin@1.4.0(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)':
     dependencies:
@@ -6038,24 +6030,24 @@ snapshots:
       - typescript
       - zod
 
-  '@emdash-cms/auth@1.4.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)':
+  '@emdash-cms/auth@1.4.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)':
     dependencies:
       '@oslojs/crypto': 1.0.1
       '@oslojs/encoding': 1.1.0
       '@oslojs/webauthn': 1.0.0
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
       jose: 6.2.17
       ulidx: 2.4.1
       zod: 4.6.7
     optionalDependencies:
       kysely: 0.29.9
 
-  '@emdash-cms/auth@1.5.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)':
+  '@emdash-cms/auth@1.5.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)':
     dependencies:
       '@oslojs/crypto': 1.0.1
       '@oslojs/encoding': 1.1.0
       '@oslojs/webauthn': 1.0.0
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
       jose: 6.2.17
       ulidx: 2.4.1
       zod: 4.6.7
@@ -6094,19 +6086,19 @@ snapshots:
       - date-fns
       - zod
 
-  '@emdash-cms/cloudflare@1.5.0(446630d84d8795cada40b0c634f14f4d)':
+  '@emdash-cms/cloudflare@1.5.0(ce187d5f50385970c2d3e21c63499ba3)':
     dependencies:
-      '@astrojs/cloudflare': 14.4.8(@types/node@24.19.2)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(esbuild@0.28.2)(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))(yaml@2.9.1)
+      '@astrojs/cloudflare': 14.4.8(@types/node@24.19.2)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(esbuild@0.28.2)(workerd@1.20261116.1)(wrangler@4.163.0(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2))(yaml@2.9.1)
       '@cloudflare/ai-search-snippet': 0.0.42
       '@cloudflare/workers-types': 5.20261117.1
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
-      emdash: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      emdash: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
       jose: 6.2.17
       kysely: 0.29.9
       kysely-d1: 0.4.0(kysely@0.29.9)
       ulidx: 2.4.1
     optionalDependencies:
-      '@cloudflare/kumo': 2.15.0(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
+      '@cloudflare/kumo': 2.18.1(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       '@phosphor-icons/react': 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       pg: 8.23.1
       react: 19.3.1
@@ -6161,17 +6153,17 @@ snapshots:
       - unplugin-unused
       - vue-tsc
 
-  '@emdash-cms/plugin-test@0.2.12(96b9ca160a96572af1c55fdc77c7ce3a)':
+  '@emdash-cms/plugin-test@0.2.12(f5b3e1be372256bd945ac8a866b2d539)':
     dependencies:
-      '@cloudflare/vitest-plugin': 1.8.3(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2)(vitest@5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))
+      '@cloudflare/vitest-plugin': 1.8.3(@cloudflare/workers-types@5.20261117.1)(@types/node@24.19.2)(vitest@5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))
       '@emdash-cms/blocks': 1.5.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
-      '@emdash-cms/cloudflare': 1.5.0(446630d84d8795cada40b0c634f14f4d)
+      '@emdash-cms/cloudflare': 1.5.0(ce187d5f50385970c2d3e21c63499ba3)
       '@emdash-cms/plugin-cli': 0.13.6(@arethetypeswrong/core@0.18.5)(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@emnapi/core@2.0.0-beta.2)(@emnapi/runtime@2.0.0-beta.2)(publint@0.3.25)
       '@emdash-cms/plugin-types': 0.6.1
-      emdash: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
+      emdash: 1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2)
       kysely: 0.29.9
       vite: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
-      vitest: 5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      vitest: 5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
       - '@astrojs/cloudflare'
@@ -6745,7 +6737,7 @@ snapshots:
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
       express: 5.3.0(supports-color@10.2.2)
-      express-rate-limit: 8.7.4(express@5.3.0(supports-color@7.2.0))(supports-color@10.2.2)
+      express-rate-limit: 8.7.4(express@5.3.0(supports-color@10.2.2))(supports-color@10.2.2)
       hono: 4.13.18
       jose: 6.2.17
       json-schema-typed: 8.0.2
@@ -6766,8 +6758,8 @@ snapshots:
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
-      express: 5.3.0(supports-color@7.2.0)
-      express-rate-limit: 8.7.4(express@5.3.0(supports-color@7.2.0))(supports-color@7.2.0)
+      express: 5.3.0(supports-color@10.2.2)
+      express-rate-limit: 8.7.4(express@5.3.0(supports-color@10.2.2))(supports-color@7.2.0)
       hono: 4.13.18
       jose: 6.2.17
       json-schema-typed: 8.0.2
@@ -7970,16 +7962,16 @@ snapshots:
       '@rolldown/pluginutils': 1.1.1
       vite: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
 
-  '@vitest/mocker@5.1.1(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))':
+  '@vitest/mocker@5.1.0(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
-      '@vitest/spy': 5.1.1
+      '@vitest/spy': 5.1.0
       estree-walker: 3.0.3
       magic-string: 1.4.5
     optionalDependencies:
       vite: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
 
-  '@vitest/spy@5.1.1': {}
+  '@vitest/spy@5.1.0': {}
 
   '@wordpress/block-serialization-default-parser@5.57.0': {}
 
@@ -8064,20 +8056,20 @@ snapshots:
       estree-walker: 3.0.3
       pathe: 2.0.3
 
-  astro-portabletext@0.11.4(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)):
+  astro-portabletext@0.11.4(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)):
     dependencies:
       '@portabletext/toolkit': 3.0.3
       '@portabletext/types': 2.0.15
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
 
-  astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1):
+  astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1):
     dependencies:
       '@astrojs/compiler-rs': 0.5.3
       '@astrojs/internal-helpers': 0.13.2
-      '@astrojs/markdown-satteri': 0.4.10
-      '@astrojs/runtime': 0.1.2
+      '@astrojs/markdown-satteri': 0.4.9
+      '@astrojs/runtime': 0.1.1
       '@astrojs/telemetry': 3.4.2
-      '@astrojs/vite-plugin-astro': 0.1.3(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      '@astrojs/vite-plugin-astro': 0.1.2(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       '@capsizecss/unpack': 4.0.1
       '@clack/prompts': 1.9.0
       '@oslojs/encoding': 1.1.0
@@ -8108,7 +8100,7 @@ snapshots:
       package-manager-detector: 1.9.0
       piccolore: 0.1.3
       picomatch: 4.0.7
-      rolldown: 1.3.2
+      rolldown: 1.2.19
       shiki: 4.6.0
       smol-toml: 1.9.1
       svgo: 4.1.0
@@ -8180,20 +8172,6 @@ snapshots:
   blake3-wasm@2.1.5: {}
 
   blurhash@2.0.5: {}
-
-  body-parser@2.4.0(supports-color@10.2.2):
-    dependencies:
-      bytes: 3.1.2
-      content-type: 2.1.0
-      debug: 4.4.3(supports-color@10.2.2)
-      http-errors: 2.0.1
-      iconv-lite: 0.7.3
-      on-finished: 2.4.2
-      qs: 6.17.1
-      raw-body: 3.0.2
-      type-is: 2.1.0
-    transitivePeerDependencies:
-      - supports-color
 
   body-parser@2.4.0(supports-color@7.2.0):
     dependencies:
@@ -8484,7 +8462,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  emdash@1.4.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@7.0.2):
+  emdash@1.4.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@7.0.2):
     dependencies:
       '@astrojs/react': 7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       '@atcute/client': 5.1.2(@atcute/lexicons@2.1.1)(typescript@7.0.2)
@@ -8492,7 +8470,7 @@ snapshots:
       '@atcute/lexicons': 2.1.1
       '@atcute/multibase': 1.2.5
       '@emdash-cms/admin': 1.4.0(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.33.1(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
-      '@emdash-cms/auth': 1.4.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)
+      '@emdash-cms/auth': 1.4.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)
       '@emdash-cms/blocks': 1.4.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       '@emdash-cms/gutenberg-to-portable-text': 1.4.0
       '@emdash-cms/plugin-types': 0.6.0
@@ -8525,8 +8503,8 @@ snapshots:
       '@tiptap/suggestion': 3.33.1(@floating-ui/dom@1.8.0)(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1)
       '@unpic/placeholder': 0.1.2
       arctic: 3.7.0
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
-      astro-portabletext: 0.11.4(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro-portabletext: 0.11.4(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       blurhash: 2.0.5
       citty: 0.2.2
       consola: 3.4.2
@@ -8575,7 +8553,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  emdash@1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2):
+  emdash@1.5.0(@astrojs/react@7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)))(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@atcute/identity@2.0.2(@atcute/lexicons@2.1.1)(typescript@7.0.2))(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(date-fns@4.4.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@10.2.2)(typescript@7.0.2):
     dependencies:
       '@astrojs/react': 7.1.8(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       '@atcute/client': 5.1.2(@atcute/lexicons@2.1.1)(typescript@7.0.2)
@@ -8583,7 +8561,7 @@ snapshots:
       '@atcute/lexicons': 2.1.1
       '@atcute/multibase': 1.2.5
       '@emdash-cms/admin': 1.5.0(@atcute/cbor@2.3.8(@atcute/cid@2.5.0))(@atcute/cid@2.5.0)(@date-fns/tz@1.5.0)(@floating-ui/dom@1.8.0)(@tiptap/extensions@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(echarts@6.1.0)(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
-      '@emdash-cms/auth': 1.5.0(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)
+      '@emdash-cms/auth': 1.5.0(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))(kysely@0.29.9)
       '@emdash-cms/blocks': 1.5.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       '@emdash-cms/gutenberg-to-portable-text': 1.5.0
       '@emdash-cms/plugin-types': 0.6.1
@@ -8618,8 +8596,8 @@ snapshots:
       '@tiptap/y-tiptap': 3.2.0(prosemirror-model@1.25.13)(prosemirror-state@1.4.4)(prosemirror-view@1.42.9)(y-protocols@1.0.7(yjs@13.6.33))(yjs@13.6.33)
       '@unpic/placeholder': 0.1.2
       arctic: 3.7.0
-      astro: 7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
-      astro-portabletext: 0.11.4(astro@7.4.13(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      astro: 7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
+      astro-portabletext: 0.11.4(astro@7.4.11(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       blurhash: 2.0.5
       citty: 0.2.2
       consola: 3.4.2
@@ -8757,56 +8735,23 @@ snapshots:
 
   expect-type@1.4.0: {}
 
-  express-rate-limit@8.7.4(express@5.3.0(supports-color@7.2.0))(supports-color@10.2.2):
+  express-rate-limit@8.7.4(express@5.3.0(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
-      express: 5.3.0(supports-color@7.2.0)
+      express: 5.3.0(supports-color@10.2.2)
       ip-address: 10.7.6
     transitivePeerDependencies:
       - supports-color
 
-  express-rate-limit@8.7.4(express@5.3.0(supports-color@7.2.0))(supports-color@7.2.0):
+  express-rate-limit@8.7.4(express@5.3.0(supports-color@10.2.2))(supports-color@7.2.0):
     dependencies:
       debug: 4.4.3(supports-color@7.2.0)
-      express: 5.3.0(supports-color@7.2.0)
+      express: 5.3.0(supports-color@10.2.2)
       ip-address: 10.7.6
     transitivePeerDependencies:
       - supports-color
 
   express@5.3.0(supports-color@10.2.2):
-    dependencies:
-      accepts: 2.0.0
-      body-parser: 2.4.0(supports-color@10.2.2)
-      content-disposition: 2.0.1
-      content-type: 2.1.0
-      cookie: 0.7.2
-      cookie-signature: 1.2.2
-      debug: 4.4.3(supports-color@10.2.2)
-      depd: 2.0.0
-      encodeurl: 2.0.3
-      escape-html: 1.0.3
-      etag: 1.8.1
-      finalhandler: 2.1.1(supports-color@10.2.2)
-      fresh: 2.0.0
-      http-errors: 2.0.1
-      merge-descriptors: 2.0.0
-      mime-types: 3.0.2
-      on-finished: 2.4.2
-      once: 1.4.0
-      parseurl: 1.3.3
-      proxy-addr: 2.0.8
-      qs: 6.17.1
-      range-parser: 1.3.0
-      router: 2.2.0(supports-color@10.2.2)
-      send: 1.2.1(supports-color@10.2.2)
-      serve-static: 2.2.1(supports-color@10.2.2)
-      statuses: 2.0.2
-      type-is: 2.1.0
-      vary: 1.1.2
-    transitivePeerDependencies:
-      - supports-color
-
-  express@5.3.0(supports-color@7.2.0):
     dependencies:
       accepts: 2.0.0
       body-parser: 2.4.0(supports-color@7.2.0)
@@ -8832,7 +8777,7 @@ snapshots:
       range-parser: 1.3.0
       router: 2.2.0(supports-color@7.2.0)
       send: 1.2.1(supports-color@7.2.0)
-      serve-static: 2.2.1(supports-color@7.2.0)
+      serve-static: 2.2.1(supports-color@10.2.2)
       statuses: 2.0.2
       type-is: 2.1.0
       vary: 1.1.2
@@ -8868,17 +8813,6 @@ snapshots:
     optional: true
 
   fflate@0.8.3: {}
-
-  finalhandler@2.1.1(supports-color@10.2.2):
-    dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
-      encodeurl: 2.0.3
-      escape-html: 1.0.3
-      on-finished: 2.4.2
-      parseurl: 1.3.3
-      statuses: 2.0.2
-    transitivePeerDependencies:
-      - supports-color
 
   finalhandler@2.1.1(supports-color@7.2.0):
     dependencies:
@@ -9487,19 +9421,15 @@ snapshots:
   pg-cloudflare@1.4.1:
     optional: true
 
-  pg-connection-string@2.14.1:
-    optional: true
+  pg-connection-string@2.14.1: {}
 
-  pg-int8@1.0.1:
-    optional: true
+  pg-int8@1.0.1: {}
 
   pg-pool@3.14.0(pg@8.23.1):
     dependencies:
       pg: 8.23.1
-    optional: true
 
-  pg-protocol@1.16.1:
-    optional: true
+  pg-protocol@1.16.1: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -9508,7 +9438,6 @@ snapshots:
       postgres-bytea: 1.0.1
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
-    optional: true
 
   pg@8.23.1:
     dependencies:
@@ -9519,12 +9448,10 @@ snapshots:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.4.1
-    optional: true
 
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
-    optional: true
 
   piccolore@0.1.3: {}
 
@@ -9542,19 +9469,15 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
-  postgres-array@2.0.0:
-    optional: true
+  postgres-array@2.0.0: {}
 
-  postgres-bytea@1.0.1:
-    optional: true
+  postgres-bytea@1.0.1: {}
 
-  postgres-date@1.0.7:
-    optional: true
+  postgres-date@1.0.7: {}
 
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
-    optional: true
 
   pretty-format@27.5.1:
     dependencies:
@@ -9856,16 +9779,6 @@ snapshots:
 
   rope-sequence@1.3.4: {}
 
-  router@2.2.0(supports-color@10.2.2):
-    dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
-      depd: 2.0.0
-      is-promise: 4.0.0
-      parseurl: 1.3.3
-      path-to-regexp: 8.4.2
-    transitivePeerDependencies:
-      - supports-color
-
   router@2.2.0(supports-color@7.2.0):
     dependencies:
       debug: 4.4.3(supports-color@7.2.0)
@@ -9967,15 +9880,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  serve-static@2.2.1(supports-color@7.2.0):
-    dependencies:
-      encodeurl: 2.0.3
-      escape-html: 1.0.3
-      parseurl: 1.3.3
-      send: 1.2.1(supports-color@7.2.0)
-    transitivePeerDependencies:
-      - supports-color
-
   setprototypeof@1.2.0: {}
 
   sharp@0.35.5(@types/node@24.19.2):
@@ -10070,8 +9974,7 @@ snapshots:
 
   space-separated-tokens@2.0.2: {}
 
-  split2@4.2.0:
-    optional: true
+  split2@4.2.0: {}
 
   statuses@2.0.2: {}
 
@@ -10400,10 +10303,10 @@ snapshots:
     optionalDependencies:
       vite: 8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)
 
-  vitest@5.1.1(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)):
+  vitest@5.1.0(@types/node@24.19.2)(jsdom@31.0.1)(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.1.1(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
+      '@vitest/mocker': 5.1.0(vite@8.3.8(@types/node@24.19.2)(esbuild@0.28.2)(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -10503,8 +10406,7 @@ snapshots:
 
   xmlchars@2.2.0: {}
 
-  xtend@4.0.2:
-    optional: true
+  xtend@4.0.2: {}
 
   xxhash-wasm@1.1.0: {}
 

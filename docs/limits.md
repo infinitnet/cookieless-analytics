@@ -219,7 +219,7 @@ The goal, funnel step and channel rule fields of Definitions, and the key fields
 
 The Worker's per-invocation request limit ("Too many subrequests by single Worker invocation"; 50 on the Free plan, measured on a Free account; on a paid plan Workers allow 10,000 subrequests and D1 1,000 queries per invocation, published limits) counts every outbound fetch, every D1 statement and every plugin storage call (storage lives in D1). The host's cron executor runs every due plugin task in one invocation and spends some of it on its own bookkeeping, settings and storage reads. A Search run therefore meters all three kinds against **Sync request budget** (`syncSubrequestBudget`, default 40, 20 to 950) and stops before it: before each window it checks room for the window's calls and writes, before each write it reserves the exact statement count, and 3 requests stay reserved for the end of the run (cursor, lock, pair state). Keep 40 on the Free plan; on a Paid plan set it to about 900.
 
-Cost of one Google window (any length up to 32 days): 6 provider calls (one per grain; more only when a grain pages past 25,000 rows), 1 DELETE plus 1 insert per 400,000 characters of rows (about 3,000 rows; each insert binds one JSON array, so the 100 parameter limit never applies), and 1 storage write for the position. Before batching a day cost 6 calls, 1 DELETE plus 1 insert per 8 rows, and 1 storage write.
+Cost of one Google window (any length up to 32 days): 6 provider calls (one per grain; more only when a grain pages past 25,000 rows), 1 DELETE plus 1 insert per 400,000 characters of rows (about 3,000 rows; each insert binds one JSON array, so the 100 parameter limit never applies), and 1 storage write for the position. One read counts the stored rows per day, and days that have stored rows are compared with the pulled rows (one more read per 400,000 characters of rows); only the days that differ are deleted and inserted, and a window equal to what is stored writes no row. A day over about 3,000 rows is always replaced.
 
 Measured on the synthetic Google of the tests (`tests/sources-batch.test.ts`: about 186 rows a day: totals, 24 to 36 pages, 54 to 66 queries, 74 to 86 page with query pairs, 12 countries, 3 devices) with the Free plan's limit of 50 simulated per run and the default budget of 40:
 
@@ -235,7 +235,7 @@ The stored rows are identical (the test compares them with the one-day pull, inc
 
 How fast runs follow each other is set by the site's Cron Trigger, not by the plugin: a run that stops at the budget schedules the next one a minute later, which runs at the next trigger. With `* * * * *` the 476 days above take about 7 minutes. With `*/15 * * * *` one invocation runs one background task and the others take turns ([install.md](install.md#cron-trigger)), so a continuation waits for its turn: at least 105 minutes, about a day's worth of turns in the worst case (before: 483 runs, five days).
 
-A Bing pull is 3 calls (6 with the in-run retry after a throttle) and 1 DELETE plus a few inserts for the days it stores (the sync window, or the backfill range). A Bing file import is one request: one parse of at most 500 KB (about 7 ms of CPU, measured at about 14 ms per million characters) and the same writes.
+A Bing pull is 3 calls (6 with the in-run retry after a throttle) and one read of the stored rows per day plus one comparison read per 400,000 characters of rows of days that have stored rows, then 1 DELETE plus a few inserts for the days that differ from the stored rows (the sync window, or the backfill range). A Bing file import is one request: one parse of at most 500 KB (about 7 ms of CPU, measured at about 14 ms per million characters) and the same writes.
 
 ### Rows written by Search
 
@@ -244,8 +244,8 @@ Besides requests, every Search write counts against a daily budget of rows writt
 `ca_search_daily` is `WITHOUT ROWID` (the key is the table) with one page index, so, measured on the counting database of the tests:
 
 - a new row writes 2 rows, a deleted row 1;
-- a backfill writes `days x rows per day x 2` rows (a range never includes stored days, so nothing is deleted);
-- the sync window writes up to 3 per row, since it deletes the stored rows of the days it pulls again.
+- a backfill writes `days x rows per day x 2` rows (a range of a Load older days run never includes stored days, so nothing is deleted);
+- the sync window writes 3 per row of a day that differs from its stored rows, since it deletes that day's stored rows and inserts the pulled ones, and nothing for a day that equals them. A day also differs when its provisional flag changes, which happens once as it leaves the three newest days. Google revises the newest days, so the window rewrites about those days on each pull and the older days stay untouched.
 
 Example: 476 days of a site with 186 rows a day write 476 x 186 x 2 = 177,072 rows, 9 daily budgets of the small profile.
 
@@ -258,7 +258,7 @@ Example: 476 days of a site with 186 rows a day write 476 x 186 x 2 = 177,072 ro
 How a run uses it:
 
 - Before a window it asks for as many days as the rows left today allow, at the rows per day seen so far.
-- After the pull it counts the rows already stored for those days and stores only the days that fit, oldest first. The cursor moves past them, and the rest waits for 00:00 UTC.
+- After the pull it counts the rows already stored for those days, leaves the days that equal their stored rows as they are, and stores only the changed days that fit, oldest first. The cursor moves past the unchanged days and the stored ones, and the rest waits for 00:00 UTC.
 - A day larger than the whole share is taken alone on a UTC day without Search writes yet, if it stays under the pause line, so a large site still makes progress.
 - A run with nothing due writes 0 rows.
 - On `small`, ingest keeps priority. The write guard adds the Search rows to its estimate (`sync` in `budget:writes`), and the syncs stop for the day once ingest plus Search reach 51,000, which leaves 34,000 rows below the guard for page views.
