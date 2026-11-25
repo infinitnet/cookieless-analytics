@@ -4,7 +4,8 @@
  * plan decides which filters apply: the report's own dimension, and one segment (channel, country or device) with a
  * pair dimension through a pair row. Every other filter is reported as `filter_unavailable:<dim>:<reason>`.
  */
-import { QueryError } from "../compile.js";
+import { compileTraffic, QueryError, TRUE } from "../compile.js";
+import { addDays, dayInZone } from "../../core/time.js";
 import { OTHER, type RollupDim } from "../rollup.js";
 import { liveVisits, annotationsIn, num, type ReportCtx, type ReportData, type Row, type RunInput, ratio, round, sessionMetrics } from "./base.js";
 import { firstRun } from "./overview.js";
@@ -69,6 +70,25 @@ export async function exitRates(rc: ReportCtx, input: RunInput, keys: readonly s
 
 type Runner = (rc: ReportCtx, input: RunInput, plan: Plan) => Promise<ReportData>;
 
+/**
+ * Sessions active within the realtime window under the view's filters, compiled over the live days (today and yesterday).
+ * The summary totals do not compile the filters over detailed rows, so a filter that cannot compile over the live days
+ * (`narrow_filter`, `too_many_values`) leaves only Active now empty (null) and the report answers.
+ */
+async function realtime(rc: ReportCtx, input: RunInput): Promise<number | null> {
+	const today = dayInZone(rc.now, rc.settings.siteTimezone);
+	let filters = TRUE;
+	try {
+		if (input.filters.length) filters = (await compileTraffic({ db: rc.db, site: rc.site, from: addDays(today, -1), to: today, goals: rc.goals, ...(rc.defaultCurrency ? { currency: rc.defaultCurrency } : {}) }, input.filters)).session;
+	} catch (e) {
+		if (e instanceof QueryError) return null;
+		throw e;
+	}
+	const live = liveVisits(rc);
+	const [r] = await rc.db.all(`SELECT COUNT(*) AS n FROM ca_sessions s WHERE ${live.sql} AND (${filters.sql})`, [...live.params, ...filters.params]);
+	return num(r?.n);
+}
+
 function breakdown(dim: RollupDim, rename?: (r: Row) => Row): [RollupDim, Runner] {
 	return [
 		dim,
@@ -89,11 +109,8 @@ export const ROLLUP_REPORTS: Record<string, [RollupDim | null, Runner]> = {
 		async (rc, input, plan) => {
 			const t = sessionRow(await totals(rc, input, plan));
 			if (input.isCompare || input.lean) return { totals: t };
-			// Realtime is a raw count; it can honour no summary filter, so it is left out when filters are set.
-			if (input.filters.length) return { totals: t, realtime: null, ...(await firstRun(rc, t.sessions)) };
-			const live = liveVisits(rc);
-			const [r] = await rc.db.all(`SELECT COUNT(*) AS n FROM ca_sessions s WHERE ${live.sql}`, live.params);
-			return { totals: t, realtime: num(r?.n), ...(await firstRun(rc, t.sessions)) };
+			// Realtime reads the visits of today and yesterday, which are always detailed: the filters apply as in a detailed range.
+			return { totals: t, realtime: await realtime(rc, input), ...(await firstRun(rc, t.sessions)) };
 		},
 	],
 	timeseries: [
@@ -134,7 +151,9 @@ export const ROLLUP_REPORTS: Record<string, [RollupDim | null, Runner]> = {
 				}
 				return row;
 			});
-			return { rows, truncated: all.length > input.offset + input.limit, notices: exits?.partial ? ["exit_rate_partial"] : [] };
+			// Under a channel, country or device filter the exit rate is blank, and the notice says why.
+			const notices = [...(exits?.partial ? ["exit_rate_partial"] : []), ...(exits ? [] : ["exit_rate_segment"])];
+			return { rows, truncated: all.length > input.offset + input.limit, notices };
 		},
 	],
 	entry_pages: breakdown("entry", ({ sessions, ...r }) => ({ ...r, entries: sessions })),

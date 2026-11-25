@@ -104,6 +104,20 @@ describe("docs set", () => {
 		);
 	});
 
+	it("Search Satisfaction docs state the one denominator rule, the sample minimum setting and low_sample, and name no removed field", () => {
+		const s = read("docs/sessions.md");
+		expect(s).toContain("each rate, the score and the average active time are shares of the measured organic search sessions");
+		expect(s).toContain("`returned_from_search_rate = returned_from_search / measured`, `search_reentry_rate = reentered / measured`");
+		expect(s).toMatch(/\| `satisfactionMinMeasured` \| 30 \| 10 to 500 \|/);
+		expect(s).not.toMatch(/a constant, not a setting/);
+		const w = read("docs/wiki/Search-Satisfaction.md");
+		expect(w).toContain("Every rate, the score and the average active time are shares of the measured sessions only.");
+		expect(w).toMatch(/\| `satisfactionMinMeasured` \| 30 \|/);
+		const a = read("docs/AGENTS.md");
+		for (const t of ["`pogo_stick_rate`", "`reentered / measured`", "`returned_from_search / measured`", "`low_sample`", "`data.min_measured`", "`satisfactionMinMeasured`"]) expect(a, t).toContain(t);
+		for (const f of ["docs/sessions.md", "docs/wiki/Search-Satisfaction.md", "docs/AGENTS.md", "docs/design-notes.md"]) for (const k of ["sessions", "measured"]) expect(read(f), f).not.toContain(`search_${k}`);
+	});
+
 	it("release lists the shared view and the 1.0 live checks", () => {
 		const r = read("docs/release.md").toLowerCase();
 		for (const w of [

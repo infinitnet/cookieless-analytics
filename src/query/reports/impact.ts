@@ -23,14 +23,15 @@ const TRAFFIC_SERIES: ReadonlySet<string> = new Set(["overview", "channels", "so
 const SESSION_SERIES: ReadonlySet<string> = new Set(["sessions", "visitors", "pageviews", "bounce_rate", "engaged_rate", "avg_duration", "views_per_session"]);
 const SEARCH_SERIES: ReadonlySet<string> = new Set(["clicks", "impressions", "ctr", "position"]);
 
-/** Denominator a rate metric is read with (`measured` in the response). */
+/** Denominator a rate metric is read with: its field name, returned as `measured.base` with the two values. */
 function denominator(metric: string, report: string): string | null {
 	if (COUNT_METRICS.has(metric)) return null;
 	if (report === "revenue") return metric === "revenue_per_visitor" ? "visitors" : metric === "revenue_per_session" ? "sessions" : "orders";
 	if (metric === "ctr" || metric === "position" || metric === "impressions_share") return "impressions";
 	const band = /^(?:share|ctr)_(.+)$/.exec(metric);
 	if (band) return `impressions_${band[1]}`;
-	if (report === "satisfaction") return metric === "search_reentry_rate" || metric === "returned_from_search_rate" ? "search_sessions" : metric === "pogo_stick_rate" ? "search_measured" : metric === "avg_duration" ? "sessions" : "measured";
+	// Every Search Satisfaction rate is a share of measured sessions, but back_nav_rate is a share of page loads; avg_duration covers every session.
+	if (report === "satisfaction") return metric === "avg_duration" ? "sessions" : metric === "back_nav_rate" ? "page_loads" : "measured";
 	if (metric === "avg_time" || metric === "exit_rate") return "pageviews";
 	if (report === "entry_pages") return "entries";
 	if (metric === "bounce_rate" || metric === "engaged_rate" || metric === "avg_duration" || metric === "views_per_session") return "sessions";
@@ -121,7 +122,8 @@ async function measure(rc: ReportCtx, filters0: readonly Filter[], day: string, 
 	if (report === "revenue") out.currency = a?.data.currency ?? b?.data.currency ?? null;
 	if (COUNT_METRICS.has(metric) && vb !== null && va !== null) out.notable = Math.abs(va - vb) > 2 * Math.sqrt(va + vb);
 	const den = denominator(metric, report);
-	if (den) out.measured = { before: num(pb?.[den]), after: num(pa?.[den]) };
+	// `base` names what the rate rests on (sessions, pageviews, entries, orders, visitors, measured, page_loads or impressions).
+	if (den) out.measured = { base: den, before: num(pb?.[den]), after: num(pa?.[den]) };
 
 	// Daily series with the marker, when a daily report serves the metric.
 	const seriesReport = search && SEARCH_SERIES.has(metric) && report !== "search_position_bands" ? "search_overview" : !search && TRAFFIC_SERIES.has(report) && SESSION_SERIES.has(metric) ? "timeseries" : null;

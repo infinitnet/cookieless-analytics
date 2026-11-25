@@ -67,13 +67,14 @@ function collect(dbFor: ReturnType<typeof factsDb>, s: Settings, kv: MemoryKv | 
 	};
 }
 
+// The first reset starts PGlite (a WASM build): under a full parallel run it can take longer than the default hook timeout.
 beforeEach(async () => {
 	await resetPg(pg);
 	resetCounters();
 	resetQueryCache();
 	drops.clear();
 	clearReportCache();
-});
+}, 120_000);
 afterEach(() => {
 	dropPgDriver();
 	vi.restoreAllMocks();

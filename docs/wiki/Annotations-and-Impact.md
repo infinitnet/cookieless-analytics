@@ -67,7 +67,7 @@ Shared dashboard pages show annotations only when "Show annotations to viewers" 
 - The annotation day is in neither window, because the change happened during it.
 - The after window runs from the day after the annotation and ends at yesterday (for Search metrics, at the newest final Search day, so provisional days are never included). The before window has the same number of days and ends the day before the annotation.
 - While the after window is shorter than the chosen window, the panel says so: "The after window has n of 28 days; numbers will change."
-- Counts are flagged **Notable** when the change is larger than twice the square root of the sum of both values, a rule of thumb for counts, not a statistical test. Rates show their denominators (measured sessions or impressions) instead.
+- Counts are flagged **Notable** when the change is larger than twice the square root of the sum of both values, a rule of thumb for counts, not a statistical test. Rates show the base they rest on instead: sessions, page views, entries, orders, visitors, measured sessions, page loads (the back/forward rate) or impressions, for example "900 sessions before, 950 after".
 - Host rules do not apply to Search metrics and query rules do not apply to traffic metrics; the panel says so.
 - Every result carries the caution: "Before and after comparisons show correlation, not causation. Seasonality, other changes and search engine updates overlap; annotations in the same window are listed." The view never claims a cause and shows no confidence percentage.
 

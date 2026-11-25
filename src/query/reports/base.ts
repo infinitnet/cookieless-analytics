@@ -2,7 +2,8 @@
 import type { Annotation as StoredAnnotation, AnnotationView } from "../../annotations/scope.js";
 import { addDays, dayInZone } from "../../core/time.js";
 import type { Db } from "../../db/adapter.js";
-import { dayInt, visitDayKey } from "../../db/dialect.js";
+import { LINK_EVENTS } from "../../contract.js";
+import { dayInt, docCount, visitDayKey } from "../../db/dialect.js";
 import { MAX_PARAMS, type Param } from "../../db/sql.js";
 import type { Settings } from "../../settings.js";
 import { andFrags, type CompiledSearch, type CompiledTraffic, entriesOf, entryCols, type Frag, inList, TRUE } from "../compile.js";
@@ -25,7 +26,7 @@ export interface ReportCtx {
 	db: Db;
 	site: string;
 	settings: Pick<Settings, "siteTimezone" | "engagedThresholdSeconds" | "realtimeWindowMinutes"> &
-		Partial<Pick<Settings, "capacityProfile" | "longClickSeconds" | "badExperienceSeconds" | "searchMinImpressions" | "searchOverlapMinShare" | "searchBrandTerms">>;
+		Partial<Pick<Settings, "capacityProfile" | "longClickSeconds" | "badExperienceSeconds" | "satisfactionMinMeasured" | "searchMinImpressions" | "searchOverlapMinShare" | "searchBrandTerms">>;
 	/** Epoch seconds. */
 	now: number;
 	goals: readonly Goal[];
@@ -142,7 +143,8 @@ export interface Point extends Record<string, unknown> {
 }
 
 export interface ReportData {
-	totals?: Metrics;
+	/** Figures of the whole range; Search Satisfaction adds the flag `low_sample`. */
+	totals?: Record<string, number | boolean | null>;
 	rows?: Row[];
 	series?: Point[];
 	/** More rows exist beyond `limit`. */
@@ -196,18 +198,24 @@ export function sessionWhere(site: string, from: string, to: string, filters: Fr
 }
 
 /**
- * Session metrics per key and day, summed per key in the outer query. Visitors are distinct `vkey`
- * per day, summed. `keyExpr` null gives one totals row.
+ * Passive entries (link impressions, `isPassiveEvent`) of the visit document `s.hits`: stored entries that `events`
+ * does not count. The write guard and the storage estimate add them (`src/query/storage.ts`).
  */
-export function sessionAggSql(rc: ReportCtx, input: RunInput, keyExpr: string | null, extra: Frag = TRUE): Frag {
+export const passiveEntries = (dialect: Db["dialect"], column = "s.hits"): string => docCount(dialect, column, "n", LINK_EVENTS.view);
+
+/**
+ * Session metrics per key and day, summed per key in the outer query. Visitors are distinct `vkey`
+ * per day, summed. `keyExpr` null gives one totals row. With `passive`, also `passive`: the passive entries of the sessions.
+ */
+export function sessionAggSql(rc: ReportCtx, input: RunInput, keyExpr: string | null, extra: Frag = TRUE, passive = false): Frag {
 	const where = andFrags([sessionWhere(rc.site, input.from, input.to, input.traffic?.session ?? TRUE), extra]);
 	const k = keyExpr ? `${keyExpr} AS key, ` : "";
 	const g = keyExpr ? `${keyExpr}, ` : "";
 	const inner = `SELECT ${k}s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
 ${ENGAGED_SQL},
-SUM(${DURATION_MS}) AS duration_ms
+SUM(${DURATION_MS}) AS duration_ms${passive ? `, SUM(${passiveEntries(rc.db.dialect)}) AS passive` : ""}
 FROM ca_sessions s WHERE ${where.sql} GROUP BY ${g}s.day`;
-	const sums = "SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.sessions) - SUM(t.engaged) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms";
+	const sums = `SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.sessions) - SUM(t.engaged) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms${passive ? ", SUM(t.passive) AS passive" : ""}`;
 	return {
 		sql: keyExpr ? `SELECT t.key AS key, ${sums} FROM (${inner}) t GROUP BY t.key` : `SELECT ${sums} FROM (${inner}) t`,
 		params: [rc.settings.engagedThresholdSeconds * 1000, ...where.params],
@@ -276,10 +284,6 @@ export function revenueWhere(site: string, from: string, to: string, session: Fr
 	return { sql: `FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE ${where.sql}`, params: where.params };
 }
 
-/**
- * Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so
- * orders, gross revenue and paying sessions count rows with `val >= 0` only and `refunds` is the refunded amount.
- */
 /** Goals per goal statement (`UNION ALL`), in the closed-day writer and the detailed Goals report. */
 export const GOALS_PER_STATEMENT = 10;
 
@@ -294,8 +298,13 @@ export function goalGroups(parts: readonly Frag[]): Frag[][] {
 	return groups;
 }
 
+/**
+ * Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so
+ * orders, gross revenue and paying sessions count rows with `val >= 0` only and `refunds` is the refunded amount.
+ * Paying sessions are counted by the visit key, visit day plus sid, like every other session count.
+ */
 export const ORDER_SUMS =
-	"SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions";
+	"SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sday || '|' || h.sid END) AS sessions";
 /** The `ca_revenue_daily` dim of the refund rows of `dim`: `revenue` holds the refunded amount, `orders` and `sessions` 0. */
 export const refundDim = (dim: string) => `refund.${dim}`;
 

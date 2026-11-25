@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 /** Report pages: every tab against mocked `data/query`, empty states, click to filter, rollup notice, search columns. */
+import { readFileSync } from "node:fs";
 import { act, cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -17,7 +18,7 @@ import { AI_CHANNEL } from "../src/query/reports/sources.js";
 import { SETTINGS_HREF } from "../src/admin/components/ReportNotices.js";
 import { decodeState } from "../src/admin/state.js";
 import { CAVEATS } from "../src/admin/components/ui.js";
-import { metricDefinition } from "../src/charts/definitions.js";
+import { COLUMN_DEFINITIONS, metricDefinition, satisfactionDefinition } from "../src/charts/definitions.js";
 import { ADMIN_PAGES } from "../src/index.js";
 import { SATISFACTION_RAW_ONLY } from "../src/query/reports/satisfaction-copy.js";
 import { SITE_NOTICES } from "../src/charts/caveats.js";
@@ -41,7 +42,12 @@ let ordersFrom: string | null = null;
 let siteExtra: Record<string, unknown> = {};
 /** `dimension_values` answers an error (the Journeys page picker). */
 let refusePages = false;
+/** Rows of every `satisfaction` answer instead of the one landing page; `min_measured` of the answer (absent: an older site). */
+let satRows: Array<Record<string, unknown>> | null = null;
+let satMin: number | undefined = 30;
 
+/** A column header's label without its info mark. */
+const headText = (t: Element) => t.querySelector("button:not(.ca-info-btn)")?.textContent ?? t.textContent;
 const ok = (data: unknown) => new Response(JSON.stringify({ success: true, data }), { status: 200, headers: { "content-type": "application/json" } });
 
 /** Row shapes as the reports in `src/query/reports/*.ts` return them. */
@@ -81,7 +87,9 @@ function rows(report: string): Array<Record<string, unknown>> {
 		case "scroll":
 			return [0, 25, 50, 75, 100].map((b) => ({ key: String(b), pageviews: b + 1, share: 0.2 }));
 		case "satisfaction":
-			return [{ key: "/land", sessions: 6, measured: 5, search_measured: 4, avg_duration: 42, pct_long: 0.4, pct_short: 0.6, pct_bad: 0.2, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05, search_reentry_rate: 0.05, back_nav_rate: 0.15, score: 0.1, previous: { score: 0.05 }, delta: { score: 1 } }];
+			return (
+				satRows ?? [{ key: "/land", sessions: 6, measured: 5, avg_duration: 42, pct_long: 0.4, pct_short: 0.6, pct_bad: 0.2, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05, search_reentry_rate: 0.05, back_nav_rate: 0.15, score: 0.1, low_sample: false, previous: { score: 0.05, low_sample: false }, delta: { score: 1 } }]
+			);
 		case "search_page_queries":
 			return [{ key: "search_page_queries one", ...SEARCH }];
 		case "dimension_values":
@@ -125,6 +133,8 @@ beforeEach(() => {
 	ordersFrom = null;
 	siteExtra = {};
 	refusePages = false;
+	satRows = null;
+	satMin = 30;
 	window.history.replaceState(null, "", "/_emdash/admin/plugins/x/pages?from=2026-03-01&to=2026-03-07");
 	vi.stubGlobal(
 		"fetch",
@@ -187,9 +197,10 @@ beforeEach(() => {
 			}
 			if (body.params?.withRevenue)
 				return ok({ ...base, data: { currency: cur, rows: rows(body.report).map((r) => ({ ...r, revenue: 59.9, orders: 2, revenue_currency: cur })), total_sessions: 50 } });
-			const totals = body.report === "satisfaction" ? { sessions: 50, measured: 40, measured_rate: 0.8, avg_engaged: 31, pct_long: 0.4, pct_short: 0.6, pct_bad: 0.2, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05 } : undefined;
+			const totals = body.report === "satisfaction" ? { sessions: 50, measured: 40, measured_rate: 0.8, avg_engaged: 31, pct_long: 0.4, pct_short: 0.6, pct_bad: 0.2, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05, low_sample: false } : undefined;
+			const sample = body.report === "satisfaction" && satMin !== undefined ? { min_measured: satMin } : {};
 			const hidden = body.report.startsWith("journey_") ? { hidden_sessions: 2 } : {};
-			return ok({ ...base, data: { rows: rows(body.report), total_sessions: 50, notices: dataNotices, ...hidden, ...(totals ? { totals, thresholds: { long_click_seconds: 60, bad_experience_seconds: 10 } } : {}) } });
+			return ok({ ...base, data: { rows: rows(body.report), total_sessions: 50, notices: dataNotices, ...hidden, ...sample, ...(totals ? { totals, thresholds: { long_click_seconds: 60, bad_experience_seconds: 10 } } : {}) } });
 		}),
 	);
 });
@@ -398,18 +409,32 @@ describe("Search Satisfaction page", () => {
 		expect(queryByRole("tab", { name: "Search Satisfaction" })).toBeNull();
 	});
 
+	it("names the measured share and the session duration as the dashboard tiles do", async () => {
+		const { metricLabel } = await import("../src/dashboards/tiles.js");
+		const { getByRole, findAllByRole } = await open();
+		const card = getByRole("region", { name: "Key figures" }).querySelector('[data-metric="measured_rate"] .ca-kpi-label');
+		expect(card?.textContent).toBe(metricLabel("measured_rate"));
+		expect(metricLabel("measured_rate")).toBe("Measured share");
+		const headers = (await findAllByRole("columnheader")).map((h) => h.querySelector("button")?.textContent);
+		expect(headers).toContain(metricLabel("avg_duration"));
+		expect(metricLabel("avg_duration")).toBe("Avg. session duration");
+		expect(readFileSync("src/admin/pages/Satisfaction.tsx", "utf8")).toContain('col({ key: "measured_rate", label: "Measured share"');
+	});
+
 	it("renders the KPI cards with est. marks, the trend, both ranked lists, the landing table and the thresholds line", async () => {
 		const { findByRole, getByRole, findByText, findAllByRole, container } = await open();
 		const kpis = getByRole("region", { name: "Key figures" });
 		expect([...kpis.querySelectorAll(".ca-kpi")].map((k) => k.getAttribute("data-metric"))).toEqual(["pct_long", "pct_short", "pct_bad", "pogo_stick_rate", "returned_from_search_rate", "avg_engaged", "measured_rate"]);
 		expect(kpis.textContent).toContain("Pogo-sticking (estimate)");
 		expect(kpis.textContent).toContain("Returned from search (estimate)");
-		// Every card carries its definition; the two estimates add the caveat.
+		// Every card carries its own definition, each stating its base: measured organic search sessions.
 		const marks = within(kpis).getAllByRole("button", { name: "About this number" }).map((m) => m.getAttribute("title"));
 		expect(marks).toEqual(["pct_long", "pct_short", "pct_bad", "pogo_stick_rate", "returned_from_search_rate", "avg_engaged", "measured_rate"].map(metricDefinition));
-		expect([marks[3], marks[4], marks[6]]).toEqual([CAVEATS.pogo, CAVEATS.returned, CAVEATS.satisfaction_measured]);
-		expect(CAVEATS.pogo).toContain("Pogo-sticking: a visitor from a search engine leaves the landing page");
-		expect(await findByText(/10 of 50 sessions have no measured end/)).toBeTruthy();
+		expect(marks[3]).toBe("Share of measured organic search sessions with one page view and no event, at or under the long click time, whose page was left with Back or Forward. An estimate.");
+		expect(marks[4]).toBe("Share of measured organic search sessions that left the landing page with Back or Forward and then came again from a search engine. A part of Search re-entry. An estimate.");
+		expect(marks[5]).toBe("Average active time per measured organic search session: time with interaction, not the time the page was open.");
+		expect(marks[6]).toBe("Share of organic search sessions with a measurable end, where an engagement update arrived. Every rate and the score count only these sessions.");
+		expect((await findByText(/10 of 50 sessions have no measured end/)).textContent).toContain("They count as sessions and in Avg. session duration, and are left out of every rate, the score and the average active time.");
 		expect(await findByRole("img", { name: /^Long clicks per day, .+, 1 annotation$/ })).toBeTruthy();
 		for (const name of ["Best pages", "Worst pages"]) {
 			const list = getByRole("region", { name });
@@ -419,12 +444,61 @@ describe("Search Satisfaction page", () => {
 		}
 		await waitFor(() => expect(queries().filter((b) => b.report === "satisfaction" && b.params?.rank).map((b) => b.params?.rank).sort()).toEqual(["best", "worst"]));
 		await findByText(/^Thresholds: long click above 60 s/);
-		expect(container.querySelector(".ca-thresholds")?.textContent).toBe("Thresholds: long click above 60 s, bad experience below 10 s. Change them in Settings; every stored session is reclassified at once.");
+		expect(container.querySelector(".ca-thresholds")?.textContent).toBe("Thresholds: long click above 60 s, bad experience below 10 s, sample minimum 30 measured sessions. Change them in Settings; a new threshold reclassifies every stored session at once, a new sample minimum changes only which pages are ranked and marked low sample.");
 		expect(getByRole("link", { name: "Settings" }).getAttribute("href")).toBe(`${SETTINGS_HREF}?tab=sessions`);
 		const headers = (await findAllByRole("columnheader")).map((h) => h.querySelector("button")?.textContent).filter(Boolean);
-		expect(headers).toEqual(["Landing page", "Score", "Sessions", "Avg. duration", "Long clicks %", "Short clicks %", "Bad experience %", "Pogo-sticking % (estimate)", "Returned from search % (estimate)", "Search re-entry % (estimate)", "Back/forward loads % (estimate)"]);
+		expect(headers).toEqual(["Landing page", "Score", "Sessions", "Avg. session duration", "Long clicks %", "Short clicks %", "Bad experience %", "Pogo-sticking % (estimate)", "Returned from search % (estimate)", "Search re-entry % (estimate)", "Back/forward loads % (estimate)"]);
 		await waitFor(() => expect(container.querySelector("tbody")?.textContent).toContain("5 measured"));
 		expectFilledCells(container);
+		// Each column's info mark is the figure's own definition, the same text as its card and tile.
+		const table = await findByRole("table", { name: "Landing pages" });
+		// Every sortable header (the last header is the row action's).
+		const info = [...table.querySelectorAll("thead th")].filter((th) => th.querySelector(".ca-sort")).map((th) => th.querySelector(".ca-info-btn")?.getAttribute("title") ?? null);
+		expect(info).toEqual([null, ...["score", "sessions", "avg_duration", "pct_long", "pct_short", "pct_bad", "pogo_stick_rate", "returned_from_search_rate", "search_reentry_rate", "back_nav_rate"].map((k) => satisfactionDefinition(k) ?? "")]);
+		expect(info[2]).toBe("Organic search sessions in the range. The line below counts those with a measurable end.");
+		expect(info[3]).toBe("Average duration per organic search session, measured or not: the longer of the visit span and the visible time. Not interaction time.");
+		expect(info[1]).toBe("Long click rate minus bad experience rate minus pogo-sticking rate, in points. Marked low sample under the minimum of measured sessions (30 by default).");
+		expect(CAVEATS.satisfaction_estimate).toBe("Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals.");
+	});
+
+	it("a low sample score shows muted with the note, sorts last both ways, and its previous score gives no change in the ranked lists", async () => {
+		satRows = [
+			{ key: "/small", sessions: 8, measured: 6, avg_duration: 40, pct_long: 0.8, pct_short: 0.2, pct_bad: 0, pogo_stick_rate: 0, returned_from_search_rate: 0, search_reentry_rate: 0, back_nav_rate: 0, score: 0.8, low_sample: true, previous: { score: 0.2, low_sample: true } },
+			{ key: "/big", sessions: 60, measured: 50, avg_duration: 40, pct_long: 0.4, pct_short: 0.6, pct_bad: 0.1, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05, search_reentry_rate: 0.05, back_nav_rate: 0.1, score: 0.2, low_sample: false, previous: { score: 0.1, low_sample: false } },
+			{ key: "/mid", sessions: 40, measured: 35, avg_duration: 40, pct_long: 0.3, pct_short: 0.7, pct_bad: 0.1, pogo_stick_rate: 0.1, returned_from_search_rate: 0.05, search_reentry_rate: 0.05, back_nav_rate: 0.1, score: 0.1, low_sample: false, previous: null },
+		];
+		const { findByRole, getByRole } = await open();
+		const table = await findByRole("table", { name: "Landing pages" });
+		await waitFor(() => expect(table.querySelectorAll("tbody tr")).toHaveLength(3));
+		const scoreCell = (page: string) => [...table.querySelectorAll("tbody tr")].find((tr) => tr.querySelector("td")?.textContent === page)?.querySelectorAll("td")[1] as HTMLElement;
+		expect(scoreCell("/small").getAttribute("data-quiet")).toBe("true");
+		expect(scoreCell("/small").textContent).toBe("80low sample");
+		expect(scoreCell("/big").getAttribute("data-quiet")).toBeNull();
+		expect(scoreCell("/big").querySelector(".ca-cell-note")).toBeNull();
+		const order = () => [...table.querySelectorAll("tbody tr")].map((tr) => tr.querySelector("td")?.textContent);
+		fireEvent.click(within(table).getByRole("button", { name: "Score" }));
+		expect(order()).toEqual(["/big", "/mid", "/small"]);
+		fireEvent.click(within(table).getByRole("button", { name: /^Score/ }));
+		expect(order()).toEqual(["/mid", "/big", "/small"]);
+		// Best pages: the change against a previous score under the minimum is left out.
+		const best = getByRole("region", { name: "Best pages" });
+		const small = await within(best).findByRole("button", { name: "/small: score 80. Open details" });
+		expect(small.textContent).not.toContain("points vs previous");
+		expect(within(best).getByRole("button", { name: "/big: score 20. Open details" }).textContent).toContain("+10 points vs previous");
+	});
+
+	it("the ranked lists and the thresholds line name the answer's sample minimum, 30 when an older site sends none", async () => {
+		satMin = 50;
+		const first = await open();
+		await first.findByText(/^Thresholds: /);
+		expect(first.container.querySelector(".ca-thresholds")?.textContent).toContain("sample minimum 50 measured sessions.");
+		expect(within(first.getByRole("region", { name: "Best pages" })).getByText(/Pages with at least/).textContent).toBe("Score: long click rate minus bad experience and pogo-sticking rates, in points. Pages with at least 50 measured sessions.");
+		cleanup();
+		satMin = undefined;
+		empty = true;
+		const second = await open();
+		expect(await second.findAllByText("No landing page has enough measured sessions yet.")).toHaveLength(2);
+		expect(second.container.textContent).toContain("A page is ranked once it has 30 measured sessions in the range. Try a longer range or fewer filters.");
 	});
 
 	it("the rate cards toggle lines of one trend; no second switch", async () => {
@@ -684,6 +758,29 @@ describe("revenue surfaces", () => {
 		[() => <Behaviour />, "Goals", "goals"],
 	];
 
+	it("cf8: every session and revenue column carries the definition of its own figure", async () => {
+		revenueOn = true;
+		const info = (container: HTMLElement) => Object.fromEntries([...container.querySelectorAll("thead th")].filter((th) => th.querySelector(".ca-sort")).map((th) => [headText(th), th.querySelector(".ca-info-btn")?.getAttribute("title") ?? null]));
+		const sessionCols = {
+			Visitors: COLUMN_DEFINITIONS.visitors,
+			Sessions: metricDefinition("sessions"),
+			"Bounce rate": metricDefinition("bounce_rate"),
+			"Avg. session duration": metricDefinition("avg_duration"),
+		};
+		for (const [el, tab, report] of TABLES.filter(([, , r]) => ["channels", "sources", "countries", "devices"].includes(r))) {
+			const { getByRole, container, findByText } = render(el());
+			fireEvent.click(await waitFor(() => getByRole("tab", { name: tab })));
+			await findByText("59.90 USD");
+			const marks = info(container);
+			expect(marks, report).toMatchObject({ ...sessionCols, Orders: COLUMN_DEFINITIONS.orders_row, "Revenue (USD)": report === "countries" || report === "devices" ? COLUMN_DEFINITIONS.revenue_visit : COLUMN_DEFINITIONS.revenue_first_touch });
+			cleanup();
+		}
+		const { getByRole, container, findByText } = render(<Pages />);
+		fireEvent.click(await waitFor(() => getByRole("tab", { name: "Pages" })));
+		await findByText("59.90 USD");
+		expect(info(container)).toMatchObject({ Pageviews: metricDefinition("pageviews"), Visitors: COLUMN_DEFINITIONS.page_visitors, "Exit rate": metricDefinition("exit_rate"), "Avg. active time": metricDefinition("avg_time"), "Revenue (USD)": COLUMN_DEFINITIONS.revenue_page });
+	});
+
 	it("a site without revenue shows no revenue column and the Revenue page its first use state", async () => {
 		for (const [el, tab, report] of TABLES) {
 			const { getByRole, container } = render(el());
@@ -708,7 +805,7 @@ describe("revenue surfaces", () => {
 			const { getByRole, container, findByText } = render(el());
 			fireEvent.click(await waitFor(() => getByRole("tab", { name: tab })));
 			await findByText("59.90 USD");
-			expect([...container.querySelectorAll("th")].map((t) => t.textContent)).toEqual(expect.arrayContaining(["Revenue (USD)", "Orders"]));
+			expect([...container.querySelectorAll("th")].map(headText)).toEqual(expect.arrayContaining(["Revenue (USD)", "Orders"]));
 			expect(queries().filter((b) => b.report === report).every((b) => b.params?.withRevenue === true), report).toBe(true);
 			cleanup();
 		}
@@ -735,15 +832,15 @@ describe("Revenue page", () => {
 		// One panel per breakdown dimension, each in the page currency.
 		await waitFor(() => expect(new Set(queries().filter((b) => b.report === "revenue_breakdown").map((b) => b.params?.dim))).toEqual(new Set(REVENUE_BREAKDOWN_DIMS)));
 		expect(queries().filter((b) => b.report === "revenue_breakdown").every((b) => b.params?.currency === "USD" && b.limit === 10)).toBe(true);
-		for (const title of ["Channels", "Sources", "Campaigns", "Landing pages", "Pages", "Countries", "Devices", "Goals to revenue", "Events"]) expect(getByRole("heading", { name: new RegExp(`^${title}( |$)`) })).toBeTruthy();
+		for (const title of ["Channels", "Sources", "Campaigns", "Entry pages", "Pages", "Countries", "Devices", "Goals to revenue", "Events"]) expect(getByRole("heading", { name: new RegExp(`^${title}( |$)`) })).toBeTruthy();
 		const channels = (await findByText("channel one")).closest("table") as HTMLElement;
-		expect([...channels.querySelectorAll("th")].map((t) => t.textContent)).toEqual(["Channel", "Revenue (USD)", "Share of revenue", "Orders", "Average order value (USD)", "Revenue per visitor (USD)"]);
+		expect([...channels.querySelectorAll("th")].map(headText)).toEqual(["Channel", "Revenue (USD)", "Share of revenue", "Orders", "Average order value (USD)", "Revenue per visitor (USD)"]);
 		// 44.90 of 59.90 is 75.0 %; the key without an order is left out.
 		expect(within(channels).getByText("channel one").closest("tr")?.textContent).toContain("75.0%");
 		expect(within(channels).queryByText("channel none")).toBeNull();
 		// Recent orders: reference, day, amount, first touch; the comparison is not sent.
 		const orders = (await findByText("o.0a1b2c3d4e5f60718293")).closest("table") as HTMLElement;
-		expect([...orders.querySelectorAll("th")].map((t) => t.textContent)).toEqual(["Order reference", "Day", "Amount (USD)", "Channel", "Landing page", "Country"]);
+		expect([...orders.querySelectorAll("th")].map(headText)).toEqual(["Order reference", "Day", "Amount (USD)", "Channel", "Entry page", "Country"]);
 		expect(orders.querySelector("tbody tr")?.textContent).toContain("49.90 USD");
 		expect(getByText(ORDERS_NOTE)).toBeTruthy();
 		const funnelLink = getByRole("link", { name: "Revenue per funnel step" });
@@ -776,9 +873,9 @@ describe("Revenue page", () => {
 		await findByText(REFUNDS_NOTE);
 		expect(container.querySelector('[data-metric="net_revenue"]')?.textContent).toContain("49.90 USD");
 		const channels = (await findByText("channel one")).closest("table") as HTMLElement;
-		expect([...channels.querySelectorAll("th")].map((t) => t.textContent)).toEqual(expect.arrayContaining(["Refunds (USD)", "Net revenue (USD)"]));
+		expect([...channels.querySelectorAll("th")].map(headText)).toEqual(expect.arrayContaining(["Refunds (USD)", "Net revenue (USD)"]));
 		const orders = (await findByText("o.0a1b2c3d4e5f60718293.r1")).closest("table") as HTMLElement;
-		expect([...orders.querySelectorAll("th")].map((t) => t.textContent)).toContain("Type");
+		expect([...orders.querySelectorAll("th")].map(headText)).toContain("Type");
 		expect(within(orders).getByText("o.0a1b2c3d4e5f60718293.r1").closest("tr")?.textContent).toContain("Refund");
 		expect(getByText(ATTRIBUTION_NOTE)).toBeTruthy();
 	});

@@ -12,6 +12,8 @@ import { ADMIN_PAGES, ADMIN_WIDGETS, cookielessAnalytics } from "../src/index.js
 type Body = { report: string; query: Record<string, unknown>; [k: string]: unknown };
 let calls: Array<{ route: string; body: Body }> = [];
 let notices: string[] = [];
+/** Notices of the pages answer only. */
+let pagesNotices: string[] = [];
 let segmentItems: unknown[] = [];
 let exportResponse: () => Response;
 let hasRevenue = false;
@@ -54,6 +56,7 @@ function answer(body: Body) {
 		case "pages":
 			return {
 				...base,
+				notices: [...notices, ...pagesNotices],
 				data: {
 					rows: [
 						{ key: "/a", visitors: 50, pageviews: 90 },
@@ -69,6 +72,7 @@ function answer(body: Body) {
 beforeEach(() => {
 	calls = [];
 	notices = [];
+	pagesNotices = [];
 	hasRevenue = false;
 	overviewData = null;
 	failWith = null;
@@ -322,6 +326,23 @@ describe("Overview", () => {
 		expect(queryByLabelText("Segment name")).toBeNull();
 		fireEvent.change(select, { target: { value: "" } });
 		expect(new URLSearchParams(window.location.search).get("seg")).toBeNull();
+	});
+
+	it("explains a blank exit rate under the Top pages preview only while its optional Exit rate column is switched on", async () => {
+		const { writePref } = await import("../src/admin/prefs.js");
+		const { noticeCopy } = await import("../src/charts/caveats.js");
+		const m = new Map<string, string>();
+		vi.stubGlobal("localStorage", { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, String(v)), removeItem: (k: string) => void m.delete(k), clear: () => m.clear(), key: () => null, length: 0 });
+		pagesNotices = ["summary", "exit_rate_segment"];
+		const text = noticeCopy("exit_rate_segment") ?? "";
+		const first = render(<Overview />);
+		await first.findByText("/a");
+		await first.findByText("goals one");
+		expect(first.container.textContent).not.toContain(text);
+		first.unmount();
+		writePref("local", "cols.v1", { "overview.pages": { exit_rate: true } });
+		const second = render(<Overview />);
+		await waitFor(() => expect(second.container.textContent).toContain(text));
 	});
 
 	it("shows the summary badge with the chip reason, strikes the chip through and offers the range with all filters", async () => {

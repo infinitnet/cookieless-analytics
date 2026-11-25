@@ -2,7 +2,7 @@
 	"kind": "dashboard-template",
 	"v": 1,
 	"name": "Revenue",
-	"description": "Revenue, orders and average order value in the site's default currency, by channel, source, landing page and goal.",
+	"description": "Revenue, orders and average order value in the site's default currency, by channel, source, entry page and goal.",
 	"tiles": [
 		{ "id": "rv0001", "report": "revenue", "kind": "kpi", "w": 1, "metric": "revenue" },
 		{ "id": "rv0002", "report": "revenue", "kind": "kpi", "w": 1, "metric": "orders" },
@@ -11,7 +11,7 @@
 		{ "id": "rv0005", "report": "revenue_series", "kind": "area", "w": 2, "metrics": ["revenue"], "title": "Revenue over time" },
 		{ "id": "rv0006", "report": "revenue_breakdown", "kind": "bars", "w": 1, "params": { "dim": "channel" }, "title": "Revenue by channel" },
 		{ "id": "rv0007", "report": "revenue_breakdown", "kind": "table", "w": 2, "params": { "dim": "source" }, "title": "Revenue by source" },
-		{ "id": "rv0008", "report": "revenue_breakdown", "kind": "table", "w": 2, "params": { "dim": "entry" }, "title": "Revenue by landing page" },
+		{ "id": "rv0008", "report": "revenue_breakdown", "kind": "table", "w": 2, "params": { "dim": "entry" }, "title": "Revenue by entry page" },
 		{ "id": "rv0009", "report": "revenue_breakdown", "kind": "table", "w": 1, "params": { "dim": "goal" }, "title": "Revenue by goal" }
 	],
 	"defaults": { "range": "30d", "compare": "previous", "filters": [] },

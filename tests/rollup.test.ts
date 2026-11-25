@@ -109,7 +109,8 @@ describe.each(["UTC", "America/New_York"])("rollup in %s", (tz) => {
 		const b = await run(rolled, "overview", RANGE.from, RANGE.to, [direct, { dim: "page", op: "is", values: ["/pricing"] }]);
 		expect(b.data.totals).toEqual(a.data.totals);
 		expect(b.notices).toContain("filter_unavailable:page:combination");
-		expect(b.data.realtime).toBeNull();
+		// Active now reads the live visits, which are detailed, under the same filters as a detailed range.
+		expect(b.data.realtime).toBe((await run(raw, "overview", RANGE.from, RANGE.to, [direct, { dim: "page", op: "is", values: ["/pricing"] }])).data.realtime);
 
 		// A country filter restricts a channel breakdown through the cube; a browser filter cannot.
 		const de: Filter = { dim: "country", op: "is_not", values: ["DE"] };

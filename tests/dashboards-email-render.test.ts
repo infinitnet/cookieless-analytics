@@ -115,6 +115,38 @@ describe("renderEmail of every tile kind", () => {
 	});
 });
 
+describe("Search Satisfaction score in the email", () => {
+	const dashboard = readDashboard({
+		id: "abcdefabcdef",
+		site: "default",
+		v: 1,
+		name: "Search",
+		tiles: [
+			{ id: "k00001", report: "satisfaction", kind: "kpi", metric: "score", w: 1 },
+			{ id: "t00001", report: "satisfaction", kind: "table", w: 2, columns: ["score", "measured"], params: { rank: "worst" } },
+		],
+		defaults: { range: "30d", compare: "none", filters: [] },
+		viewer: { ranges: ["30d"], compare: false },
+		created: 1,
+		updated: 1,
+	});
+	const tiles: EmailTile[] = [
+		{ data: td({ kind: "kpi", metric: "score", value: 0.24, note: "Low sample: under 30 measured sessions, the sample minimum." }) },
+		{ data: td({ kind: "table", columns: ["key", "score", "measured"], rows: [{ key: "/a", score: 0.5, measured: 12, low_sample: "yes" }, { key: "/b", score: -0.157, measured: 80, low_sample: "no" }] }) },
+	];
+
+	it("prints the score in points, \"low sample\" under a low sample score and the line under the number tile", () => {
+		const m = renderEmail({ dashboard, tiles, range: "30d", compare: false, generatedAt: 1_793_000_000, adminUrl: ADMIN });
+		clean(m.html);
+		clean(m.text, false);
+		expect(m.text).toContain("24\nLow sample: under 30 measured sessions, the sample minimum.");
+		expect(m.text).toContain("- /a: Score 50 (low sample), Measured 12");
+		expect(m.text).toContain("- /b: Score -16, Measured 80");
+		expect(m.html).toMatch(/>50<div style="[^"]*">low sample<\/div><\/td>/);
+		expect(m.html).toContain("Low sample: under 30 measured sessions, the sample minimum.");
+	});
+});
+
 describe("rendered email of the built-in templates", () => {
 	let env: Awaited<ReturnType<typeof schemaDb>>;
 	let empty: Awaited<ReturnType<typeof schemaDb>>;

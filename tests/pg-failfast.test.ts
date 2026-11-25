@@ -24,12 +24,13 @@ import { ctx } from "./routes.helpers.js";
 const OPTION = { binding: "CA_PG", engine: "postgres" as const };
 const pg = pglite();
 afterAll(() => pg.close());
+// The first reset starts PGlite (a WASM build): under a full parallel run it can take longer than the default hook timeout.
 beforeEach(async () => {
 	await resetPg(pg);
 	resetQueryCache();
 	resetCounters();
 	drops.clear();
-});
+}, 120_000);
 afterEach(() => {
 	vi.useRealTimers();
 	dropPgDriver();

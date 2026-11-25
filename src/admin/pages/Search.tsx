@@ -793,6 +793,21 @@ const SOURCE_OPTIONS: ReadonlyArray<readonly [SourceSwitch, string]> = [
 	["google", "Google"],
 	["bing", "Bing"],
 ];
+/** Under the Queries and Pages tables: why the rows do not add up to the totals, and the Bing week rows. */
+export const SEARCH_ROWS_TEXT = {
+	rare: "Query rows add up to less than the totals: the search engines leave out rare queries.",
+	bingWeeks: "Bing query and page rows are weekly sums stored on one day, so they are exact over whole weeks only.",
+} as const;
+
+function SearchRowsNote() {
+	return (
+		<>
+			<p className="ca-small">{SEARCH_ROWS_TEXT.rare}</p>
+			<p className="ca-small">{SEARCH_ROWS_TEXT.bingWeeks}</p>
+		</>
+	);
+}
+
 const BREAKDOWN = {
 	queries: ["search_queries", "Query", "query"],
 	pages: ["search_pages", "Page", "page"],
@@ -864,6 +879,7 @@ export function ReportTabs({ view, live, aside }: { view: View; live: readonly S
 							params={{ source }}
 							title={label ?? BREAKDOWN[tab][1]}
 							columns={[{ key: "key", label: BREAKDOWN[tab][1], format: "text", dim: BREAKDOWN[tab][2] }, ...METRIC_COLUMNS]}
+							{...(tab === "queries" || tab === "pages" ? { extra: () => <SearchRowsNote /> } : {})}
 						/>
 					</>
 				)}

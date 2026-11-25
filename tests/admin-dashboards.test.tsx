@@ -325,6 +325,29 @@ describe("Dashboards page", () => {
 		expect(items.map((e) => e.getAttribute("role") === "separator" ? "|" : e.textContent)).toEqual(["Copy to sites", "Export", "Export with dependencies", "Schedule email", "|", "Delete"]);
 	});
 
+	it("a Score number tile against a low sample comparison shows no change, as the share page and the email do", async () => {
+		dash = { ...DASH, tiles: [{ id: "score1", report: "satisfaction", kind: "kpi", metric: "score", w: 1 }] } as unknown as typeof DASH;
+		const scoreAnswer = (prevLow: boolean) => (body: Body) =>
+			body.report === "satisfaction"
+				? { report: body.report, range: {}, compare: "previous", compareRange: null, notices: [], data: { totals: { score: 0.24, sessions: 300, low_sample: false }, compareTotals: { score: 0.2, sessions: 300, low_sample: prevLow } } }
+				: answer(body);
+		for (const prevLow of [true, false]) {
+			const fetchMock = vi.mocked(fetch);
+			const inner = fetchMock.getMockImplementation() as typeof fetch;
+			fetchMock.mockImplementation(async (url, init) => (String(url).endsWith("/data/query") ? ok(scoreAnswer(prevLow)(JSON.parse(String(init?.body)) as Body)) : inner(url, init)));
+			window.history.replaceState(null, "", "/_emdash/admin/plugins/x/dashboards?from=2026-03-01&to=2026-03-07&d=abcdefabcdef");
+			const { container, unmount } = render(<Dashboards />);
+			await waitFor(() => expect(container.querySelector('[data-metric="score"] .ca-kpi-value')?.textContent).toBe("24"));
+			const card = container.querySelector('[data-metric="score"]') as HTMLElement;
+			if (prevLow) {
+				expect(card.textContent).toContain("No comparison");
+				expect(card.textContent).not.toContain("+4 points");
+			} else expect(card.textContent).toContain("+4 points");
+			unmount();
+			fetchMock.mockImplementation(inner);
+		}
+	});
+
 	it("names a number tile once and shows four columns in a table tile", async () => {
 		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/dashboards?from=2026-03-01&to=2026-03-07&d=abcdefabcdef");
 		const { container } = render(<Dashboards />);

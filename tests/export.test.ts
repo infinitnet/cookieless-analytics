@@ -77,6 +77,16 @@ describe("data/export route", () => {
 		expect(JSON.parse((pages.body as { value: string }).value)).toEqual((await query({ report: "pages", query: { ...RANGE } })).data.rows);
 	});
 
+	it("a Search Satisfaction CSV ends each row with low_sample, after back_nav_rate, and has no search_* column", async () => {
+		const r = await exp({ report: "satisfaction", query: { ...RANGE }, format: "csv" });
+		const [head = "", first = ""] = (r.body as { value: string }).value.split("\r\n");
+		const cols = head.split(",");
+		expect(cols.slice(-2)).toEqual(["back_nav_rate", "low_sample"]);
+		for (const k of ["sessions", "measured"]) expect(cols).not.toContain(`search_${k}`);
+		expect(cols.slice(0, 4)).toEqual(["key", "sessions", "measured", "avg_duration"]);
+		expect(first.split(",").at(-1)).toMatch(/^(true|false)$/);
+	});
+
 	it("binds the keys of a 10 000 row page as one parameter", async () => {
 		const { keysIn } = await import("../src/query/reports/base.js");
 		const keys = Array.from({ length: 10_000 }, (_, i) => `/p${i}`);

@@ -7,7 +7,7 @@ import type { Filter } from "../src/query/filters.js";
 import { QuerySchema } from "../src/query/filters.js";
 import type { ReportCtx, ReportData, ReportParams } from "../src/query/reports/base.js";
 import { clearReportCache, type Params, ParamsSchema, runReport } from "../src/query/reports/index.js";
-import { SEO_TEXT } from "../src/query/reports/seo-copy.js";
+import { baseWords, SEO_TEXT } from "../src/query/reports/seo-copy.js";
 import { annotationStore } from "../src/routes/data.js";
 import { memColl } from "./agent.helpers.js";
 import { insertSearch, seoCtx } from "./fixtures/seo.js";
@@ -38,7 +38,7 @@ function harness(now: string, values: { before: number; after: number; den?: [nu
 		const after = r.query.from > D;
 		const v = after ? values.after : values.before;
 		const den = values.den ? values.den[after ? 1 : 0] : 50;
-		const totals = { sessions: v, bounce_rate: 0.5, clicks: v, impressions: den, ctr: 0.1, position: 4, pct_long: 0.4, measured: den };
+		const totals = { sessions: v, bounce_rate: 0.5, clicks: v, impressions: den, ctr: 0.1, position: 4, pct_long: 0.4, measured: den, back_nav_rate: 0.2, page_loads: den * 3 };
 		const data: ReportData = { totals, rows: [{ key: "Organic Search", sessions: v }], series: [{ t: r.query.from, sessions: 1, clicks: 2 }] };
 		return { data, notices: [] as string[] };
 	});
@@ -108,6 +108,12 @@ describe("impact windows", () => {
 		expect((await empty.run({ annotation: "latest", report: "overview", metric: "sessions" })).data).toMatchObject({ no_annotation: true });
 	});
 
+	it("cf10: the base of a rate is named in words: sessions, page views, entries, orders, visitors, measured sessions or impressions", () => {
+		expect(["sessions", "pageviews", "entries", "orders", "visitors", "measured", "impressions", "impressions_1_3"].map((b) => baseWords(b, "overview"))).toEqual(["sessions", "page views", "entries", "orders", "visitors", "measured sessions", "impressions", "impressions"]);
+		// An answer from an older satellite carries no base.
+		expect([baseWords(undefined, "search_overview"), baseWords(undefined, "overview")]).toEqual(["impressions", "measured"]);
+	});
+
 	it("notable for counts only, denominators for rates, delta_pct null when before is 0, overlapping excludes the selected one", async () => {
 		const h = harness("2026-04-30", { before: 0, after: 10, den: [40, 60] });
 		const count = await h.run({ annotation: "a1", report: "overview", metric: "sessions", scope: "none" });
@@ -116,9 +122,16 @@ describe("impact windows", () => {
 		expect((count.data.overlapping as Array<{ id: string }>).map((o) => o.id)).toEqual(["a3", "a2"]);
 		const rate = await h.run({ annotation: "a1", report: "search_overview", metric: "position" });
 		expect(rate.data.notable).toBeUndefined();
-		expect(rate.data.measured).toEqual({ before: 40, after: 60 });
-		const sat = await h.run({ annotation: "a1", report: "satisfaction", metric: "pct_long" });
-		expect(sat.data.measured).toEqual({ before: 40, after: 60 });
+		expect(rate.data.measured).toEqual({ base: "impressions", before: 40, after: 60 });
+		// Every Search Satisfaction rate reads measured sessions; avg_duration reads every session.
+		for (const metric of ["pct_long", "pogo_stick_rate", "returned_from_search_rate", "search_reentry_rate"]) {
+			const sat = await h.run({ annotation: "a1", report: "satisfaction", metric });
+			expect(sat.data.measured, metric).toEqual({ base: "measured", before: 40, after: 60 });
+		}
+		expect((await h.run({ annotation: "a1", report: "satisfaction", metric: "avg_duration" })).data.measured).toEqual({ base: "sessions", before: 0, after: 10 });
+		// The back/forward rate is a share of page loads, not of measured sessions.
+		expect((await h.run({ annotation: "a1", report: "satisfaction", metric: "back_nav_rate" })).data.measured).toEqual({ base: "page_loads", before: 120, after: 180 });
+		expect(baseWords("page_loads", "satisfaction")).toBe("page loads");
 		const row = await h.run({ annotation: "a1", report: "channels", metric: "sessions", key: "Organic Search", scope: "none" });
 		expect(row.data).toMatchObject({ key: "Organic Search", before: 0, after: 10 });
 		expect(h.calls.at(-2)?.filters).toEqual([{ dim: "channel", op: "is", values: ["Organic Search"] }]);

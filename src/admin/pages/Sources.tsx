@@ -1,7 +1,8 @@
 /** Sources (`/sources`): Channels, Sources, Campaigns (per UTM field), AI assistants. */
 import { useState } from "react";
 import type { View } from "../components/Header.js";
-import { PageTrend, ReportPanel, sessionColumns, TabPage, trendMetrics } from "./report.js";
+import type { Column } from "../components/DataTable.js";
+import { metricColumn, PageTrend, ReportPanel, SESSION_BASE, sessionColumns, TabPage, trendMetrics, VISITORS_COLUMN } from "./report.js";
 
 /** Channel of AI assistant referrals (`AI_CHANNEL` in `src/query/reports/sources.ts`, kept out of the admin bundle). */
 export const AI_CHANNEL = "AI Assistants";
@@ -63,12 +64,12 @@ export default function Sources() {
 							extra={() => <p className="ca-small">A lower bound: many assistants send no referrer.</p>}
 							columns={[
 								{ key: "key", label: "Assistant", format: "text", dim: "source" },
-								{ key: "visitors", label: "Visitors" },
-								{ key: "sessions", label: "Sessions" },
-								{ key: "landing", label: "Top landing pages", format: "text" },
-								{ key: "bounce_rate", label: "Bounce rate", format: "percent", optional: true },
-								{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration", optional: true },
-								{ key: "pageviews", label: "Pageviews", optional: true },
+								VISITORS_COLUMN,
+								metricColumn("sessions", "Sessions"),
+								{ key: "landing", label: "Top entry pages", format: "text" },
+								{ ...(SESSION_BASE[2] as Column), optional: true },
+								{ ...(SESSION_BASE[3] as Column), optional: true },
+								metricColumn("pageviews", "Pageviews", { optional: true }),
 							]}
 							mapRows={(rows) => rows.map((r) => ({ ...r, landing: ((r.landing ?? []) as Array<{ path: string }>).map((l) => l.path).join(", ") }))}
 						/>

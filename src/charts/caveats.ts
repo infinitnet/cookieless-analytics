@@ -1,10 +1,9 @@
 /** Fixed caveat and notice texts, shared by the admin info markers and the shared page. No React. */
-import { POGO_DEFINITION, RETURNED_DEFINITION, SATISFACTION_CAVEAT, SCORE_DEFINITION } from "../query/reports/satisfaction-copy.js";
 import { SEO_TEXT } from "../query/reports/seo-copy.js";
 
 /** Notice texts of the SEO views and the impact view. */
 export const SEO_NOTICES: Record<string, string> = {
-	top3_insufficient: "Potential clicks need at least 1,000 impressions in positions 1 to 3 over this range; not enough top-3 data.",
+	top3_insufficient: "Potential clicks need at least 1,000 impressions below position 4 over this range; not enough top band data.",
 	scope_host_not_applied: "Host rules do not apply to Search data; this comparison is not limited by host.",
 	capped: "The list shows the 200 queries with the most impressions; the totals count every query.",
 	metric_unavailable: "This report has no value for this metric here; pick a row or another metric.",
@@ -12,19 +11,17 @@ export const SEO_NOTICES: Record<string, string> = {
 };
 
 export const CAVEATS = {
-	visitors: "Distinct visitors per day, added up over the range, so a person who returns on another day counts again.",
-	nat: "People who share one network address and the same browser family on the same day can count as one visitor.",
+	visitors: "Distinct visitors per day, added up over the range, so a person who returns on another day counts again. People behind one network address with the same browser can count as one.",
 	searchLag: "Search data arrives 2 to 3 days late. The three newest days are provisional and are replaced on the next sync.",
 	rollup: "This range is answered from daily summaries: it starts before the detailed data window, or it is too long to read in detail. Some filters do not apply to summaries.",
+	/** Footnote of shared pages and emails with a Search Satisfaction tile; each figure's own text lives in `definitions.ts`. */
 	satisfaction_estimate: "Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals.",
-	pogo: `${POGO_DEFINITION} ${SATISFACTION_CAVEAT}`,
-	returned: `${RETURNED_DEFINITION} ${SATISFACTION_CAVEAT}`,
-	satisfaction_score: SCORE_DEFINITION,
-	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
-	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
+	active_time: "Average active time per page view with a measurement: time the page was visible within 60 seconds of an interaction. An open but untouched page shows 0 s; see Avg. visible time.",
+	duration: "Average session length: for each session the longer of the span from its start to its last page view or event and the time its pages were visible. Interaction is not required.",
+	/** Footnotes of shared pages and emails that show a bounce rate or a session duration. */
+	bounce_footnote: "Bounce rate: share of sessions with one page view, no event and active time under the engaged threshold.",
+	duration_footnote: "Avg. session duration: the longer of the visit span and the time the pages were visible.",
 	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
-	exit_rate: "Blank for pages whose exits or page views were folded into other pages on some days of this range.",
-	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions.",
 } as const;
 export type Caveat = keyof typeof CAVEATS;
 
@@ -60,6 +57,16 @@ export function filterReason(dim: string, reason: string, c: NoticeCtx = {}): st
  * and email; `tests/copy.test.ts` fails when a reader returns a code missing here. `null`: the code's own view shows it
  * with its figures (the Impact panel, the SEO coverage line).
  */
+/** Notices about the figure of one column (the key): shown only where that figure is displayed. */
+export const COLUMN_NOTICES: Readonly<Record<string, string>> = { exit_rate_segment: "exit_rate", exit_rate_partial: "exit_rate" };
+
+/** `notices` without those about a figure that is not displayed; `shown` holds the keys of the displayed figures. */
+export const shownNotices = (notices: readonly string[], shown: readonly string[]): string[] =>
+	notices.filter((n) => {
+		const key = COLUMN_NOTICES[n.split(":")[0] ?? ""];
+		return !key || shown.includes(key);
+	});
+
 export const NOTICE_COPY: Record<string, ((args: readonly string[], c: NoticeCtx) => string) | null> = {
 	summary: () => CAVEATS.rollup,
 	compare_summary: () => "The comparison range is answered from daily summaries.",
@@ -72,6 +79,7 @@ export const NOTICE_COPY: Record<string, ((args: readonly string[], c: NoticeCtx
 	top_paths_per_day: () => "Daily summaries keep the top paths per day, so rare steps and paths are not counted here.",
 	granularity_day: () => "Hourly detail is not kept for this range; the chart shows days.",
 	exit_rate_partial: () => "Exit rate is blank for pages whose exits or page views were folded into other pages on some days of this range.",
+	exit_rate_segment: () => "Exit rate is blank here: the daily summaries keep exits without a channel, country or device, so they cannot apply that filter to it.",
 	filters_not_applied: () => "Some filters do not apply to this report.",
 	segment_missing: () => "The default segment of this dashboard was deleted; this tile shows all visitors.",
 	compare_segment_missing: () => "The compare segment of this dashboard was deleted; this tile shows no comparison.",

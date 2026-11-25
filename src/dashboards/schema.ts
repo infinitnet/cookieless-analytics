@@ -101,11 +101,15 @@ export const TILE_METRICS: Partial<Record<TileReport, readonly string[]>> = {
 };
 
 /** Amount keys: shown with their currency code, never as a bare number. */
-export const MONEY_KEYS: ReadonlySet<string> = new Set(["revenue", "aov", "revenue_per_visitor", "revenue_per_session"]);
+export const MONEY_KEYS: ReadonlySet<string> = new Set(["revenue", "refunds", "net_revenue", "est_lost_revenue", "aov", "revenue_per_visitor", "revenue_per_session"]);
 
 /** Display format of a metric key. */
 export function metricFormat(key: string): Format {
 	if (key === "avg_duration" || key === "avg_time" || key === "avg_visible" || key === "avg_engaged") return "duration";
+	// The Search Satisfaction score: a signed fraction shown in points, as on the Search Satisfaction page.
+	if (key === "score") return "points";
+	// A yes or no flag (Search Satisfaction `low_sample`): printed as it is.
+	if (key === "low_sample") return "text";
 	if (key === "position" || key === "views_per_session") return "decimal";
 	if (key === "ctr" || key === "share" || key.endsWith("_rate") || key.startsWith("pct_") || key.endsWith("_share") || key.endsWith("_pct") || key.startsWith("share_") || key.startsWith("ctr_") || key.startsWith("ctr")) return "percent";
 	if (key.startsWith("position")) return "decimal";
@@ -155,102 +159,110 @@ export const Preset = z.enum(PRESETS.map((p) => p[0]) as [(typeof PRESETS)[numbe
 const Ref = z.string().min(1).max(128);
 const ColumnKey = z.string().regex(/^[a-z0-9_]{1,32}$/);
 
-export const TileSchema = z
-	.object({
-		id: z.string().regex(/^[a-z0-9]{6}$/),
-		report: z.enum(TILE_REPORTS),
-		kind: z.enum(TILE_KIND_NAMES),
-		title: z.string().min(1).max(60).optional(),
-		/** `kpi`, and the measure of a bars, donut or stacked tile. */
-		metric: ColumnKey.optional(),
-		/** `line` and `area`: the charted metrics, 1 to 4 on at most two scales. */
-		metrics: z.array(ColumnKey).min(1).max(MAX_TILE_METRICS).optional(),
-		/** `table`: the figure columns to show after the name, in this order (at most 6); absent means the first three of the report. */
-		columns: z.array(ColumnKey).min(1).max(MAX_TILE_COLUMNS).optional(),
-		filters: z.array(FilterSchema).max(5).optional(),
-		params: z
-			.object({
-				source: z.enum(["all", "google", "bing"]).optional(),
-				goal: Ref.optional(),
-				funnel: Ref.optional(),
-				event: z.string().min(1).max(64).optional(),
-				prop: z.string().regex(/^[A-Za-z0-9_]{1,32}$/).optional(),
-				// Additive on `v: 1`.
-				dim: z.enum(["query", ...REVENUE_BREAKDOWN_DIMS]).optional(),
-				/** Revenue tiles: absent means the site's default currency at run time. */
-				currency: z.string().refine(isCurrency, { message: "currency must be an ISO 4217 code such as USD" }).optional(),
-				direction: z.enum(["up", "down"]).optional(),
-				metric: z.enum(["clicks", "impressions", "queries"]).optional(),
-				minImpressions: z.number().int().min(1).max(100_000).optional(),
-				minShare: z.number().int().min(1).max(50).optional(),
-				includeBrand: z.boolean().optional(),
-				annotation: z.string().min(1).max(128).optional(),
-				kind: z.enum(["manual", "publish", "update", "release"]).optional(),
-				at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-				window: z
-					.number()
-					.int()
-					.refine((w) => (IMPACT_WINDOWS as readonly number[]).includes(w), { message: `window must be one of ${IMPACT_WINDOWS.join(", ")}` })
-					.optional(),
-				report: z.enum(IMPACT_REPORTS).optional(),
-				key: z.string().min(1).max(512).optional(),
-				scope: z.enum(["annotation", "none"]).optional(),
-				path: z.string().min(1).max(512).regex(/^\//).optional(),
-				/** `journey_paths`: the landing page. */
-				entry: z.string().min(1).max(512).regex(/^\//).optional(),
-				/** `search_position_moves` tables: the matrix (default) or one of the four lists. */
-				list: z.enum(["matrix", "up", "down", "new", "lost"]).optional(),
-				/** `links`: the breakdown and one link (Links convention). */
-				by: z.enum(LINK_BY).optional(),
-				/** `satisfaction` tables: best or worst landing pages by score. */
-				rank: z.enum(["best", "worst"]).optional(),
-				slug: z.string().min(1).max(128).optional(),
-			})
-			.strict()
-			.optional(),
-		limit: z.number().int().min(5).max(25).optional(),
-		w: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-	})
-	.strict()
-	.superRefine((t, ctx) => {
-		const issue = (message: string, path: string) => ctx.addIssue({ code: "custom", message, path: [path] });
-		const kinds: readonly TileKind[] = TILE_KINDS[t.report];
-		if (!kinds.includes(t.kind)) issue(`${t.report} cannot be shown as ${t.kind}; allowed: ${kinds.join(", ")}`, "kind");
-		const series = t.kind === "line" || t.kind === "area";
-		const p = t.params ?? {};
-		const metrics = t.report === "impact" ? (p.report ? IMPACT_METRICS[p.report] : []) : TILE_METRICS[t.report];
-		if (t.kind === "kpi" && !t.metric) issue("a kpi tile needs a metric", "metric");
-		if (t.columns && t.kind !== "table") issue("only a table tile names columns", "columns");
-		if (t.columns && new Set(t.columns).size !== t.columns.length) issue("a column is named twice", "columns");
-		if (t.kind === "kpi" && t.metric && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
-		if (series && t.metric) issue(`a ${t.kind} tile names its metrics in metrics`, "metric");
-		if (!series && t.metrics) issue("metrics is for line and area tiles", "metrics");
-		if (series && !t.metrics) issue(`a ${t.kind} tile needs metrics`, "metrics");
-		if (series && t.metrics) {
-			for (const m of t.metrics) if (!metrics?.includes(m)) issue(`unknown metric ${m} for ${t.report}`, "metrics");
-			if (new Set(t.metrics).size !== t.metrics.length) issue("a metric is listed twice", "metrics");
-			const problem = tileMetricsProblem(t.metrics);
-			if (problem) issue(problem, "metrics");
-			if (t.report === "impact" && t.metrics.length > 1) issue("an impact line shows one metric", "metrics");
-		}
-		if (t.kind === "stacked" && t.metric && t.metric !== "queries" && t.metric !== "impressions") issue("a stacked tile shows queries or impressions", "metric");
-		for (const k of SEO_PARAM_KEYS) if (p[k] !== undefined && !TILE_PARAMS[t.report]?.includes(k)) issue(`params.${k} is not a parameter of ${t.report}`, "params");
-		if (t.report === "search_position_bands_series" && p.metric === "clicks") issue("params.metric is queries or impressions here", "params");
-		if (t.report === "search_movers" && p.metric === "queries") issue("params.metric is clicks or impressions here", "params");
-		if (p.dim && t.report === "revenue_breakdown" && p.dim === "query") issue("params.dim of revenue_breakdown is one of " + REVENUE_BREAKDOWN_DIMS.join(", "), "params");
-		if (p.dim && t.report !== "revenue_breakdown" && p.dim !== "query" && p.dim !== "page") issue("params.dim is query or page here", "params");
-		if (t.report === "revenue_breakdown" && !p.dim) issue("a revenue_breakdown tile needs params.dim", "params");
-		if (p.currency && t.report === "impact" && p.report !== "revenue") issue("params.currency is for revenue reports", "params");
-		if (t.report === "impact" && !p.report) issue("an impact tile needs params.report", "params");
-		if (t.report === "impact" && !p.annotation && !p.at) issue("an impact tile needs params.annotation or params.at", "params");
-		if (t.report === "goals" && t.kind === "kpi" && !p.goal) issue("a goals kpi tile needs params.goal", "params");
-		if (p.goal && t.report !== "goals" && !(t.report === "impact" && p.report === "goals")) issue("params.goal is for the goals report", "params");
-		if (t.report === "funnels" && !p.funnel) issue("a funnels tile needs params.funnel", "params");
-		if (p.funnel && t.report !== "funnels") issue("params.funnel is for the funnels report", "params");
-		if (t.report === "event_props" && !p.event) issue("an event_props tile needs params.event", "params");
-		if ((p.event || p.prop) && t.report !== "event_props") issue("params.event and params.prop are for the event_props report", "params");
-		if (p.source && !tileNeedsSearch(t)) issue("params.source is for the search reports", "params");
-	});
+/**
+ * A tile. `stored` reads a saved record: a metric the report does not offer (a removed key) is kept and shows no figure,
+ * so one such tile does not make the whole dashboard, its shared page and its email unreadable; what an editor or
+ * agent sends (`stored` false) must name a metric of the report.
+ */
+const tileSchema = (stored: boolean) =>
+	z
+		.object({
+			id: z.string().regex(/^[a-z0-9]{6}$/),
+			report: z.enum(TILE_REPORTS),
+			kind: z.enum(TILE_KIND_NAMES),
+			title: z.string().min(1).max(60).optional(),
+			/** `kpi`, and the measure of a bars, donut or stacked tile. */
+			metric: ColumnKey.optional(),
+			/** `line` and `area`: the charted metrics, 1 to 4 on at most two scales. */
+			metrics: z.array(ColumnKey).min(1).max(MAX_TILE_METRICS).optional(),
+			/** `table`: the figure columns to show after the name, in this order (at most 6); absent means the first three of the report. */
+			columns: z.array(ColumnKey).min(1).max(MAX_TILE_COLUMNS).optional(),
+			filters: z.array(FilterSchema).max(5).optional(),
+			params: z
+				.object({
+					source: z.enum(["all", "google", "bing"]).optional(),
+					goal: Ref.optional(),
+					funnel: Ref.optional(),
+					event: z.string().min(1).max(64).optional(),
+					prop: z.string().regex(/^[A-Za-z0-9_]{1,32}$/).optional(),
+					// Additive on `v: 1`.
+					dim: z.enum(["query", ...REVENUE_BREAKDOWN_DIMS]).optional(),
+					/** Revenue tiles: absent means the site's default currency at run time. */
+					currency: z.string().refine(isCurrency, { message: "currency must be an ISO 4217 code such as USD" }).optional(),
+					direction: z.enum(["up", "down"]).optional(),
+					metric: z.enum(["clicks", "impressions", "queries"]).optional(),
+					minImpressions: z.number().int().min(1).max(100_000).optional(),
+					minShare: z.number().int().min(1).max(50).optional(),
+					includeBrand: z.boolean().optional(),
+					annotation: z.string().min(1).max(128).optional(),
+					kind: z.enum(["manual", "publish", "update", "release"]).optional(),
+					at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+					window: z
+						.number()
+						.int()
+						.refine((w) => (IMPACT_WINDOWS as readonly number[]).includes(w), { message: `window must be one of ${IMPACT_WINDOWS.join(", ")}` })
+						.optional(),
+					report: z.enum(IMPACT_REPORTS).optional(),
+					key: z.string().min(1).max(512).optional(),
+					scope: z.enum(["annotation", "none"]).optional(),
+					path: z.string().min(1).max(512).regex(/^\//).optional(),
+					/** `journey_paths`: the entry page. */
+					entry: z.string().min(1).max(512).regex(/^\//).optional(),
+					/** `search_position_moves` tables: the matrix (default) or one of the four lists. */
+					list: z.enum(["matrix", "up", "down", "new", "lost"]).optional(),
+					/** `links`: the breakdown and one link (Links convention). */
+					by: z.enum(LINK_BY).optional(),
+					/** `satisfaction` tables: best or worst landing pages by score. */
+					rank: z.enum(["best", "worst"]).optional(),
+					slug: z.string().min(1).max(128).optional(),
+				})
+				.strict()
+				.optional(),
+			limit: z.number().int().min(5).max(25).optional(),
+			w: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+		})
+		.strict()
+		.superRefine((t, ctx) => {
+			const issue = (message: string, path: string) => ctx.addIssue({ code: "custom", message, path: [path] });
+			const kinds: readonly TileKind[] = TILE_KINDS[t.report];
+			if (!kinds.includes(t.kind)) issue(`${t.report} cannot be shown as ${t.kind}; allowed: ${kinds.join(", ")}`, "kind");
+			const series = t.kind === "line" || t.kind === "area";
+			const p = t.params ?? {};
+			const metrics = t.report === "impact" ? (p.report ? IMPACT_METRICS[p.report] : []) : TILE_METRICS[t.report];
+			if (t.kind === "kpi" && !t.metric) issue("a kpi tile needs a metric", "metric");
+			if (t.columns && t.kind !== "table") issue("only a table tile names columns", "columns");
+			if (t.columns && new Set(t.columns).size !== t.columns.length) issue("a column is named twice", "columns");
+			if (t.kind === "kpi" && t.metric && !stored && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
+			if (series && t.metric) issue(`a ${t.kind} tile names its metrics in metrics`, "metric");
+			if (!series && t.metrics) issue("metrics is for line and area tiles", "metrics");
+			if (series && !t.metrics) issue(`a ${t.kind} tile needs metrics`, "metrics");
+			if (series && t.metrics) {
+				if (!stored) for (const m of t.metrics) if (!metrics?.includes(m)) issue(`unknown metric ${m} for ${t.report}`, "metrics");
+				if (new Set(t.metrics).size !== t.metrics.length) issue("a metric is listed twice", "metrics");
+				const problem = tileMetricsProblem(t.metrics);
+				if (problem) issue(problem, "metrics");
+				if (t.report === "impact" && t.metrics.length > 1) issue("an impact line shows one metric", "metrics");
+			}
+			if (t.kind === "stacked" && t.metric && t.metric !== "queries" && t.metric !== "impressions") issue("a stacked tile shows queries or impressions", "metric");
+			for (const k of SEO_PARAM_KEYS) if (p[k] !== undefined && !TILE_PARAMS[t.report]?.includes(k)) issue(`params.${k} is not a parameter of ${t.report}`, "params");
+			if (t.report === "search_position_bands_series" && p.metric === "clicks") issue("params.metric is queries or impressions here", "params");
+			if (t.report === "search_movers" && p.metric === "queries") issue("params.metric is clicks or impressions here", "params");
+			if (p.dim && t.report === "revenue_breakdown" && p.dim === "query") issue("params.dim of revenue_breakdown is one of " + REVENUE_BREAKDOWN_DIMS.join(", "), "params");
+			if (p.dim && t.report !== "revenue_breakdown" && p.dim !== "query" && p.dim !== "page") issue("params.dim is query or page here", "params");
+			if (t.report === "revenue_breakdown" && !p.dim) issue("a revenue_breakdown tile needs params.dim", "params");
+			if (p.currency && t.report === "impact" && p.report !== "revenue") issue("params.currency is for revenue reports", "params");
+			if (t.report === "impact" && !p.report) issue("an impact tile needs params.report", "params");
+			if (t.report === "impact" && !p.annotation && !p.at) issue("an impact tile needs params.annotation or params.at", "params");
+			if (t.report === "goals" && t.kind === "kpi" && !p.goal) issue("a goals kpi tile needs params.goal", "params");
+			if (p.goal && t.report !== "goals" && !(t.report === "impact" && p.report === "goals")) issue("params.goal is for the goals report", "params");
+			if (t.report === "funnels" && !p.funnel) issue("a funnels tile needs params.funnel", "params");
+			if (p.funnel && t.report !== "funnels") issue("params.funnel is for the funnels report", "params");
+			if (t.report === "event_props" && !p.event) issue("an event_props tile needs params.event", "params");
+			if ((p.event || p.prop) && t.report !== "event_props") issue("params.event and params.prop are for the event_props report", "params");
+			if (p.source && !tileNeedsSearch(t)) issue("params.source is for the search reports", "params");
+		});
+export const TileSchema = tileSchema(false);
+const StoredTileSchema = tileSchema(true);
 export type Tile = z.infer<typeof TileSchema>;
 
 const body = {
@@ -338,6 +350,7 @@ export const DashboardSchema = z
 		site: z.string().min(1).max(32),
 		v: z.literal(1),
 		...body,
+		tiles: z.array(StoredTileSchema).min(1),
 		created: z.number().int(),
 		updated: z.number().int(),
 		/** Written only by `dashboards/email/save` and the mail tick. */

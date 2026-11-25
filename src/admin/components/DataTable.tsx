@@ -3,7 +3,7 @@
  * in any row are left out; the body is one tab stop with arrow keys between its controls (roving tabindex).
  */
 import { Button } from "@cloudflare/kumo";
-import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useMemo, useState } from "react";
 import type { Dim } from "../../query/filters.js";
 import { isBool, readPref, recordOf, writePref } from "../prefs.js";
 import { ChangeCell } from "./Change.js";
@@ -19,8 +19,12 @@ export interface Column {
 	dim?: Dim;
 	/** Info marker next to the header. */
 	caveat?: Caveat;
-	/** Secondary line under the value. */
+	/** Info marker next to the header with this definition (the figure's own text, for example `metricDefinition(key)`). */
+	info?: string;
+	/** Secondary line under the value; an empty string shows none. */
 	note?: (row: TableRow) => string;
+	/** A row whose value is shown muted, and sorted last in both directions when the table sorts by this column. */
+	quiet?: (row: TableRow) => boolean;
 	/** Off until picked in the panel's column menu. */
 	optional?: boolean;
 }
@@ -42,7 +46,7 @@ const colsMap = recordOf(recordOf(isBool));
  * Column choice of report `id` in this browser (`ca.cols.v1`): the columns to show, and one menu check per column
  * with data. A column the visitor never touched follows its `optional` flag; at least one column besides the first stays.
  */
-export function useColumns(id: string, columns: readonly Column[], rows: readonly TableRow[]): { columns: Column[]; checks: MenuCheck[] } {
+export function useColumns(id: string, columns: readonly Column[], rows: readonly TableRow[]): { columns: Column[]; checks: MenuCheck[]; chosen: string[] } {
 	const [picks, setPicks] = useState<Record<string, boolean>>(() => readPref("local", COLS_KEY, colsMap)?.[id] ?? {});
 	const offered = withData(columns, rows);
 	const on = (c: Column) => picks[c.key] ?? !c.optional;
@@ -57,7 +61,9 @@ export function useColumns(id: string, columns: readonly Column[], rows: readonl
 		writePref("local", COLS_KEY, { ...stored, [id]: next });
 	};
 	const checks = offered.length > 2 ? offered.slice(1).map((c) => ({ label: c.label, checked: shown.includes(c), disabled: shown.includes(c) && shown.length <= 2, onChange: (v: boolean) => pick(c.key, v) })) : [];
-	return { columns: shown, checks };
+	// The keys switched on, with data or not: a notice about a blank column still shows while that column is chosen.
+	const keys = columns.filter((c, i) => i === 0 || on(c)).map((c) => c.key);
+	return { columns: shown, checks, chosen: keys };
 }
 
 /** Funnel mark after a filterable value; shown on row hover and focus. */
@@ -116,6 +122,7 @@ function compare(a: unknown, b: unknown): number {
 
 export function DataTable({ label, columns: all, rows, pageSize = 25, truncated, onFilter, loading, action, compareNames, emptyAction, search = true }: DataTableProps) {
 	const columns = withData(all, rows);
+	const headId = useId();
 	const [picked, setSort] = useState<{ key: string; desc: boolean } | null>(null);
 	// A sort on a column the visitor hid is dropped.
 	const sort = picked && columns.some((c) => c.key === picked.key) ? picked : null;
@@ -131,10 +138,17 @@ export function DataTable({ label, columns: all, rows, pageSize = 25, truncated,
 	// The row's key and label, and every text column.
 	const textKeys = ["key", "label", ...columns.filter((c) => c.format === "text").map((c) => c.key)];
 	const found = useMemo(() => (q ? rows.filter((r) => matchesText(q, textKeys.map((k) => r[k]))) : rows), [rows, q, textKeys.join("\u0000")]);
+	const quiet = sort ? columns.find((c) => c.key === sort.key)?.quiet : undefined;
 	const sorted = useMemo(() => {
 		if (!sort) return found;
-		return [...found].sort((a, b) => compare(a[sort.key], b[sort.key]) * (sort.desc ? -1 : 1));
-	}, [found, sort]);
+		return [...found].sort((a, b) => {
+			// Quiet rows (for example a low sample score) go last whichever way the column sorts.
+			const qa = quiet?.(a) === true;
+			const qb = quiet?.(b) === true;
+			if (qa !== qb) return qa ? 1 : -1;
+			return compare(a[sort.key], b[sort.key]) * (sort.desc ? -1 : 1);
+		});
+	}, [found, sort, quiet]);
 	const pages = Math.max(1, Math.ceil(sorted.length / pageSize));
 	const p = Math.min(page, pages - 1);
 	const shown = sorted.slice(p * pageSize, (p + 1) * pageSize);
@@ -202,12 +216,14 @@ export function DataTable({ label, columns: all, rows, pageSize = 25, truncated,
 						<thead>
 							<tr>
 								{columns.map((c, i) => (
-									<th key={c.key} className={numCell(c, i)} aria-sort={sort?.key === c.key ? (sort.desc ? "descending" : "ascending") : "none"}>
-										<button type="button" className="ca-sort" onClick={() => toggle(c.key)}>
+									// The header is named by its sort button alone; an info button beside it carries its own name.
+									<th key={c.key} className={numCell(c, i)} aria-sort={sort?.key === c.key ? (sort.desc ? "descending" : "ascending") : "none"} aria-labelledby={`${headId}-${i}`}>
+										<button type="button" id={`${headId}-${i}`} className="ca-sort" onClick={() => toggle(c.key)}>
 											{c.label}
 											<SortMark dir={sort?.key === c.key ? (sort.desc ? "desc" : "asc") : null} />
 										</button>
-										{c.caveat && <InfoMark caveat={c.caveat} />}
+										{c.caveat && <InfoMark caveat={c.caveat} name={c.label} />}
+										{c.info && <InfoMark text={c.info} name={c.label} />}
 									</th>
 								))}
 								{action && <th aria-label={action.label} />}
@@ -226,8 +242,10 @@ export function DataTable({ label, columns: all, rows, pageSize = 25, truncated,
 									{columns.map((c, i) => {
 										const v = r[c.key];
 										const text = fmt(v, c.format);
+										const note = c.note?.(r);
+										const muted = c.quiet?.(r) === true;
 										return (
-											<td key={c.key} className={numCell(c, i)}>
+											<td key={c.key} className={muted ? `${numCell(c, i) ?? ""} ca-muted`.trim() : numCell(c, i)} data-quiet={muted ? "true" : undefined}>
 												{filterable(c, v) ? (
 													<button type="button" className="ca-linkbtn ca-cell-filter" title="Filter by this value" {...stop(ri, n++)} onClick={() => onFilter?.(c.dim as Dim, v)}>
 														{text}
@@ -236,7 +254,7 @@ export function DataTable({ label, columns: all, rows, pageSize = 25, truncated,
 												) : (
 													text
 												)}
-												{c.note && <div className="ca-cell-note">{c.note(r)}</div>}
+												{note ? <div className="ca-cell-note">{note}</div> : null}
 												{compareNames && typeof v === "number" && (
 													<div className="ca-side-b">
 														{compareNames[1]}: {fmt(r.previous?.[c.key] ?? null, c.format)}

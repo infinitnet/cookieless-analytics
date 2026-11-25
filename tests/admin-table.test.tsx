@@ -30,6 +30,18 @@ const rows: TableRow[] = [
 const firstCol = (c: HTMLElement) => [...c.querySelectorAll("tbody tr")].map((tr) => tr.querySelector("td")?.textContent);
 
 describe("DataTable", () => {
+	it("names each column's info button after the column and keeps it out of the header's name; columns without info have none", () => {
+		const cols: Column[] = [columns[0] as Column, { key: "visitors", label: "Visitors", info: "Distinct visitors per day." }, { key: "bounce_rate", label: "Bounce rate", format: "percent" }];
+		const { getByRole, getAllByRole } = render(<DataTable label="Pages" columns={cols} rows={rows} />);
+		expect(getByRole("columnheader", { name: "Visitors" })).toBeTruthy();
+		expect(getByRole("columnheader", { name: "Bounce rate" })).toBeTruthy();
+		const info = getByRole("button", { name: "About Visitors" });
+		expect(info.getAttribute("title")).toBe("Distinct visitors per day.");
+		// One info button for the one column with a definition: header tab stops are the sort buttons plus it.
+		const head = getAllByRole("columnheader");
+		expect(head.flatMap((h) => [...h.querySelectorAll("button")]).map((b) => b.getAttribute("aria-label") ?? b.textContent)).toEqual(["Page", "Visitors", "About Visitors", "Bounce rate"]);
+	});
+
 	it("keeps the server order until a header is clicked, then sorts descending and ascending", () => {
 		const { container, getByRole } = render(<DataTable label="Pages" columns={columns} rows={rows} />);
 		expect(firstCol(container)).toEqual(["/a", "/b", "/c"]);
@@ -40,6 +52,47 @@ describe("DataTable", () => {
 		expect(firstCol(container)).toEqual(["/c", "/a", "/b"]);
 		fireEvent.click(getByRole("button", { name: "Bounce rate" }));
 		expect(firstCol(container)).toEqual(["/a", "/b", "/c"]);
+	});
+
+	it("a column's info text shows as the info mark of its header", () => {
+		const cols: Column[] = [columns[0] as Column, { key: "visitors", label: "Visitors", info: "Visitors of the page." }, columns[2] as Column];
+		const { container } = render(<DataTable label="Pages" columns={cols} rows={rows} />);
+		const marks = [...container.querySelectorAll("thead th")].map((th) => th.querySelector(".ca-info-btn")?.getAttribute("title") ?? null);
+		expect(marks).toEqual([null, "Visitors of the page.", null]);
+	});
+
+	it("quiet rows show muted and sort last in both directions on their column only; other columns and tables sort as before", () => {
+		const scored: TableRow[] = [
+			{ key: "/a", score: 30, sessions: 4, low_sample: true },
+			{ key: "/b", score: 10, sessions: 50, low_sample: false },
+			{ key: "/c", score: -20, sessions: 60, low_sample: false },
+			{ key: "/d", score: 50, sessions: 3, low_sample: true },
+		];
+		const quiet = (r: TableRow) => r.low_sample === true;
+		const cols: Column[] = [
+			{ key: "key", label: "Page", format: "text" },
+			{ key: "score", label: "Score", quiet, note: (r) => (quiet(r) ? "low sample" : "") },
+			{ key: "sessions", label: "Sessions" },
+		];
+		const { container, getByRole } = render(<DataTable label="Pages" columns={cols} rows={scored} />);
+		const scoreCells = [...container.querySelectorAll("tbody tr")].map((tr) => tr.querySelectorAll("td")[1] as HTMLElement);
+		expect(scoreCells.map((td) => td.getAttribute("data-quiet"))).toEqual(["true", null, null, "true"]);
+		expect(scoreCells.map((td) => td.classList.contains("ca-muted"))).toEqual([true, false, false, true]);
+		expect(scoreCells.map((td) => td.querySelector(".ca-cell-note")?.textContent ?? null)).toEqual(["low sample", null, null, "low sample"]);
+		fireEvent.click(getByRole("button", { name: "Score" }));
+		expect(firstCol(container)).toEqual(["/b", "/c", "/d", "/a"]);
+		fireEvent.click(getByRole("button", { name: /Score/ }));
+		expect(firstCol(container)).toEqual(["/c", "/b", "/a", "/d"]);
+		// Sessions has no quiet rule: plain order.
+		fireEvent.click(getByRole("button", { name: "Sessions" }));
+		expect(firstCol(container)).toEqual(["/c", "/b", "/a", "/d"]);
+		fireEvent.click(getByRole("button", { name: /Sessions/ }));
+		expect(firstCol(container)).toEqual(["/d", "/a", "/b", "/c"]);
+		cleanup();
+		// The same rows in a table without the rule sort by value alone.
+		const plain = render(<DataTable label="Plain" columns={cols.map(({ quiet: _q, ...c }) => c)} rows={scored} />);
+		fireEvent.click(plain.getByRole("button", { name: "Score" }));
+		expect(firstCol(plain.container)).toEqual(["/d", "/a", "/b", "/c"]);
 	});
 
 	it("aligns by column type: text columns left, number columns right", () => {

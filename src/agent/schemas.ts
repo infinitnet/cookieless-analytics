@@ -12,9 +12,10 @@ import { POGO_DEFINITION, SATISFACTION_BY, SATISFACTION_CAVEAT, SATISFACTION_MIN
 import { COLLECTIONS_CACHE_SECONDS } from "../query/reports/collections.js";
 import { SITE_SEARCH_DISTINCT_CAP } from "../query/reports/sitesearch.js";
 import { RECENT_ORDERS_CAP } from "../query/reports/revenue.js";
+import { MAX_IMPACT_ROWS, MAX_IMPACT_ROWS_SMALL } from "../query/reports/impact.js";
 import { SITE_SEARCH_TERM_MAX } from "../core/url.js";
-import { SITE_SEARCH_MAX_PARAMS } from "../settings.js";
-import { IMPACT_METRICS, IMPACT_WINDOWS, SEO_MAX_RANGE_DAYS, SEO_TEXT } from "../query/reports/seo-copy.js";
+import { SITE_SEARCH_MAX_PARAMS, settingsSchema } from "../settings.js";
+import { bandSuffix, IMPACT_METRICS, IMPACT_WINDOWS, POSITION_BANDS, SEO_MAX_RANGE_DAYS, SEO_TEXT } from "../query/reports/seo-copy.js";
 import { type Scope, SCOPE_LABELS } from "../keys/scopes.js";
 import { DashboardInput, MAX_DASHBOARDS_PER_SITE, MAX_RECORD_BYTES, MAX_TILES, Preset, TILE_KIND_NAMES, TILE_KINDS, TILE_METRICS, TILE_PARAMS } from "../dashboards/schema.js";
 import { PRESETS } from "../core/presets.js";
@@ -187,49 +188,59 @@ export const ENDPOINTS: readonly Endpoint[] = [
 
 /** Metric definitions served by the catalog; the admin InfoMark caveats say the same in more words. */
 export const METRICS: Record<string, string> = {
-	visitors: "Distinct daily visitor keys summed per day; a visitor seen on two days counts twice. Cross-day uniques are not tracked.",
-	sessions: "Sessions of humans; the window is the sessionWindowMinutes setting.",
-	pageviews: "Page views of humans.",
+	visitors: "Distinct daily visitor keys, counted per day and added up over the range; a visitor seen on two days counts twice. There are no cross-day uniques.",
+	sessions: "Human sessions with at least one page view, counted on the day they started; a session ends after sessionWindowMinutes without activity.",
+	pageviews: "Page views of the human sessions that started in the range; reloads within reloadDedupeSeconds count once.",
 	views_per_session: "pageviews / sessions.",
 	bounce_rate: "Sessions that are not engaged, divided by sessions: 1 - engaged_rate (the GA4 meaning).",
-	engaged_rate: "Sessions with active time at or above the engagement threshold, more than one page view or any event, divided by sessions.",
-	avg_duration: "Mean session duration in seconds: the longer of the visit span (first to last activity) and the visible time. Not interaction time.",
-	avg_time: "Mean active time per page view in seconds (pages report): time with interaction, within 60 s of the last one, so an open but untouched page counts 0 s.",
-	avg_visible: "Mean visible time per page view in seconds (pages report, detailed data only; null in summaries).",
-	realtime: "Sessions active within the realtime window (overview only).",
-	conversions: "Sessions that reached a goal.",
-	conversion_rate: "conversions / sessions of the filtered set.",
+	engaged_rate: "Sessions with active time at or above engagedThresholdSeconds, more than one page view or any event (custom, automatic or server reported), divided by sessions. The link impression seen is no event here.",
+	avg_duration: "Mean session duration in seconds: per session the longer of the span from its start to its last page view or event and the visible time. Not interaction time.",
+	avg_time: "Mean active time per page view with a measurement, in seconds (pages report): time visible within 60 s of an interaction, so an open but untouched page counts 0 s.",
+	avg_visible: "Mean visible time per page view with a measurement, in seconds (pages report, detailed data only; null in summaries).",
+	realtime: "Sessions with a page view or event within realtimeWindowMinutes (overview only); the filters apply on every range, as the live visits are always detailed.",
+	converting: "Sessions that reached the goal at least once (goals report).",
+	completions: "Goal matches in the range; one session can add several.",
+	conversion_rate: "converting / total_sessions, the sessions of the range under the same filters.",
+	exit_rate: "exits / pageviews of the path, at most 1; null in summaries under a channel, country or device filter (notice exit_rate_segment) and for pages folded into (other) (notice exit_rate_partial).",
+	entries: "Sessions that started on the page.",
+	exits: "Sessions whose last page view was the page.",
+	events: "Events of the name sent in the range (events report); internal _ events are left out.",
+	rate: "sessions with the event / total_sessions.",
+	scroll_median: "Lower median of the deepest scroll percent per page view; null in summaries.",
+	drop_off: "(previous step sessions - step sessions) / previous step sessions.",
+	conversion: "step sessions / step 1 sessions.",
 	clicks: "Search clicks reported by the provider.",
 	impressions: "Search impressions reported by the provider.",
 	ctr: "clicks / impressions.",
 	position: "Impression weighted mean position: sum of position times impressions, divided by impressions.",
-	measured: "Sessions with at least one engagement update (visible time above 0); the Search Satisfaction rates divide by these.",
-	search_sessions: "Organic search sessions (Search Satisfaction reports, which cover organic search sessions only).",
+	measured: "Sessions with at least one engagement update (visible time above 0); every Search Satisfaction rate, the score and avg_engaged divide by these.",
 	long_clicks: "Measured sessions longer than the longClickSeconds setting (default 60 s).",
 	short_clicks: "Measured sessions at or below the longClickSeconds setting.",
 	bad_experiences: "Measured single page sessions without events or interaction, shorter than min(badExperienceSeconds, longClickSeconds).",
-	search_measured: "Measured search sessions: the denominator of pogo_stick_rate (Search Satisfaction reports).",
-	pogo_sticks: "Measured search sessions with one page view, no events, a short click, and a page left for the back and forward cache.",
-	reentered: "Search sessions that a later arrival from a search engine joined.",
-	returned_from_search: "Search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache.",
-	avg_engaged: "Mean active time per session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
+	pogo_sticks: `Measured search sessions counted as pogo-sticking. ${POGO_DEFINITION} An estimate.`,
+	reentered: "Measured search sessions that a later arrival from a search engine joined (measured sessions only).",
+	returned_from_search: "Measured search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache (measured sessions only).",
+	avg_engaged: "Mean active time per measured session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
 	measured_rate: "measured / sessions: the share of sessions with a measurable end.",
-	score: "pct_long - pct_bad - pogo_stick_rate (pogo_stick_rate counts as 0 without measured search sessions); null without measured sessions. Ranks best and worst pages (satisfaction params.rank).",
+	score: "(long_clicks - bad_experiences - pogo_sticks) / measured, equal to pct_long - pct_bad - pogo_stick_rate; null without measured sessions. low_sample is true on totals, rows and previous when measured is under data.min_measured. Ranks best and worst pages (satisfaction params.rank).",
 	pct_long: "long_clicks / measured.",
 	pct_short: "short_clicks / measured.",
 	pct_bad: "bad_experiences / measured.",
-	pogo_stick_rate: `pogo_sticks / search_measured. ${POGO_DEFINITION} An estimate.`,
-	returned_from_search_rate: "returned_from_search / search_sessions. A stronger pogo-sticking signal: the visitor demonstrably came back from a search engine. An estimate.",
-	search_reentry_rate: "reentered / search_sessions. An estimate.",
+	pogo_stick_rate: `pogo_sticks / measured. ${POGO_DEFINITION} An estimate.`,
+	returned_from_search_rate: "returned_from_search / measured; a subset of reentered, so at most search_reentry_rate. A stronger pogo-sticking signal: the visitor demonstrably came back from a search engine. An estimate.",
+	search_reentry_rate: "reentered / measured. An estimate.",
 	back_nav_rate: "Page loads of type back_forward / page loads with a known navigation type; restores from the back and forward cache are not loads, so a lower bound. An estimate.",
 	// SEO views.
 	cannibalized_queries: "Queries with two or more pages each holding at least minShare percent of the query's impressions, and at least minImpressions impressions in the range (search_cannibalization).",
-	cannibalized_impressions: "Impressions of the cannibalized queries.",
-	visible_share: "Page with query impressions over total impressions of the range: the share of search traffic the pair views can see.",
-	impressions_share: "A page's (or band's) impressions over the query's (or all) impressions.",
-	moved_up: "Queries whose position band improved between the previous and the current period.",
-	moved_down: "Queries whose position band worsened between the two periods.",
-	potential_clicks: "impressions * max(0, ctr_1_3 - ctr), where ctr_1_3 is the site's own CTR in band 1-3 over the same range; null below 1,000 band 1-3 impressions. An estimate.",
+	cannibalized_impressions: "Impressions of the pages over the share floor of the cannibalized queries.",
+	visible_share: "Page with query impressions over total impressions, Google rows of the range.",
+	impressions_share: "A page's impressions over the counted pages of its query, or a band's impressions over all bands.",
+	moved_up: "Queries at or above minImpressions in both periods whose position band improved.",
+	moved_down: "Queries at or above minImpressions in both periods whose position band worsened.",
+	unchanged: "Queries at or above minImpressions in both periods whose position band stayed the same.",
+	new: "Queries with impressions at or above the floor now and below it in the previous period.",
+	lost: "Queries with impressions at or above the floor in the previous period and below it now.",
+	potential_clicks: "impressions * max(0, ctr_1_3 - ctr), where ctr_1_3 is the site's own CTR of the Google pairs with an average position below 4 over the same range; null below 1,000 such impressions. An estimate.",
 	notable: "abs(current - previous) > 2 * sqrt(current + previous) for counts; a rule of thumb for count data, not a statistical test.",
 	loss: "Clicks (or page views) of the oldest period minus the current period (decay views).",
 	// Revenue: every figure is in one currency, never added across currencies.
@@ -240,8 +251,35 @@ export const METRICS: Record<string, string> = {
 	aov: "Average order value: revenue / orders, per currency.",
 	revenue_per_visitor: "revenue / visitors, where visitors is the Overview figure for the same filters and range (all visitors, not only buyers).",
 	revenue_per_session: "revenue / sessions of the filtered set.",
-	paying_sessions: "Distinct sessions with at least one revenue event in the currency.",
+	paying_sessions: "Distinct sessions (visit day plus sid) with at least one revenue event in the currency.",
+	est_lost_revenue: "Funnel steps: the sessions that left before the step, valued at the average revenue of the sessions that reached the last step. An estimate.",
+	amount: "Order value of a revenue_orders row in its currency; negative for a refund.",
+	// Other figures.
+	hits: "Requests from people that got a 404 response, counted on the day of the request (not_found).",
+	share: "Rows of journey_next and journey_prev: sessions / the sessions that viewed the page (data.page_sessions). scroll: pageviews of the row / page views with a scroll measurement. revenue_breakdown: revenue of the row / revenue of the range.",
+	queries: "Distinct queries with impressions in the range; in a position band row, the queries whose average position falls in the band.",
+	day_pageviews: "Pageviews of the range from the daily totals (collections), the base of coverage.",
+	coverage: "pageviews of the collection rows / day_pageviews: the share of page views the stored page rows cover (collections).",
+	...bandMetrics(),
 };
+
+/** Catalog entries of the band keys (`queries_1_3`, `share_4_10`, `band_51_plus`): bands are half open on the average position. */
+function bandMetrics(): Record<string, string> {
+	const words = ["below 4", "4 to below 11", "11 to below 21", "21 to below 51", "51 and beyond"];
+	return Object.fromEntries(
+		POSITION_BANDS.flatMap((b, i) => {
+			const s = bandSuffix(b);
+			const w = `whose average position over the range is ${words[i]}`;
+			return [
+				[`queries_${s}`, `Queries ${w}.`],
+				[`impressions_${s}`, `Impressions of the queries or pages ${w}.`],
+				[`share_${s}`, `impressions_${s} / impressions of all bands.`],
+				[`ctr_${s}`, `Click-through rate of the queries or pages ${w}; in search_striking_distance, of the Google query and page pairs.`],
+				[`band_${s}`, `Queries or pages ${w}, or their impressions (params.metric), per bucket (search_position_bands_series).`],
+			];
+		}),
+	);
+}
 
 /** Catalog of the revenue reports. */
 export const REVENUE_CATALOG = {
@@ -337,9 +375,10 @@ export const SUMMARY_CATALOG = {
 export const SATISFACTION_CATALOG = {
 	params: {
 		by: SATISFACTION_BY,
-		rank: `best | worst: landing pages with at least ${SATISFACTION_MIN_MEASURED} measured sessions ordered by score; only with by entry (the default)`,
+		rank: `best | worst: landing pages with at least the configured minimum of measured sessions (setting satisfactionMinMeasured, default ${SATISFACTION_MIN_MEASURED}; the answer names it as data.min_measured) ordered by score; only with by entry (the default)`,
 	},
-	minMeasured: SATISFACTION_MIN_MEASURED,
+	/** The sample minimum is a setting: its default and range here, the value in effect in each answer's `data.min_measured`. */
+	minMeasured: { setting: "satisfactionMinMeasured", default: SATISFACTION_MIN_MEASURED, min: settingsSchema.satisfactionMinMeasured.min, max: settingsSchema.satisfactionMinMeasured.max, inEffect: "data.min_measured of each answer" },
 	pogoDefinition: POGO_DEFINITION,
 } as const;
 
@@ -352,7 +391,7 @@ export const LINKS_CATALOG = {
 		impressions: "Link keys of view events (s0 to s9, each <slug> or <slug>@<place>).",
 		clicks: "Click events of the key.",
 		ctr: "clicks / impressions from the sums; 0 without impressions.",
-		sessions: "Distinct sessions with a click.",
+		sessions: "Distinct sessions with at least one page view and a click of the key; a visit with a click and no page view is left out.",
 		conversions: "Sale events of the key, every currency.",
 		revenue: "Sum of sale values in the selected currency only (withRevenue).",
 	},
@@ -365,8 +404,9 @@ export const SEO_CATALOG = {
 	coverage: SEO_TEXT.coverage,
 	bingNoPairs: SEO_TEXT.bingNoPairs,
 	periodRule:
-		"n = min(to - from + 1, 93); the current period ends at the newest final (not provisional) day of the selected sources, or yesterday for traffic views; the previous and oldest periods are the n days before, back to back. The response carries periods and the notice provisional_excluded when the end moved.",
+		"n = to - from + 1, at most 93 (range_too_long above); the current period ends at the newest final (not provisional) day of the selected sources, or yesterday for traffic views; the previous and oldest periods are the n days before, back to back. The response carries periods and the notice provisional_excluded when the end moved.",
 	bands: ["1-3", "4-10", "11-20", "21-50", "51+"],
+	bandRule: "Bands are half open on the average position of the query or page over the range: 1-3 is below 4, 4-10 is 4 to below 11, 11-20 is 11 to below 21, 21-50 is 21 to below 51, 51+ is 51 and beyond.",
 	reports: {
 		search_cannibalization: { params: ["source", "minImpressions", "minShare", "includeBrand"], compare: false },
 		search_cannibalization_pages: { params: ["source", "minImpressions", "minShare", "includeBrand"], compare: false },
@@ -392,8 +432,8 @@ export const SEO_CATALOG = {
 	},
 	annotationImpacts: {
 		params: ["window", "kind", "scopeKind", "q", "withSearch"],
-		maxRows: 50,
-		maxRowsSmallProfile: 10,
+		maxRows: MAX_IMPACT_ROWS,
+		maxRowsSmallProfile: MAX_IMPACT_ROWS_SMALL,
 		rule: "One row per annotation of the range, newest first (limit, offset; total counts every match), each measured on its target (or visitors of its scope, Search clicks for a query scope with withSearch) over equal windows as in impact, with verdict up, down, flat, too_early or no_data, good (true when the change is good news; a fall is good for lower-is-better metrics) and overlaps (annotations of an overlapping scope inside the windows). kind and scopeKind filter; q keeps annotations whose title, kind, scope or source slug contains the text (case-insensitive, at most 100 characters). withSearch measures Search targets and needs read:search. Reads only.",
 	},
 } as const;

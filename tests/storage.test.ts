@@ -8,6 +8,8 @@ import { zonedToEpoch } from "../src/core/time.js";
 import { budgetState, CHECK_FAST_S, CHECK_SLOW_S, dayBytes, ENTRY_BYTES, estimateStorage, FIXED_ROWS, KV_WRITE_BUDGET, ROWS_PER_EVENT, ROWS_PER_PV, ROWS_PER_VISIT, STORAGE_SAFETY, SUMMARY_ROW_BYTES, VISIT_BYTES, type WriteBudget, writeBudget } from "../src/query/storage.js";
 import { generateTraffic, recordTraffic } from "./capacity.helpers.js";
 import { ownDatabase } from "../src/db/schema.js";
+import { rollupDay } from "../src/query/rollup.js";
+import { normalizeSettings } from "../src/settings.js";
 import { meteredDb, schemaDb } from "./helpers.js";
 
 const fileBytes = (raw: Database.Database) => (raw.pragma("page_count", { simple: true }) as number) * (raw.pragma("page_size", { simple: true }) as number);
@@ -79,6 +81,24 @@ describe("storage estimate", () => {
 			const plan = (env.raw.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...params) as Array<{ detail: string }>).map((p) => p.detail);
 			expect(plan.filter((d) => /^SCAN ca_/.test(d))).toEqual([]);
 		}
+	});
+
+	it("counts passive link impressions: the closed day's all row carries them, so 3 impressions per visit estimate like 3 events per visit", async () => {
+		const est: Record<string, number> = {};
+		for (const impressions of [false, true]) {
+			const g = await schemaDb();
+			const t = generateTraffic({ pageviews: 20, sessionsPerPv: 1, eventsPerPv: 3, aliasesPerPv: 0, seed: 5, impressions, start: zonedToEpoch("2026-06-14", 6, "UTC"), spanSeconds: 3600 });
+			await recordTraffic(g.db, t, normalizeSettings({ maxEventsPerSession: 10_000 }));
+			await rollupDay({ db: g.db, site: "default", settings: { ...normalizeSettings({}), capacityProfile: "small" }, goals: [] }, "2026-06-14");
+			const all = g.raw.prepare("SELECT sessions, pageviews, events, hits FROM ca_rollup WHERE dim = 'all' AND day = '2026-06-14'").get();
+			expect(all).toEqual(impressions ? { sessions: 20, pageviews: 20, events: 0, hits: 60 } : { sessions: 20, pageviews: 20, events: 60, hits: 0 });
+			const stored = (g.raw.prepare("SELECT COUNT(*) AS n FROM ca_sessions s, json_each(s.hits) h").get() as { n: number }).n;
+			expect(stored).toBe(80);
+			const e = await estimateStorage(g.db, { ...S, capacityProfile: "small" }, "2026-06-15");
+			expect(e.detail).toBe(Math.round(dayBytes(20, stored)));
+			est[String(impressions)] = e.detail;
+		}
+		expect(est.true).toBe(est.false);
 	});
 
 	it("an empty database estimates 0 bytes", async () => {

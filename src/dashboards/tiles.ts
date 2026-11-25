@@ -2,8 +2,10 @@
 import type { AnnotationView } from "../annotations/scope.js";
 import { formatAmount, MAX_CURRENCIES_LISTED } from "../core/currency.js";
 import { type Change, describeChange, rateBase } from "../charts/change.js";
+import { shownNotices } from "../charts/caveats.js";
 import { type Format, fmt, foldSlices, rangeText } from "../charts/geometry.js";
 import type { ReportResult } from "../query/reports/index.js";
+import { LOW_SAMPLE, lowSampleLine, SATISFACTION_MIN_MEASURED } from "../query/reports/satisfaction-copy.js";
 import { periodLine, SEO_TEXT, type SeoPeriods } from "../query/reports/seo-copy.js";
 import { DEFAULT_TILE_LIMIT } from "./run.js";
 import { metricFamily, metricFormat, MONEY_KEYS, type Tile, type TileKind } from "./schema.js";
@@ -40,7 +42,16 @@ export interface TileData {
 	otherCurrencies?: Array<{ currency: string; revenue: number; orders: number }>;
 	/** A footer line of the tile, for example the terms a shared page leaves out. */
 	footnote?: string;
+	/** A line under a number tile: a Score figure that rests on fewer measured sessions than the sample minimum. */
+	note?: string;
 }
+
+/** A Search Satisfaction row whose score rests on fewer measured sessions than the sample minimum (table tiles print the flag as "yes"). */
+export const lowSampleRow = (r: Record<string, unknown>): boolean => r.low_sample === true || r.low_sample === "yes";
+/** The note under the score cell of such a row (tiles, shared pages, emails). */
+export const scoreNote = (key: string, r: Record<string, unknown>): string | null => (key === "score" && lowSampleRow(r) ? LOW_SAMPLE : null);
+/** Why a Score tile shows no change: the comparison's own score rests on too few measured sessions. */
+export const LOW_SAMPLE_COMPARE = "The comparison has fewer measured sessions than the sample minimum, so its score is no base for a change.";
 
 /** One line of a `line` or `area` tile; `compare` is the comparison aligned by index, null without one. */
 export interface TileLine {
@@ -76,7 +87,8 @@ export function lineAxes(lines: ReadonlyArray<Pick<TileLine, "key" | "values" | 
 /** The footnote of the site search floor on shared pages and in emails. */
 export const hiddenTermsText = (n: number) => `${n} search term${n === 1 ? "" : "s"} used in fewer than 2 sessions ${n === 1 ? "is" : "are"} not shown.`;
 
-const SKIP = new Set(["key", "previous", "delta", "page_list", "periods", "currency", "revenue_currency"]);
+/** Not a table column: nested values, the currency code, and `last_seen` of Not found (an epoch second, not a figure). */
+const SKIP = new Set(["key", "previous", "delta", "page_list", "periods", "currency", "revenue_currency", "last_seen"]);
 
 /** Columns a table tile can show for these rows: the name column, then every plain value of the first row in the report's order. */
 export function tableColumnKeys(rows: ReadonlyArray<Record<string, unknown>>): string[] {
@@ -112,16 +124,30 @@ const LABELS: Partial<Record<string, string>> = {
 	key: "Name",
 	ctr: "CTR",
 	avg_duration: "Avg. session duration",
+	// The Links page's names: a `conv` event is a sale, and the Search Satisfaction coverage figure is a share.
+	conversions: "Sales",
+	measured_rate: "Measured share",
 	avg_time: "Avg. active time",
 	avg_visible: "Avg. visible time",
 	avg_engaged: "Avg. active time",
-	converting: "Conversions",
+	converting: "Converting sessions",
+	conversion_rate: "Conversion rate",
+	rate: "Share of sessions",
+	conversion: "Of first step",
+	drop_off: "Drop-off",
+	delta: "Change",
+	delta_pct: "Change (percent)",
+	overlapping_queries_pct: "Share of queries",
+	overlapping_impressions_pct: "Share of impressions",
+	potential_clicks: "Potential clicks (est.)",
 	scroll_median: "Median scroll (%)",
 	aov: "Average order value",
 	pogo_stick_rate: "Pogo-sticking (estimate)",
 	pogo_sticks: "Pogo-sticking sessions (estimate)",
 	returned_from_search_rate: "Returned from search (estimate)",
 	returned_from_search: "Returned from search sessions (estimate)",
+	search_reentry_rate: "Search re-entry (estimate)",
+	back_nav_rate: "Back/forward loads (estimate)",
 };
 
 /** Readable label of a metric or column key: `bounce_rate` becomes "Bounce rate". */
@@ -154,6 +180,7 @@ const REPORT_TITLES: Partial<Record<string, string>> = {
 /** The change of a KPI or impact tile against its comparison; null with no comparison. */
 export function tileChange(d: TileData): Change | null {
 	if (d.compare === undefined || !d.metric) return null;
+	if (d.metric === "score" && d.compare?.low_sample === true) return describeChange(d.metric, d.value, null, { format: valueFormat(d.metric, d.currency), reason: LOW_SAMPLE_COMPARE });
 	return describeChange(d.metric, d.value, d.compare?.[d.metric], { format: valueFormat(d.metric, d.currency), base: rateBase(d.compare) });
 }
 
@@ -170,8 +197,19 @@ export const joinLabels = (labels: readonly string[]) => (labels.length < 2 ? (l
 
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
-/** `goalName` is the name of `params.goal` (the goals report has one row per goal name). */
+/**
+ * Keys of the figures a tile displays: a table tile its columns; any other tile its metric (a number, bars or donut
+ * tile) and its lines. `columns` of a bars or donut tile holds every key of the rows, most of them not shown.
+ */
+export const displayedKeys = (d: Pick<TileData, "kind" | "metric" | "lines" | "columns">): string[] => (d.kind === "table" ? [...d.columns] : [...(d.metric ? [d.metric] : []), ...d.lines.map((l) => l.key)]);
+
+/** `goalName` is the name of `params.goal` (the goals report has one row per goal name). Notices about a figure the tile does not display are left out. */
 export function tileData(tile: Tile, result: ReportResult, opts: { goalName?: string | undefined } = {}): TileData {
+	const out = tileFigures(tile, result, opts);
+	return { ...out, notices: shownNotices(out.notices, displayedKeys(out)) };
+}
+
+function tileFigures(tile: Tile, result: ReportResult, opts: { goalName?: string | undefined }): TileData {
 	const d = result.data;
 	const notices = [...result.notices, ...((d.notices as string[] | undefined) ?? [])];
 	const rows = (d.rows ?? []) as Array<Record<string, unknown>>;
@@ -211,6 +249,7 @@ export function tileData(tile: Tile, result: ReportResult, opts: { goalName?: st
 		const prev = tile.report === "goals" ? (row && "previous" in row ? row.previous : undefined) : "compareTotals" in d ? d.compareTotals : undefined;
 		out.value = n(src?.[m]);
 		if (prev !== undefined) out.compare = (prev ?? null) as Record<string, unknown> | null;
+		if (m === "score" && src?.low_sample === true) out.note = lowSampleLine(typeof d.min_measured === "number" ? d.min_measured : SATISFACTION_MIN_MEASURED);
 		return out;
 	}
 	if (tile.kind === "line" || tile.kind === "area") {
@@ -231,7 +270,9 @@ export function tileData(tile: Tile, result: ReportResult, opts: { goalName?: st
 	const named = tile.kind === "table" && tile.columns ? tile.columns.filter((k) => columns.includes(k) && k !== columns[0]) : [];
 	out.columns = tile.kind !== "table" ? columns : named.length ? [columns[0] as string, ...named] : columns.slice(0, TABLE_TILE_COLUMNS);
 	if (tile.kind === "table") {
-		out.rows = limited.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? (v ? "yes" : "no") : v])));
+		// A change of a signed score means nothing in a table (as on the Search Satisfaction page): its previous value is dropped.
+		const prevOf = (r: Record<string, unknown>) => (r.previous && typeof r.previous === "object" && "score" in r.previous ? { previous: { ...(r.previous as Record<string, unknown>), score: null } } : {});
+		out.rows = limited.map((r) => ({ ...Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? (v ? "yes" : "no") : v])), ...prevOf(r) }));
 		return out;
 	}
 	const metric = m && m in first ? m : (out.columns.find((k) => k !== "key" && typeof first[k] === "number") ?? null);

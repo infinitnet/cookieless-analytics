@@ -7,12 +7,19 @@ import { isRemote, toPlainQuery, type View } from "../components/Header.js";
 import { fmt } from "../components/format.js";
 import { Notice, Empty, Field, Loading } from "../components/ui.js";
 import { SetupEmpty } from "../setup.js";
-import { OtherCurrencies, ReportPanel, TabPage, TableSkeleton, useRevenue } from "./report.js";
+import { metricColumn, OtherCurrencies, ReportPanel, TabPage, TableSkeleton, useRevenue } from "./report.js";
+import { COLUMN_DEFINITIONS } from "../../charts/definitions.js";
+
+/** The scroll table columns: each row holds the page views whose deepest scroll reached its depth and stayed below the next. */
+export const SCROLL_TEXT = {
+	pageviews: "Page views whose deepest scroll reached this depth and stayed below the next row.",
+	share: "These page views divided by the page views with a scroll measurement.",
+} as const;
 
 const AUTO_COLUMNS = (label: string): Column[] => [
 	{ key: "key", label, format: "text" },
-	{ key: "events", label: "Events" },
-	{ key: "sessions", label: "Sessions" },
+	{ key: "events", label: "Events", info: COLUMN_DEFINITIONS.event_count },
+	{ key: "sessions", label: "Sessions", info: COLUMN_DEFINITIONS.event_sessions },
 ];
 
 export function EventsTab({ view }: { view: View }) {
@@ -25,9 +32,9 @@ export function EventsTab({ view }: { view: View }) {
 				title="Events"
 				columns={[
 					{ key: "key", label: "Event", format: "text", dim: "event" },
-					{ key: "events", label: "Events" },
-					{ key: "sessions", label: "Sessions" },
-					{ key: "rate", label: "Share of sessions", format: "percent" },
+					{ key: "events", label: "Events", info: COLUMN_DEFINITIONS.event_count },
+					{ key: "sessions", label: "Sessions", info: COLUMN_DEFINITIONS.event_sessions },
+					metricColumn("rate", "Share of sessions", { format: "percent" }),
 				]}
 				action={{ label: "Properties", onClick: (r) => setEvent(r.key) }}
 			/>
@@ -118,8 +125,8 @@ export function FunnelsTab({ view }: { view: View }) {
 					columns={[
 						{ key: "label", label: "Step", format: "text" },
 						{ key: "sessions", label: "Sessions" },
-						{ key: "drop_off", label: "Drop-off", format: "percent" },
-						{ key: "conversion", label: "Of first step", format: "percent" },
+						{ key: "drop_off", label: "Drop-off", format: "percent", info: COLUMN_DEFINITIONS.drop_off },
+						{ key: "conversion", label: "Of first step", format: "percent", info: COLUMN_DEFINITIONS.conversion },
 						...(code ? funnelMoney(code) : []),
 					]}
 					extra={(res) => (
@@ -145,7 +152,7 @@ export const hiddenText = (n: unknown) => (typeof n === "number" && n > 0 ? `${f
 const JOURNEY_COLUMNS = (label: string): Column[] => [
 	{ key: "key", label, format: "text" },
 	{ key: "sessions", label: "Sessions" },
-	{ key: "share", label: "Share", format: "percent" },
+	{ key: "share", label: "Share", format: "percent", info: COLUMN_DEFINITIONS.journey_share },
 ];
 
 /** Journeys: a page picker, what came before and after it, and the top three step paths. */
@@ -191,7 +198,7 @@ export function JourneysTab({ view }: { view: View }) {
 				report="journey_paths"
 				title="Top paths"
 				columns={[
-					{ key: "path1", label: "Landing page", format: "text" },
+					{ key: "path1", label: "Entry page", format: "text" },
 					{ key: "path2", label: "Second page", format: "text" },
 					{ key: "path3", label: "Third page", format: "text" },
 					{ key: "sessions", label: "Sessions" },
@@ -255,9 +262,9 @@ export default function Behaviour() {
 							columns={[
 								{ key: "key", label: "Goal", format: "text", dim: "goal" },
 								{ key: "type", label: "Type", format: "text" },
-								{ key: "completions", label: "Completions" },
-								{ key: "converting", label: "Converting sessions" },
-								{ key: "conversion_rate", label: "Conversion rate", format: "percent" },
+								metricColumn("completions", "Completions"),
+								metricColumn("converting", "Converting sessions"),
+								metricColumn("conversion_rate", "Conversion rate", { format: "percent" }),
 							]}
 							extra={(res) => (res.data.rows?.length ? <p className="ca-small">Conversion rate is out of {fmt(res.data.total_sessions)} sessions in the current filter.</p> : null)}
 						/>
@@ -279,8 +286,8 @@ export default function Behaviour() {
 							title="Scroll depth"
 							columns={[
 								{ key: "depth", label: "Max scroll depth (%)" },
-								{ key: "pageviews", label: "Pageviews" },
-								{ key: "share", label: "Share", format: "percent" },
+								{ key: "pageviews", label: "Pageviews", info: SCROLL_TEXT.pageviews },
+								{ key: "share", label: "Share", format: "percent", info: SCROLL_TEXT.share },
 							]}
 							mapRows={(rows) => rows.map((r) => ({ ...r, depth: Number(r.key) }))}
 							extra={(res) => <BarList label="Pageviews by scroll depth" rows={(res.data.rows ?? []).map((r) => ({ label: `${r.key}%`, value: Number(r.pageviews ?? 0) }))} />}

@@ -78,7 +78,7 @@ beforeEach(() => {
 						body.report === "annotation_impacts"
 							? { rows: list.slice(body.offset ?? 0, (body.offset ?? 0) + (body.limit ?? 50)), total: list.length, window: body.params.window, limit: body.limit, notices: [] }
 							: body.report === "impact"
-								? { annotation: { id: body.params.annotation, ts: 0, kind: "manual", text: "New hero", scope: null, summary: "Site-wide" }, day: "2026-03-10", window: body.params.window, complete: true, days_after: 14, periods: PERIODS, before: 0.5, after: 0.4, measured: { before: 900, after: 950 }, context: { before: { visitors: 100 }, after: { visitors: 130 } }, overlapping: [], notices: [] }
+								? { annotation: { id: body.params.annotation, ts: 0, kind: "manual", text: "New hero", scope: null, summary: "Site-wide" }, day: "2026-03-10", window: body.params.window, complete: true, days_after: 14, periods: PERIODS, before: 0.5, after: 0.4, measured: { base: "sessions", before: 900, after: 950 }, context: { before: { visitors: 100 }, after: { visitors: 130 } }, overlapping: [], notices: [] }
 								: { rows: [] };
 					return ok({ report: body.report, range: { from: body.query.from, to: body.query.to }, compare: "none", compareRange: null, notices: [], data });
 				}
@@ -258,6 +258,9 @@ describe("expanded row", () => {
 		expect(within(strip).getByText("Visitors")).toBeTruthy();
 		expect(within(strip).getByText("Bounce rate")).toBeTruthy();
 		expect(within(strip).queryByText("Engaged rate")).toBeNull();
+		// cf10: the base of the rate is named, not called "measured".
+		expect(within(panel).getByText("900 sessions before, 950 after")).toBeTruthy();
+		expect(within(panel).queryByText(/measured before/)).toBeNull();
 		expect(within(panel).queryByRole("group", { name: "Window" })).toBeNull();
 		expect(screen.getByText(ANNOTATIONS_TEXT.overlapHint, { selector: "div *" })).toBeTruthy();
 		fireEvent.click(within(rowOf("New hero")).getByRole("button", { name: "Hide" }));

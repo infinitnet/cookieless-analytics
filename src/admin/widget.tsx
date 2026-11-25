@@ -1,4 +1,4 @@
-/** Dashboard widget: today's visitors and pageviews against yesterday, realtime, top page today, link to the reports. */
+/** Dashboard widget: today's visitors and pageviews against all of yesterday, realtime, top page today, link to the reports. */
 import { PLUGIN_ID } from "../contract.js";
 import { useReport } from "./api.js";
 import { ChangeMark } from "./components/Change.js";
@@ -9,13 +9,15 @@ import { useSite } from "./site.js";
 import { presetRange } from "./state.js";
 
 export const DASHBOARD_HREF = `/_emdash/admin/plugins/${PLUGIN_ID}/`;
+/** The comparison label: today so far against the whole of yesterday. */
+export const WIDGET_COMPARE = "vs all of yesterday";
 
 /** Always the local site; "today" is the local site's calendar day. */
 export default function TodayWidget() {
 	const { sites, local } = useSite();
 	const day = presetRange("today", local.timezone ?? "UTC");
 	const query = { ...day, filters: [] };
-	// The previous period of one day is yesterday.
+	// The previous period of one day is yesterday, all of it: today's figures so far are compared with the whole day.
 	const ov = useReport("", sites ? { report: "overview", query: { ...query, compare: "previous" } } : null);
 	const top = useReport("", sites ? { report: "pages", query: { ...query, compare: "none" }, limit: 1 } : null);
 	const totals = ov.data?.data.totals;
@@ -33,7 +35,7 @@ export default function TodayWidget() {
 				<strong>{fmt(totals?.[k])}</strong>{" "}
 				{change && change.kind !== "none" && change.direction !== "flat" && (
 					<>
-						<ChangeMark c={change} compact /> <span className="ca-small">vs yesterday</span>
+						<ChangeMark c={change} compact /> <span className="ca-small">{WIDGET_COMPARE}</span>
 					</>
 				)}
 			</div>
@@ -49,7 +51,10 @@ export default function TodayWidget() {
 						{figure("visitors", "Visitors today")}
 						{figure("pageviews", "Pageviews today")}
 						<div className="ca-figure" data-metric="realtime">
-							<div className="ca-small">Active now</div>
+							<div className="ca-small">
+								Active now
+								<InfoMark text={metricDefinition("realtime") ?? ""} />
+							</div>
 							<strong>{fmt(ov.data?.data.realtime)}</strong>
 						</div>
 					</div>

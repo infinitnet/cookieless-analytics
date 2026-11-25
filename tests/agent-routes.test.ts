@@ -176,6 +176,28 @@ describe("agent endpoints", () => {
 		for (const k of ["pct_long", "pct_short", "pct_bad", "sessions"]) expect(metrics[k]?.estimate, k).toBe(false);
 		const reports = r.json.data.reports as { name: string; scopes: string[] }[];
 		for (const name of ["satisfaction", "satisfaction_series"]) expect(reports.find((x) => x.name === name)?.scopes, name).toEqual(["read:analytics"]);
+		// One denominator: every Search Satisfaction rate divides by measured; the search_* copies are gone.
+		const defs = r.json.data.metrics as Record<string, { definition: string }>;
+		// The two copies of sessions and measured are gone (names built here so the repository holds no reader of them).
+		const removed = ["sessions", "measured"].map((k) => `search_${k}`);
+		for (const k of removed) expect(defs).not.toHaveProperty(k);
+		expect(defs.pogo_stick_rate?.definition).toMatch(/^pogo_sticks \/ measured\. /);
+		expect(defs.returned_from_search_rate?.definition).toMatch(/^returned_from_search \/ measured; a subset of reentered, so at most search_reentry_rate\. /);
+		expect(defs.search_reentry_rate?.definition).toBe("reentered / measured. An estimate.");
+		expect(defs.reentered?.definition).toContain("measured sessions only");
+		expect(defs.returned_from_search?.definition).toContain("measured sessions only");
+		// The count and the rate describe the exit in the same words.
+		const pogo = "Pogo-sticking: a search visitor views one page, sends no event and leaves it with Back or Forward within the long click time.";
+		expect(defs.pogo_sticks?.definition).toContain(pogo);
+		expect(defs.pogo_stick_rate?.definition).toContain(pogo);
+		expect(`${defs.pogo_sticks?.definition}${defs.pogo_stick_rate?.definition}`).not.toMatch(/back and forward cache/);
+		expect(defs.score?.definition).toContain("low_sample");
+		expect(defs.score?.definition).toContain("data.min_measured");
+		for (const k of removed) expect(JSON.stringify(r.json.data)).not.toContain(k);
+		expect(r.json.data.satisfaction).toMatchObject({
+			minMeasured: { setting: "satisfactionMinMeasured", default: 30, min: 10, max: 500, inEffect: "data.min_measured of each answer" },
+			params: { rank: "best | worst: landing pages with at least the configured minimum of measured sessions (setting satisfactionMinMeasured, default 30; the answer names it as data.min_measured) ordered by score; only with by entry (the default)" },
+		});
 		expect(r.json.data.limits.maxRangeDays).toBe(400);
 	});
 

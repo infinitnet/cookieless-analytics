@@ -67,7 +67,19 @@ describe("tile lines", () => {
 	it("labels every admin card metric as the cards do, and CTR in capitals", () => {
 		for (const [k, m] of Object.entries(METRICS)) expect(metricLabel(k), k).toBe(m.label);
 		expect(metricLabel("ctr")).toBe("CTR");
-		expect(metricLabel("converting")).toBe("Conversions");
+		// The goal columns read as in the admin, and an estimate keeps its mark on shared pages and emails.
+		expect(["converting", "conversion_rate", "rate", "conversion", "drop_off", "delta", "delta_pct", "overlapping_queries_pct", "overlapping_impressions_pct", "potential_clicks"].map(metricLabel)).toEqual([
+			"Converting sessions",
+			"Conversion rate",
+			"Share of sessions",
+			"Of first step",
+			"Drop-off",
+			"Change",
+			"Change (percent)",
+			"Share of queries",
+			"Share of impressions",
+			"Potential clicks (est.)",
+		]);
 	});
 
 	it("keeps the name and the first three figures of a table tile", () => {

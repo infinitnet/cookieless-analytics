@@ -115,8 +115,8 @@ describe("the engine and notices per report and filter set (summaries before the
 		["overview", [f("region", "BE")], {}, ["filter_unavailable:region:not_kept"]],
 		// One day asks for hours, which the summaries do not keep.
 		["timeseries", [f("device", "mobile"), f("country", "FR")], {}, ["granularity_day"]],
-		["pages", [f("country", "DE")], {}, []],
-		["pages", [f("page", "/a"), f("country", "DE"), f("device", "mobile")], {}, ["filter_unavailable:device:combination"]],
+		["pages", [f("country", "DE")], {}, ["exit_rate_segment"]],
+		["pages", [f("page", "/a"), f("country", "DE"), f("device", "mobile")], {}, ["filter_unavailable:device:combination", "exit_rate_segment"]],
 		["pages", [f("browser", "Chrome")], {}, ["filter_unavailable:browser:combination"]],
 		["entry_pages", [f("channel", "Direct")], {}, []],
 		["exit_pages", [f("channel", "Direct")], {}, ["filter_unavailable:channel:combination"]],

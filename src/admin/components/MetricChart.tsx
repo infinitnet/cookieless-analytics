@@ -27,6 +27,8 @@ export interface MetricDef {
 	selectable?: boolean;
 	/** Drawn 1 at the top on its own axis (Search position). */
 	invert?: boolean;
+	/** The card's definition when it is narrower than the metric key's (passed to `KpiCard`). */
+	info?: string;
 }
 
 export const HINTS = {
@@ -251,6 +253,7 @@ export function MetricChart({ id, view, metrics, defaults, report = "timeseries"
 							compare={previous}
 							trend={trend ? series.map((p) => Number(p[m.key] ?? 0)) : undefined}
 							lowerIsBetter={m.lowerIsBetter ?? LOWER_IS_BETTER.has(m.key)}
+							info={m.info}
 							active={sel && on}
 							slot={sel && on ? slots[m.key] : undefined}
 							axis={twoAxes && on ? (axes.axis[m.key] === "right" ? "Right axis" : "Left axis") : undefined}

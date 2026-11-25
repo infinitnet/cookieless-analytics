@@ -224,4 +224,24 @@ describe("data/query route", () => {
 			for (const id of ids) expect(text, report).not.toContain(id);
 		}
 	});
+
+	it("the sample minimum saved through the settings route reaches the satisfaction answer of data/query", async () => {
+		const { settingsRoutes } = await import("../src/routes/settings.js");
+		const { normalizeSettings } = await import("../src/settings.js");
+		const stored: Record<string, unknown> = { siteTimezone: "UTC" };
+		const sctx = (input: unknown) => ({ input, settings: { get: async (k: string) => stored[k] ?? null, set: async (k: string, v: unknown) => void (stored[k] = v), list: async () => Object.entries(stored).map(([key, value]) => ({ key, value })) } }) as never;
+		const routes = settingsRoutes({ settings: async () => normalizeSettings(stored), settingsChanged: () => clearReportCache(), facts: () => null });
+		const live = () => dataQueryRoute({ db: async () => env.db, settings: async () => normalizeSettings(stored), now: () => 0 });
+		const ask = async () => (await live().handler({ input: DataQueryBody.parse({ report: "satisfaction", query: { ...RANGE } }), storage } as DataCtx)) as unknown as { data: { min_measured: number; totals: { measured: number; low_sample: boolean } } };
+		const before = await ask();
+		expect(before.data.min_measured).toBe(30);
+		for (const min of [10, 250]) {
+			await routes["settings/save"].handler(sctx({ values: { satisfactionMinMeasured: min } }));
+			expect(stored.satisfactionMinMeasured).toBe(min);
+			clearReportCache();
+			const r = await ask();
+			expect(r.data.min_measured).toBe(min);
+			expect(r.data.totals.low_sample).toBe(r.data.totals.measured < min);
+		}
+	});
 });

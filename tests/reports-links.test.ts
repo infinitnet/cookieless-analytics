@@ -29,16 +29,27 @@ describe("links report", () => {
 
 	it("by link: impressions, clicks and CTR equal hand sums; clicked but never seen has CTR 0; seen but never clicked is listed", async () => {
 		const r = await run();
-		// alpha: seen 5 (v1) + 1 (v2), clicks o1 o3 o4 from A B D, conv c1 c3. beta: seen 4 + 1 + 1, click o2, conv c2.
-		// gamma: seen 1 + 1, no click. delta: click o5 without a session, never seen.
+		// alpha: seen 5 (v1) + 1 (v2), clicks o1 o3 o4 from A B D, conv c1 c3; D has no page view, so 2 sessions.
+		// beta: seen 4 + 1 + 1, click o2, conv c2. gamma: seen 1 + 1, no click. delta: click o5 without a session, never seen.
 		expect(pick(r.data.rows, "impressions", "clicks", "ctr", "sessions", "conversions")).toEqual([
-			["alpha-offer", 6, 3, 0.5, 3, 2],
+			["alpha-offer", 6, 3, 0.5, 2, 2],
 			["beta-offer", 6, 1, 0.1667, 1, 1],
 			["delta-offer", 0, 1, 0, 0, 0],
 			["gamma-offer", 2, 0, 0, 0, 0],
 		]);
 		expect(r.data.totals).toEqual({ impressions: 14, clicks: 5, ctr: 0.3571, conversions: 3 });
 		expect(r.data.rows?.[0]).not.toHaveProperty("revenue");
+	});
+
+	it("cf6: the table's sessions with a click equal the trend card's (visits with a page view and a click)", async () => {
+		// The card: timeseries of the visits with an `out` event; the table: the sessions column per link.
+		const card = await runReport(rc, { report: "timeseries", query: QuerySchema.parse({ ...LINKS_RANGE, granularity: "day", filters: [is("event", "out")] }) });
+		const cardSessions = (card.data.series ?? []).reduce((n, p) => n + Number(p.sessions ?? 0), 0);
+		const table = (await run()).data.rows ?? [];
+		// A and B clicked alpha (A also beta); D clicked alpha without a page view and counts in neither.
+		expect(cardSessions).toBe(2);
+		expect(table.find((r) => r.key === "alpha-offer")).toMatchObject({ clicks: 3, sessions: cardSessions });
+		expect(table.find((r) => r.key === "beta-offer")).toMatchObject({ clicks: 1, sessions: 1 });
 	});
 
 	it("by place: `<slug>@<place>` splits, a key without `@` and a click without place count under (none)", async () => {

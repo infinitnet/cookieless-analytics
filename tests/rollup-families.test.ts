@@ -233,7 +233,7 @@ describe.each(["sqlite", "postgres"] as const)("link and journey day statements 
 		expect(links.sql).toContain("SELECT 'link_place' AS dim, '' AS seg, place AS key, '' AS segkey");
 		for (const seg of SEGS) expect(links.sql).toContain(`SELECT 'link' AS dim, '${seg}' AS seg, slug AS key, ${seg} AS segkey`);
 		expect(links.sql).toContain("FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL AND counted = 1 GROUP BY slug, device, cur");
-		expect(links.sql).toContain("COUNT(DISTINCT CASE WHEN click = 1 THEN sid END) AS sessions");
+		expect(links.sql).toContain("COUNT(DISTINCT CASE WHEN click = 1 AND counted = 1 THEN sid END) AS sessions");
 		expect(links.sql).toContain(dialect === "postgres" ? "jsonb_each_text(h.value -> 'pr') AS p" : "json_each(h.value, '$.pr') AS p");
 		expect(links.sql).not.toMatch(/'out'|'seen'|'conv'|2026|'default'/);
 		expect(links.params).toEqual(expect.arrayContaining(["out", "conv", "seen", "default"]));

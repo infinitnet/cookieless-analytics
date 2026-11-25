@@ -8,6 +8,11 @@ import { type MetricDef, MetricChart } from "../components/MetricChart.js";
 import { ErrorScope } from "../components/ReportNotices.js";
 import { ReportPanel, useRevenue } from "./report.js";
 import { Segmented } from "./SearchSeo.js";
+import { LINK_DEFINITIONS } from "../../charts/definitions.js";
+
+/** Under the Links table: where the figures come from. */
+export const LINKS_NOTE =
+	"Clicks are out events of short links, from a redirect or a link rule, impressions are links seen on a page, sales are reported sales. CTR is clicks divided by impressions, 0 without impressions. Revenue is the sum of the reported sales in this currency, before refunds. Older ranges read daily link summaries: by link and by placement.";
 
 type By = (typeof LINK_BY)[number];
 export const LINK_BY_LABELS: Record<By, string> = {
@@ -17,7 +22,7 @@ export const LINK_BY_LABELS: Record<By, string> = {
 	channel: "Channel",
 	source: "Source",
 	campaign: "Campaign",
-	entry: "Landing page",
+	entry: "Entry page",
 	country: "Country",
 	device: "Device",
 };
@@ -28,19 +33,19 @@ function columns(by: By, code: string | null): Column[] {
 	const dim = FILTER_DIM[by];
 	return [
 		{ key: "key", label: LINK_BY_LABELS[by], format: "text", ...(dim ? { dim } : {}) },
-		{ key: "impressions", label: "Impressions" },
-		{ key: "clicks", label: "Clicks" },
-		{ key: "ctr", label: "CTR", format: "percent" },
-		{ key: "sessions", label: "Sessions with a click" },
-		{ key: "conversions", label: "Conversions" },
-		...(code ? [{ key: "revenue", label: `Revenue (${code})`, format: `money:${code}` } as Column] : []),
+		{ key: "impressions", label: "Impressions", info: LINK_DEFINITIONS.impressions },
+		{ key: "clicks", label: "Clicks", info: LINK_DEFINITIONS.clicks },
+		{ key: "ctr", label: "CTR", format: "percent", info: LINK_DEFINITIONS.ctr },
+		{ key: "sessions", label: "Sessions with a click", info: LINK_DEFINITIONS.sessions },
+		{ key: "conversions", label: "Sales", info: LINK_DEFINITIONS.conversions },
+		...(code ? [{ key: "revenue", label: `Revenue (${code})`, format: `money:${code}`, info: LINK_DEFINITIONS.revenue } as Column] : []),
 	];
 }
 
 /** Cards of the trend: sessions and visitors with a short link click. */
 const CLICK_METRICS: readonly MetricDef[] = [
-	{ key: "sessions", label: "Sessions with a click", format: "number" },
-	{ key: "visitors", label: "Visitors with a click", format: "number" },
+	{ key: "sessions", label: "Sessions with a click", format: "number", info: LINK_DEFINITIONS.sessions },
+	{ key: "visitors", label: "Visitors with a click", format: "number", info: LINK_DEFINITIONS.visitors },
 ];
 
 function LinksView({ view }: { view: View }) {
@@ -77,7 +82,7 @@ function LinksView({ view }: { view: View }) {
 				</section>
 			)}
 			<p className="ca-small">
-				Clicks are out events of short links, from a redirect or a link rule, impressions are links seen on a page, conversions are reported sales. CTR is clicks divided by impressions, 0 without impressions. Older ranges read daily link summaries: by link and by placement.
+				{LINKS_NOTE}
 			</p>
 		</ErrorScope>
 	);

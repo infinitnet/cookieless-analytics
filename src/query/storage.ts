@@ -13,10 +13,11 @@ import { KV_SYNC_ROWS } from "../sources/budget.js";
 import { copiedToday } from "../move/day-budget.js";
 import { deletedToday } from "./retention.js";
 import { SEGS, SUMMARY_DIMS } from "./rollup.js";
+import { passiveEntries } from "./reports/base.js";
 import { CUBE_SEG } from "./reports/summary.js";
 
 /**
- * Bytes per visit and per document entry (page view or event), JSONB document, row and index included, as measured
+ * Bytes per visit and per document entry (page view, event or passive entry), JSONB document, row and index included, as measured
  * with `dbstat` on SQLite (the verification gate's size runs: 657, 667 and 670 bytes per visit of 3.25 entries at
  * 1,000, 10,000 and 100,000 page views a day, documents grown in place). Every run had the same entries per visit,
  * so the split between the two keeps the proportion of the earlier fit.
@@ -61,19 +62,20 @@ const dimList = SUMMARY_DIMS.map((d) => `'${d}'`).join(", ");
 /** Single dimension rows, the pair rows of every segment and the revenue rows per cube cell: key ranges of the summary primary keys. */
 const segList = ["", ...SEGS, CUBE_SEG].map((d) => `'${d}'`).join(", ");
 
-/** Bytes of the detailed data of one day from its `all` summary row. */
+/** Bytes of the detailed data of one day from its `all` summary row (entries: page views, events and passive entries). */
 export const dayBytes = (visits: number, entries: number) => (visits * VISIT_BYTES + entries * ENTRY_BYTES) * STORAGE_SAFETY;
 
 /**
  * The estimate and the detailed window it allows. Two statements: the `all` rows of every site and day in the
- * longest retention, and the summary rows of the newest day before `today` (single dimension, pair, link, journey, revenue and cube rows).
+ * longest retention (their entries: page views, events, and the passive entries the closed-day writer stores in
+ * `hits`), and the summary rows of the newest day before `today` (single dimension, pair, link, journey, revenue and cube rows).
  */
 export async function estimateStorage(db: Db, s: Pick<Settings, "rawRetentionDays" | "rollupRetentionMonths" | "capacityProfile" | "storageBudgetMb">, today: string): Promise<StorageEstimate> {
 	const rawFrom = addDays(today, -s.rawRetentionDays);
 	const from = addDays(today, -Math.max(s.rawRetentionDays, Math.ceil(s.rollupRetentionMonths * 31)));
 	const days = (
 		await db.all<{ day: string; visits: number; entries: number }>(
-			`${siteScan("ca_rollup")} SELECT r.day AS day, SUM(r.sessions) AS visits, SUM(r.pageviews + r.events) AS entries FROM s JOIN ca_rollup r ON r.site = s.site AND r.dim = 'all' AND r.seg = '' AND r.day >= ? GROUP BY r.day ORDER BY r.day DESC`,
+			`${siteScan("ca_rollup")} SELECT r.day AS day, SUM(r.sessions) AS visits, SUM(r.pageviews + r.events + r.hits) AS entries FROM s JOIN ca_rollup r ON r.site = s.site AND r.dim = 'all' AND r.seg = '' AND r.day >= ? GROUP BY r.day ORDER BY r.day DESC`,
 			[from],
 		)
 	).map((d) => ({ day: String(d.day), bytes: dayBytes(Number(d.visits), Number(d.entries)) }));
@@ -128,12 +130,14 @@ export const GUARD_SHARE = 0.85;
 /**
  * Rows written at ingest per counted unit (rule-table meter, `tests/write-guard.test.ts`): a visit 1 (insert into
  * the table and its vkey index, less the first page view it carries), a page view 2.6 (its entry 1, engagement
- * updates 1.5, second-tab aliases 0.1), an event 1. With the production mix about 3.3 per page view. Deletes are
- * not estimated: retention counts the rows it deletes in the UTC day (`deletedToday`) and the guard adds them.
+ * updates 1.5, second-tab aliases 0.1), an event 1, a passive entry (link impression) 1. With the production mix
+ * about 3.3 per page view. Deletes are not estimated: retention counts the rows it deletes in the UTC day
+ * (`deletedToday`) and the guard adds them.
  */
 export const ROWS_PER_VISIT = 1;
 export const ROWS_PER_PV = 2.6;
 export const ROWS_PER_EVENT = 1;
+export const ROWS_PER_PASSIVE = 1;
 /** Rows written per day that do not depend on traffic: one day of summary rows on `small`. */
 export const FIXED_ROWS = 2_500;
 /**
@@ -152,6 +156,8 @@ export interface WriteBudget {
 	visits: number;
 	pageviews: number;
 	events: number;
+	/** Passive entries (link impressions): stored entries that `events` does not count. */
+	passive?: number;
 	/** Estimated rows written today (Search sync rows included), and the limit. */
 	rows: number;
 	/** Of `rows`, those written by Search syncs (counted, not estimated). */
@@ -163,18 +169,20 @@ export interface WriteBudget {
 	blocked: boolean;
 }
 
-/** Today's visits, page views and events of visits started since 00:00 UTC (the columns the guard reads). */
+/** Today's visits, page views, events and passive entries of visits started since 00:00 UTC (what the guard reads). */
 export interface DayCounts {
 	visits: number;
 	pageviews: number;
 	events: number;
+	passive?: number;
 }
 
-/** Rows written estimated from today's visits, page views and events, plus the rows Search syncs wrote and retention deleted today, and whether that crosses the guard. */
+/** Rows written estimated from today's visits, page views, events and passive entries, plus the rows Search syncs wrote and retention deleted today, and whether that crosses the guard. */
 export function writeBudget(c: DayCounts, day: string, at: number, sync = 0, deletes = 0): WriteBudget {
-	const rows = Math.round(c.visits * ROWS_PER_VISIT + c.pageviews * ROWS_PER_PV + c.events * ROWS_PER_EVENT + FIXED_ROWS) + sync + deletes;
+	const passive = c.passive ?? 0;
+	const rows = Math.round(c.visits * ROWS_PER_VISIT + c.pageviews * ROWS_PER_PV + c.events * ROWS_PER_EVENT + passive * ROWS_PER_PASSIVE + FIXED_ROWS) + sync + deletes;
 	const limit = FREE_ROWS_PER_DAY * GUARD_SHARE;
-	return { day, at, visits: c.visits, pageviews: c.pageviews, events: c.events, rows, limit, blocked: rows >= limit, ...(sync ? { sync } : {}), ...(deletes ? { deletes } : {}) };
+	return { day, at, visits: c.visits, pageviews: c.pageviews, events: c.events, ...(passive ? { passive } : {}), rows, limit, blocked: rows >= limit, ...(sync ? { sync } : {}), ...(deletes ? { deletes } : {}) };
 }
 
 /** The budget table row of the database `db`: Postgres, an own D1 database or the EmDash database on D1. */
@@ -188,8 +196,10 @@ export const dailyRowsApply = (profile: CapacityProfile, db: Pick<Db, "dialect">
 
 /**
  * Write budget of the current UTC day: null unless `dailyRowsApply` (the `small` profile on D1). Answered from the state key while it
- * is fresh; otherwise one statement counts the visits and sums the page views and events of the visits started since 00:00 UTC (it reads the
- * visits of at most two local days) and the state is stored again. A blocked state holds until the UTC day ends.
+ * is fresh; otherwise one statement counts the visits and sums the page views, events and passive entries of the visits started since
+ * 00:00 UTC (it reads the visits of at most two local days) and the state is stored again. Passive entries (link impressions) raise no
+ * column of the visit, and a counter of them would cost a write per impression or a schema change, so the statement counts them in
+ * the visit documents with a text count (`passiveEntries`), which reads no row beyond the visits (`json_each` would bill one per entry). A blocked state holds until the UTC day ends.
  */
 export async function budgetState(db: Db, kv: KvLike, now: number, profile: CapacityProfile, timeZone = "UTC"): Promise<WriteBudget | null> {
 	if (!dailyRowsApply(profile, db)) return null;
@@ -198,12 +208,12 @@ export async function budgetState(db: Db, kv: KvLike, now: number, profile: Capa
 	if (prev && prev.day === day && (prev.blocked || now - prev.at < (prev.rows >= prev.limit * FAST_FROM ? CHECK_FAST_S : CHECK_SLOW_S))) return prev;
 	const midnight = Date.parse(`${day}T00:00:00Z`) / 1000;
 	const days = [...new Set([dayInZone(midnight, timeZone), dayInZone(now, timeZone)])].map(visitDayKey);
-	const [r] = await db.all<{ v: number; pv: number; ev: number }>(
-		`${siteScan("ca_sessions")} SELECT COUNT(*) AS v, COALESCE(SUM(v.pageviews), 0) AS pv, COALESCE(SUM(v.events), 0) AS ev FROM s JOIN ca_sessions v ON v.site = s.site AND v.day IN (${days.map(() => "?").join(", ")}) WHERE v.started >= ?`,
+	const [r] = await db.all<{ v: number; pv: number; ev: number; pa: number }>(
+		`${siteScan("ca_sessions")} SELECT COUNT(*) AS v, COALESCE(SUM(v.pageviews), 0) AS pv, COALESCE(SUM(v.events), 0) AS ev, COALESCE(SUM(${passiveEntries(db.dialect, "v.hits")}), 0) AS pa FROM s JOIN ca_sessions v ON v.site = s.site AND v.day IN (${days.map(() => "?").join(", ")}) WHERE v.started >= ?`,
 		[...days, midnight],
 	);
 	const sync = await kv.get<{ day: string; rows: number }>(KV_SYNC_ROWS);
-	const state = writeBudget({ visits: Number(r?.v ?? 0), pageviews: Number(r?.pv ?? 0), events: Number(r?.ev ?? 0) }, day, now, sync?.day === day ? sync.rows : 0, (await deletedToday(kv, now)) + (await copiedToday(kv, now)));
+	const state = writeBudget({ visits: Number(r?.v ?? 0), pageviews: Number(r?.pv ?? 0), events: Number(r?.ev ?? 0), passive: Number(r?.pa ?? 0) }, day, now, sync?.day === day ? sync.rows : 0, (await deletedToday(kv, now)) + (await copiedToday(kv, now)));
 	await kv.set(KV_WRITE_BUDGET, state);
 	return state;
 }

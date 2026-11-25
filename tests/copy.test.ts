@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FORBIDDEN_PUBLIC_WORDS } from "../src/contract.js";
 import { HINTS } from "../src/admin/components/MetricChart.js";
@@ -504,6 +504,131 @@ describe("dashboard copy", () => {
 	});
 });
 
+describe("Search Satisfaction copy", () => {
+	it("every Search Satisfaction text carries no dash and no forbidden word, and the shared ones end the sentence", async () => {
+		const { satisfactionDefinition, SATISFACTION_DEFINITIONS, PANEL_DEFINITIONS } = await import("../src/charts/definitions.js");
+		const { LOW_SAMPLE, lowSampleLine, POGO_DEFINITION, RETURNED_DEFINITION, SCORE_DEFINITION } = await import("../src/query/reports/satisfaction-copy.js");
+		const { LOW_SAMPLE_COMPARE, metricLabel } = await import("../src/dashboards/tiles.js");
+		const { settingsSchema } = await import("../src/settings.js");
+		const { SATISFACTION_CATALOG } = await import("../src/agent/schemas.js");
+		const keys = ["sessions", "measured", "measured_rate", "avg_duration", "avg_engaged", "pct_long", "pct_short", "pct_bad", "pogo_stick_rate", "pogo_sticks", "returned_from_search_rate", "returned_from_search", "search_reentry_rate", "reentered", "back_nav_rate", "score"];
+		const sentences = [
+			...keys.map((k) => satisfactionDefinition(k) ?? ""),
+			...Object.values(SATISFACTION_DEFINITIONS),
+			PANEL_DEFINITIONS.satisfaction,
+			PANEL_DEFINITIONS.best_pages,
+			PANEL_DEFINITIONS.worst_pages,
+			PANEL_DEFINITIONS.pogo_engines,
+			POGO_DEFINITION,
+			RETURNED_DEFINITION,
+			SCORE_DEFINITION,
+			lowSampleLine(30),
+			LOW_SAMPLE_COMPARE,
+			settingsSchema.satisfactionMinMeasured.description,
+			"They count as sessions and in Avg. session duration, and are left out of every rate, the score and the average active time.",
+		];
+		const words = [LOW_SAMPLE, "Measured share", "Measured sessions", settingsSchema.satisfactionMinMeasured.label, metricLabel("search_reentry_rate"), metricLabel("back_nav_rate"), metricLabel("low_sample"), "Search re-entry (estimate)", SATISFACTION_CATALOG.params.rank];
+		const page = readFileSync("src/admin/pages/Satisfaction.tsx", "utf8");
+		for (const t of ["Measured share", "Measured sessions", "sample minimum", "They count as sessions and in Avg. session duration"]) expect(page.includes(t), t).toBe(true);
+		expect(readFileSync("src/admin/components/ImpactPanel.tsx", "utf8")).toContain('"Search re-entry (estimate)"');
+		for (const t of sentences) {
+			expect(t.length, t).toBeGreaterThan(0);
+			expect(t.endsWith("."), t).toBe(true);
+		}
+		for (const t of [...sentences, ...words]) {
+			expect(DASHES.some((d) => t.includes(d)), t).toBe(false);
+			for (const w of FORBIDDEN_PUBLIC_WORDS) expect(t.toLowerCase().includes(w), `${t}: ${w}`).toBe(false);
+		}
+	});
+});
+
+describe("metric definition copy", () => {
+	it("every definition, column text, footnote, notice and label of the figures carries no dash and no forbidden word, and every sentence ends", async () => {
+		const { COLUMN_DEFINITIONS, LINK_DEFINITIONS, METRIC_DEFINITIONS, PANEL_DEFINITIONS, tileDefinition } = await import("../src/charts/definitions.js");
+		const { CAVEATS, noticeCopy, SEO_NOTICES } = await import("../src/charts/caveats.js");
+		const { SEO_TEXT, baseWords } = await import("../src/query/reports/seo-copy.js");
+		const { metricLabel } = await import("../src/dashboards/tiles.js");
+		const { settingsSchema } = await import("../src/settings.js");
+		const { METRICS, SEO_CATALOG } = await import("../src/agent/schemas.js");
+		const { LINKS_NOTE } = await import("../src/admin/pages/Links.js");
+		const { SCROLL_TEXT } = await import("../src/admin/pages/Behaviour.js");
+		const { SEARCH_ROWS_TEXT } = await import("../src/admin/pages/Search.js");
+		const { ATTRIBUTION_NOTE } = await import("../src/admin/pages/Revenue.js");
+		const { WIDGET_COMPARE } = await import("../src/admin/widget.js");
+		const { SATISFACTION_RANKS } = await import("../src/admin/pages/Dashboards.js");
+		const { BUILTIN_NAMES, readTemplate } = await import("../src/dashboards/templates.js");
+		const { tileTitle } = await import("../src/dashboards/tiles.js");
+		// Every tile title of the built-in templates other than Search Satisfaction, as a dashboard prints it.
+		const tileTitles = BUILTIN_NAMES.filter((n) => n !== "satisfaction").flatMap((n) => readTemplate({ builtin: n }).tiles.map((t) => tileTitle(t)));
+		// The definition maps are partial records: their values are the texts.
+		const vals = (o: Readonly<Record<string, string | undefined>>): string[] => Object.values(o).map((t) => t ?? "");
+		const maps: string[] = [METRIC_DEFINITIONS, PANEL_DEFINITIONS, COLUMN_DEFINITIONS, LINK_DEFINITIONS, SCROLL_TEXT, SEARCH_ROWS_TEXT].flatMap(vals);
+		// Record lookups are typed as possibly undefined; an absent text fails the length check below.
+		const sentences = [
+			...maps,
+			tileDefinition("satisfaction", "sessions") ?? "",
+			CAVEATS.visitors,
+			CAVEATS.duration,
+			CAVEATS.active_time,
+			CAVEATS.bounce_footnote,
+			CAVEATS.duration_footnote,
+			SEO_NOTICES.top3_insufficient,
+			noticeCopy("exit_rate_segment") ?? "",
+			SEO_TEXT.striking,
+			SEO_TEXT.decay,
+			LINKS_NOTE,
+			ATTRIBUTION_NOTE,
+			settingsSchema.engagedThresholdSeconds.description,
+			settingsSchema.realtimeWindowMinutes.description,
+			settingsSchema.searchMinImpressions.description,
+		].map((t) => t ?? "");
+		// The agent catalog is served to API keys only, never to a visitor: it names reports such as collections, so only the dash rule applies.
+		const catalog = [...Object.values(METRICS), SEO_CATALOG.periodRule, SEO_CATALOG.bandRule].map((t) => t ?? "");
+		for (const t of catalog) expect(DASHES.some((d) => t.includes(d)), t).toBe(false);
+		const words = [
+			WIDGET_COMPARE,
+			SEO_TEXT.top3Insufficient,
+			...["sessions", "pageviews", "entries", "orders", "visitors", "measured", "impressions"].map((b) => baseWords(b, "overview")),
+			...["converting", "conversion_rate", "rate", "conversion", "drop_off", "delta", "delta_pct", "overlapping_queries_pct", "overlapping_impressions_pct", "potential_clicks", "avg_duration", "conversions", "measured_rate"].map(metricLabel),
+			...SATISFACTION_RANKS.map(([, label]) => label),
+			...tileTitles,
+		];
+		// The labels themselves, from the code that prints them: tiles name figures as the admin pages do.
+		expect(["avg_duration", "converting", "conversion_rate", "conversions", "measured_rate"].map(metricLabel)).toEqual(["Avg. session duration", "Converting sessions", "Conversion rate", "Sales", "Measured share"]);
+		// Search Satisfaction names its pages landing pages; every other place says entry page.
+		expect(SATISFACTION_RANKS[0]).toEqual(["", "Busiest landing pages"]);
+		expect(tileTitles.filter((t) => /landing page/i.test(t))).toEqual([]);
+		expect(tileTitles).toEqual(expect.arrayContaining(["Entry pages", "Revenue by entry page"]));
+		for (const t of sentences) {
+			expect(t.length, t).toBeGreaterThan(0);
+			expect(t.endsWith(".") || t.endsWith(")"), t).toBe(true);
+		}
+		for (const t of [...sentences, ...words]) {
+			expect(DASHES.some((d) => t.includes(d)), t).toBe(false);
+			for (const w of FORBIDDEN_PUBLIC_WORDS) expect(t.toLowerCase().includes(w), `${t}: ${w}`).toBe(false);
+		}
+	});
+});
+
+describe("engaged threshold text", () => {
+	it("says a bounce is a session that is not engaged, so a one page session over the threshold is no bounce", async () => {
+		const { settingsSchema } = await import("../src/settings.js");
+		const text = settingsSchema.engagedThresholdSeconds.description;
+		expect(text).toBe("Active time from which a session counts as engaged. A session with two or more page views or any event is engaged whatever its active time. A session that is not engaged is a bounce.");
+		for (const f of ["docs/settings.md", "docs/wiki/Settings-Reference.md"]) expect(readFileSync(f, "utf8"), f).toContain(text);
+	});
+});
+
+describe("entry and landing pages", () => {
+	it("README, the dashboard docs and the templates say entry page; landing page only where Search Satisfaction speaks", () => {
+		const lines = ["README.md", "docs/dashboards.md", "docs/revenue.md", "docs/wiki/Reports.md", "docs/wiki/Revenue-and-Refunds.md"].flatMap((f) => readFileSync(f, "utf8").split("\n").map((l) => `${f}: ${l}`));
+		expect(lines.filter((l) => /landing page/i.test(l) && !/satisfaction/i.test(l))).toEqual([]);
+		const templates = readdirSync("src/data/templates").filter((f) => f.endsWith(".json") && f !== "satisfaction.json");
+		expect(templates.length).toBeGreaterThan(10);
+		for (const f of templates) expect(readFileSync(`src/data/templates/${f}`, "utf8"), f).not.toMatch(/landing page/i);
+	});
+});
+
 describe("change words", () => {
 	it("every change text, note and compare label carries no dash and no forbidden word", () => {
 		const cases = [
@@ -516,6 +641,8 @@ describe("change words", () => {
 			describeChange("visitors", 5, 5, { format: "number" }),
 			describeChange("realtime", 9, 4, { format: "number" }),
 			describeChange("clicks", 10, null, { format: "number" }),
+			describeChange("score", 0.24, 0.2, { format: "points", base: 300 }),
+			describeChange("score", -0.1, 0.2, { format: "points", base: 20 }),
 		];
 		const range = { from: "2026-10-01", to: "2026-10-28" };
 		const strings = [

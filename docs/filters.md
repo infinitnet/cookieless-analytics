@@ -165,7 +165,7 @@ Visitors are summed over days and over rows: a visitor seen on two channels in o
 
 ### The day rule
 
-A page view or an event counts on the day its visit started, also after midnight. Orders, server events and error pages count on their own day. Hour charts use each hit's own time; over summaries an hourly chart shows days (`granularity_day`).
+A page view or an event counts on the day its visit started, also after midnight. Orders, server events and error pages count on their own day. Hour charts of traffic use the hour the visit started, hour charts of orders the order's own time; over summaries an hourly chart shows days (`granularity_day`).
 
 ### Notices and their meaning
 
@@ -180,6 +180,7 @@ A page view or an event counts on the day its visit started, also after midnight
 | `granularity_day` | "Hourly detail is not kept for this range; the chart shows days." | |
 | `revenue_not_available` | "Revenue is left out: the daily summaries cannot apply these filters to orders." | |
 | `exit_rate_partial` | "Exit rate is blank for pages whose exits or page views were folded into other pages on some days of this range." Over summaries, a page's exit rate sums its exits and page views over the same days; on a day where one of the two daily top lists folded the page into `(other)` and the other kept it, the page's share is unknown and its exit rate is null. | |
+| `exit_rate_segment` | "Exit rate is blank here: the daily summaries keep exits without a channel, country or device, so they cannot apply that filter to it." Pages from the summaries under a channel, country or device filter answer a null exit rate. | |
 | error `raw_only` | The report needs detailed data; the message ends "Detailed data starts on <day>." | "Show <day> to <to> with all filters" |
 | error `narrow_range` | "This range holds about <n> visits, more than one detailed report may read with these filters. Choose <from> to <to>, or filters the daily summaries can answer." | "Show <from> to <to>" |
 

@@ -12,7 +12,7 @@ import { type Format, fmt } from "../../charts/geometry.js";
 import { ChangeMark } from "./Change.js";
 import { addDays, dayInZone } from "../../core/time.js";
 import type { Params } from "../../query/reports/index.js";
-import { IMPACT_WINDOWS, type ImpactReport, SEO_TEXT } from "../../query/reports/seo-copy.js";
+import { baseWords, IMPACT_WINDOWS, type ImpactReport, SEO_TEXT } from "../../query/reports/seo-copy.js";
 import { useReport } from "../api.js";
 import { LineChart } from "./Chart.js";
 import { type SuggestSource, SuggestInput } from "./ValueInput.js";
@@ -32,7 +32,7 @@ export const IMPACT_OPTIONS: readonly Option[] = [
 	["Traffic", "overview", "pageviews", "Page views", "number"],
 	["Traffic", "overview", "bounce_rate", "Bounce rate", "percent"],
 	["Traffic", "overview", "engaged_rate", "Engaged rate", "percent"],
-	["Traffic", "overview", "avg_duration", "Avg. duration", "duration"],
+	["Traffic", "overview", "avg_duration", "Avg. session duration", "duration"],
 	["Traffic", "overview", "views_per_session", "Views per session", "decimal"],
 	["Pages", "pages", "avg_time", "Avg. active time", "duration", "page"],
 	["Pages", "pages", "exit_rate", "Exit rate", "percent", "page"],
@@ -50,7 +50,7 @@ export const IMPACT_OPTIONS: readonly Option[] = [
 	["Search Satisfaction", "satisfaction", "pct_short", "Short clicks", "percent"],
 	["Search Satisfaction", "satisfaction", "pct_bad", "Bad experience", "percent"],
 	["Search Satisfaction", "satisfaction", "pogo_stick_rate", "Pogo-sticking (estimate)", "percent"],
-	["Search Satisfaction", "satisfaction", "search_reentry_rate", "Search re-entry", "percent"],
+	["Search Satisfaction", "satisfaction", "search_reentry_rate", "Search re-entry (estimate)", "percent"],
 ];
 /** One line per group on what its metrics measure (the hint under the picker). */
 export const GROUP_HINTS: Record<string, string> = {
@@ -161,7 +161,8 @@ interface ImpactData {
 	delta?: number | null;
 	delta_pct?: number | null;
 	notable?: boolean;
-	measured?: { before: number | null; after: number | null };
+	/** The base of a rate: its name (absent from an older satellite) and its value in each window. */
+	measured?: { base?: string; before: number | null; after: number | null };
 	series?: Array<{ t: string; value: number | null }>;
 	marker?: string;
 	overlapping?: Array<{ id: string | null; ts: number; kind: string; text: string }>;
@@ -327,7 +328,7 @@ export function ImpactPanel({ view, annotation, target, window: fixedWindow, sea
 					{d.notable !== undefined && <p className="ca-small">{d.notable ? IMPACT_TEXT.notable : IMPACT_TEXT.noise}</p>}
 					{den && (
 						<p className="ca-small">
-							{fmt(den.before)} {report.startsWith("search_") ? "impressions" : "measured"} before, {fmt(den.after)} after
+							{fmt(den.before)} {baseWords(den.base, report)} before, {fmt(den.after)} after
 						</p>
 					)}
 					{d.complete === false && <Notice tone="warning">{IMPACT_TEXT.incomplete(d.days_after ?? 0, d.window ?? win)}</Notice>}

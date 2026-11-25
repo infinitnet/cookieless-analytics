@@ -2,9 +2,10 @@
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FORBIDDEN_PUBLIC_WORDS, PLUGIN_ID } from "../src/contract.js";
-import { renderShared, type RenderInput, SHARE_ANNOTATIONS_PER_TILE } from "../src/dashboards/render.js";
-import { type Dashboard, MAX_TILES, readDashboard } from "../src/dashboards/schema.js";
-import type { TileData } from "../src/dashboards/tiles.js";
+import { footnotes, renderShared, type RenderInput, SHARE_ANNOTATIONS_PER_TILE } from "../src/dashboards/render.js";
+import { type Dashboard, MAX_TILES, MONEY_KEYS, readDashboard } from "../src/dashboards/schema.js";
+import { formatValue, tableColumnKeys, type TileData, valueFormat, valueLabel } from "../src/dashboards/tiles.js";
+import { CAVEATS } from "../src/charts/caveats.js";
 
 const td = (o: Partial<TileData> & Pick<TileData, "kind">): TileData => ({ metric: null, value: null, buckets: [], lines: [], rows: [], columns: [], notices: [], ...o });
 const buckets = Array.from({ length: 30 }, (_, i) => `2026-10-${String(i + 1).padStart(2, "0")}`);
@@ -129,6 +130,8 @@ describe.each([false, true])("shared page renderer (annotations %s)", (annotated
 	it("adds the footnotes the tiles need", () => {
 		const text = parse(renderShared(input())).querySelector("footer")?.textContent ?? "";
 		expect(text).toContain("Distinct visitors per day");
+		// The fixture shows a bounce rate tile and column: its definition is a footnote.
+		expect(text).toContain(CAVEATS.bounce_footnote);
 		expect(text).toContain("are estimates");
 		expect(text).toContain("Search data arrives 2 to 3 days late");
 		const doc = parse(renderShared(input()));
@@ -258,6 +261,113 @@ describe("SEO and impact tiles", () => {
 	});
 });
 
+describe("tile figures on shared pages and emails", () => {
+	const dash = (tiles: Array<Record<string, unknown>>) =>
+		readDashboard({ id: "abcdefabcdef", site: "default", v: 1, name: "Figures", tiles, defaults: { range: "30d", compare: "none", filters: [] }, viewer: { ranges: ["30d"], compare: false }, created: 1, updated: 1 });
+
+	it("cf2: refunds, net revenue and estimated lost revenue are amounts with their code", () => {
+		for (const k of ["refunds", "net_revenue", "est_lost_revenue"]) {
+			expect(MONEY_KEYS.has(k), k).toBe(true);
+			expect(valueFormat(k, "USD"), k).toBe("money:USD");
+			expect(formatValue(k, 12.5, "USD"), k).toBe("12.50 USD");
+		}
+		expect(valueLabel("net_revenue", "EUR")).toBe("Net revenue (EUR)");
+	});
+
+	it("cf3: a converting sessions tile carries no visitors footnote; a visitors tile does", () => {
+		const goals = dash([{ id: "g00001", report: "goals", kind: "kpi", metric: "converting", w: 1, params: { goal: "g1" } }]);
+		expect(footnotes({ dashboard: goals, tiles: [td({ kind: "kpi", metric: "converting", value: 12 })] })).not.toContain(CAVEATS.visitors);
+		const visitors = dash([{ id: "v00001", report: "overview", kind: "kpi", metric: "visitors", w: 1 }]);
+		expect(footnotes({ dashboard: visitors, tiles: [td({ kind: "kpi", metric: "visitors", value: 12 })] })).toContain(CAVEATS.visitors);
+	});
+
+	it("cf11: a default Not found table tile leaves last_seen out instead of printing epoch seconds", () => {
+		expect(tableColumnKeys([{ key: "/gone", ref: "", hits: 4, last_seen: 1_793_000_000 }])).toEqual(["key", "ref", "hits"]);
+	});
+
+	it("defines the bounce rate and the session duration in a footnote when a tile shows them, and only then", () => {
+		const d = dash([
+			{ id: "k00001", report: "overview", kind: "kpi", metric: "bounce_rate", w: 1 },
+			{ id: "l00001", report: "timeseries", kind: "line", metrics: ["avg_duration"], w: 2 },
+		]);
+		const notes = footnotes({ dashboard: d, tiles: [td({ kind: "kpi", metric: "bounce_rate", value: 0.4 }), td({ kind: "line", metric: "avg_duration", buckets: ["2026-10-01"], lines: [{ key: "avg_duration", values: [61], compare: null }] })] });
+		expect(notes).toEqual(expect.arrayContaining([CAVEATS.bounce_footnote, CAVEATS.duration_footnote]));
+		expect(CAVEATS.bounce_footnote).toBe("Bounce rate: share of sessions with one page view, no event and active time under the engaged threshold.");
+		expect(CAVEATS.duration_footnote).toBe("Avg. session duration: the longer of the visit span and the time the pages were visible.");
+		const plain = dash([{ id: "k00001", report: "overview", kind: "kpi", metric: "sessions", w: 1 }]);
+		const none = footnotes({ dashboard: plain, tiles: [td({ kind: "kpi", metric: "sessions", value: 9 })] });
+		expect(none).not.toContain(CAVEATS.bounce_footnote);
+		expect(none).not.toContain(CAVEATS.duration_footnote);
+	});
+
+	it("a stored dashboard whose tiles name removed satisfaction keys still parses, renders on its shared page and mails; a new one is refused", async () => {
+		const { tileData } = await import("../src/dashboards/tiles.js");
+		const { renderEmail } = await import("../src/dashboards/email.js");
+		const { DashboardInput } = await import("../src/dashboards/schema.js");
+		const [gone1, gone2] = ["sessions", "measured"].map((k) => `search_${k}`) as [string, string];
+		const tiles = [
+			{ id: "s00001", report: "satisfaction", kind: "kpi", metric: gone1, w: 1 },
+			{ id: "s00002", report: "satisfaction", kind: "table", columns: [gone2, "sessions"], w: 2 },
+			{ id: "s00003", report: "satisfaction", kind: "kpi", metric: "pct_long", w: 1 },
+		];
+		const stored = dash(tiles);
+		expect(stored.tiles.map((t) => t.metric ?? t.columns)).toEqual([gone1, [gone2, "sessions"], "pct_long"]);
+		const result = { report: "satisfaction", range: { from: "2026-03-01", to: "2026-03-07" }, compare: "none", compareRange: null, notices: [], data: { totals: { sessions: 10, measured: 8, pct_long: 0.5 }, rows: [{ key: "/a", sessions: 10, measured: 8 }] } } as never;
+		const data = stored.tiles.map((t) => tileData(t, result));
+		// The removed figure shows no value; the other tiles render as always.
+		expect(data.map((d) => d.value)).toEqual([null, null, 0.5]);
+		expect(data[1]?.columns).toEqual(["key", "sessions"]);
+		const html = renderShared(input({ dashboard: stored, tiles: data }));
+		expect(parse(html).querySelectorAll("section").length).toBeGreaterThanOrEqual(3);
+		expect(html).toContain("50");
+		const mail = renderEmail({ dashboard: stored, tiles: data.map((d) => ({ data: d })), range: "30d", compare: false, adminUrl: "https://example.org/a", generatedAt: 1_773_360_000 });
+		expect(mail.text).toContain("/a");
+		// An editor or agent cannot save the removed key.
+		expect(DashboardInput.safeParse({ name: "New", tiles: [tiles[0]], defaults: { range: "30d", compare: "none", filters: [] }, viewer: { ranges: ["30d"], compare: false } }).success).toBe(false);
+	});
+
+	it("the exit rate notice stays with tiles that show the exit rate: a pages table with the column, not one without it or a bars tile", async () => {
+		const { tileData } = await import("../src/dashboards/tiles.js");
+		const result = { report: "pages", range: { from: "2026-03-01", to: "2026-03-07" }, compare: "none", compareRange: null, notices: ["summary", "exit_rate_segment"], data: { rows: [{ key: "/a", visitors: 5, pageviews: 9, exit_rate: null }] } } as never;
+		const notices = (tile: Record<string, unknown>) => tileData(tile as never, result).notices;
+		expect(notices({ id: "p00001", report: "pages", kind: "table", w: 2 })).toEqual(["summary", "exit_rate_segment"]);
+		expect(notices({ id: "p00001", report: "pages", kind: "table", columns: ["pageviews"], w: 2 })).toEqual(["summary"]);
+		expect(notices({ id: "p00001", report: "pages", kind: "bars", metric: "pageviews", w: 1 })).toEqual(["summary"]);
+		expect(notices({ id: "p00001", report: "pages", kind: "bars", metric: "exit_rate", w: 1 })).toEqual(["summary", "exit_rate_segment"]);
+		// The shared page and the email print what the tile keeps.
+		const { noticeCopy } = await import("../src/charts/caveats.js");
+		const { renderEmail } = await import("../src/dashboards/email.js");
+		const bars = { id: "p00001", report: "pages", kind: "bars", metric: "pageviews", w: 1 };
+		const text = noticeCopy("exit_rate_segment") ?? "";
+		expect(renderShared(input({ dashboard: dash([bars]), tiles: [tileData(bars as never, result)] }))).not.toContain(text);
+		expect(renderEmail({ dashboard: dash([bars]), tiles: [{ data: tileData(bars as never, result) }], range: "7d", compare: false, adminUrl: "https://example.org/a", generatedAt: 1_773_360_000 }).text).not.toContain(text);
+		const table = { id: "p00001", report: "pages", kind: "table", w: 2 };
+		expect(renderEmail({ dashboard: dash([table]), tiles: [{ data: tileData(table as never, result) }], range: "7d", compare: false, adminUrl: "https://example.org/a", generatedAt: 1_773_360_000 }).text).toContain(text);
+	});
+
+	it("bars and donut tiles carry the bounce, duration and visitors footnotes only for the metric they draw; a table only for its columns", async () => {
+		const { tileData } = await import("../src/dashboards/tiles.js");
+		const result = { report: "channels", range: { from: "2026-03-01", to: "2026-03-07" }, compare: "none", compareRange: null, notices: [], data: { rows: [{ key: "Organic", visitors: 10, sessions: 12, bounce_rate: 0.4, avg_duration: 30, pageviews: 20 }] } } as never;
+		const notesOf = (tile: Record<string, unknown>) => footnotes({ dashboard: dash([tile]), tiles: [tileData(tile as never, result)] });
+		const caveats = [CAVEATS.bounce_footnote, CAVEATS.duration_footnote, CAVEATS.visitors];
+		const shown = (tile: Record<string, unknown>) => caveats.filter((c) => notesOf(tile).includes(c));
+		for (const kind of ["bars", "donut"]) {
+			expect(shown({ id: "c00001", report: "channels", kind, metric: "sessions", w: 1 }), kind).toEqual([]);
+			expect(shown({ id: "c00001", report: "channels", kind, metric: "bounce_rate", w: 1 }), kind).toEqual([CAVEATS.bounce_footnote]);
+			expect(shown({ id: "c00001", report: "channels", kind, metric: "avg_duration", w: 1 }), kind).toEqual([CAVEATS.duration_footnote]);
+			expect(shown({ id: "c00001", report: "channels", kind, metric: "visitors", w: 1 }), kind).toEqual([CAVEATS.visitors]);
+		}
+		expect(shown({ id: "c00001", report: "channels", kind: "table", columns: ["sessions"], w: 2 })).toEqual([]);
+		expect(shown({ id: "c00001", report: "channels", kind: "table", columns: ["sessions", "bounce_rate"], w: 2 })).toEqual([CAVEATS.bounce_footnote]);
+		// The email prints the same footnotes.
+		const { renderEmail } = await import("../src/dashboards/email.js");
+		const mail = (tile: Record<string, unknown>) => renderEmail({ dashboard: dash([tile]), tiles: [{ data: tileData(tile as never, result) }], range: "7d", compare: false, adminUrl: "https://example.org/a", generatedAt: 1_773_360_000 }).text;
+		expect(mail({ id: "c00001", report: "channels", kind: "bars", metric: "sessions", w: 1 })).not.toContain(CAVEATS.bounce_footnote);
+		expect(mail({ id: "c00001", report: "channels", kind: "bars", metric: "sessions", w: 1 })).not.toContain(CAVEATS.duration_footnote);
+		expect(mail({ id: "c00001", report: "channels", kind: "bars", metric: "bounce_rate", w: 1 })).toContain(CAVEATS.bounce_footnote);
+	});
+});
+
 describe("revenue tiles", () => {
 	it("show the code in every value and header, the currency footnote and the other currencies line", async () => {
 		const { tileData, REVENUE_EMPTY } = await import("../src/dashboards/tiles.js");
@@ -307,5 +417,36 @@ describe("revenue tiles", () => {
 		const lower = html.toLowerCase();
 		for (const bad of ["<script", "http", "<img", PLUGIN_ID]) expect(lower).not.toContain(bad);
 		for (const w of FORBIDDEN_PUBLIC_WORDS) expect(lower).not.toContain(w);
+	});
+});
+
+describe("Search Satisfaction score on the shared page", () => {
+	const dashboard = readDashboard({
+		id: "abcdefabcdef",
+		site: "default",
+		v: 1,
+		name: "Search",
+		tiles: [
+			{ id: "k00001", report: "satisfaction", kind: "kpi", metric: "score", w: 1 },
+			{ id: "t00001", report: "satisfaction", kind: "table", w: 2, columns: ["score", "measured"], params: { rank: "best" } },
+		],
+		defaults: { range: "30d", compare: "none", filters: [] },
+		viewer: { ranges: ["30d"], compare: false },
+		created: 1,
+		updated: 1,
+	});
+	const tiles = [
+		td({ kind: "kpi", metric: "score", value: 0.24, note: "Low sample: under 30 measured sessions, the sample minimum." }),
+		td({ kind: "table", columns: ["key", "score", "measured"], rows: [{ key: "/a", score: 0.5, measured: 12, low_sample: "yes" }, { key: "/b", score: -0.157, measured: 80, low_sample: "no" }] }),
+	];
+
+	it("prints the score in points with the low sample note under the cell and the line under the number tile", () => {
+		const doc = parse(renderShared({ dashboard, tiles, range: "30d", compare: false, ranges: ["30d"], allowCompare: false, generatedAt: 1_793_000_000 }));
+		const [kpiTile, tableTile] = [...doc.querySelectorAll("section")];
+		expect(kpiTile?.querySelector(".kpi")?.textContent).toBe("24");
+		expect(kpiTile?.textContent).toContain("Low sample: under 30 measured sessions, the sample minimum.");
+		const cells = [...(tableTile?.querySelectorAll("tbody tr") ?? [])].map((tr) => tr.querySelectorAll("td")[1]?.textContent);
+		expect(cells).toEqual(["50low sample", "-16"]);
+		expect(doc.querySelector("footer")?.textContent).toContain("Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals.");
 	});
 });

@@ -76,6 +76,25 @@ describe("write guard", () => {
 		}
 	});
 
+	it("counts passive link impressions: 20 visits with 3 impressions each estimate within the tolerance of 3 custom events each", async () => {
+		const ratios: Record<string, number> = {};
+		for (const impressions of [false, true]) {
+			const e = await schemaDb();
+			const m = meteredDb(e);
+			m.reset();
+			const traffic = generateTraffic({ pageviews: 20, sessionsPerPv: 1, eventsPerPv: 3, aliasesPerPv: 0, seed: 5, impressions, start: T - 6 * 3600, spanSeconds: 3600 });
+			expect(await recordTraffic(m.db, traffic, normalizeSettings({ maxEventsPerSession: 10_000 }))).toEqual({ ok: 110 });
+			const b = (await budgetState(m.db, e.kv, T, "small")) as WriteBudget;
+			// Impressions are stored entries that `events` does not count: the guard reads them from the documents.
+			expect([b.visits, b.pageviews, b.events, b.passive ?? 0]).toEqual(impressions ? [20, 20, 0, 60] : [20, 20, 60, 0]);
+			const ratio = (b.rows - FIXED_ROWS) / m.stats.rowsWritten;
+			ratios[impressions ? "impressions" : "events"] = ratio;
+			expect(ratio).toBeGreaterThan(0.97);
+			expect(ratio).toBeLessThan(1.03);
+		}
+		expect(ratios.impressions).toBe(ratios.events);
+	});
+
 	it("accepts below the figure, stops at it with a 503 without Retry-After counted as budget_blocked, and resumes the next UTC day", async () => {
 		seedPageviews(LAST_OPEN);
 		const open = await post(T);

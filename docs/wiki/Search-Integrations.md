@@ -63,7 +63,7 @@ Below the reports a short sync line shows the last sync with **Sync now** and **
 
 - **Overview**: cards for clicks, impressions, CTR and average position with the comparison, and a chart with annotation markers.
 - **Queries**, **Pages**, **Countries**, **Devices**: tables with click to filter and export. Countries and Devices are Google only and hidden when only Bing is mapped.
-- **Positions**: position bands (1-3, 4-10, 11-20, 21-50, 51+), bands over time, band movement and striking distance (page and query pairs at positions 4 to 20 with an estimate of extra clicks).
+- **Positions**: position bands (1-3, 4-10, 11-20, 21-50, 51+), bands over time, band movement and striking distance (Google page and query pairs with an average position from 4 to below 21, with an estimate of extra clicks).
 - **Cannibalization**: queries where two or more of your pages each hold at least `searchOverlapMinShare` percent of the impressions, labelled Dominant, Split, Inverted or Shared, and the competing pages.
 - **Changes**: rising and declining pages and queries, new and lost queries, and decay (pages falling in three periods in a row, with a diagnosis of Position, CTR or Demand).
 

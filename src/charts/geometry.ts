@@ -2,8 +2,8 @@
 
 import { formatAmount } from "../core/currency.js";
 
-/** `money:<ISO code>` prints an amount with its code (`1,234.50 USD`). */
-export type Format = "number" | "percent" | "duration" | "decimal" | "text" | `money:${string}`;
+/** `money:<ISO code>` prints an amount with its code (`1,234.50 USD`); `points` prints a fraction in points (0.24 is 24). */
+export type Format = "number" | "percent" | "duration" | "decimal" | "points" | "text" | `money:${string}`;
 
 /** Width of every chart's view box. */
 export const W = 600;
@@ -30,6 +30,8 @@ export function fmt(v: unknown, f: Format = "number"): string {
 		}
 		case "decimal":
 			return v.toFixed(2);
+		case "points":
+			return String(Math.round(v * 100) || 0);
 		default:
 			return Math.abs(v) >= 100_000 ? compact.format(v) : nf.format(v);
 	}
@@ -108,6 +110,7 @@ export function axisScale(values: ReadonlyArray<number | null>, top: number, bot
 /** Short tick label: compact counts ("9.2k"), whole percents, durations as `fmt`, money without its code (the code is in the axis caption). */
 export function fmtTick(v: number, f: Format): string {
 	if (f === "percent") return `${r1(v * 100)}%`;
+	if (f === "points") return String(Math.round(v * 100) || 0);
 	if (f === "duration") return fmt(v, f);
 	if (f === "decimal") return String(r1(v));
 	return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(v);

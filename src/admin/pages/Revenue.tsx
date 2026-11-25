@@ -14,9 +14,12 @@ import { KpiCard } from "../components/KpiCard.js";
 import { type MetricDef, MetricChart } from "../components/MetricChart.js";
 import { ErrorScope, ReportError } from "../components/ReportNotices.js";
 import { InfoMark, Loading, Notice, Segmented } from "../components/ui.js";
-import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { COLUMN_DEFINITIONS, metricDefinition, PANEL_DEFINITIONS } from "../../charts/definitions.js";
 import { wikiUrl } from "../docs-links.js";
-import { OtherCurrencies, ReportPanel, TableSkeleton, useRevenue } from "./report.js";
+import { metricColumn, OtherCurrencies, ReportPanel, TableSkeleton, useRevenue, VISITORS_COLUMN } from "./report.js";
+
+/** A figure of the totals; totals may also carry flags (Search Satisfaction `low_sample`), which are no figure. */
+const figure = (v: unknown): number | null | undefined => (v === undefined ? undefined : typeof v === "number" ? v : null);
 
 const REVENUE_KPIS = [
 	["revenue", "Revenue", true],
@@ -38,7 +41,7 @@ export const REFUNDS_NOTE =
 
 /** The attribution model in one sentence (docs/revenue.md, attribution). */
 export const ATTRIBUTION_NOTE =
-	"Each order is credited to the first touch of its visit: the referrer, channel, campaign and landing page the visit started with. The plugin keeps no cookie and no identity across visits, so earlier visits get no share.";
+	"Each order is credited to the first touch of its visit: the referrer, channel, campaign and entry page the visit started with. Page, event and goal panels credit the page, event or goal of the order itself. The plugin keeps no cookie and no identity across visits, so earlier visits get no share.";
 
 /** The revenue guide in the wiki, linked from the first use state. */
 export const REVENUE_GUIDE = wikiUrl("Revenue-and-Refunds");
@@ -58,7 +61,7 @@ export function RevenueKpis({ res, metrics = REVENUE_KPIS.map((k) => k[0]) }: { 
 			{/* No compare note: the Overview prints it once above its cards, for the same range. */}
 			<section className="ca-kpis" aria-label={`Revenue in ${code}`}>
 				{REVENUE_KPIS.filter(([k]) => shown.includes(k)).map(([k, label, money]) => (
-					<KpiCard key={k} metric={k} label={money ? `${label} (${code})` : label} format={(money ? `money:${code}` : "number") as Format} value={d?.totals?.[k]} compare={previous} />
+					<KpiCard key={k} metric={k} label={money ? `${label} (${code})` : label} format={(money ? `money:${code}` : "number") as Format} value={figure(d?.totals?.[k])} compare={previous} />
 				))}
 			</section>
 			{refunds && <Notice label="Refunds">{REFUNDS_NOTE}</Notice>}
@@ -73,7 +76,7 @@ const DIMS: Record<BreakdownDim, readonly [title: string, label: string, filter:
 	channel: ["Channels", "Channel", "channel"],
 	source: ["Sources", "Source", "source"],
 	campaign: ["Campaigns", "Campaign", "utm_campaign"],
-	entry: ["Landing pages", "Landing page", "entry"],
+	entry: ["Entry pages", "Entry page", "entry"],
 	page: ["Pages", "Page", "page"],
 	country: ["Countries", "Country", "country"],
 	device: ["Devices", "Device", "device"],
@@ -83,10 +86,23 @@ const DIMS: Record<BreakdownDim, readonly [title: string, label: string, filter:
 /** Rows per attribution panel; the export holds every row. */
 const PANEL_ROWS = 10;
 
+/** What the Revenue column of each breakdown credits: the first touch of the order's visit, the visit itself, or the order's own page, event or goal. */
+const BREAKDOWN_REVENUE: Record<BreakdownDim, string> = {
+	channel: COLUMN_DEFINITIONS.revenue_first_touch,
+	source: COLUMN_DEFINITIONS.revenue_first_touch,
+	campaign: COLUMN_DEFINITIONS.revenue_first_touch,
+	entry: COLUMN_DEFINITIONS.revenue_first_touch,
+	page: COLUMN_DEFINITIONS.revenue_page,
+	country: COLUMN_DEFINITIONS.revenue_visit,
+	device: COLUMN_DEFINITIONS.revenue_visit,
+	goal: COLUMN_DEFINITIONS.revenue_order_goal,
+	event: COLUMN_DEFINITIONS.revenue_order_event,
+};
+
 /** One attribution breakdown: revenue, share of the currency's revenue, refunds and net when present, orders, AOV, revenue per visitor. */
 function AttributionPanel({ view, dim, code, total, refunds }: { view: View; dim: BreakdownDim; code: string; total: number; refunds: boolean }) {
 	const [title, label, filter] = DIMS[dim];
-	const money = (key: string, l: string): Column => ({ key, label: `${l} (${code})`, format: `money:${code}` });
+	const money = (key: string, l: string, info = metricDefinition(key)): Column => ({ key, label: `${l} (${code})`, format: `money:${code}`, ...(info ? { info } : {}) });
 	return (
 		<ReportPanel
 			view={view}
@@ -96,14 +112,14 @@ function AttributionPanel({ view, dim, code, total, refunds }: { view: View; dim
 			params={{ dim, currency: code }}
 			columns={[
 				{ key: "key", label, format: "text", dim: filter },
-				money("revenue", "Revenue"),
-				{ key: "share", label: "Share of revenue", format: "percent" },
+				money("revenue", "Revenue", BREAKDOWN_REVENUE[dim]),
+				{ key: "share", label: "Share of revenue", format: "percent", info: COLUMN_DEFINITIONS.revenue_share },
 				...(refunds ? [money("refunds", "Refunds"), money("net_revenue", "Net revenue")] : []),
-				{ key: "orders", label: "Orders" },
+				{ key: "orders", label: "Orders", info: COLUMN_DEFINITIONS.orders_row },
 				money("aov", "Average order value"),
-				money("revenue_per_visitor", "Revenue per visitor"),
-				{ key: "visitors", label: "Visitors", optional: true },
-				{ key: "sessions", label: "Sessions", optional: true },
+				money("revenue_per_visitor", "Revenue per visitor", COLUMN_DEFINITIONS.revenue_per_visitor_row),
+				{ ...VISITORS_COLUMN, optional: true },
+				metricColumn("sessions", "Sessions", { optional: true }),
 			]}
 			// Visitors rows without an order stay out: these panels rank where the money came from.
 			// A funnel table is too wide for a grid cell: its stepwise revenue lives on the Funnels tab, linked from the goals panel.
@@ -134,7 +150,7 @@ function RecentOrders({ view, code }: { view: View; code: string }) {
 		...(refunds ? [{ key: "kind", label: "Type", format: "text" as const }] : []),
 		{ key: "amount", label: `Amount (${code})`, format: `money:${code}` },
 		{ key: "channel", label: "Channel", format: "text", dim: "channel" },
-		{ key: "entry", label: "Landing page", format: "text", dim: "entry" },
+		{ key: "entry", label: "Entry page", format: "text", dim: "entry" },
 		{ key: "country", label: "Country", format: "text", dim: "country" },
 	];
 	const outside = !!first.error?.startsWith(ORDERS_RAW_ONLY);

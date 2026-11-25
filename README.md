@@ -39,7 +39,7 @@ Most cookieless tools count page views and stop there. Cookieless Analytics is a
 - **Your choice of database.** The data lives in the EmDash D1 database, in a D1 database of its own or in Postgres through Hyperdrive. [Install](docs/install.md)
 - **Fits the Workers Free plan.** Capacity profiles size storage and background work to your plan. On Free, a daily write guard keeps the CMS able to save content. [Limits](docs/limits.md)
 - **Bot-free and unsampled.** Bots never leave a stored row, and nothing is sampled. The Data page counts what could not be stored: an overloaded database, a capped visit or the Free plan's daily guard. [Bots](docs/bots.md)
-- **Revenue and refunds.** Cookieless Analytics reports orders by source, campaign and landing page, with refunds and net revenue. Each report uses one currency and never converts. [Revenue](docs/revenue.md)
+- **Revenue and refunds.** Cookieless Analytics reports orders by source, campaign and entry page, with refunds and net revenue. Each report uses one currency and never converts. [Revenue](docs/revenue.md)
 - **Search data next to traffic.** Google Search Console and Bing Webmaster Tools data sit in the same UI as your sessions, with SEO views. [Search sources](docs/search-sources.md)
 - **Annotations with measured impact.** An annotation marks a release or a publish, and any metric compares before and after it. [Annotations](docs/annotations.md)
 - **Search Satisfaction.** Search Satisfaction is an approximation of how a click-based system such as Navboost could rate your pages: long and short clicks, bad experiences and estimated pogo-sticking from search visits, labelled as estimates. [Search Satisfaction](docs/sessions.md#search-satisfaction-metrics)
@@ -188,7 +188,7 @@ Details: [packages/companion/README.md](packages/companion/README.md) and the wi
 
 #### Revenue and links
 
-- **Revenue and refunds.** Order values arrive from the page or a payment webhook, with refunds and voids. Revenue splits by channel, source, campaign, landing page, page, country, device and goal. [Revenue and refunds](https://github.com/infinitnet/cookieless-analytics/wiki/Revenue-and-Refunds), [revenue.md](docs/revenue.md)
+- **Revenue and refunds.** Order values arrive from the page or a payment webhook, with refunds and voids. Revenue splits by channel, source, campaign, entry page, page, country, device and goal. [Revenue and refunds](https://github.com/infinitnet/cookieless-analytics/wiki/Revenue-and-Refunds), [revenue.md](docs/revenue.md)
 - **Links report.** The Links report shows impressions, clicks and click-through rate per short link, placement, page and channel, from any link plugin that follows the convention. [Links report](https://github.com/infinitnet/cookieless-analytics/wiki/Links-Report), [integration.md](docs/integration.md)
 
 #### Sharing and automation
@@ -247,7 +247,7 @@ Visitors are never summed across sites. [Multi-site](docs/multi-site.md), [Dashb
 
 ### Shops and paid products
 
-For e-commerce and SaaS checkouts. Cookieless Analytics reports orders, revenue, refunds and net revenue by first-touch channel, campaign and landing page, and revenue per funnel step.
+For e-commerce and SaaS checkouts. Cookieless Analytics reports orders, revenue, refunds and net revenue by first-touch channel, campaign and entry page, and revenue per funnel step.
 
 Orders arrive from the page or a payment webhook, with a duplicate guard by order id. [Revenue](docs/revenue.md)
 

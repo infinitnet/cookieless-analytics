@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
 	bind,
 	deleteDaySlice,
+	docCount,
 	docEach,
 	docGet,
 	docInsert,
@@ -24,6 +25,7 @@ import {
 import { ensureSchema } from "../src/db/schema.js";
 import { rng } from "./capacity.helpers.js";
 import { MemoryKv, meteredDb } from "./helpers.js";
+import { pglite } from "./pg.helpers.js";
 
 describe("numeric binds", () => {
 	it("casts integers, never binds them bare", () => {
@@ -214,5 +216,28 @@ describe("retention by key range", () => {
 		expect(m.stats.rowsWritten).toBe(200);
 		// The meter's read count is a lower bound: rows deleted plus one probe per empty slice.
 		expect(m.stats.rowsRead).toBeLessThanOrEqual(200 + 36);
+	});
+});
+
+describe("docCount: entries with a field value, counted in the document text", () => {
+	// Two impressions, a page view, an event whose property value quotes the needle, and an engagement-only entry.
+	const doc = { h1: { t: 0, p: "/a" }, e1: { t: 3, n: "seen", pr: { s0: "offer" } }, e2: { t: 4, n: "seen" }, e3: { t: 5, n: "signup", pr: { note: '"n":"seen"' } }, h2: { d: 300 } };
+
+	it("counts the same on SQLite (JSONB) and Postgres (jsonb), with no parameter", async () => {
+		expect(docCount("sqlite", "s.hits", "n", "seen")).not.toContain("?");
+		const m = meteredDb();
+		await ensureSchema(m.db, new MemoryKv());
+		m.raw.prepare("INSERT INTO ca_sessions (site, day, sid, vkey, hour, started, last_seen, window_s, hits) VALUES ('s', '2026-06-10', 'aaaa', 'k', 9, 1000, 1000, 1800, jsonb(?))").run(JSON.stringify(doc));
+		expect(await m.db.all(`SELECT ${docCount("sqlite", "s.hits", "n", "seen")} AS n FROM ca_sessions s`)).toEqual([{ n: 2 }]);
+		const pg = pglite();
+		await pg.query("CREATE TABLE ca_sessions (hits JSONB)");
+		await pg.query("INSERT INTO ca_sessions (hits) VALUES ($1::jsonb)", [JSON.stringify(doc)]);
+		const r = await pg.query<{ n: number }>(`SELECT ${docCount("postgres", "s.hits", "n", "seen")} AS n FROM ca_sessions s`);
+		expect(Number(r.rows[0]?.n)).toBe(2);
+		await pg.close();
+	});
+
+	it("refuses a field or value that is not a plain name", () => {
+		expect(() => docCount("sqlite", "hits", "n", "x' OR 1")).toThrow(/invalid document count/);
 	});
 });

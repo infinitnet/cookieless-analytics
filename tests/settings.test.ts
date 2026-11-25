@@ -8,7 +8,7 @@ const SETTING_KEYS = [
 	"siteId", "siteTimezone", "scriptPath", "collectPath", "sharePath", "namespace", "scriptDelivery", "injectScript", "scriptForBots",
 	"signals", "sessionWindowMinutes", "maxSessionMinutes",
 	"maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute", "engagedThresholdSeconds",
-	"maxEngagedMsPerPage", "longClickSeconds", "badExperienceSeconds", "reloadDedupeSeconds", "realtimeWindowMinutes", "saltTimezone", "saltRotationHour",
+	"maxEngagedMsPerPage", "longClickSeconds", "badExperienceSeconds", "satisfactionMinMeasured", "reloadDedupeSeconds", "realtimeWindowMinutes", "saltTimezone", "saltRotationHour",
 	"ipTruncation", "excludeEditors", "excludePaths", "excludeIpPrefixes", "ignoreReferrerHosts", "queryAllowlist",
 	"captureLanguage", "captureRegion", "captureScreen", "autoOutbound", "autoDownloads", "autoForms", "ignorePathPrefixes", "linkRules", "downloadExtensions",
 	"logErrorPages", "ingestTier",
@@ -132,6 +132,26 @@ describe("normalizeSettings", () => {
 		expect(normalizeSettings({}).badExperienceSeconds).toBe(10);
 		expect(normalizeSettings({ longClickSeconds: 5, badExperienceSeconds: 0 })).toMatchObject({ longClickSeconds: 10, badExperienceSeconds: 1 });
 		expect(normalizeSettings({ longClickSeconds: 9999, badExperienceSeconds: 90 })).toMatchObject({ longClickSeconds: 600, badExperienceSeconds: 60 });
+	});
+
+	it("satisfactionMinMeasured: default 30, whole numbers from 10 to 500, after badExperienceSeconds", () => {
+		expect(normalizeSettings({}).satisfactionMinMeasured).toBe(30);
+		expect(DEFAULT_SETTINGS.satisfactionMinMeasured).toBe(30);
+		expect(normalizeSettings({ satisfactionMinMeasured: 5 }).satisfactionMinMeasured).toBe(10);
+		expect(normalizeSettings({ satisfactionMinMeasured: 9999 }).satisfactionMinMeasured).toBe(500);
+		expect(normalizeSettings({ satisfactionMinMeasured: "abc" }).satisfactionMinMeasured).toBe(30);
+		expect(normalizeSettings({ satisfactionMinMeasured: "75" }).satisfactionMinMeasured).toBe(75);
+		expect(normalizeSettings({ satisfactionMinMeasured: 12.4 }).satisfactionMinMeasured).toBe(12);
+		expect(settingsSchema.satisfactionMinMeasured).toMatchObject({
+			type: "number",
+			label: "Search Satisfaction sample minimum",
+			description: "Fewest measured sessions a landing page needs to be ranked as a best or worst page. A score under it is marked low sample.",
+			default: 30,
+			min: 10,
+			max: 500,
+		});
+		const keys = Object.keys(settingsSchema);
+		expect(keys[keys.indexOf("badExperienceSeconds") + 1]).toBe("satisfactionMinMeasured");
 	});
 
 	it("falls back to neutral defaults for public names", () => {

@@ -6,7 +6,8 @@
  * Column meaning per dim (the frozen schema has one column set for all dims):
  * - session dims (`all`, `entry`, `exit`, `channel`, `source`, `utm_campaign`, `country`, `device`,
  *   `browser`, `os`, `lang`): sessions, pageviews, visitors, bounces, engaged; `engaged_ms` holds the
- *   summed session duration in ms (the value avg duration needs); `events` the summed session events.
+ *   summed session duration in ms (the value avg duration needs); `events` the summed session events;
+ *   `hits` of the `all` row the passive entries (link impressions), which the storage estimate counts.
  * - `page`: pageviews, visitors, sessions; `engaged_ms` the summed active time, `hits` the number of
  *   pageviews with a measured time (the avg active time denominator).
  * - `event`: events (count), sessions, visitors. `goal`: events (completions), sessions (converting).
@@ -269,7 +270,7 @@ export async function computeLinks(rc: RollupCtx, day: string): Promise<Pick<Day
 /**
  * The journey families of one day (one statement), folded to the profile's caps. Steps fold per page (a page's
  * steps beyond the top become its `(other)` step) within a third of the `next` cap, so the page rows the kept steps
- * name fit in the rest; paths fold per landing page.
+ * name fit in the rest; paths fold per entry page.
  */
 export async function computeJourneys(rc: RollupCtx, day: string): Promise<FamilyRow[]> {
 	const rows = (await journeyDay(reportCtx(rc), day)).map((r) => familyRow(r.dim, "", r.key, r.segkey, { sessions: r.sessions }));
@@ -312,13 +313,14 @@ async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: Ro
 	const parts = [...sessionDims.map(([dim, expr]) => [dim, expr, ""] as const), ...pairParts, cubePart].map(([dim, expr, seg]) => {
 		const extra = dim === "utm_campaign" ? { sql: "s.utm_campaign IS NOT NULL", params: [] } : TRUE;
 		// `all` has no key expression: Postgres rejects a constant in GROUP BY.
-		const q = sessionAggSql(ctx, input, dim === "all" ? null : expr, extra);
+		// The `all` row also counts the passive entries (in `hits`), for the storage estimate.
+		const q = sessionAggSql(ctx, input, dim === "all" ? null : expr, extra, dim === "all");
 		const key = dim === "all" ? "''" : "x.key";
-		return { sql: `SELECT '${dim}' AS dim, '${seg}' AS seg, ${key} AS key, x.sessions, x.events, x.pageviews, x.visitors, x.bounces, x.engaged, x.duration_ms FROM (${q.sql}) x`, params: q.params };
+		return { sql: `SELECT '${dim}' AS dim, '${seg}' AS seg, ${key} AS key, x.sessions, x.events, x.pageviews, x.visitors, x.bounces, x.engaged, x.duration_ms, ${dim === "all" ? "x.passive" : "0"} AS passive FROM (${q.sql}) x`, params: q.params };
 	});
 	const sessionRows = (await rc.db.all(parts.map((p) => p.sql).join(" UNION ALL "), parts.flatMap((p) => p.params))).filter((r) => num(r.sessions) > 0);
 	for (const [dim] of sessionDims) {
-		const mapped = sessionRows.filter((r) => r.dim === dim && r.seg === "").map((r) => row(dim, String(r.key), { ...r, engaged_ms: r.duration_ms }));
+		const mapped = sessionRows.filter((r) => r.dim === dim && r.seg === "").map((r) => row(dim, String(r.key), { ...r, engaged_ms: r.duration_ms, hits: r.passive }));
 		out.push(...foldTop(mapped, TOP_N[dim], "sessions"));
 	}
 	const cells = sessionRows.filter((x) => x.seg === CUBE_SEG).map((r) => ({ key: "", segkey: String(r.key), ...cubeMetrics(r) }));

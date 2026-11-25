@@ -1,4 +1,4 @@
-import { Bt as SEGMENTS, Ft as resolveGranularity, Jt as readSummary, Ki as __exportAll, Kt as planFilters, Pt as bucketSeries, Wt as matchKey, _n as and, an as liveVisits, dn as sessionMetrics, en as annotationsIn, fn as sessionTotals, gn as TRUE, hn as QueryError, in as keysIn, it as OTHER, ln as round, mi as dayInt, on as num, pn as sessionWhere, qt as planRows, rn as hitJoin, sn as ratio, un as sessionBreakdown, xn as entryCols, zt as FILTER_DIMS } from "./queue-sink-GZqbpCBQ.mjs";
+import { Bt as SEGMENTS, Ci as dayInt, Ft as resolveGranularity, Ii as addDays, Jt as readSummary, Kt as planFilters, Li as dayInZone, Pt as bucketSeries, Wt as matchKey, _n as and, an as liveVisits, dn as sessionMetrics, en as annotationsIn, fn as sessionTotals, gn as TRUE, hn as QueryError, in as keysIn, it as OTHER, ln as round, on as num, pn as sessionWhere, qt as planRows, rn as hitJoin, sn as ratio, ta as __exportAll, un as sessionBreakdown, xn as entryCols, xr as SATISFACTION_RAW_ONLY, yn as compileTraffic, zt as FILTER_DIMS } from "./queue-sink-DZYrGtp0.mjs";
 // src/query/reports/overview.ts
 /** KPI strip: totals plus realtime sessions (current run only). */
 async function overview(rc, input) {
@@ -179,40 +179,6 @@ async function notFound(rc, input) {
 		notices
 	};
 }
-// src/query/reports/satisfaction-copy.ts
-/** The scope of the Search Satisfaction reports: organic search sessions of every search engine. */
-const ORGANIC_SEARCH = {
-	dim: "channel",
-	op: "is",
-	values: ["Organic Search"]
-};
-/**
-* Filters of a Search Satisfaction run: the scope first, every channel filter of the caller left out (the report
-* answers the notice `ignored_dim:channel` for it). Other filters narrow inside the scope.
-*/
-const organicScope = (filters) => [ORGANIC_SEARCH, ...filters.filter((f) => f.dim !== "channel")];
-/** True for a channel filter that is not the scope itself: the one the report leaves out and says so. */
-const conflictsWithScope = (f) => f.dim === "channel" && !(f.op === "is" && f.values.length === 1 && f.values[0] === ORGANIC_SEARCH.values[0]);
-/** The reports that cover organic search sessions only. */
-const SATISFACTION_REPORTS = /* @__PURE__ */ new Set(["satisfaction", "satisfaction_series"]);
-/** Typed `raw_only` text beyond the raw window. */
-const SATISFACTION_RAW_ONLY = "Search Satisfaction is computed from session rows, which are kept for the raw retention window only. Choose a more recent range or raise the raw retention.";
-/** Caveat of the estimates (pogo-sticking, returned from search, search re-entry, back/forward loads). */
-const SATISFACTION_CAVEAT = "An estimate from browser navigation signals.";
-/** One sentence that defines pogo-sticking, shown in the info text of every pogo-sticking figure. */
-const POGO_DEFINITION = "Pogo-sticking: a visitor from a search engine leaves the landing page quickly with the back button and returns to the results.";
-/** One sentence that defines the stronger signal "Returned from search" (docs/sessions.md). */
-const RETURNED_DEFINITION = "Returned from search: a search visitor left the landing page with back or forward and came again from a search engine in one session.";
-/** Groupings of the `satisfaction` report (`params.by`); `entry` is the landing page. */
-const SATISFACTION_BY = [
-	"entry",
-	"source",
-	"device",
-	"country",
-	"browser"
-];
-/** How the best and worst pages are ranked (docs/sessions.md "Best and worst pages"). */
-const SCORE_DEFINITION = `Long click rate minus bad experience rate minus pogo-sticking rate, in points, for landing pages with at least 30 measured sessions.`;
 // src/query/reports/revenue-copy.ts
 /** Text of the `revenue_orders` answer outside the detailed window; shared with the admin, so kept free of server imports. */
 const ORDERS_RAW_ONLY = "Single orders are kept for the detailed window only; the totals and breakdowns cover older days from the daily summaries.";
@@ -296,6 +262,31 @@ async function exitRates(rc, input, keys) {
 		partial
 	};
 }
+/**
+* Sessions active within the realtime window under the view's filters, compiled over the live days (today and yesterday).
+* The summary totals do not compile the filters over detailed rows, so a filter that cannot compile over the live days
+* (`narrow_filter`, `too_many_values`) leaves only Active now empty (null) and the report answers.
+*/
+async function realtime(rc, input) {
+	const today = dayInZone(rc.now, rc.settings.siteTimezone);
+	let filters = TRUE;
+	try {
+		if (input.filters.length) filters = (await compileTraffic({
+			db: rc.db,
+			site: rc.site,
+			from: addDays(today, -1),
+			to: today,
+			goals: rc.goals,
+			...rc.defaultCurrency ? { currency: rc.defaultCurrency } : {}
+		}, input.filters)).session;
+	} catch (e) {
+		if (e instanceof QueryError) return null;
+		throw e;
+	}
+	const live = liveVisits(rc);
+	const [r] = await rc.db.all(`SELECT COUNT(*) AS n FROM ca_sessions s WHERE ${live.sql} AND (${filters.sql})`, [...live.params, ...filters.params]);
+	return num(r?.n);
+}
 function breakdown(dim, rename) {
 	return [dim, async (rc, input, plan) => {
 		const rows = (await planRows(rc, input, plan, dim)).filter((r) => num(r.sessions) > 0).map((r) => ({
@@ -310,16 +301,9 @@ const ROLLUP_REPORTS = {
 	overview: [null, async (rc, input, plan) => {
 		const t = sessionRow(await totals(rc, input, plan));
 		if (input.isCompare || input.lean) return { totals: t };
-		if (input.filters.length) return {
-			totals: t,
-			realtime: null,
-			...await firstRun(rc, t.sessions)
-		};
-		const live = liveVisits(rc);
-		const [r] = await rc.db.all(`SELECT COUNT(*) AS n FROM ca_sessions s WHERE ${live.sql}`, live.params);
 		return {
 			totals: t,
-			realtime: num(r?.n),
+			realtime: await realtime(rc, input),
 			...await firstRun(rc, t.sessions)
 		};
 	}],
@@ -348,31 +332,33 @@ const ROLLUP_REPORTS = {
 		const keys = page.map((r) => r.key);
 		const exits = plan.src.seg === "" ? await exitRates(rc, input, keys) : null;
 		const search = input.params.withSearch ? await searchForPages(rc, input, keys) : null;
+		const rows = page.map((r) => {
+			const pageviews = num(r.pageviews);
+			const row = {
+				key: r.key,
+				pageviews,
+				visitors: num(r.visitors),
+				avg_time: round(ratio(num(r.engaged_ms) / 1e3, num(r.hits)), 1),
+				avg_visible: null,
+				exit_rate: exits?.rates.get(r.key) ?? null,
+				scroll_median: null
+			};
+			if (search) {
+				const s = search.get(r.key);
+				Object.assign(row, {
+					impressions: s?.impressions ?? null,
+					clicks: s?.clicks ?? null,
+					ctr: s?.ctr ?? null,
+					position: s?.position ?? null
+				});
+			}
+			return row;
+		});
+		const notices = [...exits?.partial ? ["exit_rate_partial"] : [], ...exits ? [] : ["exit_rate_segment"]];
 		return {
-			rows: page.map((r) => {
-				const pageviews = num(r.pageviews);
-				const row = {
-					key: r.key,
-					pageviews,
-					visitors: num(r.visitors),
-					avg_time: round(ratio(num(r.engaged_ms) / 1e3, num(r.hits)), 1),
-					avg_visible: null,
-					exit_rate: exits?.rates.get(r.key) ?? null,
-					scroll_median: null
-				};
-				if (search) {
-					const s = search.get(r.key);
-					Object.assign(row, {
-						impressions: s?.impressions ?? null,
-						clicks: s?.clicks ?? null,
-						ctr: s?.ctr ?? null,
-						position: s?.position ?? null
-					});
-				}
-				return row;
-			}),
+			rows,
 			truncated: all.length > input.offset + input.limit,
-			notices: exits?.partial ? ["exit_rate_partial"] : []
+			notices
 		};
 	}],
 	entry_pages: breakdown("entry", ({ sessions, ...r }) => ({
@@ -463,4 +449,4 @@ async function runRollupReport(report, rc, input) {
 		]
 	};
 }
-export { pages as _, runRollupReport as a, SATISFACTION_BY as c, SCORE_DEFINITION as d, conflictsWithScope as f, notFound as g, exitPages as h, rollup_exports as i, SATISFACTION_CAVEAT as l, entryPages as m, ROLLUP_REPORTS as n, POGO_DEFINITION as o, organicScope as p, rawOnly as r, RETURNED_DEFINITION as s, RAW_ONLY as t, SATISFACTION_REPORTS as u, overview as v };
+export { runRollupReport as a, notFound as c, rollup_exports as i, pages as l, ROLLUP_REPORTS as n, entryPages as o, rawOnly as r, exitPages as s, RAW_ONLY as t, overview as u };

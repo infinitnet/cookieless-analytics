@@ -14,7 +14,7 @@ export function campaigns(rc: ReportCtx, input: RunInput): Promise<ReportData> {
 	return sessionBreakdown(rc, input, col, { sql: `${col} IS NOT NULL`, params: [] });
 }
 
-/** Sessions from AI assistants by source, with their top landing pages (a lower bound). */
+/** Sessions from AI assistants by source, with their top entry pages (a lower bound). */
 export async function aiReferrals(rc: ReportCtx, input: RunInput): Promise<ReportData> {
 	const d = await sessionBreakdown(rc, input, `COALESCE(s.source, ${NOT_SET})`, { sql: "s.channel = ?", params: [AI_CHANNEL] });
 	const keys = (d.rows ?? []).map((r) => r.key);

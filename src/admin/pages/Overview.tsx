@@ -10,11 +10,12 @@ import { METRICS } from "../components/format.js";
 import { Shell, siteKind, toQuery, useShellHead, type View } from "../components/Header.js";
 import { MetricChart } from "../components/MetricChart.js";
 import { Empty, InfoMark } from "../components/ui.js";
-import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { COLUMN_DEFINITIONS, PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { noticeCopy, shownNotices } from "../../charts/caveats.js";
 import { presetRange } from "../state.js";
 import { RevenueKpis } from "./Revenue.js";
 import { adminHref, ErrorScope, ReportNotices, SETTINGS_HREF, usePageError } from "../components/ReportNotices.js";
-import { allNotices, ReportPanel, SESSION_EXTRA, useRevenue } from "./report.js";
+import { allNotices, metricColumn, ReportPanel, SESSION_EXTRA, useRevenue, VISITORS_COLUMN } from "./report.js";
 import type { Column } from "../components/DataTable.js";
 import { SitesSummary } from "./SitesSummary.js";
 
@@ -23,12 +24,17 @@ const KPIS = ["visitors", "sessions", "pageviews", "views_per_session", "bounce_
 /** Overview panels: the first 8 rows each, so the grid is even; notices once at the top of the page. */
 const ROWS = 8;
 const SHORT: Column[] = [
-	{ key: "visitors", label: "Visitors" },
-	{ key: "sessions", label: "Sessions" },
-	{ key: "bounce_rate", label: "Bounce rate", format: "percent", optional: true },
-	{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration", optional: true },
+	VISITORS_COLUMN,
+	metricColumn("sessions", "Sessions"),
+	metricColumn("bounce_rate", "Bounce rate", { format: "percent", optional: true }),
+	metricColumn("avg_duration", METRICS.avg_duration?.label ?? "Avg. session duration", { format: "duration", optional: true }),
 	...SESSION_EXTRA,
 ];
+
+/** Under the Top pages preview (whose notices are not shown on the page): why its exit rate is blank under a segment filter, while the Exit rate column is shown. */
+export function ExitRateNotice({ notices, shown }: { notices: readonly string[]; shown: readonly string[] }) {
+	return shownNotices(notices, shown).includes("exit_rate_segment") ? <p className="ca-small">{noticeCopy("exit_rate_segment")}</p> : null;
+}
 
 export function OverviewBody(view: View) {
 	return (
@@ -117,13 +123,14 @@ function OverviewReport(view: View) {
 					more="/pages"
 					columns={[
 						{ key: "key", label: "Page", format: "text", dim: "page" },
-						{ key: "visitors", label: "Visitors" },
-						{ key: "pageviews", label: "Pageviews" },
-						{ key: "avg_time", label: "Avg. active time", format: "duration", caveat: "active_time", optional: true },
-						{ key: "avg_visible", label: "Avg. visible time", format: "duration", caveat: "visible_time", optional: true },
-						{ key: "exit_rate", label: "Exit rate", format: "percent", caveat: "exit_rate", optional: true },
-						{ key: "scroll_median", label: "Median scroll (%)", format: "number", optional: true },
+						{ key: "visitors", label: "Visitors", info: COLUMN_DEFINITIONS.page_visitors },
+						metricColumn("pageviews", "Pageviews"),
+						metricColumn("avg_time", "Avg. active time", { format: "duration", optional: true }),
+						metricColumn("avg_visible", "Avg. visible time", { format: "duration", optional: true }),
+						metricColumn("exit_rate", "Exit rate", { format: "percent", optional: true }),
+						metricColumn("scroll_median", "Median scroll (%)", { format: "number", optional: true }),
 					]}
+					extra={(res, chosen) => <ExitRateNotice notices={allNotices(res)} shown={chosen} />}
 				/>
 				<ReportPanel {...p} report="sources" columnsId="overview.sources" title="Sources" more="/sources?tab=sources" columns={[{ key: "key", label: "Source", format: "text", dim: "source" }, ...SHORT]} />
 				<ReportPanel {...p} report="countries" columnsId="overview.countries" title="Countries" more="/audience" columns={[{ key: "key", label: "Country", format: "text", dim: "country" }, ...SHORT]} />
@@ -145,9 +152,9 @@ function OverviewReport(view: View) {
 					columnsId="overview.goals"
 					columns={[
 						{ key: "key", label: "Goal", format: "text", dim: "goal" },
-						{ key: "converting", label: "Conversions" },
-						{ key: "conversion_rate", label: "Rate", format: "percent" },
-						{ key: "completions", label: "Completions", optional: true },
+						metricColumn("converting", "Converting sessions"),
+						metricColumn("conversion_rate", "Conversion rate", { format: "percent" }),
+						metricColumn("completions", "Completions", { optional: true }),
 					]}
 				/>
 			</div>

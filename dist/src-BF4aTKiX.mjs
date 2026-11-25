@@ -1,8 +1,8 @@
-import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION } from "./contract.mjs";
-import { $ as sitesInTables, $n as nextUtcDay, $r as redact, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as eachDay, An as GoalSchema, Ar as formatAmount, At as revenueOrders, B as KV_WRITE_BUDGET, Bn as SEARCH_DIMS, C as siteProblem, Ci as upsertChanged, Cn as goalPredicate, Cr as isEventName, Ct as WITH_REVENUE, D as readVisits, Di as addDays, Dn as FUNNEL_MODES, Dr as validateIngest, Dt as metaOf, E as MAX_DOC_BYTES, Ei as ident, En as DIM_NAMES, Er as isSid, Et as hasRevenue, F as UTM_KEYS, Fi as saltDay, Fn as PROP_KEY_RE, Fr as eachTarget, Ft as resolveGranularity, G as KV_CURSOR, Gi as vkey, Gn as copyRowsLeft, Gt as openDay, H as budgetTargetOf, Hi as sha256, Hn as COPY_DAY_ROWS, Hr as setPluginFacts, Ht as clearOpenDays, I as cleanHost, Ii as samePeriodLastYear, In as QuerySchema, Ir as ensureHostSchema, It as timeseries, J as clearEstimateDay, Jn as PROVIDER_DAYS, Jr as fromPg, Jt as readSummary, K as KV_DELETE_ROWS, Kn as nextUtcMidnight, Kr as queryCacheOn, Kt as planFilters, Li as zonedToEpoch, Ln as REVENUE_BREAKDOWN_DIMS, Lr as factsDb, Lt as weekStart, M as buildChannelRules, Mi as lastClosedDay, Mn as NEGATED, Mr as normalizeCurrency, Mt as revenueSeries, N as classifyChannel, Ni as previousPeriod, Nn as NUM_OPS, Nr as roundMinor, Nt as withRevenue, Oi as dayInZone, On as FilterSchema, Or as validateRevenue, Ot as revenue, P as CLICK_IDS, Pi as saltBoundary, Pn as OPS, Pr as eachDatabase, Pt as bucketSeries, Q as runRetention, Qn as backfillRange, Qr as pgStatementLimit, Qt as DURATION_MS, R as normalizeUrl, Ri as base64url, Rn as REVENUE_DIMS, Rr as factsTargets, Rt as CUBE_SEG, S as registry, Si as q, Sn as entryProp, Sr as cleanProps, St as REVENUE_REPORTS, Ti as chunk, Tn as validateFilters, Tr as isReservedEvent, Tt as currencyOf, U as dailyRowsApply, Ui as timingSafeEqual, Un as chargeCopyRows, Ur as stateKv, Ut as clearScanCache, V as budgetState, Vi as randomId, Vn as TRAFFIC_DIMS, Vr as pluginFactsOrNull, Vt as behindNotice, Wi as truncateIp, Wn as copiedToday, Wr as statePrefix, X as rawFromDay, Xn as SYNC_BUDGET, Xr as pgOwnScope, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yr as isHyperdrive, Yt as splitRange, Z as runChunk, Zn as SyncRows, Zr as pgScope, Zt as storedThrough, _ as linkedHosts, _i as docPut, _n as and, _r as parseLinkRules, _t as journeyNext, ai as ensureSchemaOnce, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as likeEscape, bn as entriesOf, br as validateSafeRegex, bt as journeysFromSummary, c as ClientSiteSchema, ci as fromKysely, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as isD1, dr as budgetWarning, dt as runRollup, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as workerEnv, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as docObject, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as docJson, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as ensureSchema, in as keysIn, ir as SourceError, it as OTHER, ji as hourInZone, jn as LINK_BY, jr as isCurrency, jt as revenuePlan, k as isActive$1, ki as daysBetween, kn as FunnelStepsSchema, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, li as selfCheck, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as dayInt, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as SCHEMA_VERSION_KEY, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as isOwnDatabase, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as LIKE_ESCAPE, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qn as KV_SYNC_ROWS, qr as INGEST_STATEMENT_MS, ri as TABLES$1, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as schemaVersion, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as SCHEMA_VERSION, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as fromD1, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as docRead, vn as compileSearch, vr as publicNames, vt as journeyPaths, w as drops, wi as visitDayKey, wn as inList, wr as isPath, wt as currencyList, x as newSiteKey, xi as paramRows, xn as entryCols, xr as OID_RE, xt as journeysUnavailable, y as loadSites, yi as isoDay, yn as compileTraffic, yr as compileSafeRegex, yt as journeyPrev, zi as getOrCreateSalt, zn as REVENUE_VALUE_RE, zr as missingDb } from "./queue-sink-GZqbpCBQ.mjs";
-import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-DKmOwHfH.mjs";
-import { _ as pages, a as runRollupReport, c as SATISFACTION_BY, d as SCORE_DEFINITION, f as conflictsWithScope, g as notFound$1, h as exitPages, l as SATISFACTION_CAVEAT, m as entryPages, n as ROLLUP_REPORTS, o as POGO_DEFINITION, p as organicScope, r as rawOnly, s as RETURNED_DEFINITION, t as RAW_ONLY, u as SATISFACTION_REPORTS, v as overview } from "./rollup-DycgS_ed.mjs";
-import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-CbmOz1Xm.mjs";
+import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION, isPassiveEvent } from "./contract.mjs";
+import { $ as sitesInTables, $i as truncateIp, $n as nextUtcDay, $r as statePrefix, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as paramRows, An as GoalSchema, Ar as OID_RE, At as revenueOrders, B as KV_WRITE_BUDGET, Bi as hourInZone, Bn as SEARCH_DIMS, Br as isCurrency, C as siteProblem, Ci as dayInt, Cn as goalPredicate, Cr as conflictsWithScope, Ct as WITH_REVENUE, D as readVisits, Di as docRead, Dn as FUNNEL_MODES, Dr as publicNames, Dt as metaOf, E as MAX_DOC_BYTES, Ei as docPut, En as DIM_NAMES, Er as parseLinkRules, Et as hasRevenue, F as UTM_KEYS, Fi as ident, Fn as PROP_KEY_RE, Fr as isSid, Ft as resolveGranularity, G as KV_CURSOR, Gi as samePeriodLastYear, Gn as copyRowsLeft, Gr as ensureHostSchema, Gt as openDay, H as budgetTargetOf, Hi as previousPeriod, Hn as COPY_DAY_ROWS, Hr as roundMinor, Ht as clearOpenDays, I as cleanHost, Ii as addDays, In as QuerySchema, Ir as validateIngest, It as timeseries, J as clearEstimateDay, Ji as getOrCreateSalt, Jn as PROVIDER_DAYS, Jr as missingDb, Jt as readSummary, K as KV_DELETE_ROWS, Ki as zonedToEpoch, Kn as nextUtcMidnight, Kr as factsDb, Kt as planFilters, Li as dayInZone, Ln as REVENUE_BREAKDOWN_DIMS, Lr as validateRevenue, Lt as weekStart, M as buildChannelRules, Mi as upsertChanged, Mn as NEGATED, Mr as isEventName, Mt as revenueSeries, N as classifyChannel, Ni as visitDayKey, Nn as NUM_OPS, Nr as isPath, Nt as withRevenue, Oi as isoDay, On as FilterSchema, Or as compileSafeRegex, Ot as revenue, P as CLICK_IDS, Pi as chunk, Pn as OPS, Pr as isReservedEvent, Pt as bucketSeries, Q as runRetention, Qi as timingSafeEqual, Qn as backfillRange, Qr as stateKv, Qt as DURATION_MS, R as normalizeUrl, Ri as daysBetween, Rn as REVENUE_DIMS, Rt as CUBE_SEG, S as registry, Si as LIKE_ESCAPE, Sn as entryProp, Sr as SATISFACTION_REPORTS, St as REVENUE_REPORTS, Ti as docObject, Tn as validateFilters, Tr as organicScope, Tt as currencyOf, U as dailyRowsApply, Ui as saltBoundary, Un as chargeCopyRows, Ur as eachDatabase, Ut as clearScanCache, V as budgetState, Vi as lastClosedDay, Vn as TRAFFIC_DIMS, Vr as normalizeCurrency, Vt as behindNotice, Wi as saltDay, Wn as copiedToday, Wr as eachTarget, X as rawFromDay, Xi as randomId, Xn as SYNC_BUDGET, Xr as pluginFactsOrNull, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yt as splitRange, Z as runChunk, Zi as sha256, Zn as SyncRows, Zr as setPluginFacts, Zt as storedThrough, _ as linkedHosts, _i as fromKysely, _n as and, _r as LOW_SAMPLE, _t as journeyNext, ai as pgOwnScope, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as isD1, bn as entriesOf, br as SATISFACTION_CAVEAT, bt as journeysFromSummary, c as ClientSiteSchema, ci as redact, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as SCHEMA_VERSION_KEY, dr as budgetWarning, dt as runRollup, ea as vkey, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as TABLES$1, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as schemaVersion, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as isOwnDatabase, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as isHyperdrive, in as keysIn, ir as SourceError, it as OTHER, ji as q, jn as LINK_BY, jr as cleanProps, jt as revenuePlan, k as isActive$1, ki as likeEscape, kn as FunnelStepsSchema, kr as validateSafeRegex, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as ensureSchemaOnce, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as INGEST_STATEMENT_MS, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as pgScope, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as ensureSchema, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qi as base64url, qn as KV_SYNC_ROWS, qr as factsTargets, ri as fromPg, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as pgStatementLimit, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as queryCacheOn, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as SCHEMA_VERSION, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as selfCheck, vn as compileSearch, vr as POGO_DEFINITION, vt as journeyPaths, w as drops, wi as docJson, wn as inList, wr as lowSampleLine, wt as currencyList, x as newSiteKey, xi as workerEnv, xn as entryCols, xt as journeysUnavailable, y as loadSites, yi as fromD1, yn as compileTraffic, yr as SATISFACTION_BY, yt as journeyPrev, zi as eachDay, zn as REVENUE_VALUE_RE, zr as formatAmount } from "./queue-sink-DZYrGtp0.mjs";
+import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-D-v-SZVV.mjs";
+import { a as runRollupReport, c as notFound$1, l as pages, n as ROLLUP_REPORTS, o as entryPages, r as rawOnly, s as exitPages, t as RAW_ONLY, u as overview } from "./rollup-CsQOfa2p.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-7qQoTFK9.mjs";
 import { PluginRouteError, after, definePlugin, getPluginSettings, pluginResponse } from "emdash";
 import { getDb } from "emdash/runtime";
 import { z } from "zod";
@@ -282,8 +282,10 @@ async function recordAgentEvents(deps, site, events) {
 		const k = `${x.session.day}|${x.session.sid}`;
 		const v = visits.get(k) ?? {
 			ref: x.session,
-			entries: []
+			entries: [],
+			counted: 0
 		};
+		if (!isPassiveEvent(x.name)) v.counted++;
 		const pr = x.props ? docJson(db.dialect, JSON.parse(x.props)) : void 0;
 		v.entries.push([row.id, docObject(db.dialect, {
 			t: s_`${x.ts} - started`,
@@ -299,7 +301,7 @@ async function recordAgentEvents(deps, site, events) {
 			sql: "UPDATE ca_events SET val = NULL, cur = NULL WHERE site = ? AND id > ? AND id < ?",
 			params: [site, ...refundRange(o)]
 		})),
-		...[...visits.values()].map(({ ref, entries }) => s_`UPDATE ca_sessions SET hits = ${docPut(db.dialect, "hits", entries)}, events = events + ${entries.length} WHERE site = ${site} AND day = ${visitDayKey(isoDay(ref.day))} AND sid = ${ref.sid}`)
+		...[...visits.values()].map(({ ref, entries, counted }) => s_`UPDATE ca_sessions SET hits = ${docPut(db.dialect, "hits", entries)}, events = events + ${counted} WHERE site = ${site} AND day = ${visitDayKey(isoDay(ref.day))} AND sid = ${ref.sid}`)
 	];
 	if (stmts.length) await db.batch(stmts);
 	return {
@@ -804,10 +806,17 @@ async function scroll(rc, input) {
 /**
 * Satisfaction reports: long and short clicks, bad experience, estimated pogo-sticking, returns to
 * search, search re-entry and the back/forward load share, over organic search sessions only (the dispatcher adds
-* the scope channel is Organic Search to every run, see `organicScope`). Classified at query time from `ca_sessions` and the page view
-* entries of its document
+* the scope channel is Organic Search to every run, see `organicScope`, and the statement itself reads only
+* sessions of that channel). Classified at query time from `ca_sessions` and the page view entries of its document
 * with the thresholds of the moment, so a changed threshold reclassifies every stored session at once.
+* One denominator rule: every rate, the score and the average active time count measured sessions only (an
+* unmeasured session is in no numerator and no denominator of them); `avg_duration` covers every session.
 */
+/** The channel of every session these reports read (the dispatcher's `organicScope` adds the same as a filter). */
+const ORGANIC_ONLY = {
+	sql: "s.channel = 'Organic Search'",
+	params: []
+};
 /** Session column per `params.by`; `entry` is the landing page table. */
 const BY_COL = {
 	entry: "s.entry_path",
@@ -823,8 +832,6 @@ const COUNTS = [
 	"long_clicks",
 	"short_clicks",
 	"bad_experiences",
-	"search_sessions",
-	"search_measured",
 	"pogo_sticks",
 	"reentered",
 	"returned_from_search",
@@ -838,12 +845,17 @@ function thresholds(rc) {
 		bad: Math.min(rc.settings.badExperienceSeconds ?? DEFAULT_SETTINGS.badExperienceSeconds, long)
 	};
 }
+/** Fewest measured sessions for a ranked page and for a score that is not `low_sample` (setting `satisfactionMinMeasured`). */
+function minMeasured(rc) {
+	return rc.settings.satisfactionMinMeasured ?? DEFAULT_SETTINGS.satisfactionMinMeasured;
+}
 /**
 * Per-session classification in an inner query, counted per key (and day) outside. The landing exit is read
-* only for single-page sessions, from their one page view entry.
+* only for single-page sessions, from their one page view entry. Every count but `sessions` and `duration_ms`
+* counts measured sessions (`m = 1`) only.
 */
 function countsSql(rc, input, keyExpr, byDay) {
-	const where = sessionWhere(rc.site, input.from, input.to, input.traffic?.session ?? TRUE);
+	const where = sessionWhere(rc.site, input.from, input.to, and([input.traffic?.session ?? TRUE, ORGANIC_ONLY]));
 	const d = rc.db.dialect;
 	const x = entryCols(d, "x");
 	const pvs = `FROM ${entriesOf(d, "x")} WHERE ${x.pv}`;
@@ -851,7 +863,6 @@ function countsSql(rc, input, keyExpr, byDay) {
 	const group = [keyExpr ? "t.key" : null, byDay ? "t.day" : null].filter(Boolean);
 	const inner = `SELECT ${keyExpr ? `${keyExpr} AS key, ` : ""}s.day AS day, ${DURATION_MS} AS dur,
 CASE WHEN s.visible_ms > 0 THEN 1 ELSE 0 END AS m,
-CASE WHEN s.channel = 'Organic Search' THEN 1 ELSE 0 END AS se,
 CASE WHEN s.pageviews = 1 AND s.events = 0 THEN 1 ELSE 0 END AS single,
 s.interacted AS inter, s.reentries AS re, s.engaged_ms AS eng,
 CASE WHEN s.pageviews = 1 THEN (SELECT MAX(${x.exit}) ${pvs}) END AS lexit,
@@ -862,12 +873,10 @@ FROM ca_sessions s WHERE ${where.sql}`;
 SUM(CASE WHEN t.m = 1 AND t.dur > ? THEN 1 ELSE 0 END) AS long_clicks,
 SUM(CASE WHEN t.m = 1 AND t.dur <= ? THEN 1 ELSE 0 END) AS short_clicks,
 SUM(CASE WHEN t.m = 1 AND t.single = 1 AND t.inter = 0 AND t.dur < ? THEN 1 ELSE 0 END) AS bad_experiences,
-SUM(t.se) AS search_sessions,
-SUM(CASE WHEN t.se = 1 AND t.m = 1 THEN 1 ELSE 0 END) AS search_measured,
-SUM(CASE WHEN t.se = 1 AND t.m = 1 AND t.single = 1 AND t.dur <= ? AND t.lexit = 2 THEN 1 ELSE 0 END) AS pogo_sticks,
-SUM(CASE WHEN t.se = 1 AND t.re > 0 THEN 1 ELSE 0 END) AS reentered,
-SUM(CASE WHEN t.se = 1 AND t.re > 0 AND t.fexit = 2 THEN 1 ELSE 0 END) AS returned_from_search,
-SUM(t.eng) AS engaged_ms
+SUM(CASE WHEN t.m = 1 AND t.single = 1 AND t.dur <= ? AND t.lexit = 2 THEN 1 ELSE 0 END) AS pogo_sticks,
+SUM(CASE WHEN t.m = 1 AND t.re > 0 THEN 1 ELSE 0 END) AS reentered,
+SUM(CASE WHEN t.m = 1 AND t.re > 0 AND t.fexit = 2 THEN 1 ELSE 0 END) AS returned_from_search,
+SUM(CASE WHEN t.m = 1 THEN t.eng ELSE 0 END) AS engaged_ms
 FROM (${inner}) t${group.length ? ` GROUP BY ${group.join(", ")}` : ""}`,
 		params: [
 			long * 1e3,
@@ -881,22 +890,20 @@ FROM (${inner}) t${group.length ? ` GROUP BY ${group.join(", ")}` : ""}`,
 const counts = (r) => Object.fromEntries(COUNTS.map((c) => [c, num$2(r?.[c])]));
 /**
 * Page score (docs/sessions.md "Best and worst pages"): long click rate minus bad experience rate minus pogo-sticking
-* rate, from the raw counts; a page without measured search sessions counts its pogo-sticking rate as 0. Null when
-* nothing is measured.
+* rate, all over measured sessions, so `(long_clicks - bad_experiences - pogo_sticks) / measured`. Null when nothing
+* is measured.
 */
 function score(c) {
 	if (!c.measured) return null;
-	return round((c.long_clicks - c.bad_experiences) / c.measured - (c.search_measured ? c.pogo_sticks / c.search_measured : 0));
+	return round((c.long_clicks - c.bad_experiences - c.pogo_sticks) / c.measured);
 }
-/** Satisfaction rates; every rate leaves unmeasured sessions out of its denominator. */
+/** Satisfaction figures; every rate, the score and `avg_engaged` divide by measured sessions, `avg_duration` by all sessions. */
 function rates(c) {
 	return {
 		sessions: c.sessions,
 		measured: c.measured,
-		search_sessions: c.search_sessions,
-		search_measured: c.search_measured,
 		avg_duration: round(ratio(c.duration_ms / 1e3, c.sessions), 1),
-		avg_engaged: round(ratio(c.engaged_ms / 1e3, c.sessions), 1),
+		avg_engaged: round(ratio(c.engaged_ms / 1e3, c.measured), 1),
 		measured_rate: round(ratio(c.measured, c.sessions)),
 		long_clicks: c.long_clicks,
 		short_clicks: c.short_clicks,
@@ -907,9 +914,9 @@ function rates(c) {
 		pct_long: round(ratio(c.long_clicks, c.measured)),
 		pct_short: round(ratio(c.short_clicks, c.measured)),
 		pct_bad: round(ratio(c.bad_experiences, c.measured)),
-		pogo_stick_rate: round(ratio(c.pogo_sticks, c.search_measured)),
-		returned_from_search_rate: round(ratio(c.returned_from_search, c.search_sessions)),
-		search_reentry_rate: round(ratio(c.reentered, c.search_sessions)),
+		pogo_stick_rate: round(ratio(c.pogo_sticks, c.measured)),
+		returned_from_search_rate: round(ratio(c.returned_from_search, c.measured)),
+		search_reentry_rate: round(ratio(c.reentered, c.measured)),
 		score: score(c)
 	};
 }
@@ -920,16 +927,18 @@ async function backNav(rc, input, keys) {
 	const cols = `SUM(CASE WHEN ${h.nav} = 2 THEN 1 ELSE 0 END) AS bf, COUNT(${h.nav}) AS loads`;
 	return (await rc.db.all(keys ? `SELECT ${h.path} AS key, ${cols} ${j.sql} GROUP BY ${h.path}` : `SELECT ${cols} ${j.sql}`, j.params)).map((r) => ({
 		key: r.key == null ? "" : String(r.key),
-		rate: round(ratio(num$2(r.bf), num$2(r.loads)))
+		rate: round(ratio(num$2(r.bf), num$2(r.loads))),
+		loads: num$2(r.loads)
 	}));
 }
 /** Score order of `params.rank` over the grouped counts `g`; `1.0 *` keeps the division real on every dialect. */
-const SCORE_SQL = "(1.0 * (g.long_clicks - g.bad_experiences) / g.measured - CASE WHEN g.search_measured > 0 THEN 1.0 * g.pogo_sticks / g.search_measured ELSE 0 END)";
+const SCORE_SQL = "(1.0 * (g.long_clicks - g.bad_experiences - g.pogo_sticks) / g.measured)";
 /**
 * Landing page table plus totals; `params.by` groups by a session dimension instead of the landing page,
-* and `params.rank` (`best` | `worst`) orders landing pages with at least `SATISFACTION_MIN_MEASURED` measured sessions
+* and `params.rank` (`best` | `worst`) orders landing pages with at least `minMeasured(rc)` measured sessions
 * by score. A ranked compare run reads the previous period's busiest landing pages unranked, so a ranked page finds
-* its previous row by key (shortcut: up to 1000 pages; a page outside them shows no previous value).
+* its previous row by key (shortcut: up to 1000 pages; a page outside them shows no previous value). Totals and
+* every row carry `low_sample` (fewer measured sessions than `min_measured`) after `back_nav_rate`.
 */
 async function satisfaction(rc, input) {
 	const byName = input.params.by ?? "entry";
@@ -938,10 +947,11 @@ async function satisfaction(rc, input) {
 	if (rank && byName !== "entry") throw new QueryError("invalid_params", "satisfaction params.rank ranks landing pages; leave params.by out or set it to entry.");
 	const by = countsSql(rc, input, BY_COL[byName], false);
 	const ranked = rank && !input.isCompare;
+	const min = minMeasured(rc);
 	const limit = rank && input.isCompare ? 1e3 : input.limit;
 	const rows = ranked ? await rc.db.all(`SELECT g.* FROM (${by.sql}) g WHERE g.measured >= ? ORDER BY ${SCORE_SQL} ${rank === "best" ? "DESC" : "ASC"}, g.sessions DESC, g.key LIMIT ? OFFSET ?`, [
 		...by.params,
-		30,
+		min,
 		limit + 1,
 		input.offset
 	]) : await rc.db.all(`${by.sql} ORDER BY sessions DESC, key LIMIT ? OFFSET ?`, [
@@ -951,27 +961,37 @@ async function satisfaction(rc, input) {
 	]);
 	const page = rows.slice(0, limit);
 	const keys = byName === "entry" ? page.map((r) => String(r.key)) : [];
-	const bf = new Map(keys.length ? (await backNav(rc, input, keys)).map((r) => [r.key, r.rate]) : []);
+	const nav = new Map(keys.length ? (await backNav(rc, input, keys)).map((r) => [r.key, r]) : []);
 	const tot = countsSql(rc, input, null, false);
 	const [t] = await rc.db.all(tot.sql, tot.params);
 	const [tb] = await backNav(rc, input, null);
 	const { long, bad } = thresholds(rc);
+	const tc = counts(t);
+	const loads = (n) => input.lean ? { page_loads: n?.loads ?? 0 } : {};
 	return {
 		totals: {
-			...rates(counts(t)),
-			back_nav_rate: tb?.rate ?? null
+			...rates(tc),
+			back_nav_rate: tb?.rate ?? null,
+			low_sample: tc.measured < min,
+			...loads(tb)
 		},
-		rows: page.map((r) => ({
-			key: String(r.key),
-			...rates(counts(r)),
-			back_nav_rate: bf.get(String(r.key)) ?? null
-		})),
+		rows: page.map((r) => {
+			const c = counts(r);
+			const b = nav.get(String(r.key));
+			return {
+				key: String(r.key),
+				...rates(c),
+				back_nav_rate: b?.rate ?? null,
+				low_sample: c.measured < min,
+				...byName === "entry" ? loads(b) : {}
+			};
+		}),
 		truncated: rows.length > limit,
 		thresholds: {
 			long_click_seconds: long,
 			bad_experience_seconds: bad
 		},
-		...rank ? { min_measured: 30 } : {}
+		min_measured: min
 	};
 }
 /** Daily (or weekly) rates, zero-filled; `hour` is answered per day with a notice. */
@@ -1003,8 +1023,7 @@ async function satisfactionSeries(rc, input) {
 			long_clicks,
 			short_clicks,
 			bad_experiences,
-			pogo_sticks,
-			search_measured: c.search_measured
+			pogo_sticks
 		};
 	});
 	if (input.isCompare) return {
@@ -1226,12 +1245,12 @@ const SEO_TEXT = {
 	rangeTooLong: "This view reads detailed rows and is limited to 93 days. Choose a shorter range.",
 	bingNoPairs: "Bing exposes page and query pairs only per page or per query on request; the lists are Google data",
 	bingOnRequest: "Loads from Bing on request, cached one hour.",
-	top3Insufficient: "not enough top-3 data",
+	top3Insufficient: "not enough top band data",
 	estimate: "est.",
 	notable: "Notable means the change is larger than twice the square root of the two counts added up. A rule of thumb for counts, not a statistical test.",
-	striking: "Pairs at average position 4 to 20. The estimate uses this site's own CTR in positions 1 to 3 over the same range.",
+	striking: "Google pairs with an average position from 4 to below 21. The estimate uses this site's own CTR below position 4 over the same range.",
 	patterns: "Dominant: the best page holds at least 70 percent of the impressions and the best position. Split: no page holds 50 percent. Inverted: the page with the most impressions ranks worse than another page. Shared: anything else.",
-	decay: "Pages whose clicks fell in each of three consecutive periods. Position: the position worsened by 2 or more. CTR: the CTR fell under 75 percent with a stable position. Demand: neither, so fewer searches.",
+	decay: "Pages whose clicks fell from the oldest to the middle period and again to the current one. Position: the average position worsened by 2 or more. CTR: the CTR fell below 75 percent of its oldest value while the position held. Demand: neither, so fewer searches.",
 	compareNotSupported: "These views compare periods on their own; the compare option does not apply.",
 	caution: "Before and after comparisons show correlation, not causation. Seasonality, other changes and search engine updates overlap; annotations in the same window are listed.",
 	noAnnotation: "No annotation yet"
@@ -2210,6 +2229,7 @@ function fmt(v, f = "number") {
 			return s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${Math.floor(s / 3600)}h ${Math.floor(s % 3600 / 60)}m`;
 		}
 		case "decimal": return v.toFixed(2);
+		case "points": return String(Math.round(v * 100) || 0);
 		default: return Math.abs(v) >= 1e5 ? compact.format(v) : nf.format(v);
 	}
 }
@@ -2270,6 +2290,7 @@ function axisScale(values, top, bottom, invert = false) {
 /** Short tick label: compact counts ("9.2k"), whole percents, durations as `fmt`, money without its code (the code is in the axis caption). */
 function fmtTick(v, f) {
 	if (f === "percent") return `${r1(v * 100)}%`;
+	if (f === "points") return String(Math.round(v * 100) || 0);
 	if (f === "duration") return fmt(v, f);
 	if (f === "decimal") return String(r1(v));
 	return new Intl.NumberFormat("en-US", {
@@ -2444,6 +2465,9 @@ const annotationCount = (n) => `${n} annotation${n === 1 ? "" : "s"}`;
 * - duration, decimal and money: relative change, then the difference in the metric's own unit; money stays in
 *   the one currency of the format (a report answers in one currency, amounts are never converted or mixed).
 * - position (Search): the difference in positions with its judgement (`0.4 better`, `from 8.2`), no percent.
+* - points (the Search Satisfaction score, a signed figure): the difference in points (`+4 points`, `+1 point`,
+*   `from 20`), never a relative percent, which means nothing for a value that can be 0 or negative.
+* - Rates and points take the difference of the two figures as printed, so the change always matches them.
 *
 * Judgement: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
 * `NO_JUDGEMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
@@ -2483,6 +2507,7 @@ const pct = (r) => `${r > 0 ? "+" : r < 0 ? "-" : ""}${one.format(Math.abs(r * 1
 function unitOf(metric, f) {
 	if (metric === "position") return "positions";
 	if (f === "percent") return "pp";
+	if (f === "points") return "points";
 	if (f === "duration" || f === "decimal") return f;
 	if (f.startsWith("money:")) return f;
 	return "count";
@@ -2491,6 +2516,10 @@ function unitOf(metric, f) {
 function signed(abs, unit, f) {
 	const sign = abs > 0 ? "+" : abs < 0 ? "-" : "";
 	if (unit === "pp") return `${sign}${Math.abs(abs * 100).toFixed(1)} pp`;
+	if (unit === "points") {
+		const n = Math.round(Math.abs(abs * 100));
+		return `${sign}${n} ${n === 1 ? "point" : "points"}`;
+	}
 	return `${sign}${fmt(Math.abs(abs), unit === "count" ? "number" : f)}`;
 }
 /**
@@ -2514,8 +2543,9 @@ function describeChange(metric, current, previous, opts) {
 		note: opts.reason ?? "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected).",
 		words: "no comparison"
 	};
-	const abs = cur - prev;
-	const shown = unit === "pp" ? abs * 100 : unit === "positions" ? abs : prev === 0 ? abs : abs / Math.abs(prev) * 100;
+	const printed = (v) => unit === "pp" ? Number.parseFloat(fmt(v, "percent")) : Number(fmt(v, "points"));
+	const abs = unit === "pp" || unit === "points" ? (printed(cur) - printed(prev)) / 100 : cur - prev;
+	const shown = unit === "pp" ? abs * 100 : unit === "points" ? Math.round(abs * 100) : unit === "positions" ? abs : prev === 0 ? abs : abs / Math.abs(prev) * 100;
 	const direction = Math.abs(shown) < .05 ? "flat" : abs > 0 ? "up" : "down";
 	const lower = opts.lowerIsBetter ?? LOWER_IS_BETTER.has(metric);
 	const judgement = direction === "flat" || NO_JUDGEMENT.has(metric) ? "neutral" : direction === "up" !== lower ? "better" : "worse";
@@ -2534,7 +2564,7 @@ function describeChange(metric, current, previous, opts) {
 	if (direction === "flat") return {
 		...base,
 		kind: "change",
-		rel: unit === "pp" || unit === "positions" ? null : 0,
+		rel: unit === "pp" || unit === "points" || unit === "positions" ? null : 0,
 		muted: false,
 		note: null,
 		label: "No change",
@@ -2550,6 +2580,17 @@ function describeChange(metric, current, previous, opts) {
 			label,
 			detail: from,
 			words: `${direction} ${Math.abs(abs * 100).toFixed(1)} percentage points${judged}${quiet}`
+		};
+	}
+	if (unit === "points") {
+		const label = signed(abs, unit, f);
+		return {
+			...base,
+			kind: "change",
+			rel: null,
+			label,
+			detail: from,
+			words: `${direction} ${label.slice(1)}${judged}${quiet}`
 		};
 	}
 	if (unit === "positions") {
@@ -3087,14 +3128,14 @@ const SEARCH_SERIES = /* @__PURE__ */ new Set([
 	"ctr",
 	"position"
 ]);
-/** Denominator a rate metric is read with (`measured` in the response). */
+/** Denominator a rate metric is read with: its field name, returned as `measured.base` with the two values. */
 function denominator(metric, report) {
 	if (COUNT_METRICS.has(metric)) return null;
 	if (report === "revenue") return metric === "revenue_per_visitor" ? "visitors" : metric === "revenue_per_session" ? "sessions" : "orders";
 	if (metric === "ctr" || metric === "position" || metric === "impressions_share") return "impressions";
 	const band = /^(?:share|ctr)_(.+)$/.exec(metric);
 	if (band) return `impressions_${band[1]}`;
-	if (report === "satisfaction") return metric === "search_reentry_rate" || metric === "returned_from_search_rate" ? "search_sessions" : metric === "pogo_stick_rate" ? "search_measured" : metric === "avg_duration" ? "sessions" : "measured";
+	if (report === "satisfaction") return metric === "avg_duration" ? "sessions" : metric === "back_nav_rate" ? "page_loads" : "measured";
 	if (metric === "avg_time" || metric === "exit_rate") return "pageviews";
 	if (report === "entry_pages") return "entries";
 	if (metric === "bounce_rate" || metric === "engaged_rate" || metric === "avg_duration" || metric === "views_per_session") return "sessions";
@@ -3199,6 +3240,7 @@ async function measure(rc, filters0, day, m, days) {
 	if (COUNT_METRICS.has(metric) && vb !== null && va !== null) out.notable = Math.abs(va - vb) > 2 * Math.sqrt(va + vb);
 	const den = denominator(metric, report);
 	if (den) out.measured = {
+		base: den,
 		before: num(pb?.[den]),
 		after: num(pa?.[den])
 	};
@@ -3434,7 +3476,7 @@ function campaigns(rc, input) {
 		params: []
 	});
 }
-/** Sessions from AI assistants by source, with their top landing pages (a lower bound). */
+/** Sessions from AI assistants by source, with their top entry pages (a lower bound). */
 async function aiReferrals(rc, input) {
 	const d = await sessionBreakdown(rc, input, `COALESCE(s.source, ${NOT_SET})`, {
 		sql: "s.channel = ?",
@@ -5143,6 +5185,9 @@ const TILE_METRICS = {
 /** Amount keys: shown with their currency code, never as a bare number. */
 const MONEY_KEYS = /* @__PURE__ */ new Set([
 	"revenue",
+	"refunds",
+	"net_revenue",
+	"est_lost_revenue",
 	"aov",
 	"revenue_per_visitor",
 	"revenue_per_session"
@@ -5150,6 +5195,8 @@ const MONEY_KEYS = /* @__PURE__ */ new Set([
 /** Display format of a metric key. */
 function metricFormat(key) {
 	if (key === "avg_duration" || key === "avg_time" || key === "avg_visible" || key === "avg_engaged") return "duration";
+	if (key === "score") return "points";
+	if (key === "low_sample") return "text";
 	if (key === "position" || key === "views_per_session") return "decimal";
 	if (key === "ctr" || key === "share" || key.endsWith("_rate") || key.startsWith("pct_") || key.endsWith("_share") || key.endsWith("_pct") || key.startsWith("share_") || key.startsWith("ctr_") || key.startsWith("ctr")) return "percent";
 	if (key.startsWith("position")) return "decimal";
@@ -5237,7 +5284,12 @@ const Preset = z.enum(PRESETS.map((p) => p[0]));
 /** A segment, goal or funnel reference: a record id in a dashboard, a record name in a template. */
 const Ref = z.string().min(1).max(128);
 const ColumnKey = z.string().regex(/^[a-z0-9_]{1,32}$/);
-const TileSchema = z.object({
+/**
+* A tile. `stored` reads a saved record: a metric the report does not offer (a removed key) is kept and shows no figure,
+* so one such tile does not make the whole dashboard, its shared page and its email unreadable; what an editor or
+* agent sends (`stored` false) must name a metric of the report.
+*/
+const tileSchema = (stored) => z.object({
 	id: z.string().regex(/^[a-z0-9]{6}$/),
 	report: z.enum(TILE_REPORTS),
 	kind: z.enum(TILE_KIND_NAMES),
@@ -5284,7 +5336,7 @@ const TileSchema = z.object({
 		key: z.string().min(1).max(512).optional(),
 		scope: z.enum(["annotation", "none"]).optional(),
 		path: z.string().min(1).max(512).regex(/^\//).optional(),
-		/** `journey_paths`: the landing page. */
+		/** `journey_paths`: the entry page. */
 		entry: z.string().min(1).max(512).regex(/^\//).optional(),
 		/** `search_position_moves` tables: the matrix (default) or one of the four lists. */
 		list: z.enum([
@@ -5320,12 +5372,14 @@ const TileSchema = z.object({
 	if (t.kind === "kpi" && !t.metric) issue("a kpi tile needs a metric", "metric");
 	if (t.columns && t.kind !== "table") issue("only a table tile names columns", "columns");
 	if (t.columns && new Set(t.columns).size !== t.columns.length) issue("a column is named twice", "columns");
-	if (t.kind === "kpi" && t.metric && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
+	if (t.kind === "kpi" && t.metric && !stored && !metrics?.includes(t.metric)) issue(`unknown metric ${t.metric} for ${t.report}`, "metric");
 	if (series && t.metric) issue(`a ${t.kind} tile names its metrics in metrics`, "metric");
 	if (!series && t.metrics) issue("metrics is for line and area tiles", "metrics");
 	if (series && !t.metrics) issue(`a ${t.kind} tile needs metrics`, "metrics");
 	if (series && t.metrics) {
-		for (const m of t.metrics) if (!metrics?.includes(m)) issue(`unknown metric ${m} for ${t.report}`, "metrics");
+		if (!stored) {
+			for (const m of t.metrics) if (!metrics?.includes(m)) issue(`unknown metric ${m} for ${t.report}`, "metrics");
+		}
 		if (new Set(t.metrics).size !== t.metrics.length) issue("a metric is listed twice", "metrics");
 		const problem = tileMetricsProblem(t.metrics);
 		if (problem) issue(problem, "metrics");
@@ -5349,6 +5403,8 @@ const TileSchema = z.object({
 	if ((p.event || p.prop) && t.report !== "event_props") issue("params.event and params.prop are for the event_props report", "params");
 	if (p.source && !tileNeedsSearch(t)) issue("params.source is for the search reports", "params");
 });
+const TileSchema = tileSchema(false);
+const StoredTileSchema = tileSchema(true);
 const body = {
 	name: z.string().trim().min(1).max(80),
 	tiles: z.array(TileSchema).min(1),
@@ -5435,6 +5491,7 @@ const DashboardSchema = z.object({
 	site: z.string().min(1).max(32),
 	v: z.literal(1),
 	...body,
+	tiles: z.array(StoredTileSchema).min(1),
 	created: z.number().int(),
 	updated: z.number().int(),
 	/** Written only by `dashboards/email/save` and the mail tick. */
@@ -5755,48 +5812,58 @@ const ENDPOINTS = [
 ];
 /** Metric definitions served by the catalog; the admin InfoMark caveats say the same in more words. */
 const METRICS = {
-	visitors: "Distinct daily visitor keys summed per day; a visitor seen on two days counts twice. Cross-day uniques are not tracked.",
-	sessions: "Sessions of humans; the window is the sessionWindowMinutes setting.",
-	pageviews: "Page views of humans.",
+	visitors: "Distinct daily visitor keys, counted per day and added up over the range; a visitor seen on two days counts twice. There are no cross-day uniques.",
+	sessions: "Human sessions with at least one page view, counted on the day they started; a session ends after sessionWindowMinutes without activity.",
+	pageviews: "Page views of the human sessions that started in the range; reloads within reloadDedupeSeconds count once.",
 	views_per_session: "pageviews / sessions.",
 	bounce_rate: "Sessions that are not engaged, divided by sessions: 1 - engaged_rate (the GA4 meaning).",
-	engaged_rate: "Sessions with active time at or above the engagement threshold, more than one page view or any event, divided by sessions.",
-	avg_duration: "Mean session duration in seconds: the longer of the visit span (first to last activity) and the visible time. Not interaction time.",
-	avg_time: "Mean active time per page view in seconds (pages report): time with interaction, within 60 s of the last one, so an open but untouched page counts 0 s.",
-	avg_visible: "Mean visible time per page view in seconds (pages report, detailed data only; null in summaries).",
-	realtime: "Sessions active within the realtime window (overview only).",
-	conversions: "Sessions that reached a goal.",
-	conversion_rate: "conversions / sessions of the filtered set.",
+	engaged_rate: "Sessions with active time at or above engagedThresholdSeconds, more than one page view or any event (custom, automatic or server reported), divided by sessions. The link impression seen is no event here.",
+	avg_duration: "Mean session duration in seconds: per session the longer of the span from its start to its last page view or event and the visible time. Not interaction time.",
+	avg_time: "Mean active time per page view with a measurement, in seconds (pages report): time visible within 60 s of an interaction, so an open but untouched page counts 0 s.",
+	avg_visible: "Mean visible time per page view with a measurement, in seconds (pages report, detailed data only; null in summaries).",
+	realtime: "Sessions with a page view or event within realtimeWindowMinutes (overview only); the filters apply on every range, as the live visits are always detailed.",
+	converting: "Sessions that reached the goal at least once (goals report).",
+	completions: "Goal matches in the range; one session can add several.",
+	conversion_rate: "converting / total_sessions, the sessions of the range under the same filters.",
+	exit_rate: "exits / pageviews of the path, at most 1; null in summaries under a channel, country or device filter (notice exit_rate_segment) and for pages folded into (other) (notice exit_rate_partial).",
+	entries: "Sessions that started on the page.",
+	exits: "Sessions whose last page view was the page.",
+	events: "Events of the name sent in the range (events report); internal _ events are left out.",
+	rate: "sessions with the event / total_sessions.",
+	scroll_median: "Lower median of the deepest scroll percent per page view; null in summaries.",
+	drop_off: "(previous step sessions - step sessions) / previous step sessions.",
+	conversion: "step sessions / step 1 sessions.",
 	clicks: "Search clicks reported by the provider.",
 	impressions: "Search impressions reported by the provider.",
 	ctr: "clicks / impressions.",
 	position: "Impression weighted mean position: sum of position times impressions, divided by impressions.",
-	measured: "Sessions with at least one engagement update (visible time above 0); the Search Satisfaction rates divide by these.",
-	search_sessions: "Organic search sessions (Search Satisfaction reports, which cover organic search sessions only).",
+	measured: "Sessions with at least one engagement update (visible time above 0); every Search Satisfaction rate, the score and avg_engaged divide by these.",
 	long_clicks: "Measured sessions longer than the longClickSeconds setting (default 60 s).",
 	short_clicks: "Measured sessions at or below the longClickSeconds setting.",
 	bad_experiences: "Measured single page sessions without events or interaction, shorter than min(badExperienceSeconds, longClickSeconds).",
-	search_measured: "Measured search sessions: the denominator of pogo_stick_rate (Search Satisfaction reports).",
-	pogo_sticks: "Measured search sessions with one page view, no events, a short click, and a page left for the back and forward cache.",
-	reentered: "Search sessions that a later arrival from a search engine joined.",
-	returned_from_search: "Search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache.",
-	avg_engaged: "Mean active time per session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
+	pogo_sticks: `Measured search sessions counted as pogo-sticking. ${POGO_DEFINITION} An estimate.`,
+	reentered: "Measured search sessions that a later arrival from a search engine joined (measured sessions only).",
+	returned_from_search: "Measured search sessions that a later arrival from a search engine joined and whose landing page view (the first) was left for the back and forward cache (measured sessions only).",
+	avg_engaged: "Mean active time per measured session in seconds (Search Satisfaction reports): time with interaction, not the time the page was open.",
 	measured_rate: "measured / sessions: the share of sessions with a measurable end.",
-	score: "pct_long - pct_bad - pogo_stick_rate (pogo_stick_rate counts as 0 without measured search sessions); null without measured sessions. Ranks best and worst pages (satisfaction params.rank).",
+	score: "(long_clicks - bad_experiences - pogo_sticks) / measured, equal to pct_long - pct_bad - pogo_stick_rate; null without measured sessions. low_sample is true on totals, rows and previous when measured is under data.min_measured. Ranks best and worst pages (satisfaction params.rank).",
 	pct_long: "long_clicks / measured.",
 	pct_short: "short_clicks / measured.",
 	pct_bad: "bad_experiences / measured.",
-	pogo_stick_rate: `pogo_sticks / search_measured. ${POGO_DEFINITION} An estimate.`,
-	returned_from_search_rate: "returned_from_search / search_sessions. A stronger pogo-sticking signal: the visitor demonstrably came back from a search engine. An estimate.",
-	search_reentry_rate: "reentered / search_sessions. An estimate.",
+	pogo_stick_rate: `pogo_sticks / measured. ${POGO_DEFINITION} An estimate.`,
+	returned_from_search_rate: "returned_from_search / measured; a subset of reentered, so at most search_reentry_rate. A stronger pogo-sticking signal: the visitor demonstrably came back from a search engine. An estimate.",
+	search_reentry_rate: "reentered / measured. An estimate.",
 	back_nav_rate: "Page loads of type back_forward / page loads with a known navigation type; restores from the back and forward cache are not loads, so a lower bound. An estimate.",
 	cannibalized_queries: "Queries with two or more pages each holding at least minShare percent of the query's impressions, and at least minImpressions impressions in the range (search_cannibalization).",
-	cannibalized_impressions: "Impressions of the cannibalized queries.",
-	visible_share: "Page with query impressions over total impressions of the range: the share of search traffic the pair views can see.",
-	impressions_share: "A page's (or band's) impressions over the query's (or all) impressions.",
-	moved_up: "Queries whose position band improved between the previous and the current period.",
-	moved_down: "Queries whose position band worsened between the two periods.",
-	potential_clicks: "impressions * max(0, ctr_1_3 - ctr), where ctr_1_3 is the site's own CTR in band 1-3 over the same range; null below 1,000 band 1-3 impressions. An estimate.",
+	cannibalized_impressions: "Impressions of the pages over the share floor of the cannibalized queries.",
+	visible_share: "Page with query impressions over total impressions, Google rows of the range.",
+	impressions_share: "A page's impressions over the counted pages of its query, or a band's impressions over all bands.",
+	moved_up: "Queries at or above minImpressions in both periods whose position band improved.",
+	moved_down: "Queries at or above minImpressions in both periods whose position band worsened.",
+	unchanged: "Queries at or above minImpressions in both periods whose position band stayed the same.",
+	new: "Queries with impressions at or above the floor now and below it in the previous period.",
+	lost: "Queries with impressions at or above the floor in the previous period and below it now.",
+	potential_clicks: "impressions * max(0, ctr_1_3 - ctr), where ctr_1_3 is the site's own CTR of the Google pairs with an average position below 4 over the same range; null below 1,000 such impressions. An estimate.",
 	notable: "abs(current - previous) > 2 * sqrt(current + previous) for counts; a rule of thumb for count data, not a statistical test.",
 	loss: "Clicks (or page views) of the oldest period minus the current period (decay views).",
 	revenue: "Sum of the values of revenue events (events sent with a value) in one currency, before refunds (gross).",
@@ -5806,8 +5873,37 @@ const METRICS = {
 	aov: "Average order value: revenue / orders, per currency.",
 	revenue_per_visitor: "revenue / visitors, where visitors is the Overview figure for the same filters and range (all visitors, not only buyers).",
 	revenue_per_session: "revenue / sessions of the filtered set.",
-	paying_sessions: "Distinct sessions with at least one revenue event in the currency."
+	paying_sessions: "Distinct sessions (visit day plus sid) with at least one revenue event in the currency.",
+	est_lost_revenue: "Funnel steps: the sessions that left before the step, valued at the average revenue of the sessions that reached the last step. An estimate.",
+	amount: "Order value of a revenue_orders row in its currency; negative for a refund.",
+	hits: "Requests from people that got a 404 response, counted on the day of the request (not_found).",
+	share: "Rows of journey_next and journey_prev: sessions / the sessions that viewed the page (data.page_sessions). scroll: pageviews of the row / page views with a scroll measurement. revenue_breakdown: revenue of the row / revenue of the range.",
+	queries: "Distinct queries with impressions in the range; in a position band row, the queries whose average position falls in the band.",
+	day_pageviews: "Pageviews of the range from the daily totals (collections), the base of coverage.",
+	coverage: "pageviews of the collection rows / day_pageviews: the share of page views the stored page rows cover (collections).",
+	...bandMetrics()
 };
+/** Catalog entries of the band keys (`queries_1_3`, `share_4_10`, `band_51_plus`): bands are half open on the average position. */
+function bandMetrics() {
+	const words = [
+		"below 4",
+		"4 to below 11",
+		"11 to below 21",
+		"21 to below 51",
+		"51 and beyond"
+	];
+	return Object.fromEntries(POSITION_BANDS.flatMap((b, i) => {
+		const s = bandSuffix(b);
+		const w = `whose average position over the range is ${words[i]}`;
+		return [
+			[`queries_${s}`, `Queries ${w}.`],
+			[`impressions_${s}`, `Impressions of the queries or pages ${w}.`],
+			[`share_${s}`, `impressions_${s} / impressions of all bands.`],
+			[`ctr_${s}`, `Click-through rate of the queries or pages ${w}; in search_striking_distance, of the Google query and page pairs.`],
+			[`band_${s}`, `Queries or pages ${w}, or their impressions (params.metric), per bucket (search_position_bands_series).`]
+		];
+	}));
+}
 /** Catalog of the revenue reports. */
 const REVENUE_CATALOG = {
 	reports: {
@@ -6004,9 +6100,16 @@ const SUMMARY_CATALOG = {
 const SATISFACTION_CATALOG = {
 	params: {
 		by: SATISFACTION_BY,
-		rank: `best | worst: landing pages with at least 30 measured sessions ordered by score; only with by entry (the default)`
+		rank: `best | worst: landing pages with at least the configured minimum of measured sessions (setting satisfactionMinMeasured, default 30; the answer names it as data.min_measured) ordered by score; only with by entry (the default)`
 	},
-	minMeasured: 30,
+	/** The sample minimum is a setting: its default and range here, the value in effect in each answer's `data.min_measured`. */
+	minMeasured: {
+		setting: "satisfactionMinMeasured",
+		default: 30,
+		min: settingsSchema.satisfactionMinMeasured.min,
+		max: settingsSchema.satisfactionMinMeasured.max,
+		inEffect: "data.min_measured of each answer"
+	},
 	pogoDefinition: POGO_DEFINITION
 };
 /** Catalog of the `links` report (Links convention, docs/integration.md). */
@@ -6023,7 +6126,7 @@ const LINKS_CATALOG = {
 		impressions: "Link keys of view events (s0 to s9, each <slug> or <slug>@<place>).",
 		clicks: "Click events of the key.",
 		ctr: "clicks / impressions from the sums; 0 without impressions.",
-		sessions: "Distinct sessions with a click.",
+		sessions: "Distinct sessions with at least one page view and a click of the key; a visit with a click and no page view is left out.",
 		conversions: "Sale events of the key, every currency.",
 		revenue: "Sum of sale values in the selected currency only (withRevenue)."
 	},
@@ -6034,7 +6137,7 @@ const SEO_CATALOG = {
 	maxRangeDays: 93,
 	coverage: SEO_TEXT.coverage,
 	bingNoPairs: SEO_TEXT.bingNoPairs,
-	periodRule: "n = min(to - from + 1, 93); the current period ends at the newest final (not provisional) day of the selected sources, or yesterday for traffic views; the previous and oldest periods are the n days before, back to back. The response carries periods and the notice provisional_excluded when the end moved.",
+	periodRule: "n = to - from + 1, at most 93 (range_too_long above); the current period ends at the newest final (not provisional) day of the selected sources, or yesterday for traffic views; the previous and oldest periods are the n days before, back to back. The response carries periods and the notice provisional_excluded when the end moved.",
 	bands: [
 		"1-3",
 		"4-10",
@@ -6042,6 +6145,7 @@ const SEO_CATALOG = {
 		"21-50",
 		"51+"
 	],
+	bandRule: "Bands are half open on the average position of the query or page over the range: 1-3 is below 4, 4-10 is 4 to below 11, 11-20 is 11 to below 21, 21-50 is 21 to below 51, 51+ is 51 and beyond.",
 	reports: {
 		search_cannibalization: {
 			params: [
@@ -6155,8 +6259,8 @@ const SEO_CATALOG = {
 			"q",
 			"withSearch"
 		],
-		maxRows: 50,
-		maxRowsSmallProfile: 10,
+		maxRows: 6,
+		maxRowsSmallProfile: 5,
 		rule: "One row per annotation of the range, newest first (limit, offset; total counts every match), each measured on its target (or visitors of its scope, Search clicks for a query scope with withSearch) over equal windows as in impact, with verdict up, down, flat, too_early or no_data, good (true when the change is good news; a fall is good for lower-is-better metrics) and overlaps (annotations of an overlapping scope inside the windows). kind and scopeKind filter; q keeps annotations whose title, kind, scope or source slug contains the text (case-insensitive, at most 100 characters). withSearch measures Search targets and needs read:search. Reads only."
 	}
 };
@@ -11201,29 +11305,26 @@ function contractRoute(env) {
 	};
 }
 // src/charts/caveats.ts
-/** Fixed caveat and notice texts, shared by the admin info markers and the shared page. No React. */
 /** Notice texts of the SEO views and the impact view. */
 const SEO_NOTICES = {
-	top3_insufficient: "Potential clicks need at least 1,000 impressions in positions 1 to 3 over this range; not enough top-3 data.",
+	top3_insufficient: "Potential clicks need at least 1,000 impressions below position 4 over this range; not enough top band data.",
 	scope_host_not_applied: "Host rules do not apply to Search data; this comparison is not limited by host.",
 	capped: "The list shows the 200 queries with the most impressions; the totals count every query.",
 	metric_unavailable: "This report has no value for this metric here; pick a row or another metric.",
 	scope_query_not_applied: "Query rules apply to Search data only; this comparison is site-wide. Pick a Search metric to compare the query."
 };
 const CAVEATS = {
-	visitors: "Distinct visitors per day, added up over the range, so a person who returns on another day counts again.",
-	nat: "People who share one network address and the same browser family on the same day can count as one visitor.",
+	visitors: "Distinct visitors per day, added up over the range, so a person who returns on another day counts again. People behind one network address with the same browser can count as one.",
 	searchLag: "Search data arrives 2 to 3 days late. The three newest days are provisional and are replaced on the next sync.",
 	rollup: "This range is answered from daily summaries: it starts before the detailed data window, or it is too long to read in detail. Some filters do not apply to summaries.",
+	/** Footnote of shared pages and emails with a Search Satisfaction tile; each figure's own text lives in `definitions.ts`. */
 	satisfaction_estimate: "Pogo-sticking, returned from search, search re-entry and back/forward loads are estimates from browser navigation signals.",
-	pogo: `${POGO_DEFINITION} ${SATISFACTION_CAVEAT}`,
-	returned: `${RETURNED_DEFINITION} ${SATISFACTION_CAVEAT}`,
-	satisfaction_score: SCORE_DEFINITION,
-	active_time: "Active time counts only while the visitor interacts, so a page that is open but untouched shows 0 s. See Avg. duration for visible time.",
-	duration: "Time the page was visible, whichever is longer of the visit span and the visible time. Not interaction time.",
-	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank.",
-	exit_rate: "Blank for pages whose exits or page views were folded into other pages on some days of this range.",
-	satisfaction_measured: "Share of sessions with a measurable end, where at least one engagement update arrived; the rates count only these sessions."
+	active_time: "Average active time per page view with a measurement: time the page was visible within 60 seconds of an interaction. An open but untouched page shows 0 s; see Avg. visible time.",
+	duration: "Average session length: for each session the longer of the span from its start to its last page view or event and the time its pages were visible. Interaction is not required.",
+	/** Footnotes of shared pages and emails that show a bounce rate or a session duration. */
+	bounce_footnote: "Bounce rate: share of sessions with one page view, no event and active time under the engaged threshold.",
+	duration_footnote: "Avg. session duration: the longer of the visit span and the time the pages were visible.",
+	visible_time: "Time the page was visible per page view, whether or not the visitor interacted. Kept in detailed data only, so summary ranges leave it blank."
 };
 /** Notices of the collections and site search reports. */
 const SITE_NOTICES = {
@@ -11249,6 +11350,16 @@ function filterReason(dim, reason, c = {}) {
 * and email; `tests/copy.test.ts` fails when a reader returns a code missing here. `null`: the code's own view shows it
 * with its figures (the Impact panel, the SEO coverage line).
 */
+/** Notices about the figure of one column (the key): shown only where that figure is displayed. */
+const COLUMN_NOTICES = {
+	exit_rate_segment: "exit_rate",
+	exit_rate_partial: "exit_rate"
+};
+/** `notices` without those about a figure that is not displayed; `shown` holds the keys of the displayed figures. */
+const shownNotices = (notices, shown) => notices.filter((n) => {
+	const key = COLUMN_NOTICES[n.split(":")[0] ?? ""];
+	return !key || shown.includes(key);
+});
 const NOTICE_COPY = {
 	summary: () => CAVEATS.rollup,
 	compare_summary: () => "The comparison range is answered from daily summaries.",
@@ -11261,6 +11372,7 @@ const NOTICE_COPY = {
 	top_paths_per_day: () => "Daily summaries keep the top paths per day, so rare steps and paths are not counted here.",
 	granularity_day: () => "Hourly detail is not kept for this range; the chart shows days.",
 	exit_rate_partial: () => "Exit rate is blank for pages whose exits or page views were folded into other pages on some days of this range.",
+	exit_rate_segment: () => "Exit rate is blank here: the daily summaries keep exits without a channel, country or device, so they cannot apply that filter to it.",
 	filters_not_applied: () => "Some filters do not apply to this report.",
 	segment_missing: () => "The default segment of this dashboard was deleted; this tile shows all visitors.",
 	compare_segment_missing: () => "The compare segment of this dashboard was deleted; this tile shows no comparison.",
@@ -11301,6 +11413,12 @@ function annotationBucket(ts, gran, tz) {
 	return gran === "hour" ? `${day} ${String(hourInZone(ts, tz)).padStart(2, "0")}:00` : gran === "week" ? weekStart(day) : day;
 }
 // src/dashboards/tiles.ts
+/** A Search Satisfaction row whose score rests on fewer measured sessions than the sample minimum (table tiles print the flag as "yes"). */
+const lowSampleRow = (r) => r.low_sample === true || r.low_sample === "yes";
+/** The note under the score cell of such a row (tiles, shared pages, emails). */
+const scoreNote = (key, r) => key === "score" && lowSampleRow(r) ? LOW_SAMPLE : null;
+/** Why a Score tile shows no change: the comparison's own score rests on too few measured sessions. */
+const LOW_SAMPLE_COMPARE = "The comparison has fewer measured sessions than the sample minimum, so its score is no base for a change.";
 const TRIMMED_COMPARE = "Comparison on: showing the first 2 metrics.";
 /** A series more than this many times another of its family moves to the right axis (as on the report pages). */
 const SCALE_RATIO = 20;
@@ -11323,6 +11441,7 @@ function lineAxes(lines) {
 }
 /** The footnote of the site search floor on shared pages and in emails. */
 const hiddenTermsText = (n) => `${n} search term${n === 1 ? "" : "s"} used in fewer than 2 sessions ${n === 1 ? "is" : "are"} not shown.`;
+/** Not a table column: nested values, the currency code, and `last_seen` of Not found (an epoch second, not a figure). */
 const SKIP = /* @__PURE__ */ new Set([
 	"key",
 	"previous",
@@ -11330,7 +11449,8 @@ const SKIP = /* @__PURE__ */ new Set([
 	"page_list",
 	"periods",
 	"currency",
-	"revenue_currency"
+	"revenue_currency",
+	"last_seen"
 ]);
 /** Columns a table tile can show for these rows: the name column, then every plain value of the first row in the report's order. */
 function tableColumnKeys(rows) {
@@ -11359,16 +11479,29 @@ const LABELS = {
 	key: "Name",
 	ctr: "CTR",
 	avg_duration: "Avg. session duration",
+	conversions: "Sales",
+	measured_rate: "Measured share",
 	avg_time: "Avg. active time",
 	avg_visible: "Avg. visible time",
 	avg_engaged: "Avg. active time",
-	converting: "Conversions",
+	converting: "Converting sessions",
+	conversion_rate: "Conversion rate",
+	rate: "Share of sessions",
+	conversion: "Of first step",
+	drop_off: "Drop-off",
+	delta: "Change",
+	delta_pct: "Change (percent)",
+	overlapping_queries_pct: "Share of queries",
+	overlapping_impressions_pct: "Share of impressions",
+	potential_clicks: "Potential clicks (est.)",
 	scroll_median: "Median scroll (%)",
 	aov: "Average order value",
 	pogo_stick_rate: "Pogo-sticking (estimate)",
 	pogo_sticks: "Pogo-sticking sessions (estimate)",
 	returned_from_search_rate: "Returned from search (estimate)",
-	returned_from_search: "Returned from search sessions (estimate)"
+	returned_from_search: "Returned from search sessions (estimate)",
+	search_reentry_rate: "Search re-entry (estimate)",
+	back_nav_rate: "Back/forward loads (estimate)"
 };
 /** Readable label of a metric or column key: `bounce_rate` becomes "Bounce rate". */
 const metricLabel = (key) => LABELS[key] ?? `${key[0]?.toUpperCase() ?? ""}${key.slice(1).replace(/_/g, " ")}`;
@@ -11398,6 +11531,10 @@ const REPORT_TITLES = {
 /** The change of a KPI or impact tile against its comparison; null with no comparison. */
 function tileChange(d) {
 	if (d.compare === void 0 || !d.metric) return null;
+	if (d.metric === "score" && d.compare?.low_sample === true) return describeChange(d.metric, d.value, null, {
+		format: valueFormat(d.metric, d.currency),
+		reason: LOW_SAMPLE_COMPARE
+	});
 	return describeChange(d.metric, d.value, d.compare?.[d.metric], {
 		format: valueFormat(d.metric, d.currency),
 		base: rateBase(d.compare)
@@ -11413,8 +11550,20 @@ function tileTitle(tile, currency) {
 /** "Visitors", "Visitors and Sessions", "Visitors, Sessions and Pageviews". */
 const joinLabels = (labels) => labels.length < 2 ? labels[0] ?? "" : `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;
 const n = (v) => typeof v === "number" && Number.isFinite(v) ? v : null;
-/** `goalName` is the name of `params.goal` (the goals report has one row per goal name). */
+/**
+* Keys of the figures a tile displays: a table tile its columns; any other tile its metric (a number, bars or donut
+* tile) and its lines. `columns` of a bars or donut tile holds every key of the rows, most of them not shown.
+*/
+const displayedKeys = (d) => d.kind === "table" ? [...d.columns] : [...d.metric ? [d.metric] : [], ...d.lines.map((l) => l.key)];
+/** `goalName` is the name of `params.goal` (the goals report has one row per goal name). Notices about a figure the tile does not display are left out. */
 function tileData(tile, result, opts = {}) {
+	const out = tileFigures(tile, result, opts);
+	return {
+		...out,
+		notices: shownNotices(out.notices, displayedKeys(out))
+	};
+}
+function tileFigures(tile, result, opts) {
 	const d = result.data;
 	const notices = [...result.notices, ...d.notices ?? []];
 	const rows = d.rows ?? [];
@@ -11494,6 +11643,7 @@ function tileData(tile, result, opts = {}) {
 		const prev = tile.report === "goals" ? row && "previous" in row ? row.previous : void 0 : "compareTotals" in d ? d.compareTotals : void 0;
 		out.value = n(src?.[m]);
 		if (prev !== void 0) out.compare = prev ?? null;
+		if (m === "score" && src?.low_sample === true) out.note = lowSampleLine(typeof d.min_measured === "number" ? d.min_measured : 30);
 		return out;
 	}
 	if (tile.kind === "line" || tile.kind === "area") {
@@ -11516,7 +11666,14 @@ function tileData(tile, result, opts = {}) {
 	const named = tile.kind === "table" && tile.columns ? tile.columns.filter((k) => columns.includes(k) && k !== columns[0]) : [];
 	out.columns = tile.kind !== "table" ? columns : named.length ? [columns[0], ...named] : columns.slice(0, 4);
 	if (tile.kind === "table") {
-		out.rows = limited.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? v ? "yes" : "no" : v])));
+		const prevOf = (r) => r.previous && typeof r.previous === "object" && "score" in r.previous ? { previous: {
+			...r.previous,
+			score: null
+		} } : {};
+		out.rows = limited.map((r) => ({
+			...Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "boolean" ? v ? "yes" : "no" : v])),
+			...prevOf(r)
+		}));
 		return out;
 	}
 	const metric = m && m in first ? m : out.columns.find((k) => k !== "key" && typeof first[k] === "number") ?? null;
@@ -11566,7 +11723,7 @@ function kpi(d) {
 		const partial = i.complete ? "" : `<p class="note">${e(`The after window has ${i.daysAfter} days so far; numbers will change.`)}</p>`;
 		return `<div class="kpi">${e(fmt(i.after, f))}</div><div>Before: ${e(fmt(i.before, f))}, after ${e(i.day)}</div>${change}${partial}`;
 	}
-	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}`;
+	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}${d.note ? `<div class="upd">${e(d.note)}</div>` : ""}`;
 }
 /** The change line (arrow, label and the better or worse word, never colour alone) and the detail line under it. */
 function changeHtml(c, tail = "") {
@@ -11689,9 +11846,14 @@ function donut(d, title) {
 	const arcs = donutArcs(rows).map((a, i) => `<circle cx="50" cy="50" r="40" fill="none" stroke="${c(i)}" stroke-width="14" stroke-dasharray="${a.dasharray}" stroke-dashoffset="${a.dashoffset}" transform="rotate(-90 50 50)"><title>${e(`${a.label}: ${fmt(a.share, "percent")}`)}</title></circle>`).join("");
 	return `<svg viewBox="0 0 100 100" style="max-width:160px" role="img" aria-label="${e(title)}"><circle cx="50" cy="50" r="40" fill="none" stroke="${MUTED}" stroke-opacity="0.2" stroke-width="14"/>${arcs}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
 }
+/** The line under a cell: "low sample" under a Search Satisfaction score that rests on too few measured sessions. */
+const cellNote = (k, r) => {
+	const note = scoreNote(k, r);
+	return note ? `<div class="upd">${e(note)}</div>` : "";
+};
 function table(d, title) {
 	const head = d.columns.map((k) => `<th scope="col"${k === "key" ? "" : " class=\"n\""}>${e(valueLabel(k, d.currency))}</th>`).join("");
-	const body = d.rows.map((r) => `<tr>${d.columns.map((k) => k === "key" ? `<td>${e(fmt(r[k], "text"))}</td>` : `<td class="n">${e(formatValue(k, r[k], d.currency))}</td>`).join("")}</tr>`).join("");
+	const body = d.rows.map((r) => `<tr>${d.columns.map((k) => k === "key" ? `<td>${e(fmt(r[k], "text"))}</td>` : `<td class="n">${e(formatValue(k, r[k], d.currency))}${cellNote(k, r)}</td>`).join("")}</tr>`).join("");
 	return `<table aria-label="${e(title)}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 /** Stacked bars: one `<rect>` per segment with a `<title>`, then the same values as a table. */
@@ -11718,13 +11880,18 @@ function tileBody(d, title, tz) {
 	if (d.kind === "donut") return donut(d, title);
 	return table(d, title);
 }
-const VISITOR_KEYS = /* @__PURE__ */ new Set(["visitors", "converting"]);
-/** Caveats the tiles need: per-day visitors (11.3), satisfaction estimates (31.4), search data lag (25), summaries. */
+/** Keys whose tiles carry the per-day visitors footnote; `converting` counts sessions and carries none. */
+const VISITOR_KEYS = /* @__PURE__ */ new Set(["visitors"]);
+/** Whether a tile displays the figure `key` (`displayedKeys`). */
+const shows = (d, key) => !!d && displayedKeys(d).includes(key);
+/** Caveats the tiles need: per-day visitors, the bounce rate and session duration definitions, satisfaction estimates, search data lag, summaries. */
 function footnotes(input) {
 	const out = /* @__PURE__ */ new Set();
 	input.dashboard.tiles.forEach((t, i) => {
 		const d = input.tiles[i];
-		if (d?.metric && VISITOR_KEYS.has(d.metric) || d?.lines.some((l) => VISITOR_KEYS.has(l.key)) || d?.columns.includes("visitors")) out.add(CAVEATS.visitors);
+		if ([...VISITOR_KEYS].some((k) => shows(d, k))) out.add(CAVEATS.visitors);
+		if (shows(d, "bounce_rate")) out.add(CAVEATS.bounce_footnote);
+		if (shows(d, "avg_duration")) out.add(CAVEATS.duration_footnote);
 		if (t.report === "satisfaction" || t.report === "satisfaction_series") out.add(CAVEATS.satisfaction_estimate);
 		if (tileNeedsSearch(t)) out.add(CAVEATS.searchLag);
 		if (d?.notices.includes("coverage")) out.add(SEO_TEXT.coverage);
@@ -11800,11 +11967,14 @@ const lastTwo = (l) => {
 /** Table rows of a tile as label and cells; `null` when the tile has no table form. */
 function tableOf(d, maxRows) {
 	if (d.kind === "table") {
-		const rows = d.rows.slice(0, maxRows).map((r) => d.columns.map((k) => k === "key" || k === "query" ? fmt(r[k], "text") : formatValue(k, r[k], d.currency)));
+		const shown = d.rows.slice(0, maxRows);
+		const rows = shown.map((r) => d.columns.map((k) => k === "key" || k === "query" ? fmt(r[k], "text") : formatValue(k, r[k], d.currency)));
+		const notes = shown.map((r) => d.columns.map((k) => scoreNote(k, r)));
 		return {
 			head: d.columns.map((k) => valueLabel(k, d.currency)),
 			rows,
-			numeric: d.columns.map((k) => k !== "key" && k !== "query")
+			numeric: d.columns.map((k) => k !== "key" && k !== "query"),
+			notes
 		};
 	}
 	if (d.kind === "bars" || d.kind === "donut") {
@@ -11836,7 +12006,11 @@ function lines(d) {
 	}
 	if (d.kind === "kpi") {
 		const c = tileChange(d);
-		return [formatValue(d.metric, d.value, d.currency), ...c ? [changeText(c)] : []];
+		return [
+			formatValue(d.metric, d.value, d.currency),
+			...c ? [changeText(c)] : [],
+			...d.note ? [d.note] : []
+		];
 	}
 	if (d.kind === "line" || d.kind === "area") {
 		if (!d.buckets.length || !d.lines.length) return ["No data for this range."];
@@ -11858,10 +12032,13 @@ function tileHtml(title, t, maxRows) {
 	const tbl = d.empty ? null : tableOf(d, maxRows);
 	if (tbl) {
 		if (!tbl.rows.length) body = `<p style="margin:0">No data for this range.</p>`;
-		else body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${tbl.head.map((h, i) => `<th style="${tbl.numeric[i] ? S.num : S.th}">${escapeHtml(h)}</th>`).join("")}</tr>${tbl.rows.map((r) => `<tr>${r.map((c, i) => `<td style="${tbl.numeric[i] ? S.num : S.td}">${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</table>`;
+		else body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${tbl.head.map((h, i) => `<th style="${tbl.numeric[i] ? S.num : S.th}">${escapeHtml(h)}</th>`).join("")}</tr>${tbl.rows.map((r, ri) => `<tr>${r.map((c, i) => {
+			const note = tbl.notes?.[ri]?.[i];
+			return `<td style="${tbl.numeric[i] ? S.num : S.td}">${escapeHtml(c)}${note ? `<div style="${S.muted}">${escapeHtml(note)}</div>` : ""}</td>`;
+		}).join("")}</tr>`).join("")}</table>`;
 	} else {
 		const ls = lines(d);
-		body = d.kind === "kpi" && !d.empty ? `<div style="${S.kpi}">${escapeHtml(ls[0] ?? "")}</div>${d.impact ? "" : changeLine(d)}` : ls.map((l) => `<p style="margin:0">${escapeHtml(l)}</p>`).join("");
+		body = d.kind === "kpi" && !d.empty ? `<div style="${S.kpi}">${escapeHtml(ls[0] ?? "")}</div>${d.impact ? "" : changeLine(d)}${d.note && !d.impact ? `<p style="${S.muted}">${escapeHtml(d.note)}</p>` : ""}` : ls.map((l) => `<p style="margin:0">${escapeHtml(l)}</p>`).join("");
 	}
 	const money = d.empty ? "" : currencyLines(d).map((l) => `<p style="${S.muted}">${escapeHtml(l)}</p>`).join("");
 	const hidden = t.hiddenTerms ? `<p style="${S.muted}">${escapeHtml(hiddenLine(t.hiddenTerms))}</p>` : "";
@@ -11876,7 +12053,10 @@ function tileText(title, t, maxRows) {
 		const d = t.data;
 		out.push(...noticeText(d.notices));
 		const tbl = d.empty ? null : tableOf(d, maxRows);
-		if (tbl) out.push(...tbl.rows.length ? tbl.rows.map((r) => `- ${r[0]}: ${r.slice(1).map((c, i) => `${tbl.head[i + 1]} ${c}`).join(", ")}`) : ["No data for this range."]);
+		if (tbl) out.push(...tbl.rows.length ? tbl.rows.map((r, ri) => `- ${r[0]}: ${r.slice(1).map((c, i) => {
+			const note = tbl.notes?.[ri]?.[i + 1];
+			return `${tbl.head[i + 1]} ${c}${note ? ` (${note})` : ""}`;
+		}).join(", ")}`) : ["No data for this range."]);
 		else out.push(...lines(d));
 		if (!d.empty) out.push(...currencyLines(d));
 		if (t.hiddenTerms) out.push(hiddenLine(t.hiddenTerms));
@@ -12362,7 +12542,7 @@ const BUILTIN_TEMPLATES = {
 				"report": "entry_pages",
 				"kind": "table",
 				"w": 2,
-				"title": "Landing pages"
+				"title": "Entry pages"
 			},
 			{
 				"id": "ct0006",
@@ -12616,7 +12796,8 @@ const BUILTIN_TEMPLATES = {
 				"kind": "table",
 				"w": 3,
 				"title": "Best pages (organic search)",
-				"params": { "rank": "best" }
+				"params": { "rank": "best" },
+				"columns": ["score", "measured"]
 			},
 			{
 				"id": "st0009",
@@ -12624,7 +12805,8 @@ const BUILTIN_TEMPLATES = {
 				"kind": "table",
 				"w": 3,
 				"title": "Worst pages (organic search)",
-				"params": { "rank": "worst" }
+				"params": { "rank": "worst" },
+				"columns": ["score", "measured"]
 			}
 		],
 		defaults: {
@@ -12646,7 +12828,7 @@ const BUILTIN_TEMPLATES = {
 		kind: "dashboard-template",
 		v: 1,
 		name: "Revenue",
-		description: "Revenue, orders and average order value in the site's default currency, by channel, source, landing page and goal.",
+		description: "Revenue, orders and average order value in the site's default currency, by channel, source, entry page and goal.",
 		tiles: [
 			{
 				"id": "rv0001",
@@ -12708,7 +12890,7 @@ const BUILTIN_TEMPLATES = {
 				"kind": "table",
 				"w": 2,
 				"params": { "dim": "entry" },
-				"title": "Revenue by landing page"
+				"title": "Revenue by entry page"
 			},
 			{
 				"id": "rv0009",
@@ -14810,6 +14992,7 @@ const SETTINGS_SECTIONS = [
 			"engagedThresholdSeconds",
 			"longClickSeconds",
 			"badExperienceSeconds",
+			"satisfactionMinMeasured",
 			"realtimeWindowMinutes",
 			"maxSessionMinutes",
 			"reloadDedupeSeconds",

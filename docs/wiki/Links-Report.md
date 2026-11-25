@@ -11,7 +11,7 @@ The Links page reports short links of your site: how often each link was shown, 
    - Without server code: add the link rule `/go/ out` (Settings, Page script, Link rules). The page script sends `out` with the slug when a visitor clicks a `/go/` link. This works for static redirects and redirects on another service too.
    - From the redirect: set `ignorePathPrefixes` to that prefix (Settings, Page script), so the page script records no `_download`, `_form` or link rule for those links, and send `out` from the redirect as below.
 3. Send `seen` from the page and `conv` from your server as below, if you use them.
-4. Open Links. Pick "Links by" (Link, Placement, Page, Channel, Source, Campaign, Landing page, Country, Device). With Link selected, Details opens one link with its placements.
+4. Open Links. Pick "Links by" (Link, Placement, Page, Channel, Source, Campaign, Entry page, Country, Device). With Link selected, Details opens one link with its placements.
 5. Optional: import the built-in Links dashboard template; it creates the goal `Link clicks` on import.
 
 ## The Links convention
@@ -67,7 +67,7 @@ curl -X POST "https://example.com/_emdash/api/plugins/cookieless-analytics/agent
 - One click record per click. A short link is a same-host link, so the page script records no `_outbound` for it.
 - Send `out` only for `GET` and `POST`, never for `HEAD` or a prefetch.
 - `u` of an `out` event is the path of the page that held the link (a same-origin referrer); without one, leave it out.
-- Channel, source, campaign, landing page, country and device come from the visitor's session, which the click joins by visitor key. A click without a counted session shows as `(not set)`.
+- Channel, source, campaign, entry page, country and device come from the visitor's session, which the click joins by visitor key. A click without a counted session shows as `(not set)`.
 - Bots and privacy signals follow the same rules as page views.
 - Goal: one event goal `Link clicks`, match `is`, value `out`. A goal per link adds the property `slug`. Never define a goal on `_form` or `_outbound` for short links.
 
@@ -78,12 +78,13 @@ curl -X POST "https://example.com/_emdash/api/plugins/cookieless-analytics/agent
 | Impressions | link keys of `seen` events |
 | Clicks | `out` events |
 | CTR | clicks / impressions from the sums, 0 without impressions |
-| Sessions with a click | distinct sessions with a click |
-| Conversions | `conv` events, every currency |
+| Sessions with a click | distinct sessions with at least one page view and a click |
+| Sales | `conv` events, every currency |
+| Revenue | the sum of the reported sales in one currency, before refunds |
 
 - A key without a placement counts under `(none)`.
 - When the site records revenue, the page adds revenue in one currency; amounts of two currencies are never added.
-- The chart shows sessions with a link click per day. It counts visits with at least one page view; clicks of visits without a page view are in the table only.
+- The chart shows sessions with a link click per hour, day or week. Chart and table count the same sessions: visits with at least one page view and a click. The clicks of visits without a page view are in the table's Clicks only.
 - The `page` filter keeps visits that viewed that page. The page a link was clicked on is the "Page" breakdown.
 
 Agent API: report `links` through `agent/v1/query` (scope `read:analytics`), `params.by` (`link`, `place`, `page`, `channel`, `source`, `campaign`, `entry`, `country`, `device`), `params.slug` for one link, `params.withRevenue` for revenue.
@@ -111,6 +112,7 @@ curl -X POST "https://example.com/_emdash/api/plugins/cookieless-analytics/agent
 ## Gotchas
 
 - Clicks without a counted session (for example a direct hit on the short link) appear with `(not set)` and do not raise "Sessions with a click".
+- `seen` is sent by the page without a visitor action, so it does not make a session engaged: a visit with one page view and only link impressions is a bounce.
 - `conv` sent without `sid` is unattributed; add the visit's `sid` when you have it.
 - Forgetting `ignorePathPrefixes` turns short links that end in `.pdf` into `_download` events and forms posting to them into `_form` events.
 - Use either `ignorePathPrefixes` with a redirect that sends `out`, or a link rule, never both on the same prefix: both would count every click twice. A link rule under a prefix of `ignorePathPrefixes` is refused on save, and the page script applies no rule there, but a redirect that sends `out` without its prefix in `ignorePathPrefixes` plus a rule still counts twice.

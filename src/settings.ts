@@ -3,6 +3,7 @@ import { CURRENCIES } from "./core/currency.js";
 import { DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH } from "./contract.js";
 import { type LinkRule, parseLinkRules } from "./link-rules.js";
 import { isNeutral, normalizeCollectPath, normalizeNamespace, normalizeScriptPath, normalizeSharePath } from "./names.js";
+import { SATISFACTION_MIN_MEASURED } from "./query/reports/satisfaction-copy.js";
 
 export const SCRIPT_FOR_BOTS_CAVEAT =
 	"Page fragments land in the route cache, which is keyed without the user agent and sends no Vary: User-Agent header, so a page first cached for a bot would be served to humans without the script. Enable only with route caching off.";
@@ -50,10 +51,11 @@ export const settingsSchema = {
 	saltTimezone: { type: "string", label: "Salt timezone", description: "IANA timezone of the daily salt rotation.", default: "UTC" },
 	saltRotationHour: { type: "number", label: "Salt rotation hour", description: "Local hour at which the daily salt rotates.", default: 0, min: 0, max: 23 },
 	sessionWindowMinutes: { type: "number", label: "Session window (minutes)", description: "Inactivity gap that ends a session. Applies to new sessions; existing sessions keep their own window.", default: 30, min: 1, max: 240 },
-	engagedThresholdSeconds: { type: "number", label: "Engaged threshold (seconds)", description: "Active time that makes a session engaged.", default: 10, min: 1, max: 300 },
+	engagedThresholdSeconds: { type: "number", label: "Engaged threshold (seconds)", description: "Active time from which a session counts as engaged. A session with two or more page views or any event is engaged whatever its active time. A session that is not engaged is a bounce.", default: 10, min: 1, max: 300 },
 	longClickSeconds: { type: "number", label: "Long click (seconds)", description: "A session lasting longer than this is a long click, at or below it a short click. Applied when reports run, so every stored session is reclassified at once.", default: 60, min: 10, max: 600 },
 	badExperienceSeconds: { type: "number", label: "Bad experience (seconds)", description: "A single page session without interaction that lasts less than this is a bad experience. Never above the long click threshold.", default: 10, min: 1, max: 60 },
-	realtimeWindowMinutes: { type: "number", label: "Realtime window (minutes)", description: "Sessions seen within this time count as active now.", default: 5, min: 1, max: 60 },
+	satisfactionMinMeasured: { type: "number", label: "Search Satisfaction sample minimum", description: "Fewest measured sessions a landing page needs to be ranked as a best or worst page. A score under it is marked low sample.", default: SATISFACTION_MIN_MEASURED, min: 10, max: 500 },
+	realtimeWindowMinutes: { type: "number", label: "Realtime window (minutes)", description: "Sessions with a page view or event within this time count as active now.", default: 5, min: 1, max: 60 },
 	maxSessionMinutes: { type: "number", label: "Maximum session length (minutes)", description: "A session older than this is closed and a new one starts. At most one day: a visit is looked up among visits started today or yesterday.", default: 1440, min: 10, max: 1440 },
 	reloadDedupeSeconds: { type: "number", label: "Reload dedupe (seconds)", description: "A reload of the same path within this time is not counted again.", default: 2, min: 0, max: 60 },
 	maxEngagedMsPerPage: { type: "number", label: "Maximum active time per page (ms)", description: "Cap for the active time and the visible time reported for one page.", default: 1800000, min: 60000, max: 7200000 },
@@ -64,7 +66,7 @@ export const settingsSchema = {
 	annotateCollections: { type: "string", label: "Annotated collections", description: "Collection slugs that add automatic annotations, one per line or comma separated, for example posts. Empty is every collection.", default: "", multiline: true },
 	autoAnnotationsPerDay: { type: "number", label: "Automatic annotations per day", description: "At most this many automatic annotations per site and day in the site timezone; further publishes and updates that day add none, so a bulk import cannot fill the charts with markers. Saving the same item again the same day replaces its annotation and does not count again.", default: 10, min: 1, max: 200 },
 	searchBrandTerms: { type: "string", label: "Brand terms", description: "One term per line, at most 20 terms of 2 to 40 characters. Queries containing a term are left out of cannibalization and striking distance unless brand queries are included.", default: "", multiline: true },
-	searchMinImpressions: { type: "number", label: "SEO views impression floor", description: "A query or page counts in cannibalization, position movement, rising and declining and decay only with at least this many impressions in a period (page views for the traffic views).", default: 50, min: 1, max: 100000 },
+	searchMinImpressions: { type: "number", label: "SEO views impression floor", description: "A query, page or pair counts in cannibalization, striking distance, position movement, rising and declining and decay only with at least this many impressions (page views for the traffic views).", default: 50, min: 1, max: 100000 },
 	searchOverlapMinShare: { type: "number", label: "Cannibalization share floor (percent)", description: "Percent of a query's impressions a page needs to count as competing for it.", default: 10, min: 1, max: 50 },
 	backfillDays: { type: "number", label: "Older Search days to load (days)", description: "Days that Load older days on the Search page reaches back by default: the first connect of a source uses it (not on the small profile, where older days load only from Start loading), and so do the agent API and the file import, which skips older days. Google keeps about 16 months, Bing about 6 months; a longer range stops there.", default: 90, min: 1, max: 490 },
 	searchRetentionDays: { type: "number", label: "Search retention (days)", description: "Days of search rows kept.", default: 800, min: 90, max: 1000 },
@@ -119,6 +121,8 @@ export interface Settings {
 	maxEngagedMsPerPage: number;
 	longClickSeconds: number;
 	badExperienceSeconds: number;
+	/** Fewest measured sessions of a ranked Search Satisfaction page; a score under it is `low_sample`. */
+	satisfactionMinMeasured: number;
 	reloadDedupeSeconds: number;
 	realtimeWindowMinutes: number;
 	saltTimezone: string;

@@ -37,11 +37,11 @@ Every view is also a link: the range, filters, comparison, segment and site are 
 
 ![Overview with metric cards, chart and panels](images/overview.png)
 
-- **Metric cards**: Visitors, Sessions, Pageviews, Views per session, Bounce rate and Avg. duration, each with the change against the comparison. A click on a card turns its line on the chart on or off.
+- **Metric cards**: Visitors, Sessions, Pageviews, Views per session, Bounce rate and Avg. session duration, each with the change against the comparison. A click on a card turns its line on the chart on or off.
 - **Info markers**: the small "i" on a card or panel opens the definition of its number.
-- **Active now**: a live badge in the page head with the sessions seen within the realtime window (`realtimeWindowMinutes`, default 5).
+- **Active now**: a live badge in the page head with the sessions that had a page view or event within the realtime window (`realtimeWindowMinutes`, default 5), with its definition behind the info marker. It follows the filters on every range.
 - **Revenue strip**: revenue, orders, average order value and revenue per visitor, shown only when the site has recorded orders. See [Revenue and Refunds](Revenue-and-Refunds).
-- **Panels**: Channels, Top pages, Sources, Countries, Devices (with a donut) and Goals, top 8 each. Click a value to filter. The panel menu lists more columns, off until you switch them on: Bounce rate, Avg. duration, Pageviews, Views per session and Engaged rate on the session panels; Avg. active time, Avg. visible time, Exit rate and Median scroll on Top pages; Completions on Goals. Each panel keeps its own choice in this browser.
+- **Panels**: Channels, Top pages, Sources, Countries, Devices (with a donut) and Goals, top 8 each. Click a value to filter. The panel menu lists more columns, off until you switch them on: Bounce rate, Avg. session duration, Pageviews, Views per session and Engaged rate on the session panels; Avg. active time, Avg. visible time, Exit rate and Median scroll on Top pages; Completions on Goals. Each panel keeps its own choice in this browser.
 - **Annotations**: markers on the chart. The Annotations button hides them. See [Annotations and Impact](Annotations-and-Impact).
 
 ![Overview with the info marker of a metric card open](images/overview-info.png)
@@ -98,7 +98,7 @@ Overview, Pages, Sources, Audience, Search Satisfaction, Search, Revenue and Lin
 - Click a value to add it as an `is` filter. "(not set)" values cannot be clicked.
 - Sort by a column header; long tables are paged.
 - A table with more than one page of rows has a search box above it that keeps the rows whose text columns contain what you type, in any case; when the report has more rows than it loaded, the search covers the rows shown, so narrow the range or add a filter to search the rest. A new range, filter or report clears it.
-- **Panel menu** (the button at the top right of a panel): Export CSV, Export JSON, and the column picker, which lists every column the table has data for. Optional columns start off: the session breakdowns (Channels, Sources, Campaigns and the Audience tabs) offer Pageviews, Views per session and Engaged rate, Entry pages offers Views per session and Engaged rate, AI assistants offer Bounce rate, Avg. duration and Pageviews, Search Satisfaction offers Avg. active time and Measured sessions, and the Revenue panels offer Visitors and Sessions. Your column choice is remembered per table in this browser; hiding every column but the name shows the default set again.
+- **Panel menu** (the button at the top right of a panel): Export CSV, Export JSON, and the column picker, which lists every column the table has data for. Optional columns start off: the session breakdowns (Channels, Sources, Campaigns and the Audience tabs) offer Pageviews, Views per session and Engaged rate, Entry pages offers Views per session and Engaged rate, AI assistants offer Bounce rate, Avg. session duration and Pageviews, Search Satisfaction offers Avg. active time and Measured share, and the Revenue panels offer Visitors and Sessions. Your column choice is remembered per table in this browser; hiding every column but the name shows the default set again.
 - The export runs the same report with the header range, segment and filters.
 
 ## Settings

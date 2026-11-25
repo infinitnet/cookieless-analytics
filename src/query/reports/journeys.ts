@@ -83,7 +83,7 @@ export const journeyNext = neighbour("next", EXIT);
 /** What preceded the page, including `(entry)`. A drill-down, not a tile report. */
 export const journeyPrev = neighbour("prev", ENTRY);
 
-/** The most common three step sequences from the landing page (`params.entry` narrows the landing page). */
+/** The most common three step sequences from the entry page (`params.entry` narrows the entry page). */
 export async function journeyPaths(rc: ReportCtx, input: RunInput): Promise<ReportData> {
 	const base = await journeyBase(rc, input);
 	const entry = input.params.entry;
@@ -105,7 +105,7 @@ GROUP BY t.path, ${p2}, ${p3} ORDER BY sessions DESC, path1, path2, path3 LIMIT 
 
 // ── daily summaries ──────────────────────────────────────────────────────────
 
-/** Summary dims of the journeys: `next` (key a page, segkey the next page, `(exit)`, or '' for the page's own sessions; key `(entry)` for landings) and `path3` (key the landing page, segkey the next two steps). */
+/** Summary dims of the journeys: `next` (key a page, segkey the next page, `(exit)`, or '' for the page's own sessions; key `(entry)` for landings) and `path3` (key the entry page, segkey the next two steps). */
 export const JOURNEY_DIMS = ["next", "path3"] as const;
 /** Separates the second and third step of a `path3` segkey (no path holds it). */
 export const STEP_SEP = "\u001f";

@@ -11,7 +11,7 @@
  * `name`, `path`, `cur`) with `val` the negative amount, on the refund's own day, keyed `<order row id>.r<hash of
  * rid>` so a retry is stored once and the refunds of an order are one key range. It never touches the visit.
  */
-import { SID_RE } from "../contract.js";
+import { isPassiveEvent, SID_RE } from "../contract.js";
 import { dayInt, docJson, docObject, docPut, type Frag, isoDay, q, visitDayKey } from "../db/dialect.js";
 import type { Param, Stmt } from "../db/sql.js";
 import { randomId, sha256 } from "./crypto.js";
@@ -219,7 +219,7 @@ export async function recordAgentEvents(deps: RecorderDeps, site: string, events
 	const rows: EventRow[] = [];
 	const byId = new Map<string, EventRow>();
 	/** New entries per visit `(day, sid)`. */
-	const visits = new Map<string, { ref: SessionRef; entries: Array<readonly [string, Frag]> }>();
+	const visits = new Map<string, { ref: SessionRef; entries: Array<readonly [string, Frag]>; counted: number }>();
 	const closed = lastClosedDay(now, s.siteTimezone);
 	const fallback = siteSetting(s, deps.client, "defaultCurrency");
 	const voided: string[] = [];
@@ -281,17 +281,18 @@ export async function recordAgentEvents(deps: RecorderDeps, site: string, events
 		// The summary of a closed day is stored: its visit keeps the attribution of the row, but its document and counters stay as stored.
 		if (isoDay(x.session.day) <= closed) return void drops.add(site, dayInZone(now, s.siteTimezone), "late_after_close");
 		const k = `${x.session.day}|${x.session.sid}`;
-		const v = visits.get(k) ?? { ref: x.session, entries: [] };
+		const v = visits.get(k) ?? { ref: x.session, entries: [], counted: 0 };
+		if (!isPassiveEvent(x.name)) v.counted++;
 		const pr = x.props ? docJson(db.dialect, JSON.parse(x.props)) : undefined;
 		v.entries.push([row.id as string, docObject(db.dialect, { t: s_`${x.ts} - started`, n: x.name, p: row.path, pr })]);
 		visits.set(k, v);
 	});
 
-	// One update per attached visit, by its key: the new entries and `events`; `last_seen`, `exit_path` and every other field stay.
+	// One update per attached visit, by its key: the new entries and `events` (passive events not counted); `last_seen`, `exit_path` and every other field stay.
 	const stmts: Stmt[] = [
 		...eventInserts(rows),
 		...voided.map((o) => ({ sql: "UPDATE ca_events SET val = NULL, cur = NULL WHERE site = ? AND id > ? AND id < ?", params: [site, ...refundRange(o)] })),
-		...[...visits.values()].map(({ ref, entries }) => s_`UPDATE ca_sessions SET hits = ${docPut(db.dialect, "hits", entries)}, events = events + ${entries.length} WHERE site = ${site} AND day = ${visitDayKey(isoDay(ref.day))} AND sid = ${ref.sid}`),
+		...[...visits.values()].map(({ ref, entries, counted }) => s_`UPDATE ca_sessions SET hits = ${docPut(db.dialect, "hits", entries)}, events = events + ${counted} WHERE site = ${site} AND day = ${visitDayKey(isoDay(ref.day))} AND sid = ${ref.sid}`),
 	];
 	if (stmts.length) await db.batch(stmts);
 	return { accepted, duplicates, rejected: rejected.sort((a, b) => a.index - b.index) };

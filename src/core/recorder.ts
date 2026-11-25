@@ -1,5 +1,5 @@
 /** Write path, policy half: checks every event, then hands it to the ingest sink (`apply.ts`). */
-import type { IngestBody } from "../contract.js";
+import { type IngestBody, isPassiveEvent } from "../contract.js";
 import type { ClientSite } from "../multisite/registry.js";
 import { type Classification, classifyUa } from "../agents/classify.js";
 import type { UserAgentRule } from "../agents/rules.js";
@@ -262,7 +262,12 @@ export async function recordClientEvent(deps: RecorderDeps, input: ValidIngest, 
 		// Events are keyed `e` + the client event id, so a retried event is stored once; a sender without an id gets a random one.
 		key: body.t === "pv" ? body.h : (orderId ?? `e${body.h ?? randomId(12)}`),
 		fields: body.t === "pv" ? { p: url?.path, qs: url?.query || undefined, nt: body.nt, hs: deps.linkedHost } : { n: body.name, p: url?.path, hs: deps.linkedHost },
-		evt: { t: body.t, sid: body.sid ?? null, ...(body.u ? { u: body.u } : {}), ...(body.t === "pv" ? { r: body.r, w: s.captureScreen ? body.w : undefined } : {}) },
+		evt: {
+			t: body.t,
+			sid: body.sid ?? null,
+			...(body.u ? { u: body.u } : {}),
+			...(body.t === "pv" ? { r: body.r, w: s.captureScreen ? body.w : undefined } : isPassiveEvent(body.name) ? { passive: true } : {}),
+		},
 		meta: {
 			site,
 			siteHost: info.host,

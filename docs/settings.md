@@ -40,10 +40,11 @@ Every setting is edited on the plugin's Settings page in the admin (Analytics, S
 | `saltTimezone` | string | `UTC` |  | Salt timezone: IANA timezone of the daily salt rotation. |
 | `saltRotationHour` | number | `0` | 0 to 23 | Salt rotation hour: Local hour at which the daily salt rotates. |
 | `sessionWindowMinutes` | number | `30` | 1 to 240 | Session window (minutes): Inactivity gap that ends a session. Applies to new sessions; existing sessions keep their own window. |
-| `engagedThresholdSeconds` | number | `10` | 1 to 300 | Engaged threshold (seconds): Active time that makes a session engaged. |
+| `engagedThresholdSeconds` | number | `10` | 1 to 300 | Engaged threshold (seconds): Active time from which a session counts as engaged. A session with two or more page views or any event is engaged whatever its active time. A session that is not engaged is a bounce. |
 | `longClickSeconds` | number | `60` | 10 to 600 | Long click (seconds): A session lasting longer than this is a long click, at or below it a short click. Applied when reports run, so every stored session is reclassified at once. |
 | `badExperienceSeconds` | number | `10` | 1 to 60 | Bad experience (seconds): A single page session without interaction that lasts less than this is a bad experience. Never above the long click threshold. |
-| `realtimeWindowMinutes` | number | `5` | 1 to 60 | Realtime window (minutes): Sessions seen within this time count as active now. |
+| `satisfactionMinMeasured` | number | `30` | 10 to 500 | Search Satisfaction sample minimum: Fewest measured sessions a landing page needs to be ranked as a best or worst page. A score under it is marked low sample. |
+| `realtimeWindowMinutes` | number | `5` | 1 to 60 | Realtime window (minutes): Sessions with a page view or event within this time count as active now. |
 | `maxSessionMinutes` | number | `1440` | 10 to 1440 | Maximum session length (minutes): A session older than this is closed and a new one starts. At most one day: a visit is looked up among visits started today or yesterday. |
 | `reloadDedupeSeconds` | number | `2` | 0 to 60 | Reload dedupe (seconds): A reload of the same path within this time is not counted again. |
 | `maxEngagedMsPerPage` | number | `1800000` | 60000 to 7200000 | Maximum active time per page (ms): Cap for the active time and the visible time reported for one page. |
@@ -54,7 +55,7 @@ Every setting is edited on the plugin's Settings page in the admin (Analytics, S
 | `annotateCollections` | string | empty |  | Annotated collections: Collection slugs that add automatic annotations, one per line or comma separated, for example posts. Empty is every collection. |
 | `autoAnnotationsPerDay` | number | `10` | 1 to 200 | Automatic annotations per day: At most this many automatic annotations per site and day in the site timezone; further publishes and updates that day add none, so a bulk import cannot fill the charts with markers. Saving the same item again the same day replaces its annotation and does not count again. |
 | `searchBrandTerms` | string | empty |  | Brand terms: One term per line, at most 20 terms of 2 to 40 characters. Queries containing a term are left out of cannibalization and striking distance unless brand queries are included. |
-| `searchMinImpressions` | number | `50` | 1 to 100000 | SEO views impression floor: A query or page counts in cannibalization, position movement, rising and declining and decay only with at least this many impressions in a period (page views for the traffic views). |
+| `searchMinImpressions` | number | `50` | 1 to 100000 | SEO views impression floor: A query, page or pair counts in cannibalization, striking distance, position movement, rising and declining and decay only with at least this many impressions (page views for the traffic views). |
 | `searchOverlapMinShare` | number | `10` | 1 to 50 | Cannibalization share floor (percent): Percent of a query's impressions a page needs to count as competing for it. |
 | `backfillDays` | number | `90` | 1 to 490 | Older Search days to load (days): Days that Load older days on the Search page reaches back by default: the first connect of a source uses it (not on the small profile, where older days load only from Start loading), and so do the agent API and the file import, which skips older days. Google keeps about 16 months, Bing about 6 months; a longer range stops there. |
 | `searchRetentionDays` | number | `800` | 90 to 1000 | Search retention (days): Days of search rows kept. |

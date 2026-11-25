@@ -75,6 +75,8 @@ export interface ResolveEvent {
 	u?: string;
 	r?: string;
 	w?: number;
+	/** A passive event (`isPassiveEvent`, the link impression): it continues or opens the visit but adds nothing to `events`. */
+	passive?: boolean;
 }
 
 export interface ResolveMeta {
@@ -136,7 +138,7 @@ function firstTouch(evt: ResolveEvent, meta: ResolveMeta, now: number, cfg: Reso
 		entry_path: url.path,
 		exit_path: url.path,
 		pageviews: isPv ? 1 : 0,
-		events: isPv ? 0 : 1,
+		events: isPv || evt.passive ? 0 : 1,
 		engaged_ms: 0,
 		max_scroll: 0,
 		interacted: 0,
@@ -163,7 +165,7 @@ function firstTouch(evt: ResolveEvent, meta: ResolveMeta, now: number, cfg: Reso
 
 async function cont(store: SessionStore, s: SessionRow, evt: ResolveEvent, now: number, cfg: ResolveConfig): Promise<ResolveResult> {
 	const isPv = evt.t === "pv";
-	const patch: ContinuePatch = { now, pageviews: isPv ? 1 : 0, events: isPv ? 0 : 1 };
+	const patch: ContinuePatch = { now, pageviews: isPv ? 1 : 0, events: isPv || evt.passive ? 0 : 1 };
 	if (isPv) {
 		patch.exitPath = normalizeUrl(evt.u ?? "/", cfg.queryAllowlist).path;
 		if (cfg.maxPageviewsPerSession !== undefined && s.pageviews >= cfg.maxPageviewsPerSession) return { session: s, created: false, skipped: "session_cap" };

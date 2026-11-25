@@ -34,6 +34,8 @@ export interface TrafficOptions {
 	aliasesPerPv?: number;
 	/** Content of a real site: article paths, a query string on some page views, a referrer on entry, two event properties. */
 	rich?: boolean;
+	/** The events are link impressions (`seen`, passive: stored entries that `events` does not count). */
+	impressions?: boolean;
 }
 
 /** One request of the page script: an ingest body and the request facts it arrives with. */
@@ -112,7 +114,9 @@ export function generateTraffic(o: TrafficOptions): Traffic {
 		for (let j = 1; j <= k; j++) push(p.at + 5 * j, p.visit, { t: "en", sid: p.sid, h: p.h, d: 4000 * j, e: 5000 * j, s: Math.min(100, 30 * j), i: 1 });
 	for (let i = 0; i < E; i++) {
 		const p = pick(pvs);
-		push(p.at + 3, p.visit, { t: "ev", sid: (visits[p.visit] as { sid: string }).sid, name: "signup", u: p.path, p: o.rich ? { plan: "pro", placement: `${pick(WORDS)}-banner` } : { plan: "pro" } });
+		const sid = (visits[p.visit] as { sid: string }).sid;
+		if (o.impressions) push(p.at + 3, p.visit, { t: "ev", sid, name: "seen", u: p.path, p: { s0: `${pick(WORDS)}-offer` } });
+		else push(p.at + 3, p.visit, { t: "ev", sid, name: "signup", u: p.path, p: o.rich ? { plan: "pro", placement: `${pick(WORDS)}-banner` } : { plan: "pro" } });
 	}
 	actions.sort((a, b) => a.at - b.at);
 	return { actions, counts: { pageviews: N, sessions: V, engagement: EN, events: E, aliases: A } };

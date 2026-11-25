@@ -51,13 +51,13 @@ These three tabs belong to the install, not to one site, so they are hidden whil
 
 ## Bounce and engaged sessions
 
-A session is engaged when it has active time of at least `engagedThresholdSeconds` (default 10), two or more page views, or any event, and a bounce is a session that is not engaged, so bounce rate is always 1 minus engaged rate. This is the GA4 meaning of bounce rate, so a one page visit read for minutes counts as engaged and not as a bounce. More: [How Visits Are Counted](How-Visits-Are-Counted).
+A session is engaged when it has active time of at least `engagedThresholdSeconds` (default 10), two or more page views, or any event, custom or automatic (the link impression `seen`, which the page sends without a visitor action, does not count), and a bounce is a session that is not engaged, so bounce rate is always 1 minus engaged rate. This is the GA4 meaning of bounce rate, so a one page visit read for minutes counts as engaged and not as a bounce. More: [How Visits Are Counted](How-Visits-Are-Counted).
 
 ## Active time and duration
 
 - **Active time**: time with interaction. A page view collects it only while the page is visible and the visitor interacted (pointer down, key press, scroll or touch) within the last 60 seconds. Shown as **Avg. active time** in the Pages report (per page view) and on Search Satisfaction (per session).
-- **Duration**: time in view. A session's duration is the longer of the visit span and the time its pages were visible. Shown as **Avg. duration**. The Pages report also shows **Avg. visible time** per page view from detailed data.
-- **Engaged session**: active time of at least `engagedThresholdSeconds`, two or more page views, or any event (the GA4 meaning). Engaged rate is the share of such sessions.
+- **Duration**: time in view. A session's duration is the longer of the span from its start to its last page view or event and the time its pages were visible. Shown as **Avg. session duration**. The Pages report also shows **Avg. visible time** per page view from detailed data.
+- **Engaged session**: active time of at least `engagedThresholdSeconds`, two or more page views, or any event, custom or automatic (the GA4 meaning). Engaged rate is the share of such sessions.
 
 Active time can be 0 s while duration is several seconds: a page that is open and visible but never touched has visible time and no active time. Link scanners, link previews and quick glances look like that. How other tools measure page time: [How Visits Are Counted](How-Visits-Are-Counted#how-other-tools-measure-it).
 

@@ -5,13 +5,16 @@ import { CAVEATS, type Caveat } from "../../charts/caveats.js";
 
 export { CAVEATS, type Caveat } from "../../charts/caveats.js";
 
-/** Info button next to a caveated number; the text shows on hover (title) and on click or Enter. */
-export function InfoMark({ caveat, text }: { caveat?: Caveat; text?: string }) {
+/**
+ * Info button next to a caveated number; the text shows on hover (title) and on click or Enter. `name` names what it
+ * explains ("About Impressions" in a column header), so the buttons of one table are told apart.
+ */
+export function InfoMark({ caveat, text, name }: { caveat?: Caveat; text?: string; name?: string }) {
 	const [open, setOpen] = useState(false);
 	const body = text ?? (caveat ? CAVEATS[caveat] : "");
 	return (
 		<span className="ca-info">
-			<button type="button" className="ca-info-btn" aria-label="About this number" aria-expanded={open} title={body} onClick={() => setOpen(!open)}>
+			<button type="button" className="ca-info-btn" aria-label={name ? `About ${name}` : "About this number"} aria-expanded={open} title={body} onClick={() => setOpen(!open)}>
 				i
 			</button>
 			{open && (

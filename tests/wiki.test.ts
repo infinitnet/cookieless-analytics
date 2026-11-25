@@ -79,6 +79,14 @@ describe("wiki", () => {
 		expect(names.filter((n) => !md.includes(`\`${n}\``))).toEqual([]);
 	});
 
+	it("Search Satisfaction names the sample minimum setting and its default", () => {
+		const md = text["Search-Satisfaction.md"] ?? "";
+		expect(md).toContain("`satisfactionMinMeasured`");
+		expect(md).toContain("low sample");
+		for (const k of ["sessions", "measured"]) expect(md).not.toContain(`search_${k}`);
+		expect(md).not.toContain("counts its pogo-sticking rate as 0");
+	});
+
 	it("has no em or en dash", () => {
 		const hits = Object.entries(text).filter(([, md]) => /[\u2013\u2014]/.test(md)).map(([f]) => f);
 		expect(hits).toEqual([]);

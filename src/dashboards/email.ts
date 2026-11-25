@@ -11,7 +11,7 @@ import { fmt } from "../charts/geometry.js";
 import { type Preset, PRESETS } from "../core/presets.js";
 import { escapeHtml as e, footnotes } from "./render.js";
 import { type Dashboard, MAIL_MAX_HTML_BYTES } from "./schema.js";
-import { currencyLines, formatValue, REVENUE_EMPTY, type TileData, type TileLine, tileChange, tileTitle, valueFormat, valueLabel } from "./tiles.js";
+import { currencyLines, formatValue, REVENUE_EMPTY, scoreNote, type TileData, type TileLine, tileChange, tileTitle, valueFormat, valueLabel } from "./tiles.js";
 
 /** One tile of the email: its data, or null when it failed; `budget` when the query budget left it out. */
 export interface EmailTile {
@@ -74,10 +74,13 @@ const lastTwo = (l: TileLine): { latest: number | null; previous: number | null 
 };
 
 /** Table rows of a tile as label and cells; `null` when the tile has no table form. */
-function tableOf(d: TileData, maxRows: number): { head: string[]; rows: string[][]; numeric: boolean[] } | null {
+function tableOf(d: TileData, maxRows: number): { head: string[]; rows: string[][]; numeric: boolean[]; notes?: Array<Array<string | null>> } | null {
 	if (d.kind === "table") {
-		const rows = d.rows.slice(0, maxRows).map((r) => d.columns.map((k) => (k === "key" || k === "query" ? fmt(r[k], "text") : formatValue(k, r[k], d.currency))));
-		return { head: d.columns.map((k) => valueLabel(k, d.currency)), rows, numeric: d.columns.map((k) => k !== "key" && k !== "query") };
+		const shown = d.rows.slice(0, maxRows);
+		const rows = shown.map((r) => d.columns.map((k) => (k === "key" || k === "query" ? fmt(r[k], "text") : formatValue(k, r[k], d.currency))));
+		// "low sample" under a Search Satisfaction score that rests on too few measured sessions.
+		const notes = shown.map((r) => d.columns.map((k) => scoreNote(k, r)));
+		return { head: d.columns.map((k) => valueLabel(k, d.currency)), rows, numeric: d.columns.map((k) => k !== "key" && k !== "query"), notes };
 	}
 	if (d.kind === "bars" || d.kind === "donut") {
 		const rows = (d.rows as Array<{ label: string; value: number }>).slice(0, maxRows).map((r) => [r.label, formatValue(d.metric, r.value, d.currency)]);
@@ -101,7 +104,7 @@ function lines(d: TileData): string[] {
 	}
 	if (d.kind === "kpi") {
 		const c = tileChange(d);
-		return [formatValue(d.metric, d.value, d.currency), ...(c ? [changeText(c)] : [])];
+		return [formatValue(d.metric, d.value, d.currency), ...(c ? [changeText(c)] : []), ...(d.note ? [d.note] : [])];
 	}
 	if (d.kind === "line" || d.kind === "area") {
 		if (!d.buckets.length || !d.lines.length) return ["No data for this range."];
@@ -128,12 +131,17 @@ function tileHtml(title: string, t: EmailTile, maxRows: number): string {
 		if (!tbl.rows.length) body = `<p style="margin:0">No data for this range.</p>`;
 		else {
 			const th = tbl.head.map((h, i) => `<th style="${tbl.numeric[i] ? S.num : S.th}">${e(h)}</th>`).join("");
-			const rows = tbl.rows.map((r) => `<tr>${r.map((c, i) => `<td style="${tbl.numeric[i] ? S.num : S.td}">${e(c)}</td>`).join("")}</tr>`).join("");
+			const rows = tbl.rows
+				.map((r, ri) => `<tr>${r.map((c, i) => {
+					const note = tbl.notes?.[ri]?.[i];
+					return `<td style="${tbl.numeric[i] ? S.num : S.td}">${e(c)}${note ? `<div style="${S.muted}">${e(note)}</div>` : ""}</td>`;
+				}).join("")}</tr>`)
+				.join("");
 			body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${th}</tr>${rows}</table>`;
 		}
 	} else {
 		const ls = lines(d);
-		body = d.kind === "kpi" && !d.empty ? `<div style="${S.kpi}">${e(ls[0] ?? "")}</div>${d.impact ? "" : changeLine(d)}` : ls.map((l) => `<p style="margin:0">${e(l)}</p>`).join("");
+		body = d.kind === "kpi" && !d.empty ? `<div style="${S.kpi}">${e(ls[0] ?? "")}</div>${d.impact ? "" : changeLine(d)}${d.note && !d.impact ? `<p style="${S.muted}">${e(d.note)}</p>` : ""}` : ls.map((l) => `<p style="margin:0">${e(l)}</p>`).join("");
 	}
 	const money = d.empty ? "" : currencyLines(d).map((l) => `<p style="${S.muted}">${e(l)}</p>`).join("");
 	const hidden = t.hiddenTerms ? `<p style="${S.muted}">${e(hiddenLine(t.hiddenTerms))}</p>` : "";
@@ -150,7 +158,7 @@ function tileText(title: string, t: EmailTile, maxRows: number): string {
 		const d = t.data;
 		out.push(...noticeText(d.notices));
 		const tbl = d.empty ? null : tableOf(d, maxRows);
-		if (tbl) out.push(...(tbl.rows.length ? tbl.rows.map((r) => `- ${r[0]}: ${r.slice(1).map((c, i) => `${tbl.head[i + 1]} ${c}`).join(", ")}`) : ["No data for this range."]));
+		if (tbl) out.push(...(tbl.rows.length ? tbl.rows.map((r, ri) => `- ${r[0]}: ${r.slice(1).map((c, i) => { const note = tbl.notes?.[ri]?.[i + 1]; return `${tbl.head[i + 1]} ${c}${note ? ` (${note})` : ""}`; }).join(", ")}`) : ["No data for this range."]));
 		else out.push(...lines(d));
 		if (!d.empty) out.push(...currencyLines(d));
 		if (t.hiddenTerms) out.push(hiddenLine(t.hiddenTerms));

@@ -26,6 +26,7 @@ exports[`agent API > answers a range before the detailed window from the summari
     "summary",
     "filter_unavailable:browser:combination",
     "detail_from:2026-03-12",
+    "exit_rate_segment",
   ],
   "status": 200,
 }

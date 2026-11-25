@@ -12,7 +12,8 @@ import { addIs } from "../components/FilterBar.js";
 import { isRemote, Shell, toQuery, type View } from "../components/Header.js";
 import { type DefinitionKind, SetupEmpty, useDefinitionCount } from "../setup.js";
 import { InfoMark, KebabMenu, Notice, Tabs } from "../components/ui.js";
-import { type PanelId, PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { COLUMN_DEFINITIONS, metricDefinition, type PanelId, PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { shownNotices } from "../../charts/caveats.js";
 import type { DocsLink } from "../docs-links.js";
 import { adminHref, ErrorScope, ReportError, ReportNotices, usePageError } from "../components/ReportNotices.js";
 
@@ -38,24 +39,47 @@ export const allNotices = (r: ReportResult | null | undefined): string[] => [...
 
 const EXPORT_FORMATS = [["csv", "CSV"], ["json", "JSON"]] as const;
 
+/** A column with the metric's own definition behind its info mark (`metricDefinition`); `info` overrides it. */
+export const metricColumn = (key: string, label: string, more: Partial<Column> = {}): Column => {
+	const info = metricDefinition(key);
+	return { key, label, ...(info ? { info } : {}), ...more };
+};
+
+/** The Visitors column of a breakdown: per day and row, so rows overlap. */
+export const VISITORS_COLUMN: Column = { key: "visitors", label: "Visitors", info: COLUMN_DEFINITIONS.visitors };
+
+/** The session columns after the name: visitors, sessions, bounce rate, average session duration. */
+export const SESSION_BASE: Column[] = [
+	VISITORS_COLUMN,
+	metricColumn("sessions", "Sessions"),
+	metricColumn("bounce_rate", "Bounce rate", { format: "percent" }),
+	metricColumn("avg_duration", METRICS.avg_duration?.label ?? "Avg. session duration", { format: "duration" }),
+];
+
 /** Session metric columns shared by the session breakdowns (channels, sources, countries and so on). */
 export function sessionColumns(label: string, dim?: Dim): Column[] {
-	return [
-		{ key: "key", label, format: "text", ...(dim ? { dim } : {}) },
-		{ key: "visitors", label: "Visitors" },
-		{ key: "sessions", label: "Sessions" },
-		{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
-		{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
-		...SESSION_EXTRA,
-	];
+	return [{ key: "key", label, format: "text", ...(dim ? { dim } : {}) }, ...SESSION_BASE, ...SESSION_EXTRA];
 }
 
 /** Session metrics every session breakdown returns that are not shown until the visitor switches them on. */
 export const SESSION_EXTRA: Column[] = [
-	{ key: "pageviews", label: "Pageviews", optional: true },
-	{ key: "views_per_session", label: "Views per session", format: "decimal", optional: true },
-	{ key: "engaged_rate", label: "Engaged rate", format: "percent", optional: true },
+	metricColumn("pageviews", "Pageviews", { optional: true }),
+	metricColumn("views_per_session", "Views per session", { format: "decimal", optional: true }),
+	metricColumn("engaged_rate", "Engaged rate", { format: "percent", optional: true }),
 ];
+
+/** What the Revenue column of a report's rows holds (the attribution of `withRevenue`). */
+const REVENUE_INFO: Partial<Record<ReportName, string>> = {
+	channels: COLUMN_DEFINITIONS.revenue_first_touch,
+	sources: COLUMN_DEFINITIONS.revenue_first_touch,
+	campaigns: COLUMN_DEFINITIONS.revenue_first_touch,
+	entry_pages: COLUMN_DEFINITIONS.revenue_first_touch,
+	pages: COLUMN_DEFINITIONS.revenue_page,
+	countries: COLUMN_DEFINITIONS.revenue_visit,
+	devices: COLUMN_DEFINITIONS.revenue_visit,
+	events: COLUMN_DEFINITIONS.revenue_order_event,
+	goals: COLUMN_DEFINITIONS.revenue_order_goal,
+};
 
 export interface PanelProps {
 	view: View;
@@ -75,8 +99,8 @@ export interface PanelProps {
 	/** Notices are shown once per page; panels on a page with its own notices pass false. */
 	showNotices?: boolean;
 	action?: DataTableProps["action"];
-	/** Extra content above the table, from the report answer (a chart, a total). */
-	extra?: (res: ReportResult) => ReactNode;
+	/** Extra content above the table, from the report answer (a chart, a total) and the keys of the columns switched on. */
+	extra?: (res: ReportResult, chosen: readonly string[]) => ReactNode;
 	/** Add the Revenue and Orders columns through `withRevenue` when the site has revenue. */
 	revenue?: boolean;
 	/** "Show all" under the table: the admin page path of the full report (`/sources?tab=sources`). */
@@ -138,10 +162,15 @@ export function ReportPanel({ view, report, columnsId, columns: baseColumns, tit
 	const code = (res.data?.data.currency as string | undefined) ?? (rev.data?.data.currency as string | undefined) ?? "";
 	// Refunds and net revenue next to revenue when the range holds refunds (the revenue probe's totals).
 	const refunds = Number(rev.data?.data.totals?.refunds ?? 0) > 0;
-	const money = (key: string, l: string): Column => ({ key, label: `${l} (${code})`, format: `money:${code}` });
+	const money = (key: string, l: string, info = metricDefinition(key)): Column => ({ key, label: `${l} (${code})`, format: `money:${code}`, ...(info ? { info } : {}) });
 	const columns: readonly Column[] =
 		withRev && code
-			? [...baseColumns, money("revenue", "Revenue"), ...(refunds ? [money("refunds", "Refunds"), money("net_revenue", "Net revenue")] : []), { key: "orders", label: "Orders" }]
+			? [
+					...baseColumns,
+					money("revenue", "Revenue", REVENUE_INFO[report]),
+					...(refunds ? [money("refunds", "Refunds"), money("net_revenue", "Net revenue")] : []),
+					{ key: "orders", label: "Orders", info: COLUMN_DEFINITIONS.orders_row },
+				]
 			: baseColumns;
 	const [exportError, setExportError] = useState<string | null>(null);
 	// Inside a page's error scope the error shows once on top, and the panel only says "Not loaded.".
@@ -176,8 +205,8 @@ export function ReportPanel({ view, report, columnsId, columns: baseColumns, tit
 			</div>
 			{res.error && !scoped && <ReportError error={res.error} view={view} />}
 			{exportError && <Notice tone="error">{exportError}</Notice>}
-			{showNotices && <ReportNotices notices={allNotices(res.data)} view={view} />}
-			{res.data && extra?.(res.data)}
+			{showNotices && <ReportNotices notices={shownNotices(allNotices(res.data), picked.chosen)} view={view} />}
+			{res.data && extra?.(res.data, picked.chosen)}
 			{res.error && !res.data ? (
 				<TableSkeleton rows={skeletonRows}>
 					<p className="ca-small">Not loaded.</p>

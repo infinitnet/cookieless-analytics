@@ -432,6 +432,22 @@ function docGet(dialect, column, key, field, as) {
 		sql: `CAST(${e.sql} AS BIGINT)`
 	} : e;
 }
+/**
+* Entries of the document in `column` whose string field `field` holds `value`, as one scalar expression over the
+* document text: the occurrences of `"field":"value"` (Postgres prints `"field": "value"`). A table source
+* (`json_each`) would give the exact count too, but D1 bills every entry it yields as a row read (measured on a
+* local D1: 105 rows read for 100 visits, 505 with a `json_each` count over their 400 entries), while this
+* expression reads the visit rows only. A quote inside a JSON string is escaped, so only a field of that name
+* matches; an event property of the same name and value counts too, which errs high. `value` is a constant
+* (letters, digits, `_`), inlined so the expression binds no parameter.
+*/
+function docCount(dialect, column, field, value) {
+	if (!/^[A-Za-z0-9_]+$/.test(field) || !/^[A-Za-z0-9_]+$/.test(value)) throw new Error(`invalid document count: ${field}=${value}`);
+	const col = ident(column);
+	const text = dialect === "postgres" ? `(${col})::text` : `json(${col})`;
+	const needle = dialect === "postgres" ? `"${field}": "${value}"` : `"${field}":"${value}"`;
+	return `COALESCE((length(${text}) - length(replace(${text}, '${needle}', ''))) / ${needle.length}, 0)`;
+}
 /** Table source over the entries of a document: rows `alias.key`, `alias.value`. */
 function docEach(dialect, column, alias) {
 	return dialect === "postgres" ? `jsonb_each(${ident(column)}) AS ${ident(alias)}(key, value)` : `json_each(${ident(column)}) AS ${ident(alias)}`;
@@ -2424,6 +2440,40 @@ function lineError(line, ignored, rules) {
 	const pattern = ruleOf(line)[0];
 	if (rules.some((r) => r[0] === pattern)) return "the same pattern is used twice.";
 }
+// src/query/reports/satisfaction-copy.ts
+/** The scope of the Search Satisfaction reports: organic search sessions of every search engine. */
+const ORGANIC_SEARCH = {
+	dim: "channel",
+	op: "is",
+	values: ["Organic Search"]
+};
+/**
+* Filters of a Search Satisfaction run: the scope first, every channel filter of the caller left out (the report
+* answers the notice `ignored_dim:channel` for it). Other filters narrow inside the scope.
+*/
+const organicScope = (filters) => [ORGANIC_SEARCH, ...filters.filter((f) => f.dim !== "channel")];
+/** True for a channel filter that is not the scope itself: the one the report leaves out and says so. */
+const conflictsWithScope = (f) => f.dim === "channel" && !(f.op === "is" && f.values.length === 1 && f.values[0] === ORGANIC_SEARCH.values[0]);
+/** The reports that cover organic search sessions only. */
+const SATISFACTION_REPORTS = /* @__PURE__ */ new Set(["satisfaction", "satisfaction_series"]);
+/** Typed `raw_only` text beyond the raw window. */
+const SATISFACTION_RAW_ONLY = "Search Satisfaction is computed from session rows, which are kept for the raw retention window only. Choose a more recent range or raise the raw retention.";
+/** Caveat of the estimates (pogo-sticking, returned from search, search re-entry, back/forward loads). */
+const SATISFACTION_CAVEAT = "An estimate from browser navigation signals.";
+/** One sentence that defines pogo-sticking (agent catalog `pogoDefinition`, docs/sessions.md). */
+const POGO_DEFINITION = "Pogo-sticking: a search visitor views one page, sends no event and leaves it with Back or Forward within the long click time.";
+/** Groupings of the `satisfaction` report (`params.by`); `entry` is the landing page. */
+const SATISFACTION_BY = [
+	"entry",
+	"source",
+	"device",
+	"country",
+	"browser"
+];
+/** The note under a score that rests on fewer measured sessions than the sample minimum (`low_sample`). */
+const LOW_SAMPLE = "low sample";
+/** The line under a Score number tile whose figure is `low_sample`. */
+const lowSampleLine = (min) => `Low sample: under ${min} measured sessions, the sample minimum.`;
 // src/settings.ts
 const SCRIPT_FOR_BOTS_CAVEAT = "Page fragments land in the route cache, which is keyed without the user agent and sends no Vary: User-Agent header, so a page first cached for a bot would be served to humans without the script. Enable only with route caching off.";
 const opts = (list) => list.map(([value, label]) => ({
@@ -2652,7 +2702,7 @@ const settingsSchema = {
 	engagedThresholdSeconds: {
 		type: "number",
 		label: "Engaged threshold (seconds)",
-		description: "Active time that makes a session engaged.",
+		description: "Active time from which a session counts as engaged. A session with two or more page views or any event is engaged whatever its active time. A session that is not engaged is a bounce.",
 		default: 10,
 		min: 1,
 		max: 300
@@ -2673,10 +2723,18 @@ const settingsSchema = {
 		min: 1,
 		max: 60
 	},
+	satisfactionMinMeasured: {
+		type: "number",
+		label: "Search Satisfaction sample minimum",
+		description: "Fewest measured sessions a landing page needs to be ranked as a best or worst page. A score under it is marked low sample.",
+		default: 30,
+		min: 10,
+		max: 500
+	},
 	realtimeWindowMinutes: {
 		type: "number",
 		label: "Realtime window (minutes)",
-		description: "Sessions seen within this time count as active now.",
+		description: "Sessions with a page view or event within this time count as active now.",
 		default: 5,
 		min: 1,
 		max: 60
@@ -2754,7 +2812,7 @@ const settingsSchema = {
 	searchMinImpressions: {
 		type: "number",
 		label: "SEO views impression floor",
-		description: "A query or page counts in cannibalization, position movement, rising and declining and decay only with at least this many impressions in a period (page views for the traffic views).",
+		description: "A query, page or pair counts in cannibalization, striking distance, position movement, rising and declining and decay only with at least this many impressions (page views for the traffic views).",
 		default: 50,
 		min: 1,
 		max: 1e5
@@ -4111,18 +4169,23 @@ function sessionWhere(site, from, to, filters) {
 	]);
 }
 /**
-* Session metrics per key and day, summed per key in the outer query. Visitors are distinct `vkey`
-* per day, summed. `keyExpr` null gives one totals row.
+* Passive entries (link impressions, `isPassiveEvent`) of the visit document `s.hits`: stored entries that `events`
+* does not count. The write guard and the storage estimate add them (`src/query/storage.ts`).
 */
-function sessionAggSql(rc, input, keyExpr, extra = TRUE) {
+const passiveEntries = (dialect, column = "s.hits") => docCount(dialect, column, "n", LINK_EVENTS.view);
+/**
+* Session metrics per key and day, summed per key in the outer query. Visitors are distinct `vkey`
+* per day, summed. `keyExpr` null gives one totals row. With `passive`, also `passive`: the passive entries of the sessions.
+*/
+function sessionAggSql(rc, input, keyExpr, extra = TRUE, passive = false) {
 	const where = and([sessionWhere(rc.site, input.from, input.to, input.traffic?.session ?? TRUE), extra]);
 	const k = keyExpr ? `${keyExpr} AS key, ` : "";
 	const g = keyExpr ? `${keyExpr}, ` : "";
 	const inner = `SELECT ${k}s.day AS day, COUNT(*) AS sessions, SUM(s.pageviews) AS pageviews, COUNT(DISTINCT s.vkey) AS visitors, SUM(s.events) AS events,
 ${ENGAGED_SQL},
-SUM(${DURATION_MS}) AS duration_ms
+SUM(${DURATION_MS}) AS duration_ms${passive ? `, SUM(${passiveEntries(rc.db.dialect)}) AS passive` : ""}
 FROM ca_sessions s WHERE ${where.sql} GROUP BY ${g}s.day`;
-	const sums = "SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.sessions) - SUM(t.engaged) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms";
+	const sums = `SUM(t.sessions) AS sessions, SUM(t.events) AS events, SUM(t.pageviews) AS pageviews, SUM(t.visitors) AS visitors, SUM(t.sessions) - SUM(t.engaged) AS bounces, SUM(t.engaged) AS engaged, SUM(t.duration_ms) AS duration_ms${passive ? ", SUM(t.passive) AS passive" : ""}`;
 	return {
 		sql: keyExpr ? `SELECT t.key AS key, ${sums} FROM (${inner}) t GROUP BY t.key` : `SELECT ${sums} FROM (${inner}) t`,
 		params: [rc.settings.engagedThresholdSeconds * 1e3, ...where.params]
@@ -4225,7 +4288,12 @@ function goalGroups(parts) {
 	}
 	return groups;
 }
-const ORDER_SUMS = "SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sid END) AS sessions";
+/**
+* Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so
+* orders, gross revenue and paying sessions count rows with `val >= 0` only and `refunds` is the refunded amount.
+* Paying sessions are counted by the visit key, visit day plus sid, like every other session count.
+*/
+const ORDER_SUMS = "SUM(CASE WHEN h.val >= 0 THEN 1 ELSE 0 END) AS orders, SUM(CASE WHEN h.val >= 0 THEN h.val ELSE 0 END) AS revenue, SUM(CASE WHEN h.val < 0 THEN -h.val ELSE 0 END) AS refunds, COUNT(DISTINCT CASE WHEN h.val >= 0 THEN h.sday || '|' || h.sid END) AS sessions";
 /** The `ca_revenue_daily` dim of the refund rows of `dim`: `revenue` holds the refunded amount, `orders` and `sessions` 0. */
 const refundDim = (dim) => `refund.${dim}`;
 /** `col IN (...)` over the keys of the current page of rows: one JSON parameter, so 10 000 export keys still fit. */
@@ -5261,7 +5329,7 @@ FROM seq t WHERE t.path = ? AND COALESCE(t.${column}, '') <> t.path GROUP BY ${k
 const journeyNext = neighbour("next", EXIT);
 /** What preceded the page, including `(entry)`. A drill-down, not a tile report. */
 const journeyPrev = neighbour("prev", ENTRY);
-/** The most common three step sequences from the landing page (`params.entry` narrows the landing page). */
+/** The most common three step sequences from the entry page (`params.entry` narrows the entry page). */
 async function journeyPaths(rc, input) {
 	const base = await journeyBase(rc, input);
 	const entry = input.params.entry;
@@ -5284,7 +5352,7 @@ GROUP BY t.path, ${p2}, ${p3} ORDER BY sessions DESC, path1, path2, path3 LIMIT 
 		};
 	}));
 }
-/** Summary dims of the journeys: `next` (key a page, segkey the next page, `(exit)`, or '' for the page's own sessions; key `(entry)` for landings) and `path3` (key the landing page, segkey the next two steps). */
+/** Summary dims of the journeys: `next` (key a page, segkey the next page, `(exit)`, or '' for the page's own sessions; key `(entry)` for landings) and `path3` (key the entry page, segkey the next two steps). */
 const JOURNEY_DIMS = ["next", "path3"];
 /**
 * The journey rows of one site and day for the summaries, one statement over the same steps as the reports: what
@@ -5499,7 +5567,7 @@ async function links(rc, input) {
 			params: [LINK_EVENTS.click, LINK_EVENTS.sale]
 		}, onSlug(hitSlug(src))]));
 		return {
-			sql: `SELECT ${hk} AS key, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN ${src.name} = ? THEN ${src.sid} END) AS sessions, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS conversions${cur ? `, SUM(CASE WHEN ${src.name} = ? AND ${src.cur} = ? THEN ${src.val} ELSE 0 END) AS revenue` : ", 0 AS revenue"} ${f.sql} GROUP BY ${hk}`,
+			sql: `SELECT ${hk} AS key, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN ${src.name} = ? AND ${src.counted} = 1 THEN ${src.sid} END) AS sessions, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS conversions${cur ? `, SUM(CASE WHEN ${src.name} = ? AND ${src.cur} = ? THEN ${src.val} ELSE 0 END) AS revenue` : ", 0 AS revenue"} ${f.sql} GROUP BY ${hk}`,
 			params: [
 				LINK_EVENTS.click,
 				LINK_EVENTS.click,
@@ -5667,7 +5735,7 @@ async function linkDay(rc, day, segs) {
 		const counted = seg ? " AND counted = 1" : "";
 		const group = `GROUP BY ${k}${seg ? `, ${seg}` : ""}`;
 		return [
-			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
+			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 AND counted = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
 			`${head}, cur, 0, 0, 0, 0, COUNT(*), SUM(val) FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
 			`${head}, '', COUNT(*), 0, 0, 0, 0, 0 FROM i WHERE 1 = 1${counted} ${group}`
 		];
@@ -5713,7 +5781,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DycgS_ed.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-CsQOfa2p.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -6094,7 +6162,7 @@ async function computeLinks(rc, day) {
 /**
 * The journey families of one day (one statement), folded to the profile's caps. Steps fold per page (a page's
 * steps beyond the top become its `(other)` step) within a third of the `next` cap, so the page rows the kept steps
-* name fit in the rest; paths fold per landing page.
+* name fit in the rest; paths fold per entry page.
 */
 async function computeJourneys(rc, day) {
 	const rows = (await journeyDay(reportCtx(rc), day)).map((r) => familyRow(r.dim, "", r.key, r.segkey, { sessions: r.sessions }));
@@ -6157,9 +6225,9 @@ async function computeRollupRows(rc, day) {
 		const q = sessionAggSql(ctx, input, dim === "all" ? null : expr, dim === "utm_campaign" ? {
 			sql: "s.utm_campaign IS NOT NULL",
 			params: []
-		} : TRUE);
+		} : TRUE, dim === "all");
 		return {
-			sql: `SELECT '${dim}' AS dim, '${seg}' AS seg, ${dim === "all" ? "''" : "x.key"} AS key, x.sessions, x.events, x.pageviews, x.visitors, x.bounces, x.engaged, x.duration_ms FROM (${q.sql}) x`,
+			sql: `SELECT '${dim}' AS dim, '${seg}' AS seg, ${dim === "all" ? "''" : "x.key"} AS key, x.sessions, x.events, x.pageviews, x.visitors, x.bounces, x.engaged, x.duration_ms, ${dim === "all" ? "x.passive" : "0"} AS passive FROM (${q.sql}) x`,
 			params: q.params
 		};
 	});
@@ -6167,7 +6235,8 @@ async function computeRollupRows(rc, day) {
 	for (const [dim] of sessionDims) {
 		const mapped = sessionRows.filter((r) => r.dim === dim && r.seg === "").map((r) => row(dim, String(r.key), {
 			...r,
-			engaged_ms: r.duration_ms
+			engaged_ms: r.duration_ms,
+			hits: r.passive
 		}));
 		out.push(...foldTop(mapped, TOP_N[dim], "sessions"));
 	}
@@ -7403,16 +7472,17 @@ const segList = [
 	...SEGS,
 	CUBE_SEG
 ].map((d) => `'${d}'`).join(", ");
-/** Bytes of the detailed data of one day from its `all` summary row. */
+/** Bytes of the detailed data of one day from its `all` summary row (entries: page views, events and passive entries). */
 const dayBytes = (visits, entries) => (visits * 290 + entries * 115) * STORAGE_SAFETY;
 /**
 * The estimate and the detailed window it allows. Two statements: the `all` rows of every site and day in the
-* longest retention, and the summary rows of the newest day before `today` (single dimension, pair, link, journey, revenue and cube rows).
+* longest retention (their entries: page views, events, and the passive entries the closed-day writer stores in
+* `hits`), and the summary rows of the newest day before `today` (single dimension, pair, link, journey, revenue and cube rows).
 */
 async function estimateStorage(db, s, today) {
 	const rawFrom = addDays(today, -s.rawRetentionDays);
 	const from = addDays(today, -Math.max(s.rawRetentionDays, Math.ceil(s.rollupRetentionMonths * 31)));
-	const days = (await db.all(`${siteScan("ca_rollup")} SELECT r.day AS day, SUM(r.sessions) AS visits, SUM(r.pageviews + r.events) AS entries FROM s JOIN ca_rollup r ON r.site = s.site AND r.dim = 'all' AND r.seg = '' AND r.day >= ? GROUP BY r.day ORDER BY r.day DESC`, [from])).map((d) => ({
+	const days = (await db.all(`${siteScan("ca_rollup")} SELECT r.day AS day, SUM(r.sessions) AS visits, SUM(r.pageviews + r.events + r.hits) AS entries FROM s JOIN ca_rollup r ON r.site = s.site AND r.dim = 'all' AND r.seg = '' AND r.day >= ? GROUP BY r.day ORDER BY r.day DESC`, [from])).map((d) => ({
 		day: String(d.day),
 		bytes: dayBytes(Number(d.visits), Number(d.entries))
 	}));
@@ -7472,9 +7542,10 @@ const ROWS_PER_PV = 2.6;
 /** Rows written per day that do not depend on traffic: one day of summary rows on `small`. */
 const FIXED_ROWS = 2500;
 const CHECK_SLOW_S = 3600;
-/** Rows written estimated from today's visits, page views and events, plus the rows Search syncs wrote and retention deleted today, and whether that crosses the guard. */
+/** Rows written estimated from today's visits, page views, events and passive entries, plus the rows Search syncs wrote and retention deleted today, and whether that crosses the guard. */
 function writeBudget(c, day, at, sync = 0, deletes = 0) {
-	const rows = Math.round(c.visits * 1 + c.pageviews * ROWS_PER_PV + c.events * 1 + FIXED_ROWS) + sync + deletes;
+	const passive = c.passive ?? 0;
+	const rows = Math.round(c.visits * 1 + c.pageviews * ROWS_PER_PV + c.events * 1 + passive * 1 + FIXED_ROWS) + sync + deletes;
 	const limit = FREE_ROWS_PER_DAY * GUARD_SHARE;
 	return {
 		day,
@@ -7482,6 +7553,7 @@ function writeBudget(c, day, at, sync = 0, deletes = 0) {
 		visits: c.visits,
 		pageviews: c.pageviews,
 		events: c.events,
+		...passive ? { passive } : {},
 		rows,
 		limit,
 		blocked: rows >= limit,
@@ -7498,8 +7570,10 @@ const budgetTargetOf = (db) => db.dialect === "postgres" ? "postgres" : isOwnDat
 const dailyRowsApply = (profile, db) => profile === "small" && db.dialect === "sqlite";
 /**
 * Write budget of the current UTC day: null unless `dailyRowsApply` (the `small` profile on D1). Answered from the state key while it
-* is fresh; otherwise one statement counts the visits and sums the page views and events of the visits started since 00:00 UTC (it reads the
-* visits of at most two local days) and the state is stored again. A blocked state holds until the UTC day ends.
+* is fresh; otherwise one statement counts the visits and sums the page views, events and passive entries of the visits started since
+* 00:00 UTC (it reads the visits of at most two local days) and the state is stored again. Passive entries (link impressions) raise no
+* column of the visit, and a counter of them would cost a write per impression or a schema change, so the statement counts them in
+* the visit documents with a text count (`passiveEntries`), which reads no row beyond the visits (`json_each` would bill one per entry). A blocked state holds until the UTC day ends.
 */
 async function budgetState(db, kv, now, profile, timeZone = "UTC") {
 	if (!dailyRowsApply(profile, db)) return null;
@@ -7508,12 +7582,13 @@ async function budgetState(db, kv, now, profile, timeZone = "UTC") {
 	if (prev && prev.day === day && (prev.blocked || now - prev.at < (prev.rows >= prev.limit * .25 ? 600 : 3600))) return prev;
 	const midnight = Date.parse(`${day}T00:00:00Z`) / 1e3;
 	const days = [.../* @__PURE__ */ new Set([dayInZone(midnight, timeZone), dayInZone(now, timeZone)])].map(visitDayKey);
-	const [r] = await db.all(`${siteScan("ca_sessions")} SELECT COUNT(*) AS v, COALESCE(SUM(v.pageviews), 0) AS pv, COALESCE(SUM(v.events), 0) AS ev FROM s JOIN ca_sessions v ON v.site = s.site AND v.day IN (${days.map(() => "?").join(", ")}) WHERE v.started >= ?`, [...days, midnight]);
+	const [r] = await db.all(`${siteScan("ca_sessions")} SELECT COUNT(*) AS v, COALESCE(SUM(v.pageviews), 0) AS pv, COALESCE(SUM(v.events), 0) AS ev, COALESCE(SUM(${passiveEntries(db.dialect, "v.hits")}), 0) AS pa FROM s JOIN ca_sessions v ON v.site = s.site AND v.day IN (${days.map(() => "?").join(", ")}) WHERE v.started >= ?`, [...days, midnight]);
 	const sync = await kv.get(KV_SYNC_ROWS);
 	const state = writeBudget({
 		visits: Number(r?.v ?? 0),
 		pageviews: Number(r?.pv ?? 0),
-		events: Number(r?.ev ?? 0)
+		events: Number(r?.ev ?? 0),
+		passive: Number(r?.pa ?? 0)
 	}, day, now, sync?.day === day ? sync.rows : 0, await deletedToday(kv, now) + await copiedToday(kv, now));
 	await kv.set(KV_WRITE_BUDGET, state);
 	return state;
@@ -8053,7 +8128,7 @@ function firstTouch(evt, meta, now, cfg, sid, vkey) {
 		entry_path: url.path,
 		exit_path: url.path,
 		pageviews: isPv ? 1 : 0,
-		events: isPv ? 0 : 1,
+		events: isPv || evt.passive ? 0 : 1,
 		engaged_ms: 0,
 		max_scroll: 0,
 		interacted: 0,
@@ -8082,7 +8157,7 @@ async function cont(store, s, evt, now, cfg) {
 	const patch = {
 		now,
 		pageviews: isPv ? 1 : 0,
-		events: isPv ? 0 : 1
+		events: isPv || evt.passive ? 0 : 1
 	};
 	if (isPv) {
 		patch.exitPath = normalizeUrl(evt.u ?? "/", cfg.queryAllowlist).path;
@@ -8312,6 +8387,8 @@ function bySid(d, site, sid, now, tz, alias = "") {
 function byKey(d, site, day, sid) {
 	return q(d)`site = ${site} AND day = ${visitDayKey(day)} AND sid = ${sid}`;
 }
+/** Stored size of the visit document. */
+const docSize = (d) => raw(d === "postgres" ? "pg_column_size(hits)" : "length(hits)");
 const maxSeconds = (cfg) => Math.min(cfg.maxSessionMinutes, MAX_VISIT_MINUTES) * 60;
 /**
 * Live and below the cap, and no entry under the key yet (the replay guard). An event carrying the sid of a stored
@@ -8322,7 +8399,8 @@ function liveGuard(d, m) {
 	const s = q(d);
 	const cap = m.t === "pv" ? s`pageviews < ${m.cfg.maxPageviewsPerSession ?? 500}` : m.rev ? raw("1 = 1") : s`events < ${m.cfg.maxEventsPerSession ?? 200}`;
 	const win = m.t === "pv" ? s` AND ${m.now} - last_seen <= window_s` : raw("");
-	return s`${docGet(d, "hits", m.key, "t")} IS NULL${win} AND ${m.now} - started <= ${maxSeconds(m.cfg)} AND ${cap}`;
+	const full = m.evt.passive ? s` AND ${docSize(d)} < ${MAX_DOC_BYTES}` : raw("");
+	return s`${docGet(d, "hits", m.key, "t")} IS NULL${win} AND ${m.now} - started <= ${maxSeconds(m.cfg)} AND ${cap}${full}`;
 }
 /**
 * S1 and S3: add the entry to a known visit. The entry is written with explicit-field `jsonb_set`, not
@@ -8342,13 +8420,15 @@ function entryUpdate(d, m, target, reentry = false) {
 		re: reentry ? 1 : void 0,
 		hs: f.hs
 	})}, pageviews = pageviews + 1, last_seen = ${fn(d, "max")}(last_seen, ${m.now}), exit_path = ${f.p ?? null}${raw(reentry ? ", reentries = reentries + 1" : "")} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
-	return s`UPDATE ca_sessions SET hits = ${docSet(d, "hits", m.key, {
+	const hits = docSet(d, "hits", m.key, {
 		t: s`${m.now} - started`,
 		n: f.n,
 		p: f.p ?? raw("exit_path"),
 		pr: m.props ? docJson(d, m.props) : void 0,
 		hs: f.hs
-	})}, events = events + 1, last_seen = ${s`CASE WHEN ${m.now} - last_seen <= window_s THEN ${fn(d, "max")}(last_seen, ${m.now}) ELSE last_seen END`} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
+	});
+	const seen = s`CASE WHEN ${m.now} - last_seen <= window_s THEN ${fn(d, "max")}(last_seen, ${m.now}) ELSE last_seen END`;
+	return s`UPDATE ca_sessions SET hits = ${hits}${raw(m.evt.passive ? "" : ", events = events + 1")}, last_seen = ${seen} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
 }
 /** Slow path, new visit: the row with its first entry inside; nothing on a conflict (a racing first event). */
 function visitInsert(d, row, m) {
@@ -8386,8 +8466,7 @@ function engageUpdate(d, m) {
 		s: grown("s", m.s),
 		x: grown("x", m.x)
 	})}`);
-	const size = raw(d === "postgres" ? "pg_column_size(hits)" : "length(hits)");
-	const known = s`(${docGet(d, "hits", m.key, "t")} IS NOT NULL OR ${docGet(d, "hits", m.key, "d")} IS NOT NULL OR (started >= ${m.now - 30} AND pageviews < ${m.cap} AND ${size} < ${MAX_DOC_BYTES}))`;
+	const known = s`(${docGet(d, "hits", m.key, "t")} IS NOT NULL OR ${docGet(d, "hits", m.key, "d")} IS NOT NULL OR (started >= ${m.now - 30} AND pageviews < ${m.cap} AND ${docSize(d)} < ${MAX_DOC_BYTES}))`;
 	return s`UPDATE ca_sessions SET ${join(set)} WHERE ${bySid(d, m.site, m.sid, m.now, m.tz)} AND ${known}`;
 }
 /**
@@ -8529,7 +8608,11 @@ var D1Sink = class {
 		else wrote = (await this.returns(entryUpdate(d, m, target, m.t === "pv" && !!m.reentry))).length > 0;
 		if (!wrote) {
 			const has = q(d)`SELECT 1 AS ok FROM ca_sessions WHERE ${target} AND ${docGet(d, "hits", m.key, "t")} IS NOT NULL`;
-			if (!(await this.db.all(has.sql, has.params)).length) throw new Error("ingest: the visit changed between the read and the write");
+			if (!(await this.db.all(has.sql, has.params)).length) {
+				const full = q(d)`SELECT 1 AS ok FROM ca_sessions WHERE ${target} AND ${docSize(d)} >= ${MAX_DOC_BYTES}`;
+				if (m.evt.passive && (await this.db.all(full.sql, full.params)).length) return "session_cap";
+				throw new Error("ingest: the visit changed between the read and the write");
+			}
 		}
 		if (m.rev && attached !== visit.sid) {
 			const f = q(d)`UPDATE ca_events SET sday = ${visitDayKey(visit.day)}, sid = ${visit.sid} WHERE site = ${m.site} AND id = ${m.key}`;
@@ -9024,4 +9107,4 @@ async function consumeBatch(batch, db, kv) {
 	for (const [site, day, reason] of dropped) drops.add(site, day, reason);
 	if (dropped.length) await drops.flush(db).catch(() => {});
 }
-export { sitesInTables as $, nextUtcDay as $n, redact as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, eachDay as Ai, GoalSchema as An, formatAmount as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, ipInCidr as Bi, SEARCH_DIMS as Bn, pluginFacts as Br, SEGMENTS$1 as Bt, siteProblem as C, upsertChanged as Ci, goalPredicate as Cn, isEventName as Cr, WITH_REVENUE as Ct, readVisits as D, addDays as Di, FUNNEL_MODES as Dn, validateIngest as Dr, metaOf as Dt, MAX_DOC_BYTES as E, ident as Ei, DIM_NAMES as En, isSid as Er, hasRevenue as Et, UTM_KEYS as F, saltDay as Fi, PROP_KEY_RE as Fn, eachTarget as Fr, resolveGranularity as Ft, KV_CURSOR as G, vkey as Gi, copyRowsLeft as Gn, CACHE_ON_MESSAGE as Gr, openDay as Gt, budgetTargetOf as H, sha256 as Hi, COPY_DAY_ROWS as Hn, setPluginFacts as Hr, clearOpenDays as Ht, cleanHost as I, samePeriodLastYear as Ii, QuerySchema as In, ensureHostSchema as Ir, timeseries as It, clearEstimateDay as J, PROVIDER_DAYS as Jn, fromPg as Jr, readSummary as Jt, KV_DELETE_ROWS as K, __exportAll as Ki, nextUtcMidnight as Kn, queryCacheOn as Kr, planFilters as Kt, hostInList as L, zonedToEpoch as Li, REVENUE_BREAKDOWN_DIMS as Ln, factsDb as Lr, weekStart as Lt, buildChannelRules as M, lastClosedDay as Mi, NEGATED as Mn, normalizeCurrency as Mr, revenueSeries as Mt, classifyChannel as N, previousPeriod as Ni, NUM_OPS as Nn, roundMinor as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, dayInZone as Oi, FilterSchema as On, validateRevenue as Or, revenue as Ot, CLICK_IDS as P, saltBoundary as Pi, OPS as Pn, eachDatabase as Pr, bucketSeries as Pt, runRetention as Q, backfillRange as Qn, pgStatementLimit as Qr, DURATION_MS as Qt, normalizeUrl as R, base64url as Ri, REVENUE_DIMS$1 as Rn, factsTargets as Rr, CUBE_SEG as Rt, registry as S, q as Si, entryProp as Sn, cleanProps as Sr, REVENUE_REPORTS as St, D1Sink as T, chunk as Ti, validateFilters as Tn, isReservedEvent as Tr, currencyOf as Tt, dailyRowsApply as U, timingSafeEqual as Ui, chargeCopyRows as Un, stateKv as Ur, clearScanCache as Ut, budgetState as V, randomId as Vi, TRAFFIC_DIMS as Vn, pluginFactsOrNull as Vr, behindNotice as Vt, CHUNK_ROWS as W, truncateIp as Wi, copiedToday as Wn, statePrefix as Wr, matchKey as Wt, rawFromDay as X, SYNC_BUDGET as Xn, pgOwnScope as Xr, storedSessions as Xt, effectiveRawDays as Y, RowsPaused as Yn, isHyperdrive as Yr, splitRange as Yt, runChunk as Z, SyncRows as Zn, pgScope as Zr, storedThrough as Zt, linkedHosts as _, docPut as _i, and as _n, parseLinkRules as _r, journeyNext as _t, queueBinding as a, ensureSchemaOnce as ai, liveVisits as an, ThrottledError as ar, SEGS as at, markHostSeen as b, likeEscape as bi, entriesOf as bn, validateSafeRegex as br, journeysFromSummary as bt, ClientSiteSchema as c, fromKysely as ci, refundDim as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, isD1 as di, sessionMetrics as dn, budgetWarning as dr, runRollup as dt, usePgDriver as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, workerEnv as fi, sessionTotals as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, docObject as gi, TRUE as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, docJson as hi, QueryError as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, ensureSchema as ii, keysIn as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, hourInZone as ji, LINK_BY as jn, isCurrency as jr, revenuePlan as jt, isActive as k, daysBetween as ki, FunnelStepsSchema as kn, REVENUE_MAX_VALUE as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, selfCheck as li, round as ln, budgetMb as lr, rollupDay as lt, bindSite as m, dayInt as mi, visitDays as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, SCHEMA_VERSION_KEY as ni, goalGroups as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, isOwnDatabase as oi, num as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, LIKE_ESCAPE as pi, sessionWhere as pn, d1CapMb as pr, links as pt, cleanSalts as q, KV_SYNC_ROWS as qn, INGEST_STATEMENT_MS as qr, planRows as qt, consumeBatch as r, TABLES as ri, hitJoin as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, schemaVersion as si, ratio as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, SCHEMA_VERSION as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, fromD1 as ui, sessionBreakdown as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, docRead as vi, compileSearch as vn, publicNames as vr, journeyPaths as vt, drops as w, visitDayKey as wi, inList as wn, isPath as wr, currencyList as wt, newSiteKey as x, paramRows as xi, entryCols as xn, OID_RE as xr, journeysUnavailable as xt, loadSites as y, isoDay as yi, compileTraffic as yn, compileSafeRegex as yr, journeyPrev as yt, parseReferrer as z, getOrCreateSalt as zi, REVENUE_VALUE_RE as zn, missingDb as zr, FILTER_DIMS as zt };
+export { sitesInTables as $, truncateIp as $i, nextUtcDay as $n, statePrefix as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, paramRows as Ai, GoalSchema as An, OID_RE as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, hourInZone as Bi, SEARCH_DIMS as Bn, isCurrency as Br, SEGMENTS$1 as Bt, siteProblem as C, dayInt as Ci, goalPredicate as Cn, conflictsWithScope as Cr, WITH_REVENUE as Ct, readVisits as D, docRead as Di, FUNNEL_MODES as Dn, publicNames as Dr, metaOf as Dt, MAX_DOC_BYTES as E, docPut as Ei, DIM_NAMES as En, parseLinkRules as Er, hasRevenue as Et, UTM_KEYS as F, ident as Fi, PROP_KEY_RE as Fn, isSid as Fr, resolveGranularity as Ft, KV_CURSOR as G, samePeriodLastYear as Gi, copyRowsLeft as Gn, ensureHostSchema as Gr, openDay as Gt, budgetTargetOf as H, previousPeriod as Hi, COPY_DAY_ROWS as Hn, roundMinor as Hr, clearOpenDays as Ht, cleanHost as I, addDays as Ii, QuerySchema as In, validateIngest as Ir, timeseries as It, clearEstimateDay as J, getOrCreateSalt as Ji, PROVIDER_DAYS as Jn, missingDb as Jr, readSummary as Jt, KV_DELETE_ROWS as K, zonedToEpoch as Ki, nextUtcMidnight as Kn, factsDb as Kr, planFilters as Kt, hostInList as L, dayInZone as Li, REVENUE_BREAKDOWN_DIMS as Ln, validateRevenue as Lr, weekStart as Lt, buildChannelRules as M, upsertChanged as Mi, NEGATED as Mn, isEventName as Mr, revenueSeries as Mt, classifyChannel as N, visitDayKey as Ni, NUM_OPS as Nn, isPath as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, isoDay as Oi, FilterSchema as On, compileSafeRegex as Or, revenue as Ot, CLICK_IDS as P, chunk as Pi, OPS as Pn, isReservedEvent as Pr, bucketSeries as Pt, runRetention as Q, timingSafeEqual as Qi, backfillRange as Qn, stateKv as Qr, DURATION_MS as Qt, normalizeUrl as R, daysBetween as Ri, REVENUE_DIMS$1 as Rn, REVENUE_MAX_VALUE as Rr, CUBE_SEG as Rt, registry as S, LIKE_ESCAPE as Si, entryProp as Sn, SATISFACTION_REPORTS as Sr, REVENUE_REPORTS as St, D1Sink as T, docObject as Ti, validateFilters as Tn, organicScope as Tr, currencyOf as Tt, dailyRowsApply as U, saltBoundary as Ui, chargeCopyRows as Un, eachDatabase as Ur, clearScanCache as Ut, budgetState as V, lastClosedDay as Vi, TRAFFIC_DIMS as Vn, normalizeCurrency as Vr, behindNotice as Vt, CHUNK_ROWS as W, saltDay as Wi, copiedToday as Wn, eachTarget as Wr, matchKey as Wt, rawFromDay as X, randomId as Xi, SYNC_BUDGET as Xn, pluginFactsOrNull as Xr, storedSessions as Xt, effectiveRawDays as Y, ipInCidr as Yi, RowsPaused as Yn, pluginFacts as Yr, splitRange as Yt, runChunk as Z, sha256 as Zi, SyncRows as Zn, setPluginFacts as Zr, storedThrough as Zt, linkedHosts as _, fromKysely as _i, and as _n, LOW_SAMPLE as _r, journeyNext as _t, queueBinding as a, pgOwnScope as ai, liveVisits as an, ThrottledError as ar, SEGS as at, markHostSeen as b, isD1 as bi, entriesOf as bn, SATISFACTION_CAVEAT as br, journeysFromSummary as bt, ClientSiteSchema as c, redact as ci, refundDim as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, SCHEMA_VERSION_KEY as di, sessionMetrics as dn, budgetWarning as dr, runRollup as dt, vkey as ea, CACHE_ON_MESSAGE as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, TABLES as fi, sessionTotals as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, schemaVersion as gi, TRUE as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, isOwnDatabase as hi, QueryError as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, isHyperdrive as ii, keysIn as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, q as ji, LINK_BY as jn, cleanProps as jr, revenuePlan as jt, isActive as k, likeEscape as ki, FunnelStepsSchema as kn, validateSafeRegex as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, usePgDriver as li, round as ln, budgetMb as lr, rollupDay as lt, bindSite as m, ensureSchemaOnce as mi, visitDays as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, INGEST_STATEMENT_MS as ni, goalGroups as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, pgScope as oi, num as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, ensureSchema as pi, sessionWhere as pn, d1CapMb as pr, links as pt, cleanSalts as q, base64url as qi, KV_SYNC_ROWS as qn, factsTargets as qr, planRows as qt, consumeBatch as r, fromPg as ri, hitJoin as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, pgStatementLimit as si, ratio as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, __exportAll as ta, queryCacheOn as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, SCHEMA_VERSION as ui, sessionBreakdown as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, selfCheck as vi, compileSearch as vn, POGO_DEFINITION as vr, journeyPaths as vt, drops as w, docJson as wi, inList as wn, lowSampleLine as wr, currencyList as wt, newSiteKey as x, workerEnv as xi, entryCols as xn, SATISFACTION_RAW_ONLY as xr, journeysUnavailable as xt, loadSites as y, fromD1 as yi, compileTraffic as yn, SATISFACTION_BY as yr, journeyPrev as yt, parseReferrer as z, eachDay as zi, REVENUE_VALUE_RE as zn, formatAmount as zr, FILTER_DIMS as zt };

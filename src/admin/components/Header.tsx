@@ -10,7 +10,8 @@ import type { Filter } from "../../query/filters.js";
 import { OffFilters } from "./ReportNotices.js";
 import { Button, LinkButton } from "@cloudflare/kumo";
 import { SETUP_COPY } from "../setup.js";
-import { Field, Loading, Notice } from "./ui.js";
+import { Field, InfoMark, Loading, Notice } from "./ui.js";
+import { metricDefinition } from "../../charts/definitions.js";
 import { DASHBOARD_HREF } from "../widget.js";
 import { isBool, usePref } from "../prefs.js";
 import { fmt } from "./format.js";
@@ -178,12 +179,13 @@ export function useShellHead(h: ShellHead): void {
 	}, [set, h.controls, h.live]);
 }
 
-/** The live badge of the page head: visitors seen within the realtime window. */
+/** The live badge of the page head: sessions with a page view or event within the realtime window, with its definition. */
 export function LiveBadge({ value }: { value: number }) {
 	return (
-		<span className="ca-live">
+		<span className="ca-live" data-metric="realtime">
 			<span className="ca-live-dot" aria-hidden="true" />
 			{fmt(value, "number")} active now
+			<InfoMark text={metricDefinition("realtime") ?? ""} />
 		</span>
 	);
 }

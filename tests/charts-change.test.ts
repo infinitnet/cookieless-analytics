@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { changeText, describeChange, LOWER_IS_BETTER, MISSING_NOTE, NO_JUDGEMENT, rateBase, SMALL_NOTE } from "../src/charts/change.js";
-import { tableColumnKeys, tileChange, tileData } from "../src/dashboards/tiles.js";
+import { metricFormat } from "../src/dashboards/schema.js";
+import { LOW_SAMPLE_COMPARE, lowSampleRow, metricLabel, scoreNote, tableColumnKeys, tileChange, tileData } from "../src/dashboards/tiles.js";
+import { fmt } from "../src/charts/geometry.js";
 import type { ReportResult } from "../src/query/reports/index.js";
 
 describe("describeChange", () => {
@@ -145,5 +147,70 @@ describe("tile change", () => {
 		const tile = { id: "g00001", report: "goals", kind: "kpi", metric: "converting", params: { goal: "g1" }, w: 1 } as never;
 		const d = tileData(tile, res({ rows: [{ key: "Signup", converting: 60, previous: { converting: 40 } }] }), { goalName: "Signup" });
 		expect(tileChange(d)).toMatchObject({ label: "+50.0%", detail: "+20, from 40" });
+	});
+});
+
+describe("Search Satisfaction score on tiles", () => {
+	const res = (data: Record<string, unknown>): ReportResult => ({ report: "satisfaction", range: { from: "2026-03-01", to: "2026-03-07" }, compare: "previous", compareRange: null, notices: [], data }) as unknown as ReportResult;
+	const kpi = { id: "k00001", report: "satisfaction", kind: "kpi", metric: "score", w: 1 } as never;
+
+	it("prints the score in points, as the Search Satisfaction page does", () => {
+		expect(metricFormat("score")).toBe("points");
+		expect([0.24, -1.5714, 0, -0.004].map((v) => fmt(v, "points"))).toEqual(["24", "-157", "0", "0"]);
+		expect(metricFormat("low_sample")).toBe("text");
+		expect(metricLabel("low_sample")).toBe("Low sample");
+		expect(metricLabel("search_reentry_rate")).toBe("Search re-entry (estimate)");
+		expect(metricLabel("back_nav_rate")).toBe("Back/forward loads (estimate)");
+	});
+
+	it("a change of the signed score is a difference in points, never a percent", () => {
+		const up = describeChange("score", 0.24, 0.2, { format: "points", base: 300 });
+		expect(up).toMatchObject({ kind: "change", unit: "points", rel: null, label: "+4 points", detail: "from 20", judgement: "better", muted: false });
+		expect(changeText(up)).toBe("\u2191 +4 points better, from 20");
+		// From a negative score: still points, no relative percent.
+		expect(describeChange("score", -0.1, -0.3, { format: "points", base: 300 })).toMatchObject({ label: "+20 points", rel: null, judgement: "better" });
+		expect(describeChange("score", 0.1, 0.3, { format: "points", base: 300 })).toMatchObject({ label: "-20 points", judgement: "worse" });
+		// From 0: no "New", a plain points difference.
+		expect(describeChange("score", 0.1, 0, { format: "points", base: 300 })).toMatchObject({ kind: "change", label: "+10 points" });
+		expect(describeChange("score", 0.241, 0.238, { format: "points", base: 300 })).toMatchObject({ label: "No change", direction: "flat" });
+		expect(describeChange("score", 0.5, 0.2, { format: "points", base: 40 })).toMatchObject({ muted: true });
+	});
+
+	it("one point is singular, and the change follows the printed figures: 20 against 21 is -1 point, never No change", () => {
+		const one = describeChange("score", 0.21, 0.2, { format: "points", base: 300 });
+		expect([one.label, one.words, changeText(one)]).toEqual(["+1 point", "up 1 point, better", "\u2191 +1 point better, from 20"]);
+		// 0.204 prints 20 and 0.205 prints 21: the raw difference rounds to 0, the printed one is a point.
+		expect([fmt(0.204, "points"), fmt(0.205, "points")]).toEqual(["20", "21"]);
+		const down = describeChange("score", 0.204, 0.205, { format: "points", base: 300 });
+		expect(changeText(down)).toBe("\u2193 -1 point worse, from 21");
+		// The same for a rate: 41.0% against 41.1% is -0.1 pp.
+		expect(changeText(describeChange("engaged_rate", 0.41049, 0.41051, { format: "percent", base: 300 }))).toBe("\u2193 -0.1 pp worse, from 41.1%");
+		// Two figures that print alike are no change.
+		expect(describeChange("score", 0.2049, 0.1951, { format: "points", base: 300 })).toMatchObject({ label: "No change", detail: "from 20" });
+	});
+
+	it("a Score number tile under the sample minimum carries the low sample line; a low sample comparison gives no change", () => {
+		const d = tileData(kpi, res({ totals: { score: 0.24, sessions: 20, measured: 12, low_sample: true }, compareTotals: { score: 0.2, sessions: 300, low_sample: false }, min_measured: 50 }));
+		expect(d.value).toBe(0.24);
+		expect(d.note).toBe("Low sample: under 50 measured sessions, the sample minimum.");
+		expect(tileChange(d)).toMatchObject({ label: "+4 points" });
+		const prevLow = tileData(kpi, res({ totals: { score: 0.24, low_sample: false }, compareTotals: { score: 0.2, sessions: 10, low_sample: true } }));
+		expect(prevLow.note).toBeUndefined();
+		expect(tileChange(prevLow)).toMatchObject({ kind: "none", note: LOW_SAMPLE_COMPARE });
+		// An older site sends no minimum: the default of 30.
+		expect(tileData(kpi, res({ totals: { score: 0.1, low_sample: true } })).note).toBe("Low sample: under 30 measured sessions, the sample minimum.");
+	});
+
+	it("a table tile prints low_sample as yes or no, marks the score cell and drops the previous score", () => {
+		const tile = { id: "t00001", report: "satisfaction", kind: "table", w: 2, columns: ["score", "measured", "low_sample"] } as never;
+		const d = tileData(tile, res({ rows: [{ key: "/a", score: 0.5, measured: 12, back_nav_rate: 0, low_sample: true, previous: { score: 0.1, low_sample: true } }, { key: "/b", score: 0.2, measured: 80, back_nav_rate: 0, low_sample: false, previous: null }] }));
+		expect(d.columns).toEqual(["key", "score", "measured", "low_sample"]);
+		expect(d.rows.map((r) => r.low_sample)).toEqual(["yes", "no"]);
+		expect(d.rows.map((r) => lowSampleRow(r))).toEqual([true, false]);
+		expect(d.rows.map((r) => scoreNote("score", r))).toEqual(["low sample", null]);
+		expect(scoreNote("measured", d.rows[0] as Record<string, unknown>)).toBeNull();
+		expect((d.rows[0]?.previous as Record<string, unknown>).score).toBeNull();
+		expect(d.rows[1]?.previous).toBeNull();
+		expect(tableColumnKeys([{ key: "/a", score: 0.5, low_sample: true }])).toEqual(["key", "score", "low_sample"]);
 	});
 });

@@ -45,7 +45,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 	{
 		id: "sessions",
 		label: "Sessions and engagement",
-		keys: ["sessionWindowMinutes", "engagedThresholdSeconds", "longClickSeconds", "badExperienceSeconds", "realtimeWindowMinutes", "maxSessionMinutes", "reloadDedupeSeconds", "maxEngagedMsPerPage"],
+		keys: ["sessionWindowMinutes", "engagedThresholdSeconds", "longClickSeconds", "badExperienceSeconds", "satisfactionMinMeasured", "realtimeWindowMinutes", "maxSessionMinutes", "reloadDedupeSeconds", "maxEngagedMsPerPage"],
 		advanced: ["maxSessionMinutes", "reloadDedupeSeconds", "maxEngagedMsPerPage"],
 	},
 	{ id: "revenue", label: "Revenue", keys: ["acceptClientRevenue"] },

@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { slotColor } from "../../charts/geometry.js";
 import { SlotShape, Sparkline } from "./Chart.js";
 import { ChangeMark } from "./Change.js";
-import { describeChange, fmt, type Format, rateBase } from "./format.js";
+import { type Change, describeChange, fmt, type Format, rateBase } from "./format.js";
 import { metricDefinition } from "../../charts/definitions.js";
 import { InfoMark } from "./ui.js";
 
@@ -31,12 +31,19 @@ export interface KpiCardProps {
 	/** Loading or no data: the toggle is off. */
 	disabled?: boolean | undefined;
 	onSelect?: (e: { shiftKey: boolean; altKey: boolean }) => void;
+	/** The card's own definition when it means less than the metric key in general (Links: sessions with a click); default `metricDefinition(metric)`. */
+	info?: string | undefined;
+	/**
+	 * The change when its owner computes it (a dashboard tile: `tileChange`, which gives no change against a low sample
+	 * Score); default `describeChange` of `value` against `compare`.
+	 */
+	change?: Change | null | undefined;
 }
 
-export function KpiCard({ metric, label, value, format, compare, trend, active, slot, axis, lowerIsBetter, disabled, onSelect }: KpiCardProps) {
-	const c = compare === undefined || value === undefined ? null : describeChange(metric, value, compare?.[metric], { format, base: rateBase(compare), lowerIsBetter });
+export function KpiCard({ metric, label, value, format, compare, trend, active, slot, axis, lowerIsBetter, disabled, onSelect, info, change }: KpiCardProps) {
+	const c = change !== undefined ? change : compare === undefined || value === undefined ? null : describeChange(metric, value, compare?.[metric], { format, base: rateBase(compare), lowerIsBetter });
 	const chip = active && slot !== undefined;
-	const def = metricDefinition(metric);
+	const def = info ?? metricDefinition(metric);
 	const name = [`${label} ${fmt(value, format)}`, c?.words, c?.detail].filter(Boolean).join(", ");
 	const body: ReactNode = (
 		<>

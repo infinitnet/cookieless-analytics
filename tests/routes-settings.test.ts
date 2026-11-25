@@ -105,6 +105,17 @@ describe("validateSettings", () => {
 		expect(validateSettings({ badExperienceSeconds: 20, longClickSeconds: 30 }, {}).errors).toEqual({});
 	});
 
+	it("satisfactionMinMeasured saves whole numbers from 10 to 500 and sits in Sessions and engagement after badExperienceSeconds", () => {
+		for (const v of [9, 501, 12.5, "abc"]) expect(validateSettings({ satisfactionMinMeasured: v }, {}).errors.satisfactionMinMeasured, String(v)).toBe("Use a whole number from 10 to 500.");
+		expect(validateSettings({ satisfactionMinMeasured: 10 }, {}).clean.satisfactionMinMeasured).toBe(10);
+		expect(validateSettings({ satisfactionMinMeasured: "500" }, {}).clean.satisfactionMinMeasured).toBe(500);
+		const sessions = SETTINGS_SECTIONS.find((s) => s.id === "sessions");
+		expect(sessions?.label).toBe("Sessions and engagement");
+		expect(sessions?.keys.slice(2, 5)).toEqual(["longClickSeconds", "badExperienceSeconds", "satisfactionMinMeasured"]);
+		expect(sessions?.advanced).not.toContain("satisfactionMinMeasured");
+		expect(fieldMeta("satisfactionMinMeasured")).toMatchObject({ label: "Search Satisfaction sample minimum", min: 10, max: 500, default: 30 });
+	});
+
 	it("stores minutes of the engaged time cap as milliseconds", () => {
 		expect(validateSettings({ maxEngagedMsPerPage: 45 }, {}).clean.maxEngagedMsPerPage).toBe(2_700_000);
 		expect(validateSettings({ maxEngagedMsPerPage: 121 }, {}).errors.maxEngagedMsPerPage).toBe("Use a whole number from 1 to 120.");

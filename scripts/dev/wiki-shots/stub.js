@@ -130,7 +130,7 @@ function report(body) {
 	}
 	if (r === "satisfaction") {
 		const pages = DEMO.dims.pages.slice(0, 8);
-		return { ...base, data: { thresholds: { long_click_seconds: 60, bad_experience_seconds: 10 }, totals: { ...tot, measured: Math.round(tot.sessions * 0.86), measured_rate: 0.86, score: 0.24 }, delta: delta(tot, ptot), rows: pages.map(({ key }, i) => ({ key, sessions: 300 - i * 30, measured: 260 - i * 26, pct_long: 0.5 - i * 0.03, pct_bad: 0.08 + i * 0.01, pct_pogo: 0.04 + i * 0.005, pogo_stick_rate: 0.04 + i * 0.005, pct_returned: 0.06, back_nav_rate: 0.03, score: Math.round((0.38 - i * 0.05) * 1000) / 1000 })).sort((a, b) => (body.params?.rank === "worst" ? a.score - b.score : 0)) } };
+		return { ...base, data: { thresholds: { long_click_seconds: 60, bad_experience_seconds: 10 }, min_measured: 30, totals: { ...tot, measured: Math.round(tot.sessions * 0.86), measured_rate: 0.86, score: 0.24, low_sample: false }, delta: delta(tot, ptot), rows: pages.map(({ key }, i) => ({ key, sessions: 300 - i * 30, measured: 260 - i * 26, pct_long: 0.5 - i * 0.03, pct_bad: 0.08 + i * 0.01, pct_pogo: 0.04 + i * 0.005, pogo_stick_rate: 0.04 + i * 0.005, pct_returned: 0.06, back_nav_rate: 0.03, score: Math.round((0.38 - i * 0.05) * 1000) / 1000, low_sample: 260 - i * 26 < 30 })).sort((a, b) => (body.params?.rank === "worst" ? a.score - b.score : 0)) } };
 	}
 	if (r === "revenue") return { ...base, data: { hasRevenue: true, currency: "EUR", totals: tot, compareTotals: ptot, delta: delta(tot, ptot), currencies: [{ currency: "EUR", revenue: tot.revenue, orders: tot.orders }] } };
 	if (r === "revenue_orders") {

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dayInZone } from "../src/core/time.js";
 import TodayWidget, { DASHBOARD_HREF } from "../src/admin/widget.js";
 import { PLUGIN_ID } from "../src/contract.js";
+import { metricDefinition } from "../src/charts/definitions.js";
 
 type Body = { report: string; query: Record<string, unknown>; limit?: number };
 let calls: Body[] = [];
@@ -43,16 +44,19 @@ describe("TodayWidget", () => {
 		expect(container.querySelector(".ca-delta")).toBeNull();
 	});
 
-	it("compares today with yesterday in the site timezone and shows realtime and the top page", async () => {
+	it("cf13: compares today with all of yesterday in the site timezone and shows realtime and the top page", async () => {
 		const { container, findByText } = render(<TodayWidget />);
 		expect(await findByText("Top page today: /hello (9)")).toBeTruthy();
 		await waitFor(() => expect(container.querySelector('[data-metric="visitors"]')?.textContent).toContain("12"));
-		expect(container.querySelector('[data-metric="visitors"]')?.textContent).toContain("\u2191+4 better vs yesterday");
+		expect(container.querySelector('[data-metric="visitors"]')?.textContent).toContain("\u2191+4 better vs all of yesterday");
 		// 8 visitors yesterday is small numbers: muted.
 		expect(container.querySelector('[data-metric="visitors"] .ca-delta')?.getAttribute("data-muted")).toBe("true");
 		expect(container.querySelector('[data-metric="pageviews"] .ca-delta')?.getAttribute("data-judge")).toBe("worse");
-		expect(container.querySelector('[data-metric="pageviews"]')?.textContent).toContain("\u2193-25.0% worse vs yesterday");
+		expect(container.querySelector('[data-metric="pageviews"]')?.textContent).toContain("\u2193-25.0% worse vs all of yesterday");
 		expect(container.querySelector('[data-metric="realtime"]')?.textContent).toContain("2");
+		// cf13: today so far is compared with the whole of yesterday, and the label says so; Active now has its definition.
+		expect(container.textContent).not.toMatch(/vs yesterday/);
+		expect(container.querySelector('[data-metric="realtime"] .ca-info-btn')?.getAttribute("title")).toBe(metricDefinition("realtime"));
 		const today = dayInZone(Math.floor(Date.now() / 1000), "Pacific/Auckland");
 		const ov = calls.find((c) => c.report === "overview");
 		expect(ov?.query).toEqual({ from: today, to: today, filters: [], compare: "previous" });

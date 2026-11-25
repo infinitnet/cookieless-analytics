@@ -1,5 +1,5 @@
-import { Bi as ipInCidr, Di as addDays, Fi as saltDay, Gi as vkey, Hi as sha256, I as cleanHost, L as hostInList, Nr as roundMinor, Oi as dayInZone, Pi as saltBoundary, R as normalizeUrl, T as D1Sink, Vi as randomId, Wi as truncateIp, j as DEFAULT_HOSTS, jr as isCurrency, vr as publicNames, w as drops, yr as compileSafeRegex, z as parseReferrer, zi as getOrCreateSalt } from "./queue-sink-GZqbpCBQ.mjs";
-import { PLUGIN_ID, ROUTES } from "./contract.mjs";
+import { $i as truncateIp, Br as isCurrency, Dr as publicNames, Hr as roundMinor, I as cleanHost, Ii as addDays, Ji as getOrCreateSalt, L as hostInList, Li as dayInZone, Or as compileSafeRegex, R as normalizeUrl, T as D1Sink, Ui as saltBoundary, Wi as saltDay, Xi as randomId, Yi as ipInCidr, Zi as sha256, ea as vkey, j as DEFAULT_HOSTS, w as drops, z as parseReferrer } from "./queue-sink-DZYrGtp0.mjs";
+import { PLUGIN_ID, ROUTES, isPassiveEvent } from "./contract.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getPublicPluginApiRouteHandler } from "emdash/plugin-utils";
 // src/data/agents.json
@@ -19755,6 +19755,7 @@ function uaNorm(p) {
 	return `${p.browser}/${p.browserMajor}|${p.os}|${p.device}`;
 }
 // src/core/recorder.ts
+/** Write path, policy half: checks every event, then hands it to the ingest sink (`apply.ts`). */
 const str = (v) => typeof v === "string" && v ? v : null;
 /**
 * Extract `RequestInfo` from a native `Request` (keeps `request.cf`). Pass the host's `requestMeta.ip`
@@ -19914,7 +19915,7 @@ async function recordClientEvent(deps, input, info) {
 			...body.t === "pv" ? {
 				r: body.r,
 				w: s.captureScreen ? body.w : void 0
-			} : {}
+			} : isPassiveEvent(body.name) ? { passive: true } : {}
 		},
 		meta: {
 			site,

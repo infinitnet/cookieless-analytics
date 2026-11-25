@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DateRange, headSummary, Shell, useShellHead, type Controls } from "../src/admin/components/Header.js";
 import { presetRange, type QueryState } from "../src/admin/state.js";
 import type { SiteEntry } from "../src/routes/sites.js";
+import { metricDefinition } from "../src/charts/definitions.js";
 
 const SITES: SiteEntry[] = [
 	{ id: "main", label: "Main site", local: true, kind: "local", timezone: "UTC" },
@@ -112,7 +113,10 @@ describe("Shell", () => {
 
 	it("a page body sets the live badge and narrows the controls while mounted", async () => {
 		const { findByText, container, rerender } = render(<Shell title="Overview">{() => <Live n={1234} />}</Shell>);
-		expect((await findByText(/active now/)).textContent).toBe("1,234 active now");
+		const badge = await findByText(/active now/);
+		expect(badge.textContent).toBe("1,234 active nowi");
+		// The marker defines the figure: sessions with a page view or event within the realtime window.
+		expect(badge.querySelector(".ca-info-btn")?.getAttribute("title")).toBe(metricDefinition("realtime"));
 		expect(container.querySelector(".ca-filterbar")).not.toBeNull();
 		rerender(<Shell title="Overview">{() => <Live controls="site" />}</Shell>);
 		await waitFor(() => expect(container.querySelector(".ca-filterbar")).toBeNull());

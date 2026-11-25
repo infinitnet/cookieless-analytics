@@ -12,13 +12,13 @@ export const SEO_TEXT = {
 	rangeTooLong: "This view reads detailed rows and is limited to 93 days. Choose a shorter range.",
 	bingNoPairs: "Bing exposes page and query pairs only per page or per query on request; the lists are Google data",
 	bingOnRequest: "Loads from Bing on request, cached one hour.",
-	top3Insufficient: "not enough top-3 data",
+	top3Insufficient: "not enough top band data",
 	estimate: "est.",
 	notable: "Notable means the change is larger than twice the square root of the two counts added up. A rule of thumb for counts, not a statistical test.",
-	striking: "Pairs at average position 4 to 20. The estimate uses this site's own CTR in positions 1 to 3 over the same range.",
+	striking: "Google pairs with an average position from 4 to below 21. The estimate uses this site's own CTR below position 4 over the same range.",
 	patterns:
 		"Dominant: the best page holds at least 70 percent of the impressions and the best position. Split: no page holds 50 percent. Inverted: the page with the most impressions ranks worse than another page. Shared: anything else.",
-	decay: "Pages whose clicks fell in each of three consecutive periods. Position: the position worsened by 2 or more. CTR: the CTR fell under 75 percent with a stable position. Demand: neither, so fewer searches.",
+	decay: "Pages whose clicks fell from the oldest to the middle period and again to the current one. Position: the average position worsened by 2 or more. CTR: the CTR fell below 75 percent of its oldest value while the position held. Demand: neither, so fewer searches.",
 	compareNotSupported: "These views compare periods on their own; the compare option does not apply.",
 	caution: "Before and after comparisons show correlation, not causation. Seasonality, other changes and search engine updates overlap; annotations in the same window are listed.",
 	noAnnotation: "No annotation yet",
@@ -49,6 +49,13 @@ export interface SeoPeriods {
 	/** Days at the end of the requested range left out. */
 	excluded: number;
 	reason: "provisional" | "incomplete";
+}
+
+/** Words for the base a rate rests on (`measured.base` of the impact answer): "120 sessions before, 140 after". */
+export function baseWords(base: string | undefined, report: string): string {
+	if (!base) return report.startsWith("search_") ? "impressions" : "measured";
+	if (base.startsWith("impressions")) return "impressions";
+	return ({ pageviews: "page views", measured: "measured sessions", page_loads: "page loads" } as Record<string, string>)[base] ?? base;
 }
 
 /** Impact windows offered by the panel and accepted by the report. */

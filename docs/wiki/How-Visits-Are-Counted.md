@@ -44,8 +44,8 @@ A session never changes its first touch fields (entry page, referrer, campaign t
 | Sessions | sessions with at least one page view |
 | Active time | time with interaction: the page is visible and the visitor interacted within the last 60 seconds; shown as Avg. active time per page view (Pages) and per session (Search Satisfaction) |
 | Visible time | time the page was visible, interaction or not; shown as Avg. visible time per page view (Pages, detailed data only) |
-| Duration | the longer of the visit span and the visible time; shown as Avg. duration; not interaction time |
-| Engaged session | active time of at least `engagedThresholdSeconds`, or more than one page view, or at least one event |
+| Duration | the longer of the span from the visit's start to its last page view or event and the visible time; shown as Avg. session duration; not interaction time |
+| Engaged session | active time of at least `engagedThresholdSeconds`, or more than one page view, or at least one event, custom or automatic (the link impression `seen` is sent without a visitor action and does not count) |
 | Bounce | a session that is not engaged; bounce rate is 1 minus engaged rate |
 | Views per session | page views divided by sessions |
 | Visitors | distinct visitor keys per day, summed over the range |
@@ -61,7 +61,7 @@ Cookieless Analytics by Infinitnet reports active time and duration as two figur
 - **Matomo**: its average page time is the gap to the next page view, so the last page of a visit is left out unless a heartbeat timer is set ([Matomo FAQ](https://matomo.org/faq/how-to/faq_21824/)).
 - **Fathom**: measures time on site and per page with departure pings; it used to take the gap between page views ([Fathom changelog](https://usefathom.com/changelog/mar2026-analytics-rebuild)).
 
-The common meaning of a page time is time in view. Our closest figures are Avg. visible time per page and Avg. duration per session; active time is stricter and keeps its own name.
+The common meaning of a page time is time in view. Our closest figures are Avg. visible time per page and Avg. session duration; active time is stricter and keeps its own name.
 
 ### Channels
 
@@ -76,7 +76,7 @@ Organic Search, Paid Search, Organic Social, Paid Social, Organic Video, Paid Vi
 
 ### Active now
 
-The "active now" badge in the page head counts sessions seen within the last `realtimeWindowMinutes` minutes. It follows the filters in the header.
+The "active now" badge in the page head counts sessions with a page view or event within the last `realtimeWindowMinutes` minutes. It follows the filters in the header on every range: the visits of today and yesterday are always detailed, also when the range itself is answered from the daily summaries.
 
 ### Day rule
 
@@ -88,12 +88,12 @@ A page view or event counts on the day its visit started, also when it arrives a
 |---|---|---|
 | `sessionWindowMinutes` | 30 | Inactivity gap (1 to 240 minutes) that ends a session. Applies to new sessions. |
 | `maxSessionMinutes` | 1440 | A session older than this (10 to 1440 minutes) is closed and a new one starts. |
-| `engagedThresholdSeconds` | 10 | Active time (1 to 300 seconds) that makes a session engaged. |
-| `realtimeWindowMinutes` | 5 | Sessions seen within this time (1 to 60 minutes) count as active now. |
+| `engagedThresholdSeconds` | 10 | Active time (1 to 300 seconds) from which a session counts as engaged. A session with two or more page views or any event is engaged whatever its active time. A session that is not engaged is a bounce. |
+| `realtimeWindowMinutes` | 5 | Sessions with a page view or event within this time (1 to 60 minutes) count as active now. |
 | `reloadDedupeSeconds` | 2 | A reload of the same path within this time (0 to 60 seconds) is not counted again. |
 | `maxEngagedMsPerPage` | 1800000 | Cap for the active time of one page (60000 to 7200000 ms). |
 | `maxPageviewsPerSession` | 500 | Further page views of a session are dropped. |
-| `maxEventsPerSession` | 200 | Further events of a session are dropped. |
+| `maxEventsPerSession` | 200 | Further events of a session are dropped. The link impression `seen` is not counted towards it; it is dropped once the visit document reaches 64 KB. |
 | `saltTimezone` | UTC | Time zone of the daily salt rotation. |
 | `saltRotationHour` | 0 | Local hour (0 to 23) at which the salt rotates. |
 | `ipTruncation` | standard | `standard` keeps `/24` and `/48`, `strict` keeps `/16` and `/32` for the visitor key. |

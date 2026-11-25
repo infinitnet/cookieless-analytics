@@ -172,6 +172,8 @@ function byKey(d: Dialect, site: string, day: string, sid: string): Frag {
 	return q(d)`site = ${site} AND day = ${visitDayKey(day)} AND sid = ${sid}`;
 }
 
+/** Stored size of the visit document. */
+const docSize = (d: Dialect) => raw(d === "postgres" ? "pg_column_size(hits)" : "length(hits)");
 const maxSeconds = (cfg: ResolveConfig) => Math.min(cfg.maxSessionMinutes, MAX_VISIT_MINUTES) * 60;
 
 /**
@@ -184,7 +186,9 @@ function liveGuard(d: Dialect, m: VisitMsg): Frag {
 	// An order is never refused by the event cap: its row is already stored, so the visit must take its entry.
 	const cap = m.t === "pv" ? s`pageviews < ${m.cfg.maxPageviewsPerSession ?? 500}` : m.rev ? raw("1 = 1") : s`events < ${m.cfg.maxEventsPerSession ?? 200}`;
 	const win = m.t === "pv" ? s` AND ${m.now} - last_seen <= window_s` : raw("");
-	return s`${docGet(d, "hits", m.key, "t")} IS NULL${win} AND ${m.now} - started <= ${maxSeconds(m.cfg)} AND ${cap}`;
+	// A passive event adds nothing to `events`, so the event cap cannot bound it: the document size does.
+	const full = m.evt.passive ? s` AND ${docSize(d)} < ${MAX_DOC_BYTES}` : raw("");
+	return s`${docGet(d, "hits", m.key, "t")} IS NULL${win} AND ${m.now} - started <= ${maxSeconds(m.cfg)} AND ${cap}${full}`;
 }
 
 /**
@@ -204,7 +208,8 @@ export function entryUpdate(d: Dialect, m: VisitMsg, target: Frag, reentry = fal
 	const hits = docSet(d, "hits", m.key, { t: s`${m.now} - started`, n: f.n, p: f.p ?? raw("exit_path"), pr: m.props ? docJson(d, m.props) : undefined, hs: f.hs });
 	// A late event keeps last_seen, so the idle time does not become visit duration.
 	const seen = s`CASE WHEN ${m.now} - last_seen <= window_s THEN ${fn(d, "max")}(last_seen, ${m.now}) ELSE last_seen END`;
-	return s`UPDATE ca_sessions SET hits = ${hits}, events = events + 1, last_seen = ${seen} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
+	// A passive event (the link impression) is stored but not counted: `events` decides engagement and bounce.
+	return s`UPDATE ca_sessions SET hits = ${hits}${raw(m.evt.passive ? "" : ", events = events + 1")}, last_seen = ${seen} WHERE ${target} AND ${liveGuard(d, m)} RETURNING sid`;
 }
 
 /** Slow path, new visit: the row with its first entry inside; nothing on a conflict (a racing first event). */
@@ -233,8 +238,7 @@ export function engageUpdate(d: Dialect, m: EngageMsg): Frag {
 	// An entry that does not exist yet (the update beat its page view) is opened only in a young visit and below the
 	// caps, so an update for a page view that was dropped (excluded path, reload, cap) or for an invented hit id neither
 	// counts time nor grows the document: it changes nothing and counts `orphan_update`.
-	const size = raw(d === "postgres" ? "pg_column_size(hits)" : "length(hits)");
-	const known = s`(${docGet(d, "hits", m.key, "t")} IS NOT NULL OR ${docGet(d, "hits", m.key, "d")} IS NOT NULL OR (started >= ${m.now - YOUNG_VISIT_S} AND pageviews < ${m.cap} AND ${size} < ${MAX_DOC_BYTES}))`;
+	const known = s`(${docGet(d, "hits", m.key, "t")} IS NOT NULL OR ${docGet(d, "hits", m.key, "d")} IS NOT NULL OR (started >= ${m.now - YOUNG_VISIT_S} AND pageviews < ${m.cap} AND ${docSize(d)} < ${MAX_DOC_BYTES}))`;
 	return s`UPDATE ca_sessions SET ${join(set)} WHERE ${bySid(d, m.site, m.sid, m.now, m.tz)} AND ${known}`;
 }
 
@@ -386,7 +390,12 @@ export class D1Sink implements IngestSink {
 		// expired): unless the entry is there (a racing replay), the caller counts the failure and the client sends it again.
 		if (!wrote) {
 			const has = q(d)`SELECT 1 AS ok FROM ca_sessions WHERE ${target} AND ${docGet(d, "hits", m.key, "t")} IS NOT NULL`;
-			if (!(await this.db.all(has.sql, has.params)).length) throw new Error("ingest: the visit changed between the read and the write");
+			if (!(await this.db.all(has.sql, has.params)).length) {
+				// A passive event on a visit whose document is full is dropped like any event over the cap.
+				const full = q(d)`SELECT 1 AS ok FROM ca_sessions WHERE ${target} AND ${docSize(d)} >= ${MAX_DOC_BYTES}`;
+				if (m.evt.passive && (await this.db.all(full.sql, full.params)).length) return "session_cap";
+				throw new Error("ingest: the visit changed between the read and the write");
+			}
 		}
 		// The order row joined the client sid's visit, which may be closed; it belongs to the visit that took the event.
 		if (m.rev && attached !== visit.sid) {

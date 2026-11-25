@@ -8,7 +8,7 @@ import { Button } from "@cloudflare/kumo";
 import { useEffect, useRef, useState } from "react";
 import type { Dim, Filter } from "../../query/filters.js";
 import type { Annotation } from "../../query/reports/base.js";
-import { ORGANIC_SEARCH, SATISFACTION_MIN_MEASURED, SATISFACTION_RAW_ONLY, type SatisfactionBy } from "../../query/reports/satisfaction-copy.js";
+import { LOW_SAMPLE, ORGANIC_SEARCH, SATISFACTION_MIN_MEASURED, SATISFACTION_RAW_ONLY, type SatisfactionBy } from "../../query/reports/satisfaction-copy.js";
 import type { Granularity } from "../../query/reports/timeseries.js";
 import { useReport } from "../api.js";
 import { annotationMarkers, LineChart } from "../components/Chart.js";
@@ -17,8 +17,8 @@ import { addIs } from "../components/FilterBar.js";
 import { fmt } from "../components/format.js";
 import { Shell, toQuery, type View } from "../components/Header.js";
 import { annotationAction } from "../components/AnnotationPopover.js";
-import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
-import { AnnotationsToggle, type Caveat, Empty, InfoMark, Loading, Notice, Segmented, Tabs } from "../components/ui.js";
+import { PANEL_DEFINITIONS, SATISFACTION_DEFINITIONS, satisfactionDefinition } from "../../charts/definitions.js";
+import { AnnotationsToggle, Empty, InfoMark, Loading, Notice, Segmented, Tabs } from "../components/ui.js";
 import { presetRange } from "../state.js";
 import { activeTab, ReportPanel, tabParam } from "./report.js";
 import { type MetricDef, MetricChart } from "../components/MetricChart.js";
@@ -47,35 +47,43 @@ export function addPreset(filters: readonly Filter[], preset: readonly Filter[])
 	return out;
 }
 
-/** The rates of the trend chart: key, card label, short label, info text. */
+/** The rates of the trend chart: key, card label, short label (each card's info text is `metricDefinition(key)`). */
 export const SAT_RATES = [
-	["pct_long", "Long clicks", "Long clicks", undefined],
-	["pct_short", "Short clicks", "Short clicks", undefined],
-	["pct_bad", "Bad experience", "Bad experience", undefined],
-	["pogo_stick_rate", "Pogo-sticking (estimate)", "Pogo-sticking", "pogo"],
-	["returned_from_search_rate", "Returned from search (estimate)", "Returned from search", "returned"],
-] as const satisfies ReadonlyArray<readonly [string, string, string, Caveat | undefined]>;
+	["pct_long", "Long clicks", "Long clicks"],
+	["pct_short", "Short clicks", "Short clicks"],
+	["pct_bad", "Bad experience", "Bad experience"],
+	["pogo_stick_rate", "Pogo-sticking (estimate)", "Pogo-sticking"],
+	["returned_from_search_rate", "Returned from search (estimate)", "Returned from search"],
+] as const satisfies ReadonlyArray<readonly [string, string, string]>;
 type Rate = (typeof SAT_RATES)[number][0];
 
 /** Score in points: 0.75 becomes "75", -1.5714 becomes "-157". */
 export const points = (v: unknown) => (typeof v === "number" ? String(Math.round(v * 100)) : "n/a");
+
+const lowSample = (r: TableRow) => r.low_sample === true;
+
+/** The sample minimum of a `satisfaction` answer; an older connected site does not send it and uses the default. */
+export const minMeasuredOf = (data: Record<string, unknown> | undefined): number => (typeof data?.min_measured === "number" ? data.min_measured : SATISFACTION_MIN_MEASURED);
 
 /** Table rows with the score in points; a change of a signed score means nothing, so its previous value is dropped. */
 export const scoreRows = (rows: TableRow[]): TableRow[] =>
 	rows.map((r) => ({ ...r, score: typeof r.score === "number" ? Math.round(r.score * 100) : r.score, ...(r.previous ? { previous: { ...r.previous, score: null } } : {}) }));
 
 
+/** A column with the definition of its figure behind the info mark: one text per metric key (card, column, tile). */
+const col = (c: Column): Column => ({ ...c, info: satisfactionDefinition(c.key) });
+
 const RATE_COLUMNS: Column[] = [
-	{ key: "sessions", label: "Sessions", note: (r) => `${String(r.measured ?? 0)} measured` },
-	{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
-	{ key: "avg_engaged", label: "Avg. active time", format: "duration", caveat: "active_time", optional: true },
-	{ key: "measured_rate", label: "Measured sessions", format: "percent", caveat: "satisfaction_measured", optional: true },
-	{ key: "pct_long", label: "Long clicks %", format: "percent" },
-	{ key: "pct_short", label: "Short clicks %", format: "percent" },
-	{ key: "pct_bad", label: "Bad experience %", format: "percent" },
-	{ key: "pogo_stick_rate", label: "Pogo-sticking % (estimate)", format: "percent", caveat: "pogo" },
-	{ key: "returned_from_search_rate", label: "Returned from search % (estimate)", format: "percent", caveat: "returned" },
-	{ key: "search_reentry_rate", label: "Search re-entry % (estimate)", format: "percent", caveat: "satisfaction_estimate" },
+	col({ key: "sessions", label: "Sessions", note: (r) => `${String(r.measured ?? 0)} measured` }),
+	col({ key: "avg_duration", label: "Avg. session duration", format: "duration" }),
+	col({ key: "avg_engaged", label: "Avg. active time", format: "duration", optional: true }),
+	col({ key: "measured_rate", label: "Measured share", format: "percent", optional: true }),
+	col({ key: "pct_long", label: "Long clicks %", format: "percent" }),
+	col({ key: "pct_short", label: "Short clicks %", format: "percent" }),
+	col({ key: "pct_bad", label: "Bad experience %", format: "percent" }),
+	col({ key: "pogo_stick_rate", label: "Pogo-sticking % (estimate)", format: "percent" }),
+	col({ key: "returned_from_search_rate", label: "Returned from search % (estimate)", format: "percent" }),
+	col({ key: "search_reentry_rate", label: "Search re-entry % (estimate)", format: "percent" }),
 ];
 
 /** Groupings of the breakdown tabs: `params.by`, tab label, first column label and its filter dim. */
@@ -92,9 +100,10 @@ const columnsFor = (by: SatisfactionBy): Column[] => {
 	const [, , label, dim] = GROUPS.find((g) => g[0] === by) ?? GROUPS[0]!;
 	return [
 		{ key: "key", label, format: "text", dim },
-		{ key: "score", label: "Score", format: "number", caveat: "satisfaction_score" },
+		// A low sample score shows muted with its note and sorts last both ways.
+		col({ key: "score", label: "Score", format: "number", quiet: lowSample, note: (r) => (lowSample(r) ? LOW_SAMPLE : "") }),
 		...RATE_COLUMNS,
-		...(by === "entry" ? [{ key: "back_nav_rate", label: "Back/forward loads % (estimate)", format: "percent", caveat: "satisfaction_estimate" } as Column] : []),
+		...(by === "entry" ? [col({ key: "back_nav_rate", label: "Back/forward loads % (estimate)", format: "percent" })] : []),
 	];
 };
 
@@ -130,7 +139,7 @@ function Unmeasured({ totals }: { totals: Record<string, unknown> | undefined })
 	if (unmeasured <= 0) return null;
 	return (
 		<p className="ca-small ca-sat-unmeasured">
-			{fmt(unmeasured, "number")} of {fmt(sessions, "number")} sessions have no measured end (the visitor closed the app before any engagement update arrived, the last update was lost, or the script was blocked). They count as sessions but are left out of every rate.
+			{fmt(unmeasured, "number")} of {fmt(sessions, "number")} sessions have no measured end (the visitor closed the app before any engagement update arrived, the last update was lost, or the script was blocked). They count as sessions and in Avg. session duration, and are left out of every rate, the score and the average active time.
 		</p>
 	);
 }
@@ -177,6 +186,7 @@ export function RankList({ view, rank, onOpen }: { view: View; rank: "best" | "w
 	const { state, site } = view;
 	const res = useReport(site.id, { report: "satisfaction", query: toQuery(state, "satisfaction"), params: { rank }, limit: 5 });
 	const rows = (res.data?.data.rows ?? []) as TableRow[];
+	const min = minMeasuredOf(res.data?.data);
 	const title = rank === "best" ? "Best pages" : "Worst pages";
 	return (
 		<section className="ca-panel" aria-label={title} aria-busy={res.loading}>
@@ -184,16 +194,18 @@ export function RankList({ view, rank, onOpen }: { view: View; rank: "best" | "w
 				{title}
 				<InfoMark text={PANEL_DEFINITIONS[rank === "best" ? "best_pages" : "worst_pages"]} />
 			</h3>
-			<p className="ca-small">Score: long click rate minus bad experience and pogo-sticking rates, in points. Pages with at least {SATISFACTION_MIN_MEASURED} measured sessions.</p>
+			<p className="ca-small">Score: long click rate minus bad experience and pogo-sticking rates, in points. Pages with at least {min} measured sessions.</p>
 			{res.error && !isRawOnly(res.error) && <Notice tone="error">{res.error}</Notice>}
 			{res.loading && !rows.length ? (
 				<Loading />
 			) : !rows.length ? (
-				<Empty hint={`A page is ranked once it has ${SATISFACTION_MIN_MEASURED} measured sessions in the range. Try a longer range or fewer filters.`}>No landing page has enough measured sessions yet.</Empty>
+				<Empty hint={`A page is ranked once it has ${min} measured sessions in the range. Try a longer range or fewer filters.`}>No landing page has enough measured sessions yet.</Empty>
 			) : (
 				<ol className="ca-rank">
 					{rows.map((r) => {
-						const prev = (r.previous as Record<string, unknown> | null | undefined)?.score;
+						const before = r.previous as Record<string, unknown> | null | undefined;
+						// A previous score under the sample minimum is no base for a change.
+						const prev = before?.low_sample === true ? null : before?.score;
 						const d = typeof r.score === "number" && typeof prev === "number" ? Math.round((r.score - prev) * 100) : null;
 						return (
 							<li key={r.key}>
@@ -253,9 +265,9 @@ export function PageDrawer({ view, page, onClose }: { view: View; page: string; 
 				info="pogo_engines"
 				columns={[
 					{ key: "key", label: "Search engine", format: "text", dim: "source" },
-					{ key: "search_measured", label: "Measured search sessions" },
-					{ key: "pogo_stick_rate", label: "Pogo-sticking % (estimate)", format: "percent", caveat: "pogo" },
-					{ key: "returned_from_search_rate", label: "Returned from search % (estimate)", format: "percent", caveat: "returned" },
+					{ key: "measured", label: "Measured sessions", info: SATISFACTION_DEFINITIONS.engine_measured },
+					col({ key: "pogo_stick_rate", label: "Pogo-sticking % (estimate)", format: "percent" }),
+					col({ key: "returned_from_search_rate", label: "Returned from search % (estimate)", format: "percent" }),
 				]}
 			/>
 			<Segmented label="Break down by" value={by} options={GROUPS.filter((g) => g[0] !== "entry").map(([k, l]) => [k, l] as const)} onChange={setBy} />
@@ -292,6 +304,7 @@ function SatisfactionReport({ view }: { view: View }) {
 	};
 	if (totals.error && isRawOnly(totals.error)) return <RawOnly view={view} error={totals.error} />;
 	const th = totals.data?.data.thresholds as Thresholds | undefined;
+	const min = minMeasuredOf(totals.data?.data);
 	const needle = find.trim().toLowerCase();
 	return (
 		<>
@@ -343,7 +356,7 @@ function SatisfactionReport({ view }: { view: View }) {
 			</div>
 			{th && (
 				<p className="ca-thresholds ca-small">
-					Thresholds: long click above {th.long_click_seconds} s, bad experience below {th.bad_experience_seconds} s. Change them in <a href={`${SETTINGS_HREF}?tab=sessions`}>Settings</a>; every stored session is reclassified at once.
+					Thresholds: long click above {th.long_click_seconds} s, bad experience below {th.bad_experience_seconds} s, sample minimum {min} measured sessions. Change them in <a href={`${SETTINGS_HREF}?tab=sessions`}>Settings</a>; a new threshold reclassifies every stored session at once, a new sample minimum changes only which pages are ranked and marked low sample.
 				</p>
 			)}
 		</>

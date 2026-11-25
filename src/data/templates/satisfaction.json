@@ -63,7 +63,11 @@
 			"title": "Best pages (organic search)",
 			"params": {
 				"rank": "best"
-			}
+			},
+			"columns": [
+				"score",
+				"measured"
+			]
 		},
 		{
 			"id": "st0009",
@@ -73,7 +77,11 @@
 			"title": "Worst pages (organic search)",
 			"params": {
 				"rank": "worst"
-			}
+			},
+			"columns": [
+				"score",
+				"measured"
+			]
 		}
 	],
 	"defaults": {

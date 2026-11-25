@@ -5,15 +5,18 @@ import { searchConfigured } from "../api.js";
 import type { Column } from "../components/DataTable.js";
 import { siteKind, toQuery, type View } from "../components/Header.js";
 import { Empty, InfoMark, Loading } from "../components/ui.js";
-import { PageTrend, ReportPanel, TabPage, trendMetrics } from "./report.js";
+import { metricColumn, PageTrend, ReportPanel, SESSION_BASE, SESSION_EXTRA, TabPage, trendMetrics, VISITORS_COLUMN } from "./report.js";
+import { COLUMN_DEFINITIONS } from "../../charts/definitions.js";
 import { TrafficChangesTab } from "./SearchSeo.js";
 
 const SEARCH_COLUMNS: Column[] = [
-	{ key: "impressions", label: "Impressions" },
-	{ key: "clicks", label: "Clicks" },
-	{ key: "ctr", label: "CTR", format: "percent" },
-	{ key: "position", label: "Position", format: "decimal" },
+	{ key: "impressions", label: "Impressions", info: COLUMN_DEFINITIONS.search_impressions },
+	{ key: "clicks", label: "Clicks", info: COLUMN_DEFINITIONS.search_clicks },
+	{ key: "ctr", label: "CTR", format: "percent", info: COLUMN_DEFINITIONS.search_ctr },
+	{ key: "position", label: "Position", format: "decimal", info: COLUMN_DEFINITIONS.search_position },
 ];
+/** The search columns of the Queries drawer: the figures of one query for this page. */
+const QUERY_COLUMNS: Column[] = [metricColumn("impressions", "Impressions"), metricColumn("clicks", "Clicks"), metricColumn("ctr", "CTR", { format: "percent" }), metricColumn("position", "Position", { format: "decimal" })];
 
 /** Search status of the selected site in this database, null while checking; a remote site's sources are not known here, so its view shows no search columns. */
 function useSearch(inDb: boolean, siteId: string): boolean | null {
@@ -53,12 +56,12 @@ export function PagesTab({ view }: { view: View }) {
 				params={search ? { withSearch: true } : undefined}
 				columns={[
 					{ key: "key", label: "Page", format: "text", dim: "page" },
-					{ key: "pageviews", label: "Pageviews" },
-					{ key: "visitors", label: "Visitors" },
-					{ key: "avg_time", label: "Avg. active time", format: "duration", caveat: "active_time" },
-					{ key: "avg_visible", label: "Avg. visible time", format: "duration", caveat: "visible_time" },
-					{ key: "exit_rate", label: "Exit rate", format: "percent" },
-					{ key: "scroll_median", label: "Median scroll (%)", format: "number", optional: true },
+					metricColumn("pageviews", "Pageviews"),
+					{ key: "visitors", label: "Visitors", info: COLUMN_DEFINITIONS.page_visitors },
+					metricColumn("avg_time", "Avg. active time", { format: "duration" }),
+					metricColumn("avg_visible", "Avg. visible time", { format: "duration" }),
+					metricColumn("exit_rate", "Exit rate", { format: "percent" }),
+					metricColumn("scroll_median", "Median scroll (%)", { format: "number", optional: true }),
 					...(search ? SEARCH_COLUMNS : []),
 				]}
 				action={
@@ -89,7 +92,7 @@ export function PagesTab({ view }: { view: View }) {
 						report="search_page_queries"
 						title="Queries"
 						params={{ page: drawer }}
-						columns={[{ key: "key", label: "Query", format: "text" }, ...SEARCH_COLUMNS]}
+						columns={[{ key: "key", label: "Query", format: "text" }, ...QUERY_COLUMNS]}
 					/>
 				</aside>
 			)}
@@ -116,12 +119,10 @@ export default function Pages() {
 							revenue
 							columns={[
 								{ key: "key", label: "Entry page", format: "text", dim: "entry" },
-								{ key: "entries", label: "Entries" },
-								{ key: "visitors", label: "Visitors" },
-								{ key: "bounce_rate", label: "Bounce rate", format: "percent" },
-								{ key: "avg_duration", label: "Avg. duration", format: "duration", caveat: "duration" },
-								{ key: "views_per_session", label: "Views per session", format: "decimal", optional: true },
-								{ key: "engaged_rate", label: "Engaged rate", format: "percent", optional: true },
+								metricColumn("entries", "Entries"),
+								VISITORS_COLUMN,
+								...SESSION_BASE.slice(2),
+								...SESSION_EXTRA.slice(1),
 							]}
 						/>
 					),
@@ -136,9 +137,9 @@ export default function Pages() {
 							title="Exit pages"
 							columns={[
 								{ key: "key", label: "Exit page", format: "text", dim: "exit" },
-								{ key: "exits", label: "Exits" },
-								{ key: "visitors", label: "Visitors" },
-								{ key: "exit_rate", label: "Exit rate", format: "percent" },
+								{ key: "exits", label: "Exits", info: COLUMN_DEFINITIONS.exits },
+								VISITORS_COLUMN,
+								metricColumn("exit_rate", "Exit rate", { format: "percent" }),
 							]}
 						/>
 					),
@@ -157,7 +158,7 @@ export default function Pages() {
 								columns={[
 									{ key: "key", label: "Path", format: "text" },
 									{ key: "ref", label: "Referrer", format: "text" },
-									{ key: "hits", label: "Hits" },
+									{ key: "hits", label: "Hits", info: COLUMN_DEFINITIONS.hits },
 								]}
 							/>
 						),

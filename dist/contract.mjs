@@ -6,7 +6,7 @@
 const PLUGIN_ID = "cookieless-analytics";
 const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-const VERSION = "1.2.3";
+const VERSION = "1.3.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
@@ -58,6 +58,11 @@ const LINK_EVENTS = {
 	key: "slug",
 	place: "place"
 };
+/**
+* An event the page sends without a visitor action (the link impression `seen`): stored as an entry of its visit, but
+* not counted in the visit's `events`, so it neither makes a session engaged nor keeps it from being a bounce.
+*/
+const isPassiveEvent = (name) => name === LINK_EVENTS.view;
 /** Words that never appear in anything served to a visitor's browser by default. */
 const FORBIDDEN_PUBLIC_WORDS = [
 	"analytics",
@@ -70,4 +75,4 @@ const FORBIDDEN_PUBLIC_WORDS = [
 	"stats",
 	"beacon"
 ];
-export { COMPANION_NAME, COMPANION_PUBLISHER_DID, COMPANION_SLUG, CONTRACT_VERSION, DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, PRODUCT_URL, RESERVED_EVENTS, ROUTES, SID_RE, VERSION, isCompanionHello };
+export { COMPANION_NAME, COMPANION_PUBLISHER_DID, COMPANION_SLUG, CONTRACT_VERSION, DEFAULT_COLLECT_PATH, DEFAULT_NAMESPACE, DEFAULT_SCRIPT_PATH, DEFAULT_SHARE_PATH, FORBIDDEN_PUBLIC_WORDS, HIT_RE, LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, PRODUCT_URL, RESERVED_EVENTS, ROUTES, SID_RE, VERSION, isCompanionHello, isPassiveEvent };

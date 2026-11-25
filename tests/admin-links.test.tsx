@@ -77,6 +77,15 @@ describe("Links page", () => {
 		expect(await screen.findByRole("table", { name: "Links by placement" })).toBeTruthy();
 	});
 
+	it("names the sale column as a links tile does", async () => {
+		const { metricLabel } = await import("../src/dashboards/tiles.js");
+		render(<Links />);
+		const table = await screen.findByRole("table", { name: "Links" });
+		const headers = within(table).getAllByRole("columnheader").map((h) => h.querySelector("button")?.textContent ?? h.textContent);
+		expect(headers).toContain(metricLabel("conversions"));
+		expect(metricLabel("conversions")).toBe("Sales");
+	});
+
 	it("adds the revenue column in the site's currency only when the site records revenue", async () => {
 		revenueOn = true;
 		render(<Links />);

@@ -10,7 +10,7 @@ import { annotationBucket } from "../charts/markers.js";
 import { type Preset, PRESETS } from "../core/presets.js";
 import { type Dashboard, tileNeedsSearch } from "./schema.js";
 import { type Change, changeText } from "../charts/change.js";
-import { COMPARE_LINES, currencyLines, formatValue, lineAxes, metricLabel, type TileData, type TileLine, tileChange, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "./tiles.js";
+import { COMPARE_LINES, currencyLines, displayedKeys, formatValue, lineAxes, metricLabel, scoreNote, type TileData, type TileLine, tileChange, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "./tiles.js";
 
 export interface RenderInput {
 	dashboard: Dashboard;
@@ -59,7 +59,7 @@ function kpi(d: TileData): string {
 		const partial = i.complete ? "" : `<p class="note">${e(`The after window has ${i.daysAfter} days so far; numbers will change.`)}</p>`;
 		return `<div class="kpi">${e(fmt(i.after, f))}</div><div>Before: ${e(fmt(i.before, f))}, after ${e(i.day)}</div>${change}${partial}`;
 	}
-	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}`;
+	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}${d.note ? `<div class="upd">${e(d.note)}</div>` : ""}`;
 }
 
 /** The change line (arrow, label and the better or worse word, never colour alone) and the detail line under it. */
@@ -196,10 +196,16 @@ function donut(d: TileData, title: string): string {
 	return `<svg viewBox="0 0 100 100" style="max-width:160px" role="img" aria-label="${e(title)}"><circle cx="50" cy="50" r="${DONUT_R}" fill="none" stroke="${MUTED}" stroke-opacity="0.2" stroke-width="14"/>${arcs}</svg>${rowsTable(rows, d.metric, title, d.currency)}`;
 }
 
+/** The line under a cell: "low sample" under a Search Satisfaction score that rests on too few measured sessions. */
+const cellNote = (k: string, r: Record<string, unknown>) => {
+	const note = scoreNote(k, r);
+	return note ? `<div class="upd">${e(note)}</div>` : "";
+};
+
 function table(d: TileData, title: string): string {
 	const head = d.columns.map((k) => `<th scope="col"${k === "key" ? "" : ' class="n"'}>${e(valueLabel(k, d.currency))}</th>`).join("");
 	const body = d.rows
-		.map((r) => `<tr>${d.columns.map((k) => (k === "key" ? `<td>${e(fmt(r[k], "text"))}</td>` : `<td class="n">${e(formatValue(k, r[k], d.currency))}</td>`)).join("")}</tr>`)
+		.map((r) => `<tr>${d.columns.map((k) => (k === "key" ? `<td>${e(fmt(r[k], "text"))}</td>` : `<td class="n">${e(formatValue(k, r[k], d.currency))}${cellNote(k, r)}</td>`)).join("")}</tr>`)
 		.join("");
 	return `<table aria-label="${e(title)}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
@@ -236,14 +242,19 @@ function tileBody(d: TileData | null, title: string, tz: string): string {
 	return table(d, title);
 }
 
-const VISITOR_KEYS = new Set(["visitors", "converting"]);
+/** Keys whose tiles carry the per-day visitors footnote; `converting` counts sessions and carries none. */
+const VISITOR_KEYS = new Set(["visitors"]);
+/** Whether a tile displays the figure `key` (`displayedKeys`). */
+const shows = (d: TileData | null | undefined, key: string) => !!d && displayedKeys(d).includes(key);
 
-/** Caveats the tiles need: per-day visitors (11.3), satisfaction estimates (31.4), search data lag (25), summaries. */
+/** Caveats the tiles need: per-day visitors, the bounce rate and session duration definitions, satisfaction estimates, search data lag, summaries. */
 export function footnotes(input: Pick<RenderInput, "dashboard" | "tiles">): string[] {
 	const out = new Set<string>();
 	input.dashboard.tiles.forEach((t, i) => {
 		const d = input.tiles[i];
-		if ((d?.metric && VISITOR_KEYS.has(d.metric)) || d?.lines.some((l) => VISITOR_KEYS.has(l.key)) || d?.columns.includes("visitors")) out.add(CAVEATS.visitors);
+		if ([...VISITOR_KEYS].some((k) => shows(d, k))) out.add(CAVEATS.visitors);
+		if (shows(d, "bounce_rate")) out.add(CAVEATS.bounce_footnote);
+		if (shows(d, "avg_duration")) out.add(CAVEATS.duration_footnote);
 		if (t.report === "satisfaction" || t.report === "satisfaction_series") out.add(CAVEATS.satisfaction_estimate);
 		if (tileNeedsSearch(t)) out.add(CAVEATS.searchLag);
 		if (d?.notices.includes("coverage")) out.add(SEO_TEXT.coverage);

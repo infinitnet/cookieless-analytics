@@ -5,7 +5,7 @@
 declare const PLUGIN_ID = "cookieless-analytics";
 declare const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-declare const VERSION = "1.2.3";
+declare const VERSION = "1.3.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 declare const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
@@ -61,6 +61,11 @@ declare const LINK_EVENTS: {
   readonly key: "slug";
   readonly place: "place";
 };
+/**
+ * An event the page sends without a visitor action (the link impression `seen`): stored as an entry of its visit, but
+ * not counted in the visit's `events`, so it neither makes a session engaged nor keeps it from being a bounce.
+ */
+declare const isPassiveEvent: (name: string | undefined) => boolean;
 /** Words that never appear in anything served to a visitor's browser by default. */
 declare const FORBIDDEN_PUBLIC_WORDS: readonly ["analytics", "track", "tracker", "tracking", "pixel", "telemetry", "collect", "stats", "beacon"];
 type PropValue = string | number | boolean;
@@ -138,4 +143,4 @@ interface ContractResponse {
   scriptPath: string;
   namespace: string;
 }
-export { RESERVED_EVENTS as C, SessionReadResponse as D, SID_RE as E, VERSION as O, Props as S, ReservedEventName as T, LINK_EVENTS as _, CompanionHello as a, PRODUCT_URL as b, DEFAULT_NAMESPACE as c, FORBIDDEN_PUBLIC_WORDS as d, HIT_RE as f, IngestPageview as g, IngestEvent as h, CONTRACT_VERSION as i, isCompanionHello as k, DEFAULT_SCRIPT_PATH as l, IngestEngagement as m, COMPANION_PUBLISHER_DID as n, ContractResponse as o, IngestBody as p, COMPANION_SLUG as r, DEFAULT_COLLECT_PATH as s, COMPANION_NAME as t, DEFAULT_SHARE_PATH as u, PLUGIN_ID as v, ROUTES as w, PropValue as x, PRODUCT_NAME as y };
+export { isPassiveEvent as A, RESERVED_EVENTS as C, SessionReadResponse as D, SID_RE as E, VERSION as O, Props as S, ReservedEventName as T, LINK_EVENTS as _, CompanionHello as a, PRODUCT_URL as b, DEFAULT_NAMESPACE as c, FORBIDDEN_PUBLIC_WORDS as d, HIT_RE as f, IngestPageview as g, IngestEvent as h, CONTRACT_VERSION as i, isCompanionHello as k, DEFAULT_SCRIPT_PATH as l, IngestEngagement as m, COMPANION_PUBLISHER_DID as n, ContractResponse as o, IngestBody as p, COMPANION_SLUG as r, DEFAULT_COLLECT_PATH as s, COMPANION_NAME as t, DEFAULT_SHARE_PATH as u, PLUGIN_ID as v, ROUTES as w, PropValue as x, PRODUCT_NAME as y };

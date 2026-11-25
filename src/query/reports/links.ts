@@ -132,7 +132,7 @@ export async function links(rc: ReportCtx, input: RunInput): Promise<ReportData>
 			const hk = keyOf(src, hitSlug(src), hitPlace(src));
 			const f = src.from(cur ? src.amount(true) : "", andFrags([{ sql: `${src.name} IN (?, ?)`, params: [LINK_EVENTS.click, LINK_EVENTS.sale] }, onSlug(hitSlug(src))]));
 			return {
-				sql: `SELECT ${hk} AS key, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN ${src.name} = ? THEN ${src.sid} END) AS sessions, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS conversions${cur ? `, SUM(CASE WHEN ${src.name} = ? AND ${src.cur} = ? THEN ${src.val} ELSE 0 END) AS revenue` : ", 0 AS revenue"} ${f.sql} GROUP BY ${hk}`,
+				sql: `SELECT ${hk} AS key, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS clicks, COUNT(DISTINCT CASE WHEN ${src.name} = ? AND ${src.counted} = 1 THEN ${src.sid} END) AS sessions, SUM(CASE WHEN ${src.name} = ? THEN 1 ELSE 0 END) AS conversions${cur ? `, SUM(CASE WHEN ${src.name} = ? AND ${src.cur} = ? THEN ${src.val} ELSE 0 END) AS revenue` : ", 0 AS revenue"} ${f.sql} GROUP BY ${hk}`,
 				params: [LINK_EVENTS.click, LINK_EVENTS.click, LINK_EVENTS.sale, ...(cur ? [LINK_EVENTS.sale, cur] : []), ...f.params],
 			};
 		},
@@ -245,7 +245,7 @@ export async function linkDay(rc: ReportCtx, day: string, segs: ReadonlyArray<Ex
 		const counted = seg ? " AND counted = 1" : "";
 		const group = `GROUP BY ${k}${seg ? `, ${seg}` : ""}`;
 		return [
-			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
+			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 AND counted = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
 			`${head}, cur, 0, 0, 0, 0, COUNT(*), SUM(val) FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
 			`${head}, '', COUNT(*), 0, 0, 0, 0, 0 FROM i WHERE 1 = 1${counted} ${group}`,
 		];

@@ -44,7 +44,7 @@ Page flows within one visit; there are no paths across visits or people. The Beh
 
 - `journey_next` (`params.path`): the pages that followed the page, with `(exit)` for sessions that ended there; `sessions` and `share` of the sessions that viewed the page.
 - `journey_prev` (`params.path`): the pages that came before it, with `(entry)` for sessions that started there.
-- `journey_paths` (optional `params.entry`): the most common three page sequences from the landing page (`path1`, `path2`, `path3`, `sessions`), 20 rows. A dashboard can show it as a table tile.
+- `journey_paths` (optional `params.entry`): the most common three page sequences from the entry page (`path1`, `path2`, `path3`, `sessions`), 20 rows. A dashboard can show it as a table tile.
 
 Rules:
 

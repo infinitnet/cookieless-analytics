@@ -335,12 +335,11 @@ describe("reports against a row-per-hit reference on traffic written by the real
 	it("satisfaction totals and the back/forward share, over organic search sessions only", async () => {
 		const long = DEFAULT_SETTINGS.longClickSeconds * 1000;
 		const bad = Math.min(DEFAULT_SETTINGS.badExperienceSeconds * 1000, long);
-		const c = { sessions: 0, measured: 0, long_clicks: 0, short_clicks: 0, bad_experiences: 0, search_sessions: 0, search_measured: 0, pogo_sticks: 0 };
+		const c = { sessions: 0, measured: 0, long_clicks: 0, short_clicks: 0, bad_experiences: 0, pogo_sticks: 0 };
 		const organic = (v: { channel: string | null }) => v.channel === "Organic Search";
 		for (const v of counted().filter(organic)) {
 			const dur = Math.max((v.last_seen - v.started) * 1000, v.visible_ms);
 			const m = v.visible_ms > 0;
-			const se = v.channel === "Organic Search";
 			const single = v.pageviews === 1 && v.events === 0;
 			const lexit = v.pageviews === 1 ? Math.max(...ref.hits.filter((h) => h.v === v && h.kind === "pv").map((h) => h.exit ?? -1)) : null;
 			c.sessions++;
@@ -348,13 +347,15 @@ describe("reports against a row-per-hit reference on traffic written by the real
 			if (m && dur > long) c.long_clicks++;
 			if (m && dur <= long) c.short_clicks++;
 			if (m && single && v.interacted === 0 && dur < bad) c.bad_experiences++;
-			if (se) c.search_sessions++;
-			if (se && m) c.search_measured++;
-			if (se && m && single && dur <= long && lexit === 2) c.pogo_sticks++;
+			if (m && single && dur <= long && lexit === 2) c.pogo_sticks++;
 		}
 		const pvs = hitsOf("pv").filter((h) => h.nav !== null && organic(h.v));
 		const r = await run("satisfaction");
-		expect(r.data.totals).toMatchObject({ ...c, back_nav_rate: rnd(rate(pvs.filter((h) => h.nav === 2).length, pvs.length)) });
+		// One denominator: the score and every rate divide by measured sessions; low_sample compares them with the default minimum.
+		const score = c.measured ? rnd((c.long_clicks - c.bad_experiences - c.pogo_sticks) / c.measured) : null;
+		const pogo = c.measured ? rnd(c.pogo_sticks / c.measured) : null;
+		expect(r.data.totals).toMatchObject({ ...c, score, pogo_stick_rate: pogo, back_nav_rate: rnd(rate(pvs.filter((h) => h.nav === 2).length, pvs.length)), low_sample: c.measured < DEFAULT_SETTINGS.satisfactionMinMeasured });
+		expect(Object.keys(r.data.totals ?? {}).slice(-2)).toEqual(["back_nav_rate", "low_sample"]);
 		expect(c.long_clicks + c.short_clicks).toBe(c.measured);
 		expect(c.sessions).toBeGreaterThan(0);
 		expect(c.sessions).toBeLessThan(counted().length);
@@ -409,7 +410,7 @@ describe("reports against a row-per-hit reference on traffic written by the real
 		const money = (n: number) => Math.round(n * 100) / 100;
 		const sum = (os: readonly Order[]) => money(os.reduce((a, o) => a + o.val, 0));
 		const r = await run("revenue", { currency: "USD" });
-		expect(r.data.totals).toMatchObject({ revenue: sum(usd), orders: usd.length, paying_sessions: new Set(usd.flatMap((o) => (o.sid ? [o.sid] : []))).size, sessions: counted().length, visitors: visitorsOf(counted()) });
+		expect(r.data.totals).toMatchObject({ revenue: sum(usd), orders: usd.length, paying_sessions: new Set(usd.flatMap((o) => (o.sid ? [`${o.sday}|${o.sid}`] : []))).size, sessions: counted().length, visitors: visitorsOf(counted()) });
 		expect((r.data.currencies as Array<{ currency: string; orders: number }>).map((c) => [c.currency, c.orders]).sort()).toEqual(
 			[...by(orders, (o) => o.cur)].map(([c, os]) => [c, os.length]).sort(),
 		);

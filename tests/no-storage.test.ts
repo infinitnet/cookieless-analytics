@@ -42,9 +42,9 @@ describe("no browser storage", () => {
 		expect(readFileSync("src/admin/prefs.ts", "utf8")).not.toMatch(/document\.cookie|cookieStore|indexedDB/);
 	});
 
-	it("keeps the 76 settings, five of them for automatic annotations", () => {
+	it("keeps the 77 settings, five of them for automatic annotations", () => {
 		const keys = Object.keys(settingsSchema);
-		expect(keys).toHaveLength(76);
+		expect(keys).toHaveLength(77);
 		expect(keys.filter((k) => /annot|scope|marker/i.test(k))).toEqual(["autoAnnotations", "annotatePublish", "annotateUpdate", "annotateCollections", "autoAnnotationsPerDay"]);
 	});
 

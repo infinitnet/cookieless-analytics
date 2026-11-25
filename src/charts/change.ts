@@ -8,6 +8,9 @@
  * - duration, decimal and money: relative change, then the difference in the metric's own unit; money stays in
  *   the one currency of the format (a report answers in one currency, amounts are never converted or mixed).
  * - position (Search): the difference in positions with its judgement (`0.4 better`, `from 8.2`), no percent.
+ * - points (the Search Satisfaction score, a signed figure): the difference in points (`+4 points`, `+1 point`,
+ *   `from 20`), never a relative percent, which means nothing for a value that can be 0 or negative.
+ * - Rates and points take the difference of the two figures as printed, so the change always matches them.
  *
  * Judgement: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
  * `NO_JUDGEMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
@@ -44,7 +47,7 @@ export const SMALL_BASE = 100;
 export const SMALL_NOTE = `Small numbers: the comparison rests on under ${SMALL_COUNT} for a count or under ${SMALL_BASE} sessions for a rate or average, so a large change can be chance.`;
 export const MISSING_NOTE = "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected).";
 
-export type ChangeUnit = "percent" | "pp" | "positions" | "duration" | "decimal" | "count" | `money:${string}`;
+export type ChangeUnit = "percent" | "pp" | "points" | "positions" | "duration" | "decimal" | "count" | `money:${string}`;
 
 export interface Change {
 	/** `change` a comparable pair, `new` a previous value of 0, `none` one side missing. */
@@ -87,6 +90,7 @@ const pct = (r: number) => `${r > 0 ? "+" : r < 0 ? "-" : ""}${one.format(Math.a
 function unitOf(metric: string, f: Format): ChangeUnit {
 	if (metric === "position") return "positions";
 	if (f === "percent") return "pp";
+	if (f === "points") return "points";
 	if (f === "duration" || f === "decimal") return f;
 	if (f.startsWith("money:")) return f as ChangeUnit;
 	return "count";
@@ -96,6 +100,10 @@ function unitOf(metric: string, f: Format): ChangeUnit {
 function signed(abs: number, unit: ChangeUnit, f: Format): string {
 	const sign = abs > 0 ? "+" : abs < 0 ? "-" : "";
 	if (unit === "pp") return `${sign}${Math.abs(abs * 100).toFixed(1)} pp`;
+	if (unit === "points") {
+		const n = Math.round(Math.abs(abs * 100));
+		return `${sign}${n} ${n === 1 ? "point" : "points"}`;
+	}
 	return `${sign}${fmt(Math.abs(abs), unit === "count" ? "number" : f)}`;
 }
 
@@ -110,9 +118,12 @@ export function describeChange(metric: string, current: unknown, previous: unkno
 	const prev = unit === "positions" && num(previous) === 0 ? null : num(previous);
 	if (cur === null || prev === null || (unit === "positions" && cur === 0))
 		return { kind: "none", direction: null, judgement: null, rel: null, abs: null, unit, label: "No comparison", detail: "", muted: true, note: opts.reason ?? MISSING_NOTE, words: "no comparison" };
-	const abs = cur - prev;
+	// A rate or score changes by the difference of the two figures as printed (`fmt`), so the sentence never says
+	// "No change, from 21" beside a printed 20, nor +0.1 pp between two figures that print alike.
+	const printed = (v: number) => (unit === "pp" ? Number.parseFloat(fmt(v, "percent")) : Number(fmt(v, "points")));
+	const abs = unit === "pp" || unit === "points" ? (printed(cur) - printed(prev)) / 100 : cur - prev;
 	// A change that shows as 0.0 (percent, points or positions) is no change: no arrow, no judgement.
-	const shown = unit === "pp" ? abs * 100 : unit === "positions" ? abs : prev === 0 ? abs : (abs / Math.abs(prev)) * 100;
+	const shown = unit === "pp" ? abs * 100 : unit === "points" ? Math.round(abs * 100) : unit === "positions" ? abs : prev === 0 ? abs : (abs / Math.abs(prev)) * 100;
 	const direction = Math.abs(shown) < 0.05 ? "flat" : abs > 0 ? "up" : "down";
 	const lower = opts.lowerIsBetter ?? LOWER_IS_BETTER.has(metric);
 	const judgement = direction === "flat" || NO_JUDGEMENT.has(metric) ? "neutral" : (direction === "up") !== lower ? "better" : "worse";
@@ -121,10 +132,14 @@ export function describeChange(metric: string, current: unknown, previous: unkno
 	const base = { direction, judgement, abs, unit, muted: small, note: small ? SMALL_NOTE : null } as const;
 	const judged = judgement === "neutral" ? "" : `, ${judgement}`;
 	const quiet = small ? ", small numbers" : "";
-	if (direction === "flat") return { ...base, kind: "change", rel: unit === "pp" || unit === "positions" ? null : 0, muted: false, note: null, label: "No change", detail: from, words: "no change" };
+	if (direction === "flat") return { ...base, kind: "change", rel: unit === "pp" || unit === "points" || unit === "positions" ? null : 0, muted: false, note: null, label: "No change", detail: from, words: "no change" };
 	if (unit === "pp") {
 		const label = signed(abs, unit, f);
 		return { ...base, kind: "change", rel: null, label, detail: from, words: `${direction} ${Math.abs(abs * 100).toFixed(1)} percentage points${judged}${quiet}` };
+	}
+	if (unit === "points") {
+		const label = signed(abs, unit, f);
+		return { ...base, kind: "change", rel: null, label, detail: from, words: `${direction} ${label.slice(1)}${judged}${quiet}` };
 	}
 	if (unit === "positions") {
 		const n = Math.abs(abs).toFixed(1);

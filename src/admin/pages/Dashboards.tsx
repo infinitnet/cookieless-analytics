@@ -7,7 +7,7 @@ import { distinctRequests, tileRequest } from "../../dashboards/run.js";
 import { IMPACT_METRICS, IMPACT_REPORTS } from "../../query/reports/seo-copy.js";
 import { type Dashboard, DashboardInput, isSearchReport, MAX_TILE_COLUMNS, MAX_TILE_METRICS, TILE_KINDS, tileMetricsProblem, tileNeedsSearch, TILE_METRICS, TILE_PARAMS, TILE_REPORTS, type Tile, type TileKind, type TileReport, TileSchema } from "../../dashboards/schema.js";
 import { BUILTIN_GROUPS, BUILTIN_NAMES, BUILTIN_TEMPLATES, TEMPLATE_GROUPS } from "../../dashboards/templates.js";
-import { currencyLines, lineAxes, metricLabel, type TileData, tableColumnKeys, tileData, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "../../dashboards/tiles.js";
+import { currencyLines, lineAxes, lowSampleRow, metricLabel, scoreNote, type TileData, tableColumnKeys, tileChange, tileData, tileTitle, TRIMMED_COMPARE, valueFormat, valueLabel } from "../../dashboards/tiles.js";
 import type { Filter } from "../../query/filters.js";
 import { MAX_SHARES_PER_DASHBOARD } from "../../dashboards/limits.js";
 import { MAX_SHARE_LABEL, type ShareState, shareState as stateOf, type ShareSummary, type ShareView } from "../../dashboards/share-view.js";
@@ -26,7 +26,7 @@ import { TileList } from "../components/TileList.js";
 import { DIGEST_SCHEDULE, ScheduleDialog } from "../components/ScheduleDialog.js";
 import { LIST_SEARCH_OVER, matchesText, noMatch, SearchBox } from "../components/SearchBox.js";
 import { InfoMark, Notice, Empty, Loading, ROW_MAIN, rowLink } from "../components/ui.js";
-import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { PANEL_DEFINITIONS, tileDefinition } from "../../charts/definitions.js";
 import { ReportNotices } from "../components/ReportNotices.js";
 import { SETUP_COPY, SetupEmpty, type SetupKind } from "../setup.js";
 
@@ -36,6 +36,12 @@ type Draft = Omit<Dashboard, "id" | "site" | "v" | "created" | "updated"> & { id
 const siteBody = (view: View) => (view.site.local ? {} : { site: view.site.id });
 const date = (ts: number) => new Date(ts * 1000).toISOString().slice(0, 10);
 const newTileId = () => Math.random().toString(36).slice(2, 8).padEnd(6, "0");
+/** Rows of a Search Satisfaction table tile (`params.rank`): Search Satisfaction names its pages landing pages. */
+export const SATISFACTION_RANKS: ReadonlyArray<readonly [string, string]> = [
+	["", "Busiest landing pages"],
+	["best", "Best pages by score"],
+	["worst", "Worst pages by score"],
+];
 const KIND_LABELS: Record<TileKind, string> = { kpi: "Number", line: "Line", area: "Area", bars: "Bars", donut: "Donut", table: "Table", stacked: "Stacked bars" };
 const blank = (): Draft => ({ name: "New dashboard", tiles: [], defaults: { range: "30d", compare: "none", filters: [] }, viewer: { ranges: ["7d", "30d", "90d"], compare: true } });
 
@@ -86,7 +92,7 @@ export function TileView({ tile, view, filters, refs, searchOff }: { tile: Tile;
 		else if (data.kind === "kpi" && data.impact)
 			body = (
 				<>
-					<KpiCard metric={fmtKey} label={valueLabel(fmtKey, cur)} format={metricFormat(fmtKey)} value={data.value} compare={data.compare} />
+					<KpiCard metric={fmtKey} label={valueLabel(fmtKey, cur)} format={metricFormat(fmtKey)} value={data.value} compare={data.compare} change={tileChange(data)} />
 					<p className="ca-small">
 						Before: {fmt(data.impact.before, metricFormat(fmtKey))}, after {data.impact.day}
 						{data.impact.complete ? "" : ` (${data.impact.daysAfter} days so far)`}
@@ -95,12 +101,28 @@ export function TileView({ tile, view, filters, refs, searchOff }: { tile: Tile;
 			);
 		else if (data.kind === "stacked" && data.stack)
 			body = data.stack.series.length ? <StackedBars label={title} keys={data.stack.labels} data={data.stack.series.map((p) => ({ t: p.t, parts: data.stack?.keys.map((k) => p.values[k] ?? 0) ?? [] }))} /> : <Empty />;
-		else if (data.kind === "kpi") body = <KpiCard metric={fmtKey} label={valueLabel(fmtKey, cur)} format={metricFormat(fmtKey)} value={data.value} compare={data.compare} />;
+		else if (data.kind === "kpi")
+			body = (
+				<>
+					<KpiCard metric={fmtKey} label={valueLabel(fmtKey, cur)} format={metricFormat(fmtKey)} value={data.value} compare={data.compare} change={tileChange(data)} info={tileDefinition(tile.report, fmtKey)} />
+					{data.note && <p className="ca-small">{data.note}</p>}
+				</>
+			);
 		else if (data.kind === "line" || data.kind === "area") body = data.buckets.length && data.lines.length ? <TileChart data={data} title={title} view={view} /> : <Empty />;
 		else if (!data.rows.length) body = <Empty />;
 		else if (data.kind === "bars") body = <BarList label={title} format={metricFormat(fmtKey)} rows={data.rows as Array<{ label: string; value: number }>} />;
 		else if (data.kind === "donut") body = <Donut label={title} slices={data.rows as Array<{ label: string; value: number }>} />;
-		else body = <DataTable label={title} columns={data.columns.map((k) => ({ key: k, label: valueLabel(k, cur), format: k === "key" ? "text" : metricFormat(k) }))} rows={data.rows as TableRow[]} pageSize={tile.limit ?? 10} search={false} />;
+		else
+			body = (
+				<DataTable
+					label={title}
+					// A Search Satisfaction score under the sample minimum: muted, "low sample" under it, sorted last.
+					columns={data.columns.map((k) => ({ key: k, label: valueLabel(k, cur), format: k === "key" ? "text" : metricFormat(k), ...(k === "score" ? { quiet: lowSampleRow, note: (r: TableRow) => scoreNote(k, r) ?? "" } : {}) }))}
+					rows={data.rows as TableRow[]}
+					pageSize={tile.limit ?? 10}
+					search={false}
+				/>
+			);
 	}
 	// A number tile whose card label repeats the title shows the name once; the card keeps it for screen readers.
 	const plain = data?.kind === "kpi" && valueLabel(fmtKey, cur) === title;
@@ -916,9 +938,11 @@ function TileForm({ view, initial, onSave, onCancel, goals, funnels }: { view: V
 				<label>
 					Rows{" "}
 					<select value={t.params?.rank ?? ""} onChange={(e) => setParam("rank", e.target.value)}>
-						<option value="">Busiest landing pages</option>
-						<option value="best">Best pages by score</option>
-						<option value="worst">Worst pages by score</option>
+						{SATISFACTION_RANKS.map(([v, label]) => (
+							<option key={v} value={v}>
+								{label}
+							</option>
+						))}
 					</select>
 				</label>
 			)}

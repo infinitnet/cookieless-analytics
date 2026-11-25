@@ -18,39 +18,41 @@ Search Satisfaction covers organic search sessions only, from every search engin
 
 ## What the page shows
 
-- **Cards**: the seven numbers with the change against the comparison. The estimates and the measured share carry an info marker with their definition.
+- **Cards**: the seven numbers with the change against the comparison. Every card and every table column has an info marker with its own definition; a card, a column and a dashboard tile of one figure show the same text.
 - **Trend chart**: the rates over time, with annotation markers. A card click picks the rate.
 - **Best pages** and **Worst pages**: sessions, long click, bad experience and pogo-sticking rates, the score and its change in points.
-- **Breakdown tabs**: landing pages (searchable, sortable and paged), search engines, devices, countries and browsers, each with every rate and the score.
-- **Landing page drawer**: the page's trend, pogo-sticking by search engine (sessions grouped by source, so two engines sit side by side) and the same breakdowns.
-- **Thresholds line**: the thresholds in effect, with "Change them in Settings".
+- **Breakdown tabs**: landing pages (searchable, sortable and paged), search engines, devices, countries and browsers, each with every rate and the score. A score resting on fewer measured sessions than the sample minimum shows muted with the note "low sample" and sorts last.
+- **Landing page drawer**: the page's trend, pogo-sticking by search engine (sessions grouped by source, so two engines sit side by side, with the measured sessions that are the base of both rates) and the same breakdowns.
+- **Thresholds line**: the thresholds and the sample minimum in effect, with "Change them in Settings".
 
 The Search Satisfaction dashboard template carries the same numbers as tiles, including the best and worst pages and the pogo-sticking trend, for organic search sessions as well.
 
 ## Definitions
 
+Every rate, the score and the average active time are shares of the measured sessions only. A session without a measurable end is in none of them; it counts only in the session count, the measured share and Avg. session duration.
+
 For each human organic search session with at least one page view:
 
-- **Duration**: the longer of the time between the first and last page view, and the time the pages were visible.
-- **Measured**: at least one engagement update arrived. Sessions whose end was never observed (a closed app, a lost beacon, a blocked script) are unmeasured and left out of every rate. A line under the cards says how many.
+- **Duration**: the longer of the time from the session's start to its last page view or event, and the time the pages were visible.
+- **Measured**: at least one engagement update arrived. Sessions whose end was never observed (a closed app, a lost beacon, a blocked script) are unmeasured: they count as sessions and in Avg. session duration, and are left out of every rate, the score and the average active time. A line under the cards says how many.
 - **Long click**: measured, and the duration is above `longClickSeconds`.
 - **Short click**: measured, and the duration is at or below `longClickSeconds`.
 - **Bad experience**: measured, one page view, no events, no interaction, and a duration below `badExperienceSeconds` (never above the long click threshold, so a bad experience is always also a short click).
-- **Search session**: the channel is Organic Search, so every session in these numbers is one.
-- **Pogo-sticking (estimate)**: a measured search session with one page view, no events, a short click, and the page left in a way the browser keeps for Back and Forward. Rate: pogo-sticks divided by measured search sessions.
-- **Returned from search (estimate)**: a search session whose first page was left for Back and Forward, and that a later arrival from a search engine joined within the same session window. It is a stronger signal than pogo-sticking because the second arrival is observed. It needs neither a short click nor a single page view, so the two numbers overlap.
-- **Search re-entry (estimate)**: search sessions that a later arrival from a search engine joined, divided by search sessions.
-- **Back/forward loads (estimate)**: per page, the share of page loads that came from the browser's Back or Forward action.
+- **Pogo-sticking (estimate)**: a measured session with one page view, no events, a short click, and the page left in a way the browser keeps for Back and Forward. Rate: pogo-sticks divided by measured sessions.
+- **Search re-entry (estimate)**: measured sessions that a later arrival from a search engine joined, whichever way the landing page was left, divided by measured sessions.
+- **Returned from search (estimate)**: the part of search re-entry whose first page was left for Back and Forward before the later arrival from a search engine, within the same session window, divided by measured sessions. It is never above search re-entry. It is a stronger signal than pogo-sticking because the second arrival is observed. It needs neither a short click nor a single page view, so the two numbers overlap.
+- **Average active time**: the active time of the measured sessions divided by the measured sessions.
+- **Back/forward loads (estimate)**: per page, the share of full page loads in organic search sessions that came from the browser's Back or Forward action.
 
 ### The score
 
-Score = long click rate minus bad experience rate minus pogo-sticking rate, shown in points (25 percent is 25). A page without measured search sessions counts its pogo-sticking rate as 0. Short clicks are left out because they include many quick, successful answers. The lists always show the three parts next to the score.
+Score = long click rate minus bad experience rate minus pogo-sticking rate, all over measured sessions, shown in points (25 percent is 25) on the page, on dashboard tiles, shared pages and emails. Short clicks are left out because they include many quick, successful answers. The lists always show the three parts next to the score.
 
-Only landing pages with at least 30 measured sessions in the range are ranked, so a few lucky visits cannot top the list. Ties go to the busier page.
+Only landing pages with at least the sample minimum of measured sessions in the range are ranked (setting `satisfactionMinMeasured`, 30 by default), so a few lucky visits cannot top the list. Ties go to the busier page. A score under the minimum stays visible but is marked low sample: muted with "low sample" in the tables, sorted last, "low sample" under the cell on tiles, shared pages and emails, and no score change in the lists when the previous period was under the minimum.
 
 ### Thresholds apply at once
 
-The thresholds are read when the report runs. Changing `longClickSeconds` or `badExperienceSeconds` reclassifies every stored session at once, old and new. There is no job to wait for.
+The thresholds and the sample minimum are read when the report runs. Changing `longClickSeconds` or `badExperienceSeconds` reclassifies every stored session at once, old and new. Changing `satisfactionMinMeasured` classifies no session: it changes only which landing pages are ranked and which are marked low sample. There is no job to wait for.
 
 ## Where the idea comes from
 
@@ -73,11 +75,12 @@ Primary sources from the trial record:
 |---|---|---|
 | `longClickSeconds` | 60 | A session longer than this (10 to 600 seconds) is a long click; at or below it, a short click. |
 | `badExperienceSeconds` | 10 | A single page session without interaction shorter than this (1 to 60 seconds) is a bad experience. |
+| `satisfactionMinMeasured` | 30 | Fewest measured sessions (10 to 500) a landing page needs to be ranked as a best or worst page. A score under it is marked low sample. |
 | `rawRetentionDays` | 760 | Search Satisfaction needs detailed session rows, kept for this many days. |
 
 ## Limits
 
-- Ranking needs at least 30 measured sessions per landing page.
+- Ranking needs at least the sample minimum of measured sessions per landing page (`satisfactionMinMeasured`, 30 by default).
 - Best and worst lists show five pages each.
 - Search Satisfaction works inside the detailed data window only. For a range that starts earlier, the page shows: "Search Satisfaction is computed from session rows, which are kept for the raw retention window only. Choose a more recent range or raise the raw retention." with a button that moves the range inside the window. There are no daily summaries of these numbers.
 

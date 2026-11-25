@@ -39,7 +39,7 @@ One message per recipient, with that recipient as the only `To` address (never `
 - Bars, donut and table tiles: a table of at most the tile's row count.
 - Revenue tiles show the currency code with every amount and the "Amounts in USD." line; a revenue tile of a site without revenue is left out.
 - Site search tiles keep the floor of two sessions and say how many terms are hidden.
-- The fixed caveat texts as footnotes, and one link to the dashboard in the admin.
+- The fixed caveat texts as footnotes (the per-day visitors note, and the definitions of bounce rate and session duration when a tile shows them), and one link to the dashboard in the admin.
 
 No images, no remote resources, no tracking pixel and no share link. Every name, path, source, event name and search term is escaped. A plain text part carries the same figures. The HTML stays under 100,000 bytes.
 

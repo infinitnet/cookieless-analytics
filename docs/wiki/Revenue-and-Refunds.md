@@ -8,7 +8,7 @@ Any event can carry an order value, a currency and an order id. The plugin store
 2. Record orders. For amounts you must trust, send them from your server through the agent events route. For a quick start, send them from the page.
 3. Attribute server orders to the visit: read `window.__ec.sid` at checkout, keep it with the order, and pass it back from your payment webhook.
 4. Book refunds and corrections from your server.
-5. Open Revenue in the Analytics menu: currency chips, key figures that toggle the lines of the chart, one panel per breakdown (channels, sources, campaigns, landing pages, pages, countries, devices, goals, events) with share of revenue, and the recent orders of the detailed window. Each order is credited to the first touch of its visit. "Revenue per funnel step" under the panels opens Behaviour, Funnels, where every step shows the revenue of the sessions that reached it ([Goals and funnels](Goals-and-Funnels)).
+5. Open Revenue in the Analytics menu: currency chips, key figures that toggle the lines of the chart, one panel per breakdown (channels, sources, campaigns, entry pages, pages, countries, devices, goals, events) with share of revenue, and the recent orders of the detailed window. Each order is credited to the first touch of its visit. "Revenue per funnel step" under the panels opens Behaviour, Funnels, where every step shows the revenue of the sessions that reached it ([Goals and funnels](Goals-and-Funnels)).
 
 ### From the page
 
@@ -80,7 +80,7 @@ curl -X POST "https://example.com/_emdash/api/plugins/cookieless-analytics/agent
 
 ## Revenue by source
 
-Revenue belongs to the session of its event: by channel, source, campaign, country and device it follows the session's first touch, by landing page the session's entry, by page the page the event fired on. The breakdown dimensions are channel, source, campaign, landing page, page, country, device, goal and event. An order without a session counts in the totals under `(not set)` and is left out as soon as a session filter is active.
+Revenue belongs to the session of its event: by channel, source, campaign, country and device it follows the session's first touch, by entry page the session's entry, by page the page the event fired on. The breakdown dimensions are channel, source, campaign, entry page, page, country, device, goal and event. An order without a session counts in the totals under `(not set)` and is left out as soon as a session filter is active.
 
 Revenue and Orders columns appear on Sources, Pages, Audience and Goals, and the Overview shows a revenue strip in the default currency, whenever the site has revenue. The URL keeps the chosen currency as `cur=EUR`.
 
@@ -101,7 +101,7 @@ Client sites can inherit these or set their own on Definitions, Sites.
 - Agent route: 1 to 20 items per call; `ts` from 30 days ago to 60 seconds ahead, and inside the detailed window.
 - A `sid` attaches only to a visit that started at most 7 days ago; an unknown one is `invalid_sid`.
 - Corrections, voids and refunds work only while the order is inside the detailed window.
-- Summaries beyond the detailed window keep the top 200 keys per dimension a day (500 for pages and landing pages).
+- Summaries beyond the detailed window keep the top 200 keys per dimension a day (500 for pages and entry pages).
 
 ## Gotchas
 

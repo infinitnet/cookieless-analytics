@@ -36,6 +36,6 @@ describe("time metric wording", () => {
 		expect(metricLabel("avg_visible")).toBe("Avg. visible time");
 		expect(METRIC_DEFINITIONS.avg_time).toBe(CAVEATS.active_time);
 		expect(CAVEATS.active_time).toContain("0 s");
-		expect(METRIC_DEFINITIONS.avg_duration).toContain("Not interaction time");
+		expect(METRIC_DEFINITIONS.avg_duration).toContain("Interaction is not required.");
 	});
 });

@@ -14,7 +14,7 @@ import { type Column, DataTable, type TableRow } from "../components/DataTable.j
 import { addIs } from "../components/FilterBar.js";
 import { toPlainQuery, type View } from "../components/Header.js";
 import { Notice, Empty, Field, InfoMark, ROW_MAIN, rowLink } from "../components/ui.js";
-import { PANEL_DEFINITIONS } from "../../charts/definitions.js";
+import { COLUMN_DEFINITIONS, PANEL_DEFINITIONS } from "../../charts/definitions.js";
 import { matchPreset } from "../state.js";
 import { ReportNotices } from "../components/ReportNotices.js";
 
@@ -122,7 +122,10 @@ function PositionsBody({ view, source }: { view: View; source: Source }) {
 			<Part title="Striking distance" report="search_striking_distance" empty={!!striking.data && !sRows.length}>
 			<CoverageLine />
 			<Notices notices={allNotices(striking.data)} />
-			<p className="ca-small">Your CTR in positions 1 to 3: {ctr13 === null || ctr13 === undefined ? SEO_TEXT.top3Insufficient : `${(ctr13 * 100).toFixed(1)}%`}</p>
+			<p className="ca-small">
+				Your CTR below position 4: {ctr13 === null || ctr13 === undefined ? SEO_TEXT.top3Insufficient : `${(ctr13 * 100).toFixed(1)}%`}
+				<InfoMark text={COLUMN_DEFINITIONS.striking_ctr} />
+			</p>
 			<DataTable
 				label="Striking distance"
 				columns={[{ key: "query", label: "Query", format: "text", dim: "query" }, { key: "page", label: "Page", format: "text", dim: "page" }, n("impressions", "Impressions"), n("clicks", "Clicks"), ctr("ctr"), posCol("position"), n("potential_clicks", `Potential clicks (${SEO_TEXT.estimate})`)]}
@@ -276,7 +279,7 @@ function CannibalizationBody({ view, source }: { view: View; source: Source }) {
 			) : (
 				<DataTable
 					label="Competing pages"
-					columns={[{ key: "key", label: "Page", format: "text" }, n("queries", "Queries"), n("overlapping_queries", "Overlapping queries"), { key: "overlapping_queries_pct", label: "Share of queries", format: "percent" }, n("impressions", "Impressions"), n("overlapping_impressions", "Overlapping impressions"), { key: "overlapping_impressions_pct", label: "Share of impressions", format: "percent" }, n("clicks", "Clicks"), n("overlapping_clicks", "Overlapping clicks")]}
+					columns={[{ key: "key", label: "Page", format: "text" }, n("queries", "Queries"), n("overlapping_queries", "Overlapping queries"), { key: "overlapping_queries_pct", label: "Share of queries", format: "percent", info: COLUMN_DEFINITIONS.overlapping_queries_pct }, n("impressions", "Impressions"), n("overlapping_impressions", "Overlapping impressions"), { key: "overlapping_impressions_pct", label: "Share of impressions", format: "percent", info: COLUMN_DEFINITIONS.overlapping_impressions_pct }, n("clicks", "Clicks"), n("overlapping_clicks", "Overlapping clicks")]}
 					rows={rows}
 					truncated={d?.truncated}
 					loading={res.loading}

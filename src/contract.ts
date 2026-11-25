@@ -6,7 +6,7 @@
 export const PLUGIN_ID = "cookieless-analytics";
 export const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-export const VERSION = "1.2.3";
+export const VERSION = "1.3.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 export const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
@@ -79,6 +79,12 @@ export type ReservedEventName = keyof typeof RESERVED_EVENTS;
  * `sale` carries `key` and `place` with `val`, `cur` and `oid`. The `links` report reads these names.
  */
 export const LINK_EVENTS = { click: "out", view: "seen", sale: "conv", key: "slug", place: "place" } as const;
+
+/**
+ * An event the page sends without a visitor action (the link impression `seen`): stored as an entry of its visit, but
+ * not counted in the visit's `events`, so it neither makes a session engaged nor keeps it from being a bounce.
+ */
+export const isPassiveEvent = (name: string | undefined): boolean => name === LINK_EVENTS.view;
 
 /** Words that never appear in anything served to a visitor's browser by default. */
 export const FORBIDDEN_PUBLIC_WORDS = [
