@@ -137,11 +137,20 @@ export function pluginFactsOrNull(): DbFor | null {
  * Run `task` once per database of `dbFor` (a cron task), each with the host KV under that database's prefix and
  * its share of a request budget (`share(total)`: the databases of one invocation split the platform's queries per
  * invocation). A database that fails (a missing binding) is logged and the others still run; the first error is
- * thrown at the end.
+ * thrown at the end. `rotate` starts the walk at that database (modulo their count), so a task whose first database
+ * can take what the others would need lets each go first in turn.
  */
-export async function eachTarget(dbFor: Pick<DbFor, "targets">, kv: KvLike, task: (db: Db, kv: KvLike, share: (total: number) => number, binding: string | null) => Promise<unknown>, log?: { warn(msg: string): void }): Promise<void> {
+export async function eachTarget(
+	dbFor: Pick<DbFor, "targets">,
+	kv: KvLike,
+	task: (db: Db, kv: KvLike, share: (total: number) => number, binding: string | null) => Promise<unknown>,
+	log?: { warn(msg: string): void },
+	rotate = 0,
+): Promise<void> {
 	let failed: unknown;
-	const targets = dbFor.targets();
+	const all = dbFor.targets();
+	const at = ((rotate % all.length) + all.length) % all.length || 0;
+	const targets = [...all.slice(at), ...all.slice(0, at)];
 	const share = (total: number) => Math.max(1, Math.floor(total / targets.length));
 	for (const t of targets) {
 		try {

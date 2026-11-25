@@ -269,6 +269,29 @@ function likeEscape(value) {
 	return value.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
 const LIKE_ESCAPE = "ESCAPE '\\'";
+const utf8$1 = new TextEncoder();
+/**
+* `target` (a lowercased text expression) starts with (`prefix`) or contains `value`, as `target LIKE lower(?)` with
+* `%` and `_` escaped (`lowerParam` false: the value is lowercased already, bound as is). A LIKE while its pattern fits
+* D1's `MAX_LIKE_BYTES`; past that the same test with `substr` (prefix) or `instr` (`strpos` on Postgres), which have
+* no pattern limit.
+*/
+function textMatch(dialect, target, kind, value, lowerParam = true) {
+	const pattern = kind === "contains" ? `%${likeEscape(value)}%` : `${likeEscape(value)}%`;
+	const p = lowerParam ? "lower(?)" : "?";
+	if (utf8$1.encode(pattern).length <= 50) return {
+		sql: `${target} LIKE ${p} ${LIKE_ESCAPE}`,
+		params: [pattern]
+	};
+	if (kind === "prefix") return {
+		sql: `substr(${target}, 1, length(${p})) = ${p}`,
+		params: [value, value]
+	};
+	return {
+		sql: `${dialect === "postgres" ? "strpos" : "instr"}(${target}, ${p}) > 0`,
+		params: [value]
+	};
+}
 /**
 * `ON CONFLICT (...) DO UPDATE SET` fragment, identical on SQLite and Postgres.
 * `set` columns take the new value; `add` columns accumulate.
@@ -1208,11 +1231,14 @@ function pluginFactsOrNull() {
 * Run `task` once per database of `dbFor` (a cron task), each with the host KV under that database's prefix and
 * its share of a request budget (`share(total)`: the databases of one invocation split the platform's queries per
 * invocation). A database that fails (a missing binding) is logged and the others still run; the first error is
-* thrown at the end.
+* thrown at the end. `rotate` starts the walk at that database (modulo their count), so a task whose first database
+* can take what the others would need lets each go first in turn.
 */
-async function eachTarget(dbFor, kv, task, log) {
+async function eachTarget(dbFor, kv, task, log, rotate = 0) {
 	let failed;
-	const targets = dbFor.targets();
+	const all = dbFor.targets();
+	const at = (rotate % all.length + all.length) % all.length || 0;
+	const targets = [...all.slice(at), ...all.slice(0, at)];
 	const share = (total) => Math.max(1, Math.floor(total / targets.length));
 	for (const t of targets) try {
 		await task(await t.db(), t.kv(kv), share, t.binding);
@@ -3447,6 +3473,61 @@ async function chargeCopyRows(kv, now, rows) {
 	});
 	return total;
 }
+/**
+* Terms per statement of `unionAllChunked`. Always `MAX_COMPOUND_TERMS` in the plugin; tests raise it to compare the
+* chunked statements with the single unchunked statement on a database without the limit.
+*/
+const compoundTerms = { max: 5 };
+/** A union of at most `MAX_COMPOUND_TERMS` parts as one SELECT (`op` UNION ALL by default); more parts throw. */
+function unionAll(parts, op = "UNION ALL") {
+	if (!parts.length) throw new Error("a union needs at least one part");
+	if (parts.length > 5) throw new Error(`a union of ${parts.length} parts passes the 5 terms D1 allows in one compound SELECT; use unionAllChunked`);
+	return {
+		sql: parts.map((p) => p.sql).join(` ${op} `),
+		params: parts.flatMap((p) => p.params)
+	};
+}
+/**
+* `parts` in groups, in order: the fewest groups such that each has at most `compoundTerms.max` parts and binds at most
+* `maxParams` parameters with the head. A single part over the parameter budget gets a group of its own.
+*/
+function unionGroups(parts, o = {}) {
+	const budget = (o.maxParams ?? 100) - (o.head?.params.length ?? 0);
+	const groups = [];
+	let n = 0;
+	for (const p of parts) {
+		const g = groups[groups.length - 1];
+		if (g && g.length < compoundTerms.max && n + p.params.length <= budget) {
+			g.push(p);
+			n += p.params.length;
+		} else {
+			groups.push([p]);
+			n = p.params.length;
+		}
+	}
+	return groups;
+}
+/** The statements `unionAllChunked` runs for these parts. */
+function unionAllStatements(parts, o = {}) {
+	const head = o.head ? `${o.head.sql} ` : "";
+	return unionGroups(parts, o).map((g) => ({
+		sql: `${head}${g.map((p) => p.sql).join(" UNION ALL ")}`,
+		params: [...o.head?.params ?? [], ...g.flatMap((p) => p.params)]
+	}));
+}
+/** Statements of a union of `parts` parts: `Math.ceil(parts / MAX_COMPOUND_TERMS)` (parts within the parameter budget). */
+const unionStatements = (parts) => Math.ceil(parts / 5);
+/**
+* The rows of `part1 UNION ALL part2 UNION ALL ...`, run as the fewest statements of at most `MAX_COMPOUND_TERMS` terms
+* each (and at most `maxParams` parameters), in order, concatenated. No parts: no statement, no rows. Every part names
+* its columns (`AS`): any part can be the first term of a statement, and the first term names the result columns.
+* Callers that aggregate across parts (a `GROUP BY` over the union) do it over the returned rows.
+*/
+async function unionAllChunked(db, parts, o = {}) {
+	const out = [];
+	for (const s of unionAllStatements(parts, o)) out.push(...await db.all(s.sql, s.params));
+	return out;
+}
 // src/query/filters.ts
 /** Filter and query model. Every identifier reaching SQL comes from the fixed maps here. */
 const OPS = [
@@ -3761,10 +3842,7 @@ function literalPred(dialect, col, op, values, int) {
 		return inList(dialect, col, values);
 	}
 	const target = int ? `CAST(${col} AS TEXT)` : `lower(${col})`;
-	return or(values.map((v) => ({
-		sql: `${target} LIKE lower(?) ${LIKE_ESCAPE}`,
-		params: [base === "contains" ? `%${likeEscape(v)}%` : `${likeEscape(v)}%`]
-	})));
+	return or(values.map((v) => textMatch(dialect, target, base === "contains" ? "contains" : "prefix", v)));
 }
 /** The text expression of an event property, so numbers compare like the strings users type. */
 function propText(dialect, alias, key) {
@@ -3909,13 +3987,10 @@ async function goalPredicate(ctx, goal, a, from = "entry") {
 	}
 	const url = v.prop("url");
 	const val = goal.value.toLowerCase();
-	const pred = match === "is" ? {
-		sql: `(lower(${url}) = ? OR lower(${url}) LIKE ? ${LIKE_ESCAPE})`,
-		params: [val, `${likeEscape(val)}/%`]
-	} : {
-		sql: `lower(${url}) LIKE ? ${LIKE_ESCAPE}`,
-		params: [match === "prefix" ? `${likeEscape(val)}%` : `%${likeEscape(val)}%`]
-	};
+	const pred = match === "is" ? ((m) => ({
+		sql: `(lower(${url}) = ? OR ${m.sql})`,
+		params: [val, ...m.params]
+	}))(textMatch(d, `lower(${url})`, "prefix", `${val}/`, false)) : textMatch(d, `lower(${url})`, match === "prefix" ? "prefix" : "contains", val, false);
 	return and([{
 		sql: `${v.ev} AND ${v.name} = '_outbound'`,
 		params: []
@@ -4278,16 +4353,12 @@ function revenueWhere(site, from, to, session, extra = TRUE) {
 		params: where.params
 	};
 }
-/** Goal statements in groups of at most `GOALS_PER_STATEMENT`, each within the bound parameter limit. */
-function goalGroups(parts) {
-	const groups = [];
-	for (const p of parts) {
-		const g = groups[groups.length - 1];
-		if (g && g.length < 10 && g.reduce((n, x) => n + x.params.length, 0) + p.params.length <= 100) g.push(p);
-		else groups.push([p]);
-	}
-	return groups;
-}
+/**
+* Goals per goal statement (`UNION ALL`), in the closed-day writer and the detailed Goals report: D1's limit of terms
+* in one compound SELECT. The statements are built by `unionAllChunked` (`db/compound.ts`), which also keeps each within
+* the bound parameter limit.
+*/
+const GOALS_PER_STATEMENT = 5;
 /**
 * Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so
 * orders, gross revenue and paying sessions count rows with `val >= 0` only and `refunds` is the refunded amount.
@@ -5018,7 +5089,7 @@ async function revenueSeries(rc, input) {
 }
 /** Active event goals: the only goals that carry revenue. */
 const eventGoals = (goals) => goals.filter((g) => g.active !== false && g.type === "event");
-/** Per goal parts of one `UNION ALL`, split so that no statement binds more than 90 parameters. */
+/** Per goal parts of one `UNION ALL`, split so that no statement binds more than 90 parameters or has more than 5 terms (D1's compound limit). */
 async function goalUnion(rc, input, goals, from, part) {
 	const cc = {
 		db: rc.db,
@@ -5029,19 +5100,7 @@ async function goalUnion(rc, input, goals, from, part) {
 	};
 	const parts = [];
 	for (const g of goals) parts.push(part(g.name, await goalPredicate(cc, g, "h", from)));
-	const out = [];
-	let batch = [];
-	const flush = async () => {
-		if (!batch.length) return;
-		out.push(...await rc.db.all(batch.map((p) => p.sql).join(" UNION ALL "), batch.flatMap((p) => p.params)));
-		batch = [];
-	};
-	for (const p of parts) {
-		if (batch.length && batch.reduce((n, b) => n + b.params.length, 0) + p.params.length > GOAL_PARAM_BUDGET) await flush();
-		batch.push(p);
-	}
-	await flush();
-	return out;
+	return unionAllChunked(rc.db, parts, { maxParams: GOAL_PARAM_BUDGET });
 }
 /** Revenue rows of the selected currency per key of `dim` (raw or rollup). */
 async function revenueByKey(rc, input, dim, cur) {
@@ -5529,8 +5588,8 @@ function visitlessSource(rc, input) {
 }
 /** One statement over every source: each grouped by `key`, then summed by `key` (sessions never overlap: visitless rows have none). */
 async function overSources(rc, sources, part, sums) {
-	const parts = sources.map(part);
-	return rc.db.all(`SELECT t.key AS key, ${sums} FROM (${parts.map((p) => p.sql).join(" UNION ALL ")}) t GROUP BY t.key`, parts.flatMap((p) => p.params));
+	const u = unionAll(sources.map(part));
+	return rc.db.all(`SELECT t.key AS key, ${sums} FROM (${u.sql}) t GROUP BY t.key`, u.params);
 }
 /** `seen` keys (`<slug>` or `<slug>@<place>`) of property row `p`: the value, its slug and its placement. */
 function seenKeys(d) {
@@ -5597,7 +5656,7 @@ async function links(rc, input) {
 		revenue: num(r.revenue)
 	});
 	if (!cur) return linkData(by, byKey, input, null);
-	const parts = sources.map((src) => {
+	const u = unionAll(sources.map((src) => {
 		const f = src.from(src.amount(false), and([{
 			sql: `${src.name} = ? AND ${src.val} IS NOT NULL AND ${src.cur} IS NOT NULL`,
 			params: [LINK_EVENTS.sale]
@@ -5606,8 +5665,8 @@ async function links(rc, input) {
 			sql: `SELECT ${src.cur} AS cur, COUNT(*) AS orders, SUM(${src.val}) AS revenue ${f.sql} GROUP BY ${src.cur}`,
 			params: f.params
 		};
-	});
-	return linkData(by, byKey, input, cur, await rc.db.all(`SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (${parts.map((p) => p.sql).join(" UNION ALL ")}) t GROUP BY t.cur`, parts.flatMap((p) => p.params)));
+	}));
+	return linkData(by, byKey, input, cur, await rc.db.all(`SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (${u.sql}) t GROUP BY t.cur`, u.params));
 }
 const sumsOf = (byKey, k) => {
 	const key = String(k);
@@ -5673,8 +5732,10 @@ const LINK_COLS = {
 	sessions: "sessions",
 	conversions: "engaged"
 };
+/** Parts of `linkDay` with `segs` segments: three per family (`link`, `link_place`, and `link` by each segment). */
+const linkDayParts = (segs) => 3 * (2 + segs);
 /**
-* The link rows of one site and day for the summaries, one statement over the report's sources: per family
+* The link rows of one site and day for the summaries, over the report's sources: per family
 * (`link`, `link_place`, and `link` crossed with each of `segs`) the clicks, clicking sessions and conversions,
 * the conversion values per currency, and the impressions. Pair rows hold what a filter on that segment keeps:
 * events of a visit with a page view (the report's session filter rule), so a pair row equals the detailed report
@@ -5736,11 +5797,19 @@ async function linkDay(rc, day, segs) {
 		const group = `GROUP BY ${k}${seg ? `, ${seg}` : ""}`;
 		return [
 			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 AND counted = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
-			`${head}, cur, 0, 0, 0, 0, COUNT(*), SUM(val) FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
-			`${head}, '', COUNT(*), 0, 0, 0, 0, 0 FROM i WHERE 1 = 1${counted} ${group}`
+			`${head}, cur, 0 AS impressions, 0 AS clicks, 0 AS sessions, 0 AS conversions, COUNT(*) AS orders, SUM(val) AS revenue FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
+			`${head}, '' AS cur, COUNT(*) AS impressions, 0 AS clicks, 0 AS sessions, 0 AS conversions, 0 AS orders, 0 AS revenue FROM i WHERE 1 = 1${counted} ${group}`
 		];
 	});
-	return (await rc.db.all(`WITH e AS (${events.map((p) => p.sql).join(" UNION ALL ")}), i AS (${views.map((p) => p.sql).join(" UNION ALL ")}) ${parts.join(" UNION ALL ")}`, [...events.flatMap((p) => p.params), ...views.flatMap((p) => p.params)])).map((r) => ({
+	const e = unionAll(events);
+	const i = unionAll(views);
+	return (await unionAllChunked(rc.db, parts.map((sql) => ({
+		sql,
+		params: []
+	})), { head: {
+		sql: `WITH e AS (${e.sql}), i AS (${i.sql})`,
+		params: [...e.params, ...i.params]
+	} })).map((r) => ({
 		dim: r.dim,
 		seg: String(r.seg),
 		key: String(r.key),
@@ -5781,7 +5850,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DEtCv3fA.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-D8lfKcbv.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -5844,10 +5913,11 @@ var rollup_exports = /* @__PURE__ */ __exportAll({
 	PAIR_WEIGHTS: () => PAIR_WEIGHTS,
 	REVENUE_RECONCILE_DAYS_PER_TICK: () => 2,
 	REVENUE_ROLLUP_MAX_SITES_PER_TICK: () => 3,
-	REVENUE_STATEMENTS_PER_SITE: () => 39,
+	REVENUE_STATEMENTS_PER_SITE: () => REVENUE_STATEMENTS_PER_SITE,
 	ROLLUP_DIMS: () => ROLLUP_DIMS,
 	SEGS: () => SEGS,
 	SESSION_KEYS: () => SESSION_KEYS,
+	SESSION_PARTS: () => SESSION_PARTS,
 	SUMMARY_DIMS: () => SUMMARY_DIMS,
 	TOP_N: () => TOP_N,
 	VANISHED_LIST_BYTES: () => VANISHED_LIST_BYTES,
@@ -6188,6 +6258,27 @@ function foldPairFamilies(rc, pairs, by) {
 	for (const dim of PAIR_DIMS) for (const seg of SEGS) out.push(...foldPairs(pairs.filter((p) => p.dim === dim && p.seg === seg), pairCap(rc.settings.capacityProfile, dim), (p) => p[by], addMetrics));
 	return out;
 }
+const SESSION_DIMS = Object.entries(SESSION_KEYS);
+/** The parts of the session read: every session dim, each pair dim by each segment, and the cube cell (`[dim, key expression, seg]`). */
+const sessionParts = () => [
+	...SESSION_DIMS.map(([dim, expr]) => [
+		dim,
+		expr,
+		""
+	]),
+	...SESSION_DIMS.filter(([dim]) => dim in PAIR_WEIGHTS).flatMap(([dim, expr]) => SEGS.map((seg) => [
+		dim,
+		`${expr} || '${SEP$1}' || ${SESSION_KEYS[seg]}`,
+		seg
+	])),
+	[
+		"cube",
+		SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP$1}' || `),
+		CUBE_SEG
+	]
+];
+/** Parts of the session read of a day (21: 11 dims, 9 pairs, the cube). */
+const SESSION_PARTS = sessionParts().length;
 async function computeRollupRows(rc, day) {
 	const ctx = reportCtx(rc);
 	const input = {
@@ -6202,26 +6293,8 @@ async function computeRollupRows(rc, day) {
 	};
 	const out = [];
 	const pairs = [];
-	const sessionDims = Object.entries(SESSION_KEYS);
-	const pairParts = sessionDims.filter(([dim]) => dim in PAIR_WEIGHTS).flatMap(([dim, expr]) => SEGS.map((seg) => [
-		dim,
-		`${expr} || '${SEP$1}' || ${SESSION_KEYS[seg]}`,
-		seg
-	]));
-	const cubePart = [
-		"cube",
-		SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP$1}' || `),
-		CUBE_SEG
-	];
-	const parts = [
-		...sessionDims.map(([dim, expr]) => [
-			dim,
-			expr,
-			""
-		]),
-		...pairParts,
-		cubePart
-	].map(([dim, expr, seg]) => {
+	const sessionDims = SESSION_DIMS;
+	const parts = sessionParts().map(([dim, expr, seg]) => {
 		const q = sessionAggSql(ctx, input, dim === "all" ? null : expr, dim === "utm_campaign" ? {
 			sql: "s.utm_campaign IS NOT NULL",
 			params: []
@@ -6231,7 +6304,7 @@ async function computeRollupRows(rc, day) {
 			params: q.params
 		};
 	});
-	const sessionRows = (await rc.db.all(parts.map((p) => p.sql).join(" UNION ALL "), parts.flatMap((p) => p.params))).filter((r) => num(r.sessions) > 0);
+	const sessionRows = (await unionAllChunked(rc.db, parts)).filter((r) => num(r.sessions) > 0);
 	for (const [dim] of sessionDims) {
 		const mapped = sessionRows.filter((r) => r.dim === dim && r.seg === "").map((r) => row(dim, String(r.key), {
 			...r,
@@ -6271,7 +6344,10 @@ async function computeRollupRows(rc, day) {
 	const h = entryCols(rc.db.dialect);
 	const segCols = SEGS.map((g) => `${SESSION_KEYS[g]} AS ${g}`).join(", ");
 	const grouped = (from, keyExpr, cols, aggs) => ({
-		sql: `WITH e AS (SELECT ${keyExpr} AS key, ${cols}s.sid AS sid, s.vkey AS vkey, ${segCols} ${from.sql}) ${["", ...SEGS].map((g) => `SELECT '${g}' AS seg, ${g || "''"} AS segkey, key, ${aggs} FROM e GROUP BY key${g ? `, ${g}` : ""}`).join(" UNION ALL ")}`,
+		sql: `WITH e AS (SELECT ${keyExpr} AS key, ${cols}s.sid AS sid, s.vkey AS vkey, ${segCols} ${from.sql}) ${unionAll(["", ...SEGS].map((g) => ({
+			sql: `SELECT '${g}' AS seg, ${g || "''"} AS segkey, key, ${aggs} FROM e GROUP BY key${g ? `, ${g}` : ""}`,
+			params: []
+		}))).sql}`,
 		params: from.params
 	});
 	const split = (rows, dim) => {
@@ -6306,7 +6382,7 @@ async function computeRollupRows(rc, day) {
 		});
 	}
 	const byGoal = /* @__PURE__ */ new Map();
-	for (const group of goalGroups(goalParts)) for (const r of await rc.db.all(group.map((p) => p.sql).join(" UNION ALL "), group.flatMap((p) => p.params))) byGoal.set(String(r.goal), [...byGoal.get(String(r.goal)) ?? [], r]);
+	for (const r of await unionAllChunked(rc.db, goalParts)) byGoal.set(String(r.goal), [...byGoal.get(String(r.goal)) ?? [], r]);
 	for (const [name, rs] of byGoal) {
 		const total = row("goal", name, {});
 		const bySeg = /* @__PURE__ */ new Map();
@@ -6599,11 +6675,14 @@ async function rollupDay(rc, day) {
 /** Rows of a day's summary, pairs, links and journeys included. */
 const summaryRows = (s) => s.rows.length + s.pairs.length + s.revenue.length + s.revenuePairs.length + s.links.length + s.linkRevenue.length + s.journeys.length + s.cube.length + s.revenueCube.length;
 /**
-* Statements `rollupDay` costs for a site with these goals, at least: the reads (sessions, pages, events, goals ten per statement,
-* revenue, links, journeys), one upsert per table (a day under 500 rows per table) and two deletes per table, plus
-* the link and journey upsert and delete of each table, and the cube's upsert, delete and revenue delete.
+* Statements `rollupDay` costs for a site with these goals, at least. Every union of parts runs in statements of at
+* most 5 terms (D1's compound limit, `unionAllChunked`). The reads: sessions (21 parts, 5 statements), pages, events,
+* goals (five per statement), revenue (9 parts, 2 statements), event goal revenue (five per statement), links
+* (15 parts, 3 statements) and journeys. The writes: one upsert per table (a day under 500 rows per table) and two
+* deletes per table, the link and journey upsert and delete of each table, and the cube's upsert, delete and revenue delete.
+* Goals whose predicates bind many values can need more statements; `runRollup` checks the real count before writing.
 */
-const dayStatements = (goals) => 3 + Math.ceil(goals.filter((g) => g.active !== false).length / 10) + 1 + Math.ceil(eventGoals(goals).length / 10) + 2 + 6 + 4 + 3;
+const dayStatements = (goals) => unionStatements(SESSION_PARTS) + 2 + Math.ceil(goals.filter((g) => g.active !== false).length / GOALS_PER_STATEMENT) + unionStatements(REVENUE_PARTS) + Math.ceil(eventGoals(goals).length / GOALS_PER_STATEMENT) + unionStatements(linkDayParts(SEGS.length)) + 1 + 6 + 4 + 3;
 /**
 * Rows of one link or journey family over a range, summed per key, segment value (and currency): the closed days
 * from the stored rows in one key-range statement `(site, dim, seg, day)`, the open days (after the watermark, see
@@ -6682,11 +6761,18 @@ async function sitesOfDay(db, day, after = "") {
 /** Statements a run spends before its first site-day: the first-day probe and the sites of the day. */
 const FIRST_DAY_FIXED = 2;
 const tooBig = (site, day, need, limit) => /* @__PURE__ */ new Error(`rollup: storing ${site} on ${day} needs ${need} requests, more than the ${limit} one run of this capacity profile may make; fewer active goals or a larger profile lets it close`);
+/**
+* `requests`: this database's share of the invocation's requests. `available`: what is left of the invocation when the
+* run starts (several databases share one invocation; default the profile's requests). The first site-day of a run may
+* use up to the profile's requests, but never more than is left: a site-day that fits the profile but not what is left
+* waits for the next run.
+*/
 async function runRollup(rc, kv, now, o = {}) {
 	const last = lastClosedDay(now, rc.settings.siteTimezone);
 	const c = counted(rc.db);
 	const whole = (PROFILES[rc.settings.capacityProfile ?? "standard"] ?? PROFILES.standard).requests - KV_CALLS;
 	const limit = (o.requests ?? whole + KV_CALLS) - KV_CALLS;
+	const room = Math.min(whole, (o.available ?? whole + KV_CALLS) - KV_CALLS);
 	const wm = await kv.get(KV_WATERMARK);
 	const cursor = await kv.get(KV_ROLLUP_CURSOR);
 	const out = {
@@ -6694,17 +6780,18 @@ async function runRollup(rc, kv, now, o = {}) {
 		sites: [],
 		rows: 0,
 		statements: 0,
+		requests: 0,
 		watermark: wm,
 		done: false
 	};
 	let day = wm ? addDays(wm, 1) : null;
 	let after = "";
 	const goals = /* @__PURE__ */ new Map();
+	let loads = 0;
+	const used = () => c.n() + loads;
 	try {
 		if (!wm) day = await firstDay(c.db);
 		if (day && cursor?.day === day) after = cursor.site;
-		let loads = 0;
-		const used = () => c.n() + loads;
 		days: while (day && day <= last) {
 			const sites = await sitesOfDay(c.db, day, after);
 			out.days.push(day);
@@ -6716,9 +6803,9 @@ async function runRollup(rc, kv, now, o = {}) {
 					goals.set(site, g);
 				}
 				const fresh = !out.sites.length && c.n() <= FIRST_DAY_FIXED;
-				const cap = fresh ? Math.max(limit, whole) : limit;
+				const cap = fresh ? Math.max(limit, room) : limit;
 				if (used() + dayStatements(g) > cap) {
-					if (fresh) throw tooBig(site, day, used() + dayStatements(g), cap);
+					if (fresh && used() + dayStatements(g) > whole) throw tooBig(site, day, used() + dayStatements(g), whole);
 					break days;
 				}
 				const sum = await computeDay({
@@ -6729,7 +6816,7 @@ async function runRollup(rc, kv, now, o = {}) {
 				}, day);
 				const stmts = writeDayStmts(rc.db.dialect, site, day, sum);
 				if (used() + stmts.length > cap) {
-					if (fresh) throw tooBig(site, day, used() + stmts.length, cap);
+					if (fresh && used() + stmts.length > whole) throw tooBig(site, day, used() + stmts.length, whole);
 					break days;
 				}
 				await c.db.batch(stmts);
@@ -6748,6 +6835,7 @@ async function runRollup(rc, kv, now, o = {}) {
 		}
 	} finally {
 		out.statements = c.n();
+		out.requests = used() + KV_CALLS;
 		if (out.watermark && out.watermark !== wm) await kv.set(KV_WATERMARK, out.watermark);
 		const next = after ? {
 			day,
@@ -6769,6 +6857,10 @@ UNION SELECT site FROM r WHERE site IS NOT NULL AND EXISTS (SELECT 1 FROM ca_rev
 ORDER BY site`;
 /** Non-goal dims of `ca_revenue_daily` with their key expressions over `h` and `s` (`all` has none). */
 const REVENUE_ROLLUP_KEYS = [["all", null], ...Object.entries(REVENUE_KEYS).map(([d, k]) => [ROLLUP_DIM[d], k])];
+/** Parts of the revenue read of a day besides the goals (`all` and the eight dims of `REVENUE_KEYS`). */
+const REVENUE_PARTS = REVENUE_ROLLUP_KEYS.length;
+/** Statements one site may cost in one `revenue` run: the reconcile and two recomputed days of a site without goals, by `dayStatements` (spy-tested). */
+const REVENUE_STATEMENTS_PER_SITE = 1 + 2 * dayStatements([]);
 const REVENUE_TOP_N = (dim) => dim === "page" || dim === "entry" ? 500 : 200;
 /** Keep the top N keys per day, dim and currency by orders; fold the rest into `(other)`. */
 function foldRevenue(rows) {
@@ -6805,8 +6897,8 @@ function foldRevenue(rows) {
 /** Revenue rows of the given days (single dimension only). */
 const computeRevenueDays = async (rc, days) => (await computeRevenue(rc, days)).revenue;
 /**
-* Revenue rows and revenue pairs of the given days: one `UNION ALL` for the nine non-goal dims, one statement per
-* ten event goals. Each statement groups by the three segments too; an order and its visit have one value per
+* Revenue rows and revenue pairs of the given days: the nine non-goal dims in two statements, one statement per five
+* event goals (unions of at most 5 terms, D1's compound limit). Each statement groups by the three segments too; an order and its visit have one value per
 * segment, so orders, revenue and distinct visits add up across those groups into the single and the pair rows.
 */
 async function computeRevenue(rc, days) {
@@ -6835,7 +6927,7 @@ async function computeRevenue(rc, days) {
 			params: b.params
 		};
 	});
-	const rows = await rc.db.all(parts.map((p) => p.sql).join(" UNION ALL "), parts.flatMap((p) => p.params));
+	const rows = await unionAllChunked(rc.db, parts);
 	const cc = {
 		db: rc.db,
 		site: rc.site,
@@ -6843,17 +6935,15 @@ async function computeRevenue(rc, days) {
 		to: days.at(-1),
 		goals: rc.goals
 	};
-	for (const group of chunk(eventGoals(rc.goals), 10)) {
-		const gp = [];
-		for (const g of group) {
-			const b = base(await goalPredicate(cc, g, "h", "event"));
-			gp.push({
-				sql: `SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, ${agg} ${b.sql} GROUP BY ${by}`,
-				params: [g.name, ...b.params]
-			});
-		}
-		rows.push(...await rc.db.all(gp.map((p) => p.sql).join(" UNION ALL "), gp.flatMap((p) => p.params)));
+	const gp = [];
+	for (const g of eventGoals(rc.goals)) {
+		const b = base(await goalPredicate(cc, g, "h", "event"));
+		gp.push({
+			sql: `SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, ${agg} ${b.sql} GROUP BY ${by}`,
+			params: [g.name, ...b.params]
+		});
 	}
+	rows.push(...await unionAllChunked(rc.db, gp));
 	const single = /* @__PURE__ */ new Map();
 	const pairs = /* @__PURE__ */ new Map();
 	const cube = /* @__PURE__ */ new Map();
@@ -7044,7 +7134,7 @@ async function runRevenue(rc, kv, now, rawFrom, o = {}) {
 		cursor: null
 	};
 	for (const site of pick) {
-		const cap = Math.min(39, budget - used - 1);
+		const cap = Math.min(REVENUE_STATEMENTS_PER_SITE, budget - used - 1);
 		if (cap < 1) break;
 		const c = counted(rc.db);
 		const goals = await rc.goals(site);
@@ -9107,4 +9197,4 @@ async function consumeBatch(batch, db, kv) {
 	for (const [site, day, reason] of dropped) drops.add(site, day, reason);
 	if (dropped.length) await drops.flush(db).catch(() => {});
 }
-export { sitesInTables as $, truncateIp as $i, nextUtcDay as $n, statePrefix as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, paramRows as Ai, GoalSchema as An, OID_RE as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, hourInZone as Bi, SEARCH_DIMS as Bn, isCurrency as Br, SEGMENTS$1 as Bt, siteProblem as C, dayInt as Ci, goalPredicate as Cn, conflictsWithScope as Cr, WITH_REVENUE as Ct, readVisits as D, docRead as Di, FUNNEL_MODES as Dn, publicNames as Dr, metaOf as Dt, MAX_DOC_BYTES as E, docPut as Ei, DIM_NAMES as En, parseLinkRules as Er, hasRevenue as Et, UTM_KEYS as F, ident as Fi, PROP_KEY_RE as Fn, isSid as Fr, resolveGranularity as Ft, KV_CURSOR as G, samePeriodLastYear as Gi, copyRowsLeft as Gn, ensureHostSchema as Gr, openDay as Gt, budgetTargetOf as H, previousPeriod as Hi, COPY_DAY_ROWS as Hn, roundMinor as Hr, clearOpenDays as Ht, cleanHost as I, addDays as Ii, QuerySchema as In, validateIngest as Ir, timeseries as It, clearEstimateDay as J, getOrCreateSalt as Ji, PROVIDER_DAYS as Jn, missingDb as Jr, readSummary as Jt, KV_DELETE_ROWS as K, zonedToEpoch as Ki, nextUtcMidnight as Kn, factsDb as Kr, planFilters as Kt, hostInList as L, dayInZone as Li, REVENUE_BREAKDOWN_DIMS as Ln, validateRevenue as Lr, weekStart as Lt, buildChannelRules as M, upsertChanged as Mi, NEGATED as Mn, isEventName as Mr, revenueSeries as Mt, classifyChannel as N, visitDayKey as Ni, NUM_OPS as Nn, isPath as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, isoDay as Oi, FilterSchema as On, compileSafeRegex as Or, revenue as Ot, CLICK_IDS as P, chunk as Pi, OPS as Pn, isReservedEvent as Pr, bucketSeries as Pt, runRetention as Q, timingSafeEqual as Qi, backfillRange as Qn, stateKv as Qr, DURATION_MS as Qt, normalizeUrl as R, daysBetween as Ri, REVENUE_DIMS$1 as Rn, REVENUE_MAX_VALUE as Rr, CUBE_SEG as Rt, registry as S, LIKE_ESCAPE as Si, entryProp as Sn, SATISFACTION_REPORTS as Sr, REVENUE_REPORTS as St, D1Sink as T, docObject as Ti, validateFilters as Tn, organicScope as Tr, currencyOf as Tt, dailyRowsApply as U, saltBoundary as Ui, chargeCopyRows as Un, eachDatabase as Ur, clearScanCache as Ut, budgetState as V, lastClosedDay as Vi, TRAFFIC_DIMS as Vn, normalizeCurrency as Vr, behindNotice as Vt, CHUNK_ROWS as W, saltDay as Wi, copiedToday as Wn, eachTarget as Wr, matchKey as Wt, rawFromDay as X, randomId as Xi, SYNC_BUDGET as Xn, pluginFactsOrNull as Xr, storedSessions as Xt, effectiveRawDays as Y, ipInCidr as Yi, RowsPaused as Yn, pluginFacts as Yr, splitRange as Yt, runChunk as Z, sha256 as Zi, SyncRows as Zn, setPluginFacts as Zr, storedThrough as Zt, linkedHosts as _, fromKysely as _i, and as _n, LOW_SAMPLE as _r, journeyNext as _t, queueBinding as a, pgOwnScope as ai, liveVisits as an, ThrottledError as ar, SEGS as at, markHostSeen as b, isD1 as bi, entriesOf as bn, SATISFACTION_CAVEAT as br, journeysFromSummary as bt, ClientSiteSchema as c, redact as ci, refundDim as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, SCHEMA_VERSION_KEY as di, sessionMetrics as dn, budgetWarning as dr, runRollup as dt, vkey as ea, CACHE_ON_MESSAGE as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, TABLES as fi, sessionTotals as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, schemaVersion as gi, TRUE as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, isOwnDatabase as hi, QueryError as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, isHyperdrive as ii, keysIn as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, q as ji, LINK_BY as jn, cleanProps as jr, revenuePlan as jt, isActive as k, likeEscape as ki, FunnelStepsSchema as kn, validateSafeRegex as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, usePgDriver as li, round as ln, budgetMb as lr, rollupDay as lt, bindSite as m, ensureSchemaOnce as mi, visitDays as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, INGEST_STATEMENT_MS as ni, goalGroups as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, pgScope as oi, num as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, ensureSchema as pi, sessionWhere as pn, d1CapMb as pr, links as pt, cleanSalts as q, base64url as qi, KV_SYNC_ROWS as qn, factsTargets as qr, planRows as qt, consumeBatch as r, fromPg as ri, hitJoin as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, pgStatementLimit as si, ratio as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, __exportAll as ta, queryCacheOn as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, SCHEMA_VERSION as ui, sessionBreakdown as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, selfCheck as vi, compileSearch as vn, POGO_DEFINITION as vr, journeyPaths as vt, drops as w, docJson as wi, inList as wn, lowSampleLine as wr, currencyList as wt, newSiteKey as x, workerEnv as xi, entryCols as xn, SATISFACTION_RAW_ONLY as xr, journeysUnavailable as xt, loadSites as y, fromD1 as yi, compileTraffic as yn, SATISFACTION_BY as yr, journeyPrev as yt, parseReferrer as z, eachDay as zi, REVENUE_VALUE_RE as zn, formatAmount as zr, FILTER_DIMS as zt };
+export { sitesInTables as $, timingSafeEqual as $i, nextUtcDay as $n, statePrefix as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, paramRows as Ai, LINK_BY as An, OID_RE as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, eachDay as Bi, TRAFFIC_DIMS as Bn, isCurrency as Br, SEGMENTS$1 as Bt, siteProblem as C, dayInt as Ci, inList as Cn, conflictsWithScope as Cr, WITH_REVENUE as Ct, readVisits as D, docRead as Di, FilterSchema as Dn, publicNames as Dr, metaOf as Dt, MAX_DOC_BYTES as E, docPut as Ei, FUNNEL_MODES as En, parseLinkRules as Er, hasRevenue as Et, UTM_KEYS as F, chunk as Fi, QuerySchema as Fn, isSid as Fr, resolveGranularity as Ft, KV_CURSOR as G, saltDay as Gi, copyRowsLeft as Gn, ensureHostSchema as Gr, openDay as Gt, budgetTargetOf as H, lastClosedDay as Hi, COPY_DAY_ROWS as Hn, roundMinor as Hr, clearOpenDays as Ht, cleanHost as I, ident as Ii, REVENUE_BREAKDOWN_DIMS as In, validateIngest as Ir, timeseries as It, clearEstimateDay as J, base64url as Ji, PROVIDER_DAYS as Jn, missingDb as Jr, readSummary as Jt, KV_DELETE_ROWS as K, samePeriodLastYear as Ki, nextUtcMidnight as Kn, factsDb as Kr, planFilters as Kt, hostInList as L, addDays as Li, REVENUE_DIMS$1 as Ln, validateRevenue as Lr, weekStart as Lt, buildChannelRules as M, textMatch as Mi, NUM_OPS as Mn, isEventName as Mr, revenueSeries as Mt, classifyChannel as N, upsertChanged as Ni, OPS as Nn, isPath as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, isoDay as Oi, FunnelStepsSchema as On, compileSafeRegex as Or, revenue as Ot, CLICK_IDS as P, visitDayKey as Pi, PROP_KEY_RE as Pn, isReservedEvent as Pr, bucketSeries as Pt, runRetention as Q, sha256 as Qi, backfillRange as Qn, stateKv as Qr, DURATION_MS as Qt, normalizeUrl as R, dayInZone as Ri, REVENUE_VALUE_RE as Rn, REVENUE_MAX_VALUE as Rr, CUBE_SEG as Rt, registry as S, LIKE_ESCAPE as Si, goalPredicate as Sn, SATISFACTION_REPORTS as Sr, REVENUE_REPORTS as St, D1Sink as T, docObject as Ti, DIM_NAMES as Tn, organicScope as Tr, currencyOf as Tt, dailyRowsApply as U, previousPeriod as Ui, chargeCopyRows as Un, eachDatabase as Ur, clearScanCache as Ut, budgetState as V, hourInZone as Vi, unionAllChunked as Vn, normalizeCurrency as Vr, behindNotice as Vt, CHUNK_ROWS as W, saltBoundary as Wi, copiedToday as Wn, eachTarget as Wr, matchKey as Wt, rawFromDay as X, ipInCidr as Xi, SYNC_BUDGET as Xn, pluginFactsOrNull as Xr, storedSessions as Xt, effectiveRawDays as Y, getOrCreateSalt as Yi, RowsPaused as Yn, pluginFacts as Yr, splitRange as Yt, runChunk as Z, randomId as Zi, SyncRows as Zn, setPluginFacts as Zr, storedThrough as Zt, linkedHosts as _, fromKysely as _i, compileSearch as _n, LOW_SAMPLE as _r, journeyNext as _t, queueBinding as a, pgOwnScope as ai, num as an, ThrottledError as ar, SEGS as at, markHostSeen as b, isD1 as bi, entryCols as bn, SATISFACTION_CAVEAT as br, journeysFromSummary as bt, ClientSiteSchema as c, redact as ci, round as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, SCHEMA_VERSION_KEY as di, sessionTotals as dn, budgetWarning as dr, runRollup as dt, truncateIp as ea, CACHE_ON_MESSAGE as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, TABLES as fi, sessionWhere as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, schemaVersion as gi, and as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, isOwnDatabase as hi, TRUE as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, isHyperdrive as ii, liveVisits as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, q as ji, NEGATED as jn, cleanProps as jr, revenuePlan as jt, isActive as k, likeEscape as ki, GoalSchema as kn, validateSafeRegex as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, usePgDriver as li, sessionBreakdown as ln, budgetMb as lr, rollupDay as lt, bindSite as m, ensureSchemaOnce as mi, QueryError as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, __exportAll as na, INGEST_STATEMENT_MS as ni, hitJoin as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, pgScope as oi, ratio as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, ensureSchema as pi, visitDays as pn, d1CapMb as pr, links as pt, cleanSalts as q, zonedToEpoch as qi, KV_SYNC_ROWS as qn, factsTargets as qr, planRows as qt, consumeBatch as r, fromPg as ri, keysIn as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, pgStatementLimit as si, refundDim as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, vkey as ta, queryCacheOn as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, SCHEMA_VERSION as ui, sessionMetrics as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, selfCheck as vi, compileTraffic as vn, POGO_DEFINITION as vr, journeyPaths as vt, drops as w, docJson as wi, validateFilters as wn, lowSampleLine as wr, currencyList as wt, newSiteKey as x, workerEnv as xi, entryProp as xn, SATISFACTION_RAW_ONLY as xr, journeysUnavailable as xt, loadSites as y, fromD1 as yi, entriesOf as yn, SATISFACTION_BY as yr, journeyPrev as yt, parseReferrer as z, daysBetween as zi, SEARCH_DIMS as zn, formatAmount as zr, FILTER_DIMS as zt };

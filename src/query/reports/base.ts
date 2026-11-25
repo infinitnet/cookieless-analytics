@@ -4,7 +4,8 @@ import { addDays, dayInZone } from "../../core/time.js";
 import type { Db } from "../../db/adapter.js";
 import { LINK_EVENTS } from "../../contract.js";
 import { dayInt, docCount, visitDayKey } from "../../db/dialect.js";
-import { MAX_PARAMS, type Param } from "../../db/sql.js";
+import { MAX_COMPOUND_TERMS } from "../../db/compound.js";
+import type { Param } from "../../db/sql.js";
 import type { Settings } from "../../settings.js";
 import { andFrags, type CompiledSearch, type CompiledTraffic, entriesOf, entryCols, type Frag, inList, TRUE } from "../compile.js";
 
@@ -284,19 +285,12 @@ export function revenueWhere(site: string, from: string, to: string, session: Fr
 	return { sql: `FROM ca_events h LEFT JOIN ca_sessions s ON s.site = h.site AND s.day = h.sday AND s.sid = h.sid WHERE ${where.sql}`, params: where.params };
 }
 
-/** Goals per goal statement (`UNION ALL`), in the closed-day writer and the detailed Goals report. */
-export const GOALS_PER_STATEMENT = 10;
-
-/** Goal statements in groups of at most `GOALS_PER_STATEMENT`, each within the bound parameter limit. */
-export function goalGroups(parts: readonly Frag[]): Frag[][] {
-	const groups: Frag[][] = [];
-	for (const p of parts) {
-		const g = groups[groups.length - 1];
-		if (g && g.length < GOALS_PER_STATEMENT && g.reduce((n, x) => n + x.params.length, 0) + p.params.length <= MAX_PARAMS) g.push(p);
-		else groups.push([p]);
-	}
-	return groups;
-}
+/**
+ * Goals per goal statement (`UNION ALL`), in the closed-day writer and the detailed Goals report: D1's limit of terms
+ * in one compound SELECT. The statements are built by `unionAllChunked` (`db/compound.ts`), which also keeps each within
+ * the bound parameter limit.
+ */
+export const GOALS_PER_STATEMENT = MAX_COMPOUND_TERMS;
 
 /**
  * Order sums over `ca_events h`: a refund is a row with a negative `val` (agent events, docs/revenue.md), so

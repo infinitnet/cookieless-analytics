@@ -249,13 +249,13 @@ describe.each(["Europe/Berlin", "America/New_York"])("reports in %s", (tz) => {
 		expect(pick(d.data.rows, "converting", "conversion_rate")[0]).toEqual({ key: "Pricing", converting: 6, conversion_rate: 0.4615 });
 	});
 
-	it("goals run ten per statement with the same rows as one statement per goal", async () => {
+	it("goals run five per statement (D1's compound limit) with the same rows as one statement per goal", async () => {
 		const goals = [1, 2, 3].flatMap((k) => GOALS.map((g) => ({ ...g, name: `${g.name} ${k}` })));
 		const goalStatements: string[] = [];
 		const db = { ...env.db, dialect: env.db.dialect, all: (q: string, p?: never) => (/AS completions/.test(q) && goalStatements.push(q), env.db.all(q, p)) } as typeof env.db;
 		const r = await runReport({ ...rc, db, goals }, { report: "goals", query: QuerySchema.parse(RANGE) });
-		// 12 active goals: two statements, the first with ten goals.
-		expect(goalStatements.map((q) => q.split(" UNION ALL ").length)).toEqual([10, 2]);
+		// 12 active goals: three statements of at most 5 terms.
+		expect(goalStatements.map((q) => q.split(" UNION ALL ").length)).toEqual([5, 5, 2]);
 		const one = await run("goals");
 		const expected = [1, 2, 3].flatMap((k) => (one.data.rows ?? []).map((x) => ({ ...x, key: `${x.key} ${k}` })));
 		const order = (rows: Row[]) => [...rows].sort((a, b) => num(b.converting) - num(a.converting) || (String(a.key) < String(b.key) ? -1 : 1));

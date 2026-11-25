@@ -38,6 +38,24 @@ export function likeEscape(value: string): string {
 
 export const LIKE_ESCAPE = "ESCAPE '\\'";
 
+/** Bytes D1 allows in one LIKE or GLOB pattern; a longer one fails with `LIKE or GLOB pattern too complex`. */
+export const MAX_LIKE_BYTES = 50;
+const utf8 = new TextEncoder();
+
+/**
+ * `target` (a lowercased text expression) starts with (`prefix`) or contains `value`, as `target LIKE lower(?)` with
+ * `%` and `_` escaped (`lowerParam` false: the value is lowercased already, bound as is). A LIKE while its pattern fits
+ * D1's `MAX_LIKE_BYTES`; past that the same test with `substr` (prefix) or `instr` (`strpos` on Postgres), which have
+ * no pattern limit.
+ */
+export function textMatch(dialect: Dialect, target: string, kind: "prefix" | "contains", value: string, lowerParam = true): Frag {
+	const pattern = kind === "contains" ? `%${likeEscape(value)}%` : `${likeEscape(value)}%`;
+	const p = lowerParam ? "lower(?)" : "?";
+	if (utf8.encode(pattern).length <= MAX_LIKE_BYTES) return { sql: `${target} LIKE ${p} ${LIKE_ESCAPE}`, params: [pattern] };
+	if (kind === "prefix") return { sql: `substr(${target}, 1, length(${p})) = ${p}`, params: [value, value] };
+	return { sql: `${dialect === "postgres" ? "strpos" : "instr"}(${target}, ${p}) > 0`, params: [value] };
+}
+
 /**
  * `ON CONFLICT (...) DO UPDATE SET` fragment, identical on SQLite and Postgres.
  * `set` columns take the new value; `add` columns accumulate.

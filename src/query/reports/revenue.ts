@@ -6,6 +6,7 @@
  * counts per page, event and goal come from the visit documents (`hitJoin`).
  */
 import { dayInZone, eachDay, hourInZone } from "../../core/time.js";
+import { unionAllChunked } from "../../db/compound.js";
 import { dayInt, isoDay } from "../../db/dialect.js";
 import { isCurrency, normalizeCurrency, roundMinor } from "../../core/currency.js";
 import { andFrags, type CompileCtx, entryCols, type Frag, goalPredicate, type HitSource, QueryError, TRUE } from "../compile.js";
@@ -234,24 +235,12 @@ export async function revenueSeries(rc: ReportCtx, input: RunInput): Promise<Rep
 /** Active event goals: the only goals that carry revenue. */
 export const eventGoals = (goals: readonly Goal[]) => goals.filter((g) => g.active !== false && g.type === "event");
 
-/** Per goal parts of one `UNION ALL`, split so that no statement binds more than 90 parameters. */
+/** Per goal parts of one `UNION ALL`, split so that no statement binds more than 90 parameters or has more than 5 terms (D1's compound limit). */
 async function goalUnion(rc: ReportCtx, input: RunInput, goals: readonly Goal[], from: HitSource, part: (key: string, pred: Frag) => Frag): Promise<Array<Record<string, unknown>>> {
 	const cc: CompileCtx = { db: rc.db, site: rc.site, from: input.from, to: input.to, goals: rc.goals };
 	const parts: Frag[] = [];
 	for (const g of goals) parts.push(part(g.name, await goalPredicate(cc, g, "h", from)));
-	const out: Array<Record<string, unknown>> = [];
-	let batch: Frag[] = [];
-	const flush = async () => {
-		if (!batch.length) return;
-		out.push(...(await rc.db.all(batch.map((p) => p.sql).join(" UNION ALL "), batch.flatMap((p) => p.params))));
-		batch = [];
-	};
-	for (const p of parts) {
-		if (batch.length && batch.reduce((n, b) => n + b.params.length, 0) + p.params.length > GOAL_PARAM_BUDGET) await flush();
-		batch.push(p);
-	}
-	await flush();
-	return out;
+	return unionAllChunked(rc.db, parts, { maxParams: GOAL_PARAM_BUDGET });
 }
 
 /** Revenue rows of the selected currency per key of `dim` (raw or rollup). */

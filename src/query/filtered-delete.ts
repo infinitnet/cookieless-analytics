@@ -17,6 +17,7 @@ import { z } from "zod";
 import type { KvLike } from "../core/crypto.js";
 import { addDays, daysBetween, dayInZone } from "../core/time.js";
 import type { Db } from "../db/adapter.js";
+import { unionAllChunked } from "../db/compound.js";
 import { dayInt, isoDay, visitDayKey } from "../db/dialect.js";
 import { stateKv } from "../db/facts.js";
 import type { Param } from "../db/sql.js";
@@ -228,8 +229,9 @@ export async function previewDelete(e: DeleteEnv, spec: DeleteSpec): Promise<Del
 			cur.set(c.cur, c);
 		}
 		out.revenue = [...cur.values()].sort((a, b) => (a.cur < b.cur ? -1 : 1));
-		const tops = TOP_DIMS.map((d, i) => `SELECT * FROM (SELECT '${d}' AS d, ${d} AS v, COUNT(*) AS n FROM m GROUP BY ${d} ORDER BY n DESC, v LIMIT 5) t${i}`).join(" UNION ALL ");
-		for (const r of await db.all(`WITH m AS (SELECT ${TOP_DIMS.map((d) => `s.${d} AS ${d}`).join(", ")} ${m.sql}) ${tops}`, m.params))
+		// The top values of each of the seven dims: two statements of at most 5 terms (D1's compound limit), each with the matched visits as `m`.
+		const tops = TOP_DIMS.map((d, i) => ({ sql: `SELECT * FROM (SELECT '${d}' AS d, ${d} AS v, COUNT(*) AS n FROM m GROUP BY ${d} ORDER BY n DESC, v LIMIT 5) t${i}`, params: [] }));
+		for (const r of await unionAllChunked(db, tops, { head: { sql: `WITH m AS (SELECT ${TOP_DIMS.map((d) => `s.${d} AS ${d}`).join(", ")} ${m.sql})`, params: m.params } }))
 			out.top[r.d as (typeof TOP_DIMS)[number]].push({ value: r.v == null ? null : String(r.v), visits: n(r.n) });
 		for (const [day, k] of touched) {
 			if (!wm || day > wm || day < rawFrom) continue;

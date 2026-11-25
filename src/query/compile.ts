@@ -5,7 +5,7 @@
  * restrict their own entry rows.
  */
 import type { Db, Dialect } from "../db/adapter.js";
-import { dayInt, docEach, field, type Frag, jsonExtract, LIKE_ESCAPE, likeEscape, visitDayKey } from "../db/dialect.js";
+import { dayInt, docEach, field, type Frag, jsonExtract, textMatch, visitDayKey } from "../db/dialect.js";
 import { chunk, IN_CHUNK, ident, type Param } from "../db/sql.js";
 import { normalizeCurrency } from "../core/currency.js";
 import { type DimDef, type Filter, type FunnelStep, type Goal, NEGATED, NUM_OPS, type Op, PROP_KEY_RE, REVENUE_VALUE_RE, SEARCH_DIMS, TRAFFIC_DIMS } from "./filters.js";
@@ -103,12 +103,8 @@ function literalPred(dialect: Dialect, col: string, op: Op, values: readonly str
 		return inList(dialect, col, values);
 	}
 	const target = int ? `CAST(${col} AS TEXT)` : `lower(${col})`;
-	return or(
-		values.map((v) => ({
-			sql: `${target} LIKE lower(?) ${LIKE_ESCAPE}`,
-			params: [base === "contains" ? `%${likeEscape(v)}%` : `${likeEscape(v)}%`],
-		})),
-	);
+	// A LIKE pattern over D1's 50 bytes becomes the same test without LIKE (`textMatch`).
+	return or(values.map((v) => textMatch(dialect, target, base === "contains" ? "contains" : "prefix", v)));
 }
 
 /** The text expression of an event property, so numbers compare like the strings users type. */
@@ -230,8 +226,8 @@ export async function goalPredicate(ctx: CompileCtx, goal: Goal | FunnelStep, a:
 	const val = goal.value.toLowerCase();
 	const pred: Frag =
 		match === "is"
-			? { sql: `(lower(${url}) = ? OR lower(${url}) LIKE ? ${LIKE_ESCAPE})`, params: [val, `${likeEscape(val)}/%`] }
-			: { sql: `lower(${url}) LIKE ? ${LIKE_ESCAPE}`, params: [match === "prefix" ? `${likeEscape(val)}%` : `%${likeEscape(val)}%`] };
+			? ((m) => ({ sql: `(lower(${url}) = ? OR ${m.sql})`, params: [val, ...m.params] }))(textMatch(d, `lower(${url})`, "prefix", `${val}/`, false))
+			: textMatch(d, `lower(${url})`, match === "prefix" ? "prefix" : "contains", val, false);
 	return and([{ sql: `${v.ev} AND ${v.name} = '_outbound'`, params: [] }, pred]);
 }
 

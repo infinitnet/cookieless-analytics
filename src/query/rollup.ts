@@ -20,15 +20,16 @@ import type { KvLike } from "../core/crypto.js";
 import { addDays, dayInZone, lastClosedDay } from "../core/time.js";
 import type { Db } from "../db/adapter.js";
 import { dayInt, int, isoDay, upsertChanged, visitDayKey } from "../db/dialect.js";
+import { unionAll, unionAllChunked, unionStatements } from "../db/compound.js";
 import { chunk, type Stmt } from "../db/sql.js";
 import { type CapacityProfile, PROFILES, type Settings } from "../settings.js";
 import { roundMinor } from "../core/currency.js";
 import { andFrags, type CompileCtx, entriesOf, entryCols, type Frag, goalPredicate, inList, TRUE } from "./compile.js";
 import { eventGoals, REVENUE_KEYS, type RevenueDim, ROLLUP_DIM } from "./reports/revenue.js";
 import type { Goal } from "./filters.js";
-import { GOALS_PER_STATEMENT, goalGroups, hitJoin, num, ORDER_SUMS, refundDim, type ReportCtx, type RunInput, sessionAggSql, sessionWhere } from "./reports/base.js";
+import { GOALS_PER_STATEMENT, hitJoin, num, ORDER_SUMS, refundDim, type ReportCtx, type RunInput, sessionAggSql, sessionWhere } from "./reports/base.js";
 import { JOURNEY_DIMS, journeyDay } from "./reports/journeys.js";
-import { LINK_COLS, LINK_DIMS, linkDay } from "./reports/links.js";
+import { LINK_COLS, LINK_DIMS, linkDay, linkDayParts } from "./reports/links.js";
 import { CELL_SEP, CUBE_SEG, openDay, splitRange } from "./reports/summary.js";
 
 export const ROLLUP_DIMS = ["all", "page", "entry", "exit", "channel", "source", "utm_campaign", "country", "device", "browser", "os", "lang", "event", "goal"] as const;
@@ -300,17 +301,25 @@ function foldPairFamilies(rc: RollupCtx, pairs: PairRow[], by: Metric): PairRow[
 	return out;
 }
 
+const SESSION_DIMS = Object.entries(SESSION_KEYS) as Array<[RollupDim, string]>;
+/** The parts of the session read: every session dim, each pair dim by each segment, and the cube cell (`[dim, key expression, seg]`). */
+const sessionParts = (): Array<readonly [string, string, string]> => [
+	...SESSION_DIMS.map(([dim, expr]) => [dim, expr, ""] as const),
+	...SESSION_DIMS.filter(([dim]) => dim in PAIR_WEIGHTS).flatMap(([dim, expr]) => SEGS.map((seg) => [dim, `${expr} || '${SEP}' || ${SESSION_KEYS[seg]}`, seg] as const)),
+	["cube", SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP}' || `), CUBE_SEG] as const,
+];
+/** Parts of the session read of a day (21: 11 dims, 9 pairs, the cube). */
+export const SESSION_PARTS = sessionParts().length;
+
 async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: RollupRow[]; pairs: PairRow[]; cube: CubeRow[] }> {
 	const ctx = reportCtx(rc);
 	const input: RunInput = { from: day, to: day, filters: [], granularity: "day", params: {}, limit: 0, offset: 0, isCompare: false };
 	const out: RollupRow[] = [];
 
 	const pairs: PairRow[] = [];
-	// All session dims, session pairs and the cube cells in one statement (D1 counts statements per invocation): 21 parts of 4 parameters.
-	const sessionDims = Object.entries(SESSION_KEYS) as Array<[RollupDim, string]>;
-	const pairParts = sessionDims.filter(([dim]) => dim in PAIR_WEIGHTS).flatMap(([dim, expr]) => SEGS.map((seg) => [dim, `${expr} || '${SEP}' || ${SESSION_KEYS[seg]}`, seg] as const));
-	const cubePart = ["cube", SEGS.map((g) => SESSION_KEYS[g]).join(` || '${SEP}' || `), CUBE_SEG] as const;
-	const parts = [...sessionDims.map(([dim, expr]) => [dim, expr, ""] as const), ...pairParts, cubePart].map(([dim, expr, seg]) => {
+	// All session dims, session pairs and the cube cells: 21 parts of 4 parameters (`SESSION_PARTS`), in statements of at most 5 terms (D1's compound limit).
+	const sessionDims = SESSION_DIMS;
+	const parts = sessionParts().map(([dim, expr, seg]) => {
 		const extra = dim === "utm_campaign" ? { sql: "s.utm_campaign IS NOT NULL", params: [] } : TRUE;
 		// `all` has no key expression: Postgres rejects a constant in GROUP BY.
 		// The `all` row also counts the passive entries (in `hits`), for the storage estimate.
@@ -318,7 +327,7 @@ async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: Ro
 		const key = dim === "all" ? "''" : "x.key";
 		return { sql: `SELECT '${dim}' AS dim, '${seg}' AS seg, ${key} AS key, x.sessions, x.events, x.pageviews, x.visitors, x.bounces, x.engaged, x.duration_ms, ${dim === "all" ? "x.passive" : "0"} AS passive FROM (${q.sql}) x`, params: q.params };
 	});
-	const sessionRows = (await rc.db.all(parts.map((p) => p.sql).join(" UNION ALL "), parts.flatMap((p) => p.params))).filter((r) => num(r.sessions) > 0);
+	const sessionRows = (await unionAllChunked(rc.db, parts)).filter((r) => num(r.sessions) > 0);
 	for (const [dim] of sessionDims) {
 		const mapped = sessionRows.filter((r) => r.dim === dim && r.seg === "").map((r) => row(dim, String(r.key), { ...r, engaged_ms: r.duration_ms, hits: r.passive }));
 		out.push(...foldTop(mapped, TOP_N[dim], "sessions"));
@@ -341,10 +350,11 @@ async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: Ro
 	const h = entryCols(rc.db.dialect);
 	const segCols = SEGS.map((g) => `${SESSION_KEYS[g]} AS ${g}`).join(", ");
 	// The entries of the day once in CTE `e` (materialized: used four times), grouped by key alone and by key and each segment.
+	// Four terms: the key alone and the key by each segment.
 	const grouped = (from: Frag, keyExpr: string, cols: string, aggs: string) => ({
-		sql: `WITH e AS (SELECT ${keyExpr} AS key, ${cols}s.sid AS sid, s.vkey AS vkey, ${segCols} ${from.sql}) ${["", ...SEGS]
-			.map((g) => `SELECT '${g}' AS seg, ${g || "''"} AS segkey, key, ${aggs} FROM e GROUP BY key${g ? `, ${g}` : ""}`)
-			.join(" UNION ALL ")}`,
+		sql: `WITH e AS (SELECT ${keyExpr} AS key, ${cols}s.sid AS sid, s.vkey AS vkey, ${segCols} ${from.sql}) ${
+			unionAll(["", ...SEGS].map((g) => ({ sql: `SELECT '${g}' AS seg, ${g || "''"} AS segkey, key, ${aggs} FROM e GROUP BY key${g ? `, ${g}` : ""}`, params: [] }))).sql
+		}`,
 		params: from.params,
 	});
 	const split = (rows: Array<Record<string, unknown>>, dim: RollupDim) => {
@@ -361,7 +371,7 @@ async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: Ro
 
 	const cc: CompileCtx = { db: rc.db, site: rc.site, from: day, to: day, goals: rc.goals };
 	const goals: RollupRow[] = [];
-	// One statement per group of goals (UNION ALL), so the cost of a day grows by one statement per ten goals.
+	// Goals in statements of at most 5 terms (D1's compound limit), so the cost of a day grows by one statement per five goals.
 	const goalParts: Frag[] = [];
 	for (const g of rc.goals.filter((x) => x.active !== false)) {
 		const where = andFrags([sessionWhere(rc.site, day, day, TRUE), await goalPredicate(cc, g, "h")]);
@@ -371,8 +381,7 @@ async function computeRollupRows(rc: RollupCtx, day: string): Promise<{ rows: Ro
 		});
 	}
 	const byGoal = new Map<string, Array<Record<string, unknown>>>();
-	for (const group of goalGroups(goalParts))
-		for (const r of await rc.db.all(group.map((p) => p.sql).join(" UNION ALL "), group.flatMap((p) => p.params))) byGoal.set(String(r.goal), [...(byGoal.get(String(r.goal)) ?? []), r]);
+	for (const r of await unionAllChunked(rc.db, goalParts)) byGoal.set(String(r.goal), [...(byGoal.get(String(r.goal)) ?? []), r]);
 	for (const [name, rs] of byGoal) {
 		const total = row("goal", name, {});
 		const bySeg = new Map<string, PairRow>();
@@ -536,12 +545,24 @@ export const summaryRows = (s: DaySummary) =>
 	s.rows.length + s.pairs.length + s.revenue.length + s.revenuePairs.length + s.links.length + s.linkRevenue.length + s.journeys.length + s.cube.length + s.revenueCube.length;
 
 /**
- * Statements `rollupDay` costs for a site with these goals, at least: the reads (sessions, pages, events, goals ten per statement,
- * revenue, links, journeys), one upsert per table (a day under 500 rows per table) and two deletes per table, plus
- * the link and journey upsert and delete of each table, and the cube's upsert, delete and revenue delete.
+ * Statements `rollupDay` costs for a site with these goals, at least. Every union of parts runs in statements of at
+ * most 5 terms (D1's compound limit, `unionAllChunked`). The reads: sessions (21 parts, 5 statements), pages, events,
+ * goals (five per statement), revenue (9 parts, 2 statements), event goal revenue (five per statement), links
+ * (15 parts, 3 statements) and journeys. The writes: one upsert per table (a day under 500 rows per table) and two
+ * deletes per table, the link and journey upsert and delete of each table, and the cube's upsert, delete and revenue delete.
+ * Goals whose predicates bind many values can need more statements; `runRollup` checks the real count before writing.
  */
 export const dayStatements = (goals: readonly Goal[]) =>
-	3 + Math.ceil(goals.filter((g) => g.active !== false).length / GOALS_PER_STATEMENT) + 1 + Math.ceil(eventGoals(goals).length / GOALS_PER_STATEMENT) + 2 + 6 + 4 + 3;
+	unionStatements(SESSION_PARTS) +
+	2 +
+	Math.ceil(goals.filter((g) => g.active !== false).length / GOALS_PER_STATEMENT) +
+	unionStatements(REVENUE_PARTS) +
+	Math.ceil(eventGoals(goals).length / GOALS_PER_STATEMENT) +
+	unionStatements(linkDayParts(SEGS.length)) +
+	1 +
+	6 +
+	4 +
+	3;
 
 // ── reading one family ────────────────────────────────────────────────────────
 
@@ -634,6 +655,8 @@ export interface RollupTickResult {
 	sites: string[];
 	rows: number;
 	statements: number;
+	/** Requests of the run: its statements, the 4 KV calls and the goal loads (what it took from the invocation's queries). */
+	requests: number;
 	/** Every summary day up to and including the watermark is stored, for every site. */
 	watermark: string | null;
 	/** Nothing left to close. */
@@ -653,23 +676,30 @@ const FIRST_DAY_FIXED = 2;
 const tooBig = (site: string, day: string, need: number, limit: number) =>
 	new Error(`rollup: storing ${site} on ${day} needs ${need} requests, more than the ${limit} one run of this capacity profile may make; fewer active goals or a larger profile lets it close`);
 
-export async function runRollup(rc: RollupRunCtx, kv: KvLike, now: number, o: { requests?: number } = {}): Promise<RollupTickResult> {
+/**
+ * `requests`: this database's share of the invocation's requests. `available`: what is left of the invocation when the
+ * run starts (several databases share one invocation; default the profile's requests). The first site-day of a run may
+ * use up to the profile's requests, but never more than is left: a site-day that fits the profile but not what is left
+ * waits for the next run.
+ */
+export async function runRollup(rc: RollupRunCtx, kv: KvLike, now: number, o: { requests?: number; available?: number } = {}): Promise<RollupTickResult> {
 	const last = lastClosedDay(now, rc.settings.siteTimezone);
 	const c = counted(rc.db);
 	const whole = (PROFILES[rc.settings.capacityProfile ?? "standard"] ?? PROFILES.standard).requests - KV_CALLS;
 	const limit = (o.requests ?? whole + KV_CALLS) - KV_CALLS;
+	const room = Math.min(whole, (o.available ?? whole + KV_CALLS) - KV_CALLS);
 	const wm = await kv.get<string>(KV_WATERMARK);
 	const cursor = await kv.get<{ day: string; site: string }>(KV_ROLLUP_CURSOR);
-	const out: RollupTickResult = { days: [], sites: [], rows: 0, statements: 0, watermark: wm, done: false };
+	const out: RollupTickResult = { days: [], sites: [], rows: 0, statements: 0, requests: 0, watermark: wm, done: false };
 	let day: string | null = wm ? addDays(wm, 1) : null;
 	let after = "";
 	const goals = new Map<string, readonly Goal[]>();
+	// Statements plus the storage reads of the goals, which the profile's requests count too.
+	let loads = 0;
+	const used = () => c.n() + loads;
 	try {
 		if (!wm) day = await firstDay(c.db);
 		if (day && cursor?.day === day) after = cursor.site;
-		// Statements plus the storage reads of the goals, which the profile's requests count too.
-		let loads = 0;
-		const used = () => c.n() + loads;
 		days: while (day && day <= last) {
 			const sites = await sitesOfDay(c.db, day, after);
 			out.days.push(day);
@@ -681,18 +711,19 @@ export async function runRollup(rc: RollupRunCtx, kv: KvLike, now: number, o: { 
 					goals.set(site, g);
 				}
 				// The first site-day of a fresh run may use the profile's whole requests (a database's share can be smaller
-				// than one day), never more: past them the platform would stop the run (Workers Free: 50 per invocation).
+				// than one day), never more, and never more than is left of the invocation: past them the platform would stop
+				// the run (Workers Free: 50 per invocation). A site-day over the profile's requests can never close: an error.
 				const fresh = !out.sites.length && c.n() <= FIRST_DAY_FIXED;
-				const cap = fresh ? Math.max(limit, whole) : limit;
+				const cap = fresh ? Math.max(limit, room) : limit;
 				if (used() + dayStatements(g) > cap) {
-					if (fresh) throw tooBig(site, day, used() + dayStatements(g), cap);
+					if (fresh && used() + dayStatements(g) > whole) throw tooBig(site, day, used() + dayStatements(g), whole);
 					break days;
 				}
 				const sum = await computeDay({ db: c.db, site, settings: rc.settings, goals: g }, day);
 				const stmts = writeDayStmts(rc.db.dialect, site, day, sum);
 				// A large day needs more upserts than estimated: leave it to the next tick (its reads are repeated, its writes not).
 				if (used() + stmts.length > cap) {
-					if (fresh) throw tooBig(site, day, used() + stmts.length, cap);
+					if (fresh && used() + stmts.length > whole) throw tooBig(site, day, used() + stmts.length, whole);
 					break days;
 				}
 				await c.db.batch(stmts);
@@ -711,6 +742,7 @@ export async function runRollup(rc: RollupRunCtx, kv: KvLike, now: number, o: { 
 		}
 	} finally {
 		out.statements = c.n();
+		out.requests = used() + KV_CALLS;
 		if (out.watermark && out.watermark !== wm) await kv.set(KV_WATERMARK, out.watermark);
 		// A tick that failed before it reached a day leaves the cursor as it was.
 		const next = after ? { day: day as string, site: after } : out.days.length || out.done ? null : cursor;
@@ -724,8 +756,6 @@ export async function runRollup(rc: RollupRunCtx, kv: KvLike, now: number, o: { 
 
 export const REVENUE_ROLLUP_MAX_SITES_PER_TICK = 3;
 export const REVENUE_RECONCILE_DAYS_PER_TICK = 2;
-/** Statements one site may cost in one `revenue` run: the reconcile and two recomputed days of a site without goals, by `dayStatements` (spy-tested). */
-export const REVENUE_STATEMENTS_PER_SITE = 39;
 export const KV_REVENUE_CURSOR = "revenue:cursor";
 /** Requests of a `revenue` run besides the sites: the probe, the watermark and cursor reads, the cursor write. */
 const REVENUE_FIXED_REQUESTS = 4;
@@ -740,6 +770,10 @@ const REVENUE_ROLLUP_KEYS: Array<[string, string | null]> = [
 	["all", null],
 	...(Object.entries(REVENUE_KEYS) as Array<[RevenueDim, string]>).map(([d, k]) => [ROLLUP_DIM[d], k] as [string, string]),
 ];
+/** Parts of the revenue read of a day besides the goals (`all` and the eight dims of `REVENUE_KEYS`). */
+const REVENUE_PARTS = REVENUE_ROLLUP_KEYS.length;
+/** Statements one site may cost in one `revenue` run: the reconcile and two recomputed days of a site without goals, by `dayStatements` (spy-tested). */
+export const REVENUE_STATEMENTS_PER_SITE = 1 + 2 * dayStatements([]);
 const REVENUE_TOP_N = (dim: string) => (dim === "page" || dim === "entry" ? 500 : 200);
 
 export interface RevenueRow {
@@ -789,8 +823,8 @@ export type FamilyRevenueRow = RevenueRow & { seg: string; segkey: string };
 export const computeRevenueDays = async (rc: RollupCtx, days: readonly string[]): Promise<RevenueRow[]> => (await computeRevenue(rc, days)).revenue;
 
 /**
- * Revenue rows and revenue pairs of the given days: one `UNION ALL` for the nine non-goal dims, one statement per
- * ten event goals. Each statement groups by the three segments too; an order and its visit have one value per
+ * Revenue rows and revenue pairs of the given days: the nine non-goal dims in two statements, one statement per five
+ * event goals (unions of at most 5 terms, D1's compound limit). Each statement groups by the three segments too; an order and its visit have one value per
  * segment, so orders, revenue and distinct visits add up across those groups into the single and the pair rows.
  */
 async function computeRevenue(rc: RollupCtx, days: readonly string[]): Promise<{ revenue: RevenueRow[]; pairs: RevenuePairRow[]; cube: FamilyRevenueRow[] }> {
@@ -807,16 +841,14 @@ async function computeRevenue(rc: RollupCtx, days: readonly string[]): Promise<{
 		// `all` has no key expression: Postgres rejects a constant in GROUP BY.
 		return { sql: `SELECT '${dim}' AS dim, ${k ?? "''"} AS key, h.day AS day, h.cur AS cur, ${agg} ${b.sql} GROUP BY ${k ? `${k}, ` : ""}${by}`, params: b.params };
 	});
-	const rows = await rc.db.all(parts.map((p) => p.sql).join(" UNION ALL "), parts.flatMap((p) => p.params));
+	const rows = await unionAllChunked(rc.db, parts);
 	const cc: CompileCtx = { db: rc.db, site: rc.site, from: days[0] as string, to: days.at(-1) as string, goals: rc.goals };
-	for (const group of chunk(eventGoals(rc.goals), GOALS_PER_STATEMENT)) {
-		const gp: Frag[] = [];
-		for (const g of group) {
-			const b = base(await goalPredicate(cc, g, "h", "event"));
-			gp.push({ sql: `SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, ${agg} ${b.sql} GROUP BY ${by}`, params: [g.name, ...b.params] });
-		}
-		rows.push(...(await rc.db.all(gp.map((p) => p.sql).join(" UNION ALL "), gp.flatMap((p) => p.params))));
+	const gp: Frag[] = [];
+	for (const g of eventGoals(rc.goals)) {
+		const b = base(await goalPredicate(cc, g, "h", "event"));
+		gp.push({ sql: `SELECT 'goal' AS dim, CAST(? AS TEXT) AS key, h.day AS day, h.cur AS cur, ${agg} ${b.sql} GROUP BY ${by}`, params: [g.name, ...b.params] });
 	}
+	rows.push(...(await unionAllChunked(rc.db, gp)));
 	const single = new Map<string, RevenueRow>();
 	const pairs = new Map<string, RevenuePairRow>();
 	const cube = new Map<string, FamilyRevenueRow>();

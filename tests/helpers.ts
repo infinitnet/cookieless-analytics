@@ -5,6 +5,7 @@ import { type Db, fromKysely } from "../src/db/adapter.js";
 import { assertParams, type Param } from "../src/db/sql.js";
 import { dayInZone } from "../src/core/time.js";
 import { dayInt } from "../src/db/dialect.js";
+import { assertColumns, assertD1Limits, type D1LimitOptions } from "./d1-limits.js";
 
 /** Map-backed KV with compare-and-set semantics like the host `ctx.kv`. */
 export class MemoryKv implements KvLike {
@@ -33,22 +34,28 @@ export class MemoryKv implements KvLike {
 /** The `json_*` writers return TEXT even on a JSONB input: one of them turns the JSONB document back into text. */
 const TEXT_JSON_WRITER = /\bjson_(set|patch|insert|replace|remove)\s*\(/i;
 
-/** D1 limits (placeholders = params, at most 100) and the JSONB write rule, checked on every statement. */
-function check(sql: string, params?: readonly unknown[]): void {
+export type TestDbOptions = D1LimitOptions;
+
+/**
+ * D1 limits (placeholders = params, at most 100; at most 5 terms per compound SELECT; LIKE patterns of at most 50 bytes;
+ * at most 100 KB of SQL; results checked for at most 100 columns) and the JSONB write rule, checked on every statement.
+ */
+function check(sql: string, params?: readonly unknown[], o: TestDbOptions = {}): void {
 	assertParams(sql, params);
+	assertD1Limits(sql, params, o);
 	if (TEXT_JSON_WRITER.test(sql)) throw new Error(`text JSON writer in a statement, use the jsonb_* helpers of dialect.ts: ${sql}`);
 }
 
 /** In-memory SQLite. Every statement is checked against the D1 limits and the JSONB write rule. */
-export function memoryDb(): { db: Db; kysely: Kysely<any>; raw: Database.Database } {
+export function memoryDb(o: TestDbOptions = {}): { db: Db; kysely: Kysely<any>; raw: Database.Database } {
 	const raw = new Database(":memory:");
 	const kysely = new Kysely<any>({ dialect: new SqliteDialect({ database: raw }) });
 	const inner = fromKysely(kysely);
 	const db: Db = {
 		dialect: inner.dialect,
-		run: (sql, params) => (check(sql, params), inner.run(sql, params)),
-		all: (sql, params) => (check(sql, params), inner.all(sql, params)),
-		batch: (stmts) => (stmts.forEach((s) => check(s.sql, s.params)), inner.batch(stmts)),
+		run: async (sql, params) => (check(sql, params, o), inner.run(sql, params)),
+		all: async <T>(sql: string, params?: Param[]) => (check(sql, params, o), assertColumns(await inner.all<T>(sql, params))),
+		batch: async (stmts) => (stmts.forEach((s) => check(s.sql, s.params, o)), inner.batch(stmts)),
 	};
 	return { db, kysely, raw };
 }
@@ -279,8 +286,8 @@ export const CHROME_UA =
 export const GOOGLEBOT_UA = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
 
 /** In-memory SQLite with the plugin schema applied, plus a KV. */
-export async function schemaDb() {
-	const m = memoryDb();
+export async function schemaDb(o: TestDbOptions = {}) {
+	const m = memoryDb(o);
 	const kv = new MemoryKv();
 	const { ensureSchema } = await import("../src/db/schema.js");
 	await ensureSchema(m.db, kv);

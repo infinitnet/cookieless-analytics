@@ -1,9 +1,10 @@
 import { roundMinor } from "../../core/currency.js";
+import { unionAllChunked } from "../../db/compound.js";
 import { dayInt } from "../../db/dialect.js";
 import { chunk, MAX_PARAMS } from "../../db/sql.js";
 import { andFrags, type CompileCtx, type Frag, goalPredicate, entryProp, inList, QueryError, TRUE } from "../compile.js";
 import type { FunnelMode, FunnelStep } from "../filters.js";
-import { entriesOf, entryCols, goalGroups, hitJoin, num, ORDER_SUMS, type ReportCtx, type ReportData, type Row, type RunInput, ratio, round, sessionTotals, sessionWhere } from "./base.js";
+import { entriesOf, entryCols, hitJoin, num, ORDER_SUMS, type ReportCtx, type ReportData, type Row, type RunInput, ratio, round, sessionTotals, sessionWhere } from "./base.js";
 import { currencyList, currencyOf, metaOf } from "./revenue.js";
 
 /** Funnels read at most this many sessions per query. */
@@ -60,7 +61,7 @@ export async function goals(rc: ReportCtx, input: RunInput): Promise<ReportData>
 	const total = (await sessionTotals(rc, input)).sessions ?? 0;
 	const cc = compileCtx(rc, input);
 	const active = rc.goals.filter((x) => x.active !== false);
-	// One statement per ten goals (UNION ALL), like the closed-day writer.
+	// One statement per five goals (UNION ALL of at most 5 terms, D1's compound limit), like the closed-day writer.
 	const parts: Frag[] = [];
 	for (const [i, g] of active.entries()) {
 		// Same sessions as the denominator: started in range, with a pageview, matching the filters.
@@ -68,7 +69,7 @@ export async function goals(rc: ReportCtx, input: RunInput): Promise<ReportData>
 		parts.push({ sql: `SELECT ${i} AS g, COUNT(*) AS completions, COUNT(DISTINCT s.sid) AS converting FROM ca_sessions s CROSS JOIN ${entriesOf(rc.db.dialect)} WHERE ${where.sql}`, params: where.params });
 	}
 	const got = new Map<number, Record<string, unknown>>();
-	for (const group of goalGroups(parts)) for (const r of await rc.db.all(group.map((p) => p.sql).join(" UNION ALL "), group.flatMap((p) => p.params))) got.set(num(r.g), r);
+	for (const r of await unionAllChunked(rc.db, parts)) got.set(num(r.g), r);
 	const rows: Row[] = active.map((g, i) => {
 		const r = got.get(i);
 		const converting = num(r?.converting);

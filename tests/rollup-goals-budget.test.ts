@@ -1,6 +1,7 @@
 /**
- * Goals in the closed-day writer: they are read ten per statement, so many goals stay inside the request budget
- * of the capacity profile (Workers Free: 50 per invocation; `small` plans 40), the first site-day of a run included.
+ * Goals in the closed-day writer: they are read five per statement (D1 allows 5 terms in one compound SELECT), so many
+ * goals stay inside the request budget of the capacity profile (Workers Free: 50 per invocation; `small` plans 40), the
+ * first site-day of a run included.
  */
 import { describe, expect, it } from "vitest";
 import { addDays, zonedToEpoch } from "../src/core/time.js";
@@ -23,7 +24,7 @@ const goals = (n: number): Goal[] =>
 
 describe("goals within the request budget of a rollup run", () => {
 	it.each([
-		["small", 40],
+		["small", 20],
 		["standard", 60],
 	] as Array<[CapacityProfile, number]>)("%s with %i goals: every closed day is stored within the profile's requests", async (profile, n) => {
 		const env = await schemaDb();
@@ -31,7 +32,7 @@ describe("goals within the request budget of a rollup run", () => {
 		const traffic = generateTraffic({ pageviews: 300, seed: 5, rich: true, start: zonedToEpoch(DAY, 0, TZ), spanSeconds: 2 * 86_400 - 1 });
 		await recordTraffic(env.db, traffic, settings);
 		const g = goals(n);
-		// Ten goals per statement: 40 goals cost 4 reads (and 2 for the 20 event goals' revenue), not 40.
+		// Five goals per statement: 20 goals cost 4 reads (and 2 for the 10 event goals' revenue), not 20; 60 goals cost 12 and 6.
 		expect(dayStatements(g)).toBeLessThan(PROFILES[profile].requests - 4);
 		let done = false;
 		for (let i = 0; i < 5 && !done; i++) {
@@ -49,10 +50,10 @@ describe("goals within the request budget of a rollup run", () => {
 		const env = await schemaDb();
 		const settings = normalizeSettings({ siteTimezone: TZ, capacityProfile: "small" });
 		await recordTraffic(env.db, generateTraffic({ pageviews: 50, seed: 5, start: zonedToEpoch(DAY, 0, TZ), spanSeconds: 3600 }), settings);
-		// 200 goals: 20 goal reads and 10 for their revenue, past the 36 statements of `small`.
+		// 200 goals: 40 goal reads and 20 for their revenue, past the 36 statements of `small`.
 		await expect(runRollup({ db: env.db, settings, goals: async () => goals(200) }, env.kv, NOW)).rejects.toThrow(/needs \d+ requests, more than the 36/);
 		// A smaller share than one site-day (two databases on `small`): the first site-day may use the profile's whole requests.
-		const t = await runRollup({ db: env.db, settings, goals: async () => goals(40) }, env.kv, NOW, { requests: 20 });
+		const t = await runRollup({ db: env.db, settings, goals: async () => goals(20) }, env.kv, NOW, { requests: 20 });
 		expect(t.sites.length).toBe(1);
 		expect(t.statements + 4).toBeLessThanOrEqual(40);
 	});

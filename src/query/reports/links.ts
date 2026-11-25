@@ -11,6 +11,7 @@
  */
 import { roundMinor } from "../../core/currency.js";
 import { LINK_EVENTS } from "../../contract.js";
+import { unionAll, unionAllChunked } from "../../db/compound.js";
 import { dayInt } from "../../db/dialect.js";
 import { andFrags, entriesOf, entryCols, entryProp, type Frag, propText, QueryError, TRUE } from "../compile.js";
 import { LINK_BY } from "../filters.js";
@@ -96,8 +97,8 @@ function visitlessSource(rc: ReportCtx, input: RunInput): Source {
 
 /** One statement over every source: each grouped by `key`, then summed by `key` (sessions never overlap: visitless rows have none). */
 async function overSources(rc: ReportCtx, sources: readonly Source[], part: (src: Source) => Frag, sums: string): Promise<Array<Record<string, unknown>>> {
-	const parts = sources.map(part);
-	return rc.db.all(`SELECT t.key AS key, ${sums} FROM (${parts.map((p) => p.sql).join(" UNION ALL ")}) t GROUP BY t.key`, parts.flatMap((p) => p.params));
+	const u = unionAll(sources.map(part));
+	return rc.db.all(`SELECT t.key AS key, ${sums} FROM (${u.sql}) t GROUP BY t.key`, u.params);
 }
 
 /** `seen` keys (`<slug>` or `<slug>@<place>`) of property row `p`: the value, its slug and its placement. */
@@ -158,7 +159,8 @@ export async function links(rc: ReportCtx, input: RunInput): Promise<ReportData>
 		const f = src.from(src.amount(false), andFrags([{ sql: `${src.name} = ? AND ${src.val} IS NOT NULL AND ${src.cur} IS NOT NULL`, params: [LINK_EVENTS.sale] }, onSlug(hitSlug(src))]));
 		return { sql: `SELECT ${src.cur} AS cur, COUNT(*) AS orders, SUM(${src.val}) AS revenue ${f.sql} GROUP BY ${src.cur}`, params: f.params };
 	});
-	const all = await rc.db.all(`SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (${parts.map((p) => p.sql).join(" UNION ALL ")}) t GROUP BY t.cur`, parts.flatMap((p) => p.params));
+	const u = unionAll(parts);
+	const all = await rc.db.all(`SELECT t.cur AS cur, SUM(t.orders) AS orders, SUM(t.revenue) AS revenue FROM (${u.sql}) t GROUP BY t.cur`, u.params);
 	return linkData(by, byKey, input, cur, all);
 }
 
@@ -216,8 +218,11 @@ export interface LinkDayRow {
 	revenue: number;
 }
 
+/** Parts of `linkDay` with `segs` segments: three per family (`link`, `link_place`, and `link` by each segment). */
+export const linkDayParts = (segs: number) => 3 * (2 + segs);
+
 /**
- * The link rows of one site and day for the summaries, one statement over the report's sources: per family
+ * The link rows of one site and day for the summaries, over the report's sources: per family
  * (`link`, `link_place`, and `link` crossed with each of `segs`) the clicks, clicking sessions and conversions,
  * the conversion values per currency, and the impressions. Pair rows hold what a filter on that segment keeps:
  * events of a visit with a page view (the report's session filter rule), so a pair row equals the detailed report
@@ -246,13 +251,18 @@ export async function linkDay(rc: ReportCtx, day: string, segs: ReadonlyArray<Ex
 		const group = `GROUP BY ${k}${seg ? `, ${seg}` : ""}`;
 		return [
 			`${head}, '' AS cur, 0 AS impressions, SUM(click) AS clicks, COUNT(DISTINCT CASE WHEN click = 1 AND counted = 1 THEN sid END) AS sessions, SUM(1 - click) AS conversions, 0 AS orders, 0 AS revenue FROM e WHERE 1 = 1${counted} ${group}`,
-			`${head}, cur, 0, 0, 0, 0, COUNT(*), SUM(val) FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
-			`${head}, '', COUNT(*), 0, 0, 0, 0, 0 FROM i WHERE 1 = 1${counted} ${group}`,
+			`${head}, cur, 0 AS impressions, 0 AS clicks, 0 AS sessions, 0 AS conversions, COUNT(*) AS orders, SUM(val) AS revenue FROM e WHERE click = 0 AND val IS NOT NULL AND cur IS NOT NULL${counted} ${group}, cur`,
+			`${head}, '' AS cur, COUNT(*) AS impressions, 0 AS clicks, 0 AS sessions, 0 AS conversions, 0 AS orders, 0 AS revenue FROM i WHERE 1 = 1${counted} ${group}`,
 		];
 	});
-	const rows = await rc.db.all(
-		`WITH e AS (${events.map((p) => p.sql).join(" UNION ALL ")}), i AS (${views.map((p) => p.sql).join(" UNION ALL ")}) ${parts.join(" UNION ALL ")}`,
-		[...events.flatMap((p) => p.params), ...views.flatMap((p) => p.params)],
+	// The families' parts (`linkDayParts`) in statements of at most 5 terms (D1's compound limit), each with the same `e` and `i`;
+	// every part names its columns, since any part can open a statement.
+	const e = unionAll(events);
+	const i = unionAll(views);
+	const rows = await unionAllChunked(
+		rc.db,
+		parts.map((sql) => ({ sql, params: [] })),
+		{ head: { sql: `WITH e AS (${e.sql}), i AS (${i.sql})`, params: [...e.params, ...i.params] } },
 	);
 	return rows.map((r) => ({
 		dim: r.dim as LinkDayRow["dim"],

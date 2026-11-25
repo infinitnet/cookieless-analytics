@@ -1,4 +1,4 @@
-import { LIKE_ESCAPE, likeEscape } from "../../db/dialect.js";
+import { textMatch } from "../../db/dialect.js";
 import { ident } from "../../db/sql.js";
 import { andFrags, entriesOf, entryCols, entryProp, type Frag, QueryError, TRUE } from "../compile.js";
 import { type DimDef, PROP_KEY_RE, SEARCH_DIMS, TRAFFIC_DIMS } from "../filters.js";
@@ -41,7 +41,7 @@ export async function dimensionValues(rc: ReportCtx, input: RunInput): Promise<R
 	const where = andFrags([
 		base,
 		{ sql: `${expr} IS NOT NULL`, params: [] },
-		prefix ? { sql: `lower(${expr}) LIKE lower(?) ${LIKE_ESCAPE}`, params: [`${likeEscape(prefix)}%`] } : TRUE,
+		prefix ? textMatch(rc.db.dialect, `lower(${expr})`, "prefix", prefix) : TRUE,
 	]);
 	const rows = await rc.db.all(`SELECT ${expr} AS v, COUNT(*) AS n FROM ${table} WHERE ${where.sql} GROUP BY ${expr} ORDER BY n DESC, v LIMIT ?`, [...where.params, limit]);
 	return { rows: rows.map((r) => ({ key: String(r.v), count: num(r.n) })) };

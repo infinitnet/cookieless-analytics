@@ -2,9 +2,11 @@
  * A fake D1 binding over better-sqlite3: `prepare().bind()` with `all`, `run`, `first`, plus `batch` (one
  * transaction) and `exec`, each answering D1's result shape with `meta` (`changes`, `rows_written` as the changed
  * rows, `size_after` as the database file size). Counts round trips (one per `all`, `run`, `first`, `batch`,
- * `exec`) and statements, so tests can compare a real batch with a loop of single statements.
+ * `exec`) and statements, so tests can compare a real batch with a loop of single statements. A compound SELECT of
+ * more than 5 terms and a LIKE pattern over 50 bytes fail with D1's own error, as on D1 (`d1-limits.ts`).
  */
 import Database from "better-sqlite3";
+import { assertD1Limits } from "./d1-limits.js";
 
 export interface FakeD1 {
 	raw: Database.Database;
@@ -37,6 +39,7 @@ export function fakeD1(raw: Database.Database = new Database(":memory:")): FakeD
 		stats.statements++;
 		// D1 refuses undefined; better-sqlite3 has no booleans: both would hide a mapping bug of the Db.
 		for (const v of values) if (v === undefined || typeof v === "boolean") throw new Error(`D1_TYPE_ERROR: Type '${typeof v}' not supported for value '${v}'`);
+		assertD1Limits(sql, values);
 		const st = raw.prepare(sql);
 		if (st.reader) {
 			const results = st.all(...values);

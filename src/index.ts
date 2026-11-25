@@ -381,19 +381,31 @@ export function createPlugin(options: PluginOptions = {}) {
 		await runSearchTick({ ...(await search.syncCtx(ctx as unknown as SearchCtx)), log: ctx.log }, { continueAs });
 	};
 	/** A cron task once per database, each with its share of the profile's requests (one invocation's queries are capped together). */
-	const perDatabase = async (ctx: CronCtx, s: Settings, task: (d: Db, kv: KvLike, requests: number) => Promise<unknown>) => {
+	const perDatabase = async (ctx: CronCtx, s: Settings, task: (d: Db, kv: KvLike, requests: number) => Promise<unknown>, rotate = 0) => {
 		// A database a move is filling is skipped: no day is closed or deleted from half copied rows.
 		const move = await moving(ctx.kv);
 		return eachTarget(dbFor, ctx.kv as KvLike, async (d, kv, share, binding) => {
 			if (move && move.dest === binding) return;
 			await ensureSchemaOnce(d, ctx.kv as KvLike);
 			await task(d, kv, share(PROFILES[s.capacityProfile].requests - TURN_REQUESTS - 1));
-		}, ctx.log);
+		}, ctx.log, rotate);
 	};
 	const cron = cronDispatcher({
 		async rollup(ctx) {
 			const s = await settings();
-			await perDatabase(ctx, s, (d, kv, requests) => runRollup({ db: d, settings: s, goals: (site) => goalsOf(ctx, site) }, kv, now(), { requests }));
+			// The databases of one invocation run in turn; each may take what the earlier ones left (`available`), never more.
+			// Each run starts at the next database (one run per 30 minutes), so a database whose day needs more than its
+			// share still gets a whole run's requests when a backlog of another takes the rest.
+			let used = 0;
+			const t = now();
+			await perDatabase(
+				ctx,
+				s,
+				async (d, kv, requests) => {
+					used += (await runRollup({ db: d, settings: s, goals: (site) => goalsOf(ctx, site) }, kv, t, { requests, available: PROFILES[s.capacityProfile].requests - used })).requests;
+				},
+				Math.floor(t / 1800),
+			);
 		},
 		async retention(ctx) {
 			const s = await settings();

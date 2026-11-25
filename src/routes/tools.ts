@@ -308,7 +308,8 @@ FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid 
 						let last = d === r.from ? (r.after ?? "") : "";
 						for (const site of (await sitesOfDay(c.db, d, last)).filter((x) => !only || x === only)) {
 							const goals = await rc.goals(site);
-							if (ran && c.n() + dayStatements(goals) > cap) {
+							// The first site-day of the call runs even past the cap; a later database's only when it fits what is left.
+							if ((ran || spent > 0) && c.n() + dayStatements(goals) > cap) {
 								[next, after] = [d, last || null];
 								break walk;
 							}
@@ -327,7 +328,13 @@ FROM ca_sessions s WHERE s.site = ? AND s.day >= ? AND s.sid > ? ORDER BY s.sid 
 					return store(await env.db(site), stateKv(ctx.kv, site), range, site);
 				}
 				// Every database of the analytics tables, each with its own watermark and cursors.
-				return eachDatabase(env.db, ctx.kv, async (db, kv) => (range ? store(db, kv, range, null) : runRollup(await rollupCtx(ctx, db), kv, now())));
+				return eachDatabase(env.db, ctx.kv, async (db, kv) => {
+					if (range) return store(db, kv, range, null);
+					// Each database may take what the earlier ones left of the profile's requests, never more.
+					const t = await runRollup(await rollupCtx(ctx, db), kv, now(), { available: PROFILES[s.capacityProfile].requests - spent });
+					spent += t.requests;
+					return t;
+				});
 			},
 		},
 

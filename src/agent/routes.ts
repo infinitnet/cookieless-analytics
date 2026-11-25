@@ -20,6 +20,8 @@ import type { Filter } from "../query/filters.js";
 import type { ReportResult } from "../query/reports/index.js";
 import { rawFromDay } from "../query/retention.js";
 import { KV_WATERMARK } from "../query/rollup.js";
+import { stateKey } from "../sources/sync.js";
+import { SOURCE_IDS } from "../sources/types.js";
 import { answer, type Coll, type DataCtx, type DataEnv, loadAnnotations } from "../routes/data.js";
 import { annotationSearchMatches, annotationView, matchAnnotations, scopeInput, scopeSummary } from "../annotations/scope.js";
 import { dropCounts, DROP_DAYS } from "../routes/privacy.js";
@@ -173,8 +175,11 @@ function handlers(env: AgentEnv): Handlers {
 						rawFrom: await rawFromDay(dkv, s, now),
 						rollupWatermark: await dkv.get<string>(KV_WATERMARK),
 						drops: { days: DROP_DAYS, byReason: await dropCounts(db, site, dayInZone(now, s.siteTimezone), DROP_DAYS) },
-						// `search:state:<site>:<source>`: this site's sources only.
-						search: Object.fromEntries((await ctx.kv.list(`search:state:${site}:`)).map((e) => [e.key.slice(14 + site.length), searchState(e.value)])),
+						// `search:state:<site>:<source>`: this site's sources only, one read per source (a prefix list is a LIKE
+						// pattern, which D1 refuses past 50 bytes, and the plugin's key prefix with a long site id passes that).
+						search: Object.fromEntries(
+							(await Promise.all(SOURCE_IDS.map(async (src) => [src, await ctx.kv.get(stateKey(site, src))] as const))).filter(([, v]) => v != null).map(([src, v]) => [src, searchState(v)]),
+						),
 					},
 				};
 			},

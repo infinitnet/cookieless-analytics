@@ -81,12 +81,13 @@ describe.each(["UTC", "America/New_York"])("rollup in %s", (tz) => {
 		const spy = { ...raw.db, all: (sql: string, p?: unknown[]) => (seen.push(sql), raw.db.all(sql, p as never)), run: (sql: string, p?: unknown[]) => (seen.push(sql), raw.db.run(sql, p as never)), batch: async (st: Array<{ sql: string; params?: unknown[] }>) => (st.forEach((x) => seen.push(x.sql)), raw.db.batch(st as never)) };
 		await rollupDay({ ...raw, db: spy as never }, DAYS[0]);
 		expect(seen.filter((q) => /GROUP BY\s*'/.test(q))).toEqual([]);
-		// One session union, pages, events, the active goals in one statement (4 goals), revenue (1 + one per ten event goals); then the
-		// rollup upsert and its two vanished-keys deletes (single and pair rows), and the two revenue deletes (no orders,
-		// so no revenue upsert). The pairs add no read statement. Links and journeys: one read each, their upsert and
-		// delete, and the delete of the link conversion values (none, so no upsert). The cube: its upsert and delete,
+		// Every union in statements of at most 5 terms (D1's compound limit): the session union (21 parts, 5 statements), pages,
+		// events, the active goals in one statement (4 goals), revenue (9 parts, 2 statements, + one per five event goals); then
+		// the rollup upsert and its two vanished-keys deletes (single and pair rows), and the two revenue deletes (no orders,
+		// so no revenue upsert). The pairs add no read statement. Links (15 parts, 3 statements) and journeys (one read), their
+		// upsert and delete, and the delete of the link conversion values (none, so no upsert). The cube: its upsert and delete,
 		// and the delete of the orders per cell (its cells come from the session union, no read of their own).
-		expect(seen.length).toBe(3 + 1 + 2 + 5 + 2 + 3 + 3);
+		expect(seen.length).toBe(7 + 1 + 3 + 5 + 4 + 3 + 3);
 	});
 
 	it("rerun is idempotent", async () => {

@@ -1,4 +1,4 @@
-import { h as IngestEvent } from "./contract-CzKR3F61.mjs";
+import { h as IngestEvent } from "./contract-C4Imnhu3.mjs";
 /** The event fields a caller sets; `v` and `t` are filled in. */
 export type ServerEvent = Pick<IngestEvent, "name" | "u" | "p" | "val" | "cur" | "oid" | "sid" | "h">;
 /**

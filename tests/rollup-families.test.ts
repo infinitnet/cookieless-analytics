@@ -8,6 +8,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { addDays, zonedToEpoch } from "../src/core/time.js";
 import type { Db } from "../src/db/adapter.js";
+import { maxCompoundTerms } from "../src/db/compound.js";
 import { type Filter, QuerySchema } from "../src/query/filters.js";
 import type { ReportCtx } from "../src/query/reports/base.js";
 import { clearReportCache, type Params, type ReportName, runReport } from "../src/query/reports/index.js";
@@ -216,7 +217,7 @@ describe("link and journey summaries on generated traffic", () => {
 
 describe.each(["sqlite", "postgres"] as const)("link and journey day statements (%s)", (dialect) => {
 	// Postgres: asserted as text only.
-	it("are one statement each, bind every value and keep the documented shape", async () => {
+	it("are statements of at most 5 terms (D1's compound limit), bind every value and keep the documented shape", async () => {
 		const seen: Array<{ sql: string; params: unknown[] }> = [];
 		const fake: Db = {
 			dialect,
@@ -227,8 +228,18 @@ describe.each(["sqlite", "postgres"] as const)("link and journey day statements 
 		const rc: ReportCtx = { db: fake, site: "default", settings: SETTINGS, now: 0, goals: [], funnels: {}, annotations: [] };
 		await linkDay(rc, "2026-06-10", SEGS);
 		await journeyDay(rc, "2026-06-10");
-		expect(seen).toHaveLength(2);
-		const [links, journeys] = seen as [{ sql: string; params: unknown[] }, { sql: string; params: unknown[] }];
+		// Links: 15 parts (three per family, five families) in three statements of five terms, each with the same CTEs and values.
+		expect(seen).toHaveLength(4);
+		const parts = seen.slice(0, 3);
+		const journeys = seen[3] as { sql: string; params: unknown[] };
+		const head = (sql: string) => sql.slice(0, sql.indexOf(") SELECT '") + 1);
+		for (const p of parts) {
+			expect(maxCompoundTerms(p.sql)).toBe(5);
+			expect(head(p.sql)).toBe(head((parts[0] as { sql: string }).sql));
+			expect(p.params).toEqual((parts[0] as { params: unknown[] }).params);
+		}
+		const links = { sql: parts.map((p) => p.sql).join("\n"), params: (parts[0] as { params: unknown[] }).params };
+		expect(maxCompoundTerms(journeys.sql)).toBe(4);
 		expect(links.sql).toMatch(/^WITH e AS \(SELECT .* UNION ALL SELECT .*\), i AS \(SELECT .*\) SELECT 'link' AS dim, '' AS seg, slug AS key, '' AS segkey, '' AS cur/);
 		expect(links.sql).toContain("SELECT 'link_place' AS dim, '' AS seg, place AS key, '' AS segkey");
 		for (const seg of SEGS) expect(links.sql).toContain(`SELECT 'link' AS dim, '${seg}' AS seg, slug AS key, ${seg} AS segkey`);
@@ -250,7 +261,8 @@ describe.each(["sqlite", "postgres"] as const)("link and journey day statements 
 		const fake: Db = {
 			dialect,
 			run: async () => ({ changes: 0 }),
-			all: async (sql) => (sql.startsWith("WITH e AS") ? ([{ dim: "link", seg: "", key: "a", segkey: "", cur: "USD", impressions: 0, clicks: 0, sessions: 0, conversions: 0, orders: 1, revenue: 5 }] as never[]) : ([] as never[])),
+			// The row comes from the first link statement (the `link` family's parts), as on a database.
+			all: async (sql) => (sql.startsWith("WITH e AS") && sql.includes("SELECT 'link' AS dim, '' AS seg, slug AS key, '' AS segkey, cur") ? ([{ dim: "link", seg: "", key: "a", segkey: "", cur: "USD", impressions: 0, clicks: 0, sessions: 0, conversions: 0, orders: 1, revenue: 5 }] as never[]) : ([] as never[])),
 			batch: async (st) => void batches.push(...st),
 		};
 		await rollupDay({ db: fake, site: "default", settings: SETTINGS, goals: [] }, "2026-06-10");

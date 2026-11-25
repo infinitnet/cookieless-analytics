@@ -287,20 +287,42 @@ describe("a missing binding of the main site", () => {
 
 describe("cron budget", () => {
 	it("the databases of one invocation share the profile's requests", async () => {
-		const { host, dbFor } = setup();
+		const { host, env, dbFor } = setup();
 		await drive(dbFor, host.kv, "default", mainTraffic());
 		await drive(dbFor, host.kv, "shop", shopTraffic());
 		const small = { ...S, capacityProfile: "small" as const };
 		let statements = 0;
 		const shares: number[] = [];
-		await eachTarget(dbFor, host.kv, async (db, kv, share) => {
-			shares.push(share(40));
-			statements += (await runRollup({ db, settings: small, goals: async () => [] }, kv, NOW, { requests: share(40) })).statements;
-		});
+		let requests = 0;
+		const stored: string[][] = [];
+		let turn = 0;
+		const run = () =>
+			eachTarget(dbFor, host.kv, async (db, kv, share) => {
+				shares.push(share(40));
+				// As the cron task: each database may take what the earlier ones left of the 40 requests.
+				const t = await runRollup({ db, settings: small, goals: async () => [] }, kv, NOW, { requests: share(40), available: 40 - requests });
+				statements += t.statements;
+				requests += t.requests;
+				stored.push(t.sites);
+			}, undefined, turn++);
+		await run();
 		expect(shares).toEqual([20, 20]);
-		// Both databases had closed days to store, and together they stayed inside one run's 40 requests.
+		// One site-day (28 statements and the 4 KV calls) is more than a share of 20: the first database takes it, the second
+		// finds too little left and waits, so together they stay inside one run's 40 requests.
 		expect(statements).toBeGreaterThan(10);
-		expect(statements).toBeLessThanOrEqual(40);
+		expect(requests).toBeLessThanOrEqual(40);
+		expect(stored[0]?.length).toBe(1);
+		expect(stored[1]).toEqual([]);
+		// Later runs (each with its own 40 requests, each starting at the next database) close days of both databases, never past 40 requests.
+		for (let i = 0; i < 6; i++) {
+			requests = 0;
+			stored.length = 0;
+			await run();
+			expect(requests).toBeLessThanOrEqual(40);
+		}
+		const days = (d: FakeD1) => sum(d, "SELECT COUNT(DISTINCT day) AS n FROM ca_rollup WHERE dim = 'all' AND seg = ''");
+		expect(days(env.CA_DB as FakeD1)).toBeGreaterThan(1);
+		expect(days(env.CA_DB2 as FakeD1)).toBeGreaterThan(1);
 	});
 });
 

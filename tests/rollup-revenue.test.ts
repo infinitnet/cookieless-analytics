@@ -165,12 +165,13 @@ describe("the revenue task", () => {
 			const r = await run(goals);
 			for (const s of r.sites) expect(s.statements, `${goals.length} goals`).toBeLessThanOrEqual(REVENUE_STATEMENTS_PER_SITE);
 		}
-		// Measured, no goals and no session rows: drift 1 + 2 x rollupDay (3 selects and the two rollup deletes, no rollup rows; revenue select, upsert, two deletes;
-		// link and journey selects and their two deletes, no link or journey rows; the cube delete and the delete of its orders, no cube rows) = 31.
+		// Measured, no goals and no session rows: drift 1 + 2 x rollupDay (7 selects: the session union of 21 parts in 5 statements of at most 5
+		// terms, pages and events; the two rollup deletes, no rollup rows; the revenue union of 9 parts in 2 statements, upsert, two deletes; links
+		// (15 parts, 3 statements) and journeys and their two deletes, no link or journey rows; the cube delete and the delete of its orders, no cube rows) = 45.
 		env.raw.prepare("DELETE FROM ca_revenue_daily").run();
 		const r = await run([]);
-		expect(r.sites[0]).toMatchObject({ statements: 31, recomputed: [addDays(TODAY, -6), addDays(TODAY, -5)], pending: 0 });
-		// The four fixture goals cost one statement (goals are read ten per statement), so both days still fit.
+		expect(r.sites[0]).toMatchObject({ statements: 45, recomputed: [addDays(TODAY, -6), addDays(TODAY, -5)], pending: 0 });
+		// The four fixture goals cost one statement (goals are read five per statement), so both days still fit.
 		env.raw.prepare("DELETE FROM ca_revenue_daily").run();
 		const g = await run();
 		expect(g.sites[0]).toMatchObject({ recomputed: [addDays(TODAY, -6), addDays(TODAY, -5)], pending: 0 });
@@ -195,10 +196,11 @@ describe("the revenue task", () => {
 		const t = await runRollup({ db: spy.db, settings: SETTINGS, goals: async () => REV_GOALS }, env.kv, NOW);
 		// 12:00 on 03-12: 03-10 is the last closed day (03-11 and 03-12 can still change).
 		expect(t).toMatchObject({ days: ["2026-03-10"], sites: ["default@2026-03-10"], watermark: "2026-03-10", done: true });
-		// Sites of the day, then the day: session union, pages, events, the 4 goals in one statement, revenue (1 + 1 for the event goals), links, journeys; rollup upsert and the
-		// single and pair deletes, revenue likewise; the link and journey upsert and delete, and the link value delete (no conversions, so no upsert);
-		// the cube upsert and delete, and the delete of the orders per cell (stored in the revenue upsert).
-		expect(spy.c.n).toBe(1 + (3 + 1 + 2 + 2) + 6 + 3 + 3);
+		// Sites of the day, then the day, every union in statements of at most 5 terms (D1's compound limit): the session union (21 parts, 5),
+		// pages, events, the 4 goals in one statement, revenue (9 parts, 2, + 1 for the event goals), links (15 parts, 3), journeys; rollup upsert and
+		// the single and pair deletes, revenue likewise; the link and journey upsert and delete, and the link value delete (no conversions, so no
+		// upsert); the cube upsert and delete, and the delete of the orders per cell (stored in the revenue upsert).
+		expect(spy.c.n).toBe(1 + (5 + 1 + 1 + 1 + 3 + 3 + 1) + 6 + 3 + 3);
 		const days = env.raw.prepare("SELECT DISTINCT day FROM ca_revenue_daily UNION SELECT DISTINCT day FROM ca_rollup ORDER BY day").all();
 		expect(days).toEqual([{ day: "2026-03-10" }]);
 	});
