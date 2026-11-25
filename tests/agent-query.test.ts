@@ -87,9 +87,9 @@ describe("agent/v1/query", () => {
 		expect([long.status, long.json.error]).toEqual([400, "journey_range"]);
 		const c = (await h.call("agent/v1/reports", { token })).json.data;
 		expect(c.params).toEqual(expect.arrayContaining(["mode", "entry"]));
-		expect(Object.keys(c.behaviour.funnels.modes)).toEqual(["sequential", "strict", "flexible"]);
-		expect(c.behaviour.funnels.sessionCaps.strict).toBe(10_000);
-		expect(c.behaviour.journeys).toMatchObject({ maxRangeDays: 31, sessionCap: 50_000, minSessions: 2 });
+		expect(Object.keys(c.behavior.funnels.modes)).toEqual(["sequential", "strict", "flexible"]);
+		expect(c.behavior.funnels.sessionCaps.strict).toBe(10_000);
+		expect(c.behavior.journeys).toMatchObject({ maxRangeDays: 31, sessionCap: 50_000, minSessions: 2 });
 		expect(c.dashboards.tileKinds.journey_paths).toEqual(["table"]);
 		expect(c.dashboards.tileParams.journey_paths).toEqual(["entry"]);
 	});

@@ -1,4 +1,4 @@
-/** Data move routes: one database under two names, the schema version after a drop, resume of a cancelled move, pause and cancel through the stop key. */
+/** Data move routes: one database under two names, the schema version after a drop, resume of a canceled move, pause and cancel through the stop key. */
 import { describe, expect, it } from "vitest";
 import type { Db } from "../src/db/adapter.js";
 import { ensureSchema, SCHEMA_VERSION_KEY } from "../src/db/schema.js";
@@ -104,7 +104,7 @@ describe("drop from the EmDash database", () => {
 });
 
 describe("start again", () => {
-	it("after a cancel continues the cancelled job from its position, and the counters are loaded once", async () => {
+	it("after a cancel continues the canceled job from its position, and the counters are loaded once", async () => {
 		const src = await seeded();
 		const dst = await fresh();
 		const kv = new MemoryKv();
@@ -112,9 +112,9 @@ describe("start again", () => {
 		const first = await call("move/start", { source: "CA_OLD" });
 		// The first tables are empty here: run until rows were copied.
 		for (let i = 0; i < 20 && !Object.values((await call("move/run")).job?.read ?? {}).some((x) => x > 0); i++);
-		const cancelled = await call("move/cancel");
-		expect(cancelled.job?.status).toBe("cancelled");
-		const read = cancelled.job?.read ?? {};
+		const canceled = await call("move/cancel");
+		expect(canceled.job?.status).toBe("canceled");
+		const read = canceled.job?.read ?? {};
 		expect(Object.values(read).reduce((a, b) => a + b, 0)).toBeGreaterThan(0);
 		const again = await call("move/start", { source: "CA_OLD" });
 		expect(again.job?.id).toBe(first.job?.id);
@@ -156,7 +156,7 @@ class RacingKv extends MemoryKv {
 }
 
 describe("pause and cancel write only the stop key", () => {
-	for (const [route, status] of [["move/pause", "paused"], ["move/cancel", "cancelled"]] as const)
+	for (const [route, status] of [["move/pause", "paused"], ["move/cancel", "canceled"]] as const)
 		it(`${route}: a chunk saved while the route runs keeps its position`, async () => {
 			const src = await seeded();
 			const dst = await fresh();
@@ -190,7 +190,7 @@ describe("pause and cancel write only the stop key", () => {
 		// A cancel sent before the pause was applied is not turned into a pause.
 		await call("move/cancel");
 		await call("move/pause");
-		expect(await kv.get(KV_MOVE_STOP)).toEqual({ id: job.id, status: "cancelled" });
+		expect(await kv.get(KV_MOVE_STOP)).toEqual({ id: job.id, status: "canceled" });
 		// Resume withdraws a stop no call has applied yet and leaves the job to its call.
 		await call("move/pause", { resume: true });
 		expect(await kv.get(KV_MOVE_STOP)).toBeNull();

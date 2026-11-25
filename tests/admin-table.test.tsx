@@ -128,7 +128,7 @@ describe("DataTable", () => {
 		const first = container.querySelector("tbody tr") as HTMLElement;
 		expect(first.textContent).toBe("/a5\u2191+1 better50.0%\u2193-10.0 pp better");
 		const deltas = [...first.querySelectorAll(".ca-delta")] as HTMLElement[];
-		// 4 visitors before is small numbers: muted, no colour, the plain difference instead of a percent; a lower bounce rate is good, in percentage points.
+		// 4 visitors before is small numbers: muted, no color, the plain difference instead of a percent; a lower bounce rate is good, in percentage points.
 		expect(deltas.map((d) => d.getAttribute("data-judge"))).toEqual([null, "better"]);
 		expect(deltas.map((d) => d.getAttribute("data-muted"))).toEqual(["true", null]);
 		// A row with no previous row shows no change.

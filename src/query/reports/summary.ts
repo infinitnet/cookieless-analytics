@@ -3,7 +3,7 @@
  * closed days of a range, merged in memory with the rows `computeDay` returns for the days that are not stored
  * yet (today, and yesterday until it closes). Stored and open rows come from the same function, so a range that
  * ends today answers like the detailed reports. Also the filter plan of the summary engine: which filters a
- * summary answer honours (single dimension rows, a pair row of the report's dimension and one segment, or the
+ * summary answer honors (single dimension rows, a pair row of the report's dimension and one segment, or the
  * cube for segments combined) and which it cannot, with the reason.
  *
  * `../rollup.js` is loaded on demand: it imports the revenue report module, which imports this one.
@@ -75,17 +75,17 @@ export type SummarySource = { dim: RollupDim; seg: string; cube?: true };
 
 export interface Plan {
 	src: SummarySource;
-	/** Filters the summary rows honour. */
+	/** Filters the summary rows honor. */
 	applied: Filter[];
 	/**
-	 * `dim:reason` of every filter they cannot honour: `not_kept` (no summary rows), `combination`, `negated` (a
+	 * `dim:reason` of every filter they cannot honor: `not_kept` (no summary rows), `combination`, `negated` (a
 	 * negated operator the rows cannot answer) or `own` (a filter on the report's own dimension the rows cannot answer).
 	 */
 	unavailable: string[];
 }
 
 /**
- * Which filters a summary answer honours. `own` is the report's dimension (null for totals and series, which take
+ * Which filters a summary answer honors. `own` is the report's dimension (null for totals and series, which take
  * the first filtered session dimension that is not a segment, else the first filtered segment). One segment
  * combines with a pair dimension through its pair rows. Segments combine with each other through the cube, for
  * totals and series and for a breakdown by a segment; a second segment beside a pair dimension does not.

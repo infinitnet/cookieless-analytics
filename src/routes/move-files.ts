@@ -132,7 +132,7 @@ export function dataFileHandlers(env: DataFileEnv): Handlers {
 				if (deleteActive(await ctx.kv.get<DeleteJob>(KV_DELETE_JOB))) throw new PluginRouteError("delete_running", "A delete is running on the Data page. Import when it has finished.", 409);
 				const move = await ctx.kv.get<MoveJob>(KV_MOVE_JOB);
 				if (isMoving(move) && [...bySite.keys()].some((s) => bindingOf(s) === move.dest))
-					throw new PluginRouteError("move_running", "A data move into this database is running or paused. Import when it is done or cancelled.", 409);
+					throw new PluginRouteError("move_running", "A data move into this database is running or paused. Import when it is done or canceled.", 409);
 				const profile = (await env.settings()).capacityProfile;
 				const per = WRITE_ROWS[b.table] ?? 1;
 				let inserted = 0;

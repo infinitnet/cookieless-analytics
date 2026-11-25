@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { pages } from "../src/admin/index.js";
 import { resetSearchStatus } from "../src/admin/api.js";
 import Audience from "../src/admin/pages/Audience.js";
-import Behaviour, { FUNNEL_REVENUE_NOTE, SITE_SEARCH_TEXT } from "../src/admin/pages/Behaviour.js";
+import Behavior, { FUNNEL_REVENUE_NOTE, SITE_SEARCH_TEXT } from "../src/admin/pages/Behavior.js";
 import Pages from "../src/admin/pages/Pages.js";
 import Revenue, { ATTRIBUTION_NOTE, ORDERS_NOTE, REFUNDS_NOTE, REVENUE_GUIDE } from "../src/admin/pages/Revenue.js";
 import { ORDERS_RAW_ONLY } from "../src/query/reports/revenue-copy.js";
@@ -218,7 +218,7 @@ const PAGES: Array<[string, () => ReactElement, Array<[string, string[]]>]> = [
 	["Pages", () => <Pages />, [["Pages", ["pages"]], ["Entry pages", ["entry_pages"]], ["Exit pages", ["exit_pages"]], ["Not found", ["not_found"]]]],
 	["Sources", () => <Sources />, [["Channels", ["channels"]], ["Sources", ["sources"]], ["Campaigns", ["campaigns"]], ["AI assistants", ["ai_referrals"]]]],
 	["Audience", () => <Audience />, [["Countries", ["countries", "regions"]], ["Devices", ["devices"]], ["Browsers", ["browsers"]], ["OS", ["os"]], ["Languages", ["languages"]]]],
-	["Behaviour", () => <Behaviour />, [["Events", ["events"]], ["Goals", ["goals"]], ["Site search", ["site_search"]], ["Outbound", ["outbound"]], ["Downloads", ["downloads"]], ["Forms", ["forms"]], ["Scroll", ["scroll"]]]],
+	["Behavior", () => <Behavior />, [["Events", ["events"]], ["Goals", ["goals"]], ["Site search", ["site_search"]], ["Outbound", ["outbound"]], ["Downloads", ["downloads"]], ["Forms", ["forms"]], ["Scroll", ["scroll"]]]],
 ];
 
 describe("descriptor", () => {
@@ -234,7 +234,7 @@ describe("descriptor", () => {
 		expect(ADMIN_PAGES.map((p) => p.path).slice(2, 4)).toEqual(["/pages", "/satisfaction"]);
 		expect(pages["/sources"]).toBe(Sources);
 		expect(pages["/audience"]).toBe(Audience);
-		expect(pages["/behaviour"]).toBe(Behaviour);
+		expect(pages["/behavior"]).toBe(Behavior);
 	});
 });
 
@@ -254,7 +254,7 @@ describe.each(PAGES)("%s page", (_name, el, tabs) => {
 		// The trend above the tabs: one timeseries call with the page's range; on the AI tab it charts that channel.
 		const ai = [{ dim: "channel", op: "is", values: [AI_CHANNEL] }];
 		for (const b of queries()) expect(b.query).toMatchObject({ from: "2026-03-01", to: "2026-03-07", filters: b.report === "timeseries" && (b.query.filters as unknown[]).length ? ai : [] });
-		expect(reportsQueried().has("timeseries")).toBe(_name !== "Behaviour");
+		expect(reportsQueried().has("timeseries")).toBe(_name !== "Behavior");
 	});
 
 	it("shows the empty state on every tab", async () => {
@@ -320,14 +320,14 @@ describe("notices", () => {
 
 describe("Site search tab", () => {
 	it("marks an upper bound with the column note, and shows the enable hint when off", async () => {
-		const { findByRole, findByText, getByText } = render(<Behaviour />);
+		const { findByRole, findByText, getByText } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Site search" }));
 		expect(await findByText("3*")).toBeTruthy();
 		expect(getByText(SITE_SEARCH_TEXT.sessionsNote)).toBeTruthy();
 		cleanup();
 		dataNotices = ["site_search_off"];
 		empty = true;
-		const off = render(<Behaviour />);
+		const off = render(<Behavior />);
 		fireEvent.click(await off.findByRole("tab", { name: "Site search" }));
 		expect(await off.findByText(SITE_NOTICES.site_search_off)).toBeTruthy();
 		const link = within(off.getByText(SITE_NOTICES.site_search_off).closest(".ca-notice") as HTMLElement).getByRole("link", { name: "Open plugin settings" });
@@ -641,16 +641,16 @@ describe("Search Satisfaction page", () => {
 	});
 });
 
-describe("Behaviour", () => {
+describe("Behavior", () => {
 	it("shows the properties of an event", async () => {
-		const { findByRole, findByText } = render(<Behaviour />);
+		const { findByRole, findByText } = render(<Behavior />);
 		fireEvent.click(await findByRole("button", { name: "Properties: events one" }));
 		expect(await findByText("pro")).toBeTruthy();
 		expect(queries().find((b) => b.report === "event_props")?.params).toEqual({ event: "events one" });
 	});
 
 	it("states the goal denominator", async () => {
-		const { findByRole, findByText } = render(<Behaviour />);
+		const { findByRole, findByText } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Goals" }));
 		expect(await findByText("Conversion rate is out of 50 sessions in the current filter.")).toBeTruthy();
 	});
@@ -660,7 +660,7 @@ describe("Behaviour", () => {
 			{ id: "f1", data: { name: "Signup" } },
 			{ id: "f2", data: { name: "Checkout" } },
 		];
-		const { findByRole, findByLabelText } = render(<Behaviour />);
+		const { findByRole, findByLabelText } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		await waitFor(() => expect(queries().some((b) => b.report === "funnels" && b.params?.funnel === "f1")).toBe(true));
 		expect(await findByRole("cell", { name: "Landing" })).toBeTruthy();
@@ -674,7 +674,7 @@ describe("Behaviour", () => {
 	it("adds the funnel revenue columns, the estimate note and the other currencies when the site has revenue", async () => {
 		revenueOn = true;
 		funnels = [{ id: "f1", data: { name: "Checkout" } }];
-		const { findByRole, findByText, queryByRole, container } = render(<Behaviour />);
+		const { findByRole, findByText, queryByRole, container } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		await waitFor(() => expect(queries().find((b) => b.report === "funnels")?.params).toEqual({ funnel: "f1", withRevenue: true, currency: "USD" }));
 		expect(await findByRole("columnheader", { name: /Est\. lost revenue \(USD\)/ })).toBeTruthy();
@@ -692,7 +692,7 @@ describe("Behaviour", () => {
 
 	it("asks for no funnel revenue on a site without revenue", async () => {
 		funnels = [{ id: "f1", data: { name: "Checkout" } }];
-		const { findByRole, queryByRole } = render(<Behaviour />);
+		const { findByRole, queryByRole } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		expect(await findByRole("cell", { name: "Landing" })).toBeTruthy();
 		expect(queries().find((b) => b.report === "funnels")?.params).toEqual({ funnel: "f1" });
@@ -701,13 +701,13 @@ describe("Behaviour", () => {
 
 	it("shows the stored funnel mode", async () => {
 		funnels = [{ id: "f1", data: { name: "Signup", mode: "strict" } }];
-		const { findByRole, findByText } = render(<Behaviour />);
+		const { findByRole, findByText } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		expect(await findByText("Mode: strict")).toBeTruthy();
 	});
 
 	it("journeys: a page picker, came from and went to for the page, the top paths and the floor footnote", async () => {
-		const { findByRole, findByLabelText, findAllByText, container } = render(<Behaviour />);
+		const { findByRole, findByLabelText, findAllByText, container } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Journeys" }));
 		await waitFor(() => expect(queries().some((b) => b.report === "journey_next" && b.params?.path === "/pricing")).toBe(true));
 		expect(queries().find((b) => b.report === "journey_prev")?.params).toEqual({ path: "/pricing" });
@@ -723,13 +723,13 @@ describe("Behaviour", () => {
 
 	it("shows the error when the funnel list fails", async () => {
 		funnels = null as unknown as unknown[];
-		const { findByRole } = render(<Behaviour />);
+		const { findByRole } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		expect((await findByRole("alert")).textContent).toContain("The funnel list could not be loaded");
 	});
 
 	it("sorts scroll depth numerically", async () => {
-		const { findByRole, container } = render(<Behaviour />);
+		const { findByRole, container } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Scroll" }));
 		const header = await findByRole("button", { name: "Max scroll depth (%)" });
 		fireEvent.click(header);
@@ -739,7 +739,7 @@ describe("Behaviour", () => {
 	});
 
 	it("shows an empty state without funnels", async () => {
-		const { findByRole, findByText } = render(<Behaviour />);
+		const { findByRole, findByText } = render(<Behavior />);
 		fireEvent.click(await findByRole("tab", { name: "Funnels" }));
 		expect(await findByText("No funnels yet.")).toBeTruthy();
 		expect((await findByRole("link", { name: "Create a funnel" })).getAttribute("href")).toMatch(/\/config\?tab=funnels&new=1$/);
@@ -755,7 +755,7 @@ describe("revenue surfaces", () => {
 		[() => <Pages />, "Entry pages", "entry_pages"],
 		[() => <Audience />, "Countries", "countries"],
 		[() => <Audience />, "Devices", "devices"],
-		[() => <Behaviour />, "Goals", "goals"],
+		[() => <Behavior />, "Goals", "goals"],
 	];
 
 	it("cf8: every session and revenue column carries the definition of its own figure", async () => {
@@ -811,14 +811,14 @@ describe("revenue surfaces", () => {
 		}
 	});
 
-	it("Behaviour has no Revenue tab: the Revenue page is the one home of revenue", async () => {
+	it("Behavior has no Revenue tab: the Revenue page is the one home of revenue", async () => {
 		revenueOn = true;
-		const { findByRole, queryByRole } = render(<Behaviour />);
+		const { findByRole, queryByRole } = render(<Behavior />);
 		await findByRole("tab", { name: "Goals" });
 		expect(queryByRole("tab", { name: "Revenue" })).toBeNull();
 		expect(pages["/revenue"]).toBe(Revenue);
 		expect(ADMIN_PAGES.find((p) => p.path === "/revenue")).toEqual({ path: "/revenue", label: "Revenue", icon: "coins", group: "Analytics" });
-		expect(ADMIN_PAGES.map((p) => p.path).indexOf("/revenue")).toBe(ADMIN_PAGES.map((p) => p.path).indexOf("/behaviour") + 1);
+		expect(ADMIN_PAGES.map((p) => p.path).indexOf("/revenue")).toBe(ADMIN_PAGES.map((p) => p.path).indexOf("/behavior") + 1);
 	});
 });
 
@@ -844,7 +844,7 @@ describe("Revenue page", () => {
 		expect(orders.querySelector("tbody tr")?.textContent).toContain("49.90 USD");
 		expect(getByText(ORDERS_NOTE)).toBeTruthy();
 		const funnelLink = getByRole("link", { name: "Revenue per funnel step" });
-		expect(funnelLink.getAttribute("href")).toMatch(/\/behaviour\?tab=funnels$/);
+		expect(funnelLink.getAttribute("href")).toMatch(/\/behavior\?tab=funnels$/);
 		// Inside the goals panel, where "Show all" sits on other panels, not loose between panels.
 		expect(funnelLink.closest("section")?.getAttribute("aria-label")).toBe("Goals to revenue");
 		expect(queries().find((b) => b.report === "revenue_orders")?.query.compare).toBe("none");
@@ -929,13 +929,13 @@ describe("segment comparison on views that never compare", () => {
 		expect(sent.every((b) => b.query.compare === "none" && !("compareSegment" in b.query))).toBe(true);
 	};
 	it("the Journeys page picker sends a query the server accepts, and shows its error", async () => {
-		window.history.replaceState(null, "", `/_emdash/admin/plugins/x/behaviour?tab=journeys&${SEG}`);
-		render(<Behaviour />);
+		window.history.replaceState(null, "", `/_emdash/admin/plugins/x/behavior?tab=journeys&${SEG}`);
+		render(<Behavior />);
 		await waitFor(() => expect(queries().some((b) => b.report === "dimension_values")).toBe(true));
 		valid("dimension_values");
 		cleanup();
 		refusePages = true;
-		const { findByText } = render(<Behaviour />);
+		const { findByText } = render(<Behavior />);
 		expect(await findByText("Pages could not be listed.")).toBeTruthy();
 	});
 	it("Recent orders sends a query the server accepts", async () => {

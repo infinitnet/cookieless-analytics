@@ -8,7 +8,7 @@ import { type CompileCtx, compileSearch, compileTraffic, QueryError, validateFil
 import { DIM_NAMES, type Filter, FUNNEL_MODES, FunnelStepsSchema, PROP_KEY_RE, type Query } from "../filters.js";
 import { countries, browsers, devices, languages, os, regions } from "./audience.js";
 import type { Metrics, Point, ReportCtx, ReportData, Row, RunInput } from "./base.js";
-import { downloads, eventProps, events, forms, funnels, goals, outbound, scroll } from "./behaviour.js";
+import { downloads, eventProps, events, forms, funnels, goals, outbound, scroll } from "./behavior.js";
 import { overview } from "./overview.js";
 import { planFilters, RAW_ONLY, rawOnly, ROLLUP_REPORTS, runRollupReport } from "./rollup.js";
 import { behindNotice, clearOpenDays, clearScanCache, storedSessions } from "./summary.js";
@@ -281,9 +281,9 @@ export function runReport(rc: ReportCtx, req: ReportRequest, nowMs: number = Dat
 	return value;
 }
 
-/** Visits one detailed report may scan per capacity profile (more: the summaries answer when they honour every filter). */
+/** Visits one detailed report may scan per capacity profile (more: the summaries answer when they honor every filter). */
 export const SCAN_BUDGET: Readonly<Record<CapacityProfile, number>> = { small: 50_000, standard: 500_000, dedicated: 500_000 };
-/** A detailed report whose filters the summaries cannot honour may scan this many times the budget, then `narrow_range`. */
+/** A detailed report whose filters the summaries cannot honor may scan this many times the budget, then `narrow_range`. */
 export const NARROW_FACTOR = 4;
 
 /** The summary plan of a report (its unavailable filters), or null when it has no summary form. */
@@ -303,7 +303,7 @@ function summaryPlan(report: ReportName, filters: readonly Filter[], params: Run
 /**
  * The routing rule (which engine answers a range). Before the detailed window: the summaries, or `raw_only` for a
  * report without them. Inside it: the detailed rows, unless the stored days hold more visits than the profile's scan
- * budget and the summaries honour every filter; a detailed report over `NARROW_FACTOR` times the budget is refused
+ * budget and the summaries honor every filter; a detailed report over `NARROW_FACTOR` times the budget is refused
  * with `narrow_range` and the longest range that fits. Returns the notices of a summary answer, or null.
  */
 async function route(rc: ReportCtx, report: ReportName, from: string, to: string, filters: readonly Filter[], params: RunInput["params"], lean = false): Promise<string[] | null> {

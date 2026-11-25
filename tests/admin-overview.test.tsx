@@ -109,7 +109,7 @@ const queries = () => calls.filter((c) => c.route === "data/query").map((c) => c
 describe("Overview", () => {
 	it("is the root admin page and matches the descriptor", () => {
 		expect(Object.keys(pages)).toEqual(ADMIN_PAGES.map((p) => p.path));
-		expect(cookielessAnalytics().adminPages?.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behaviour", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
+		expect(cookielessAnalytics().adminPages?.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behavior", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
 		expect(pages["/"]).toBe(Overview);
 		expect(Object.keys(widgets)).toEqual(ADMIN_WIDGETS.map((w) => w.id));
 		expect(cookielessAnalytics().adminWidgets).toEqual([{ id: "today", title: "Cookieless Analytics", size: "third" }]);
@@ -155,7 +155,7 @@ describe("Overview", () => {
 			"/_emdash/admin/plugins/cookieless-analytics/sources",
 			"/_emdash/admin/plugins/cookieless-analytics/sources?tab=sources",
 			"/_emdash/admin/plugins/cookieless-analytics/audience?tab=devices",
-			"/_emdash/admin/plugins/cookieless-analytics/behaviour?tab=goals",
+			"/_emdash/admin/plugins/cookieless-analytics/behavior?tab=goals",
 		]);
 		expect(container.querySelector('[data-report="pages"] .ca-more')?.textContent).toBe("Show all Top pages");
 	});

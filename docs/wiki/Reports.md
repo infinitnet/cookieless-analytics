@@ -8,7 +8,7 @@ The report pages show your traffic for a date range: how many people came, what 
 2. Pick a range in the header (for example Last 30 days) and, if you want, a comparison.
 3. Click metric cards to choose the lines on the chart.
 4. Click any value in a table (a page, a channel, a country) to add it as a filter. The whole page, and every other page, then shows only matching sessions.
-5. Move to Pages, Sources, Audience or Behaviour. The range, comparison, filters and site come with you.
+5. Move to Pages, Sources, Audience or Behavior. The range, comparison, filters and site come with you.
 6. Use the panel menu of a table to export it or to pick columns.
 
 ## The header
@@ -72,7 +72,7 @@ A trend chart with cards for visitors and sessions, above the tabs **Channels**,
 
 A trend chart with cards for visitors and sessions, above the tabs **Countries** (with a Regions table, filled only when `captureRegion` is on), **Devices**, **Browsers**, **OS** and **Languages**.
 
-### Behaviour
+### Behavior
 
 Tabs **Events**, **Goals**, **Revenue**, **Funnels**, **Journeys**, **Site search**, **Outbound**, **Downloads**, **Forms** and **Scroll**. See [Goals and Funnels](Goals-and-Funnels), [Events](Events), [Revenue and Refunds](Revenue-and-Refunds) and [Content and Site Search](Content-and-Site-Search).
 

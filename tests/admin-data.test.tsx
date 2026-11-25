@@ -548,7 +548,7 @@ describe("Data page", () => {
 		expect(env.count("ca_sessions")).toBe(1);
 	});
 
-	it("delete: a running job shows its progress and can be cancelled", async () => {
+	it("delete: a running job shows its progress and can be canceled", async () => {
 		await kv.set("delete:job", {
 			id: "j1", site: "default", by: null, at: 1, spec: { from: "2026-03-01", to: "2026-03-07", filters: [] }, summary: "2026-03-01 to 2026-03-07: every visit",
 			pred: { sql: "0 = 1", params: [] }, days: ["2026-03-02", "2026-03-03", "2026-03-04"], i: 1, reclose: {}, old: [], oi: 0, expected: 40,
@@ -562,7 +562,7 @@ describe("Data page", () => {
 		expect(status.textContent).toContain("It continues by itself after 00:00 UTC.");
 		expect(status.textContent).toContain("Site: default. Conditions: 2026-03-01 to 2026-03-07: every visit");
 		fireEvent.click(within(status).getByRole("button", { name: "Cancel delete" }));
-		await within(panel).findByText(/^default: Cancelled after deleting 12 visits/);
+		await within(panel).findByText(/^default: Canceled after deleting 12 visits/);
 		expect(routeCalls("tools/delete-cancel")).toEqual([{}]);
 	});
 

@@ -1,4 +1,4 @@
-/** Hand written guards for the Block Kit interactions the setup page receives. Null means not recognised. */
+/** Hand written guards for the Block Kit interactions the setup page receives. Null means not recognized. */
 import { type StateRecord, backToSteps, declareDeployed, markInstalled, setAnswers, setDone, startOver } from "./state.js";
 import { type Answers, STEP_IDS, type StepId, parseAnswers } from "./steps.js";
 

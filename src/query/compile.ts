@@ -1,5 +1,5 @@
 /**
- * Filter compiler. Produces parameterised SQL fragments; identifiers come only
+ * Filter compiler. Produces parameterized SQL fragments; identifiers come only
  * from the fixed maps in `filters.ts`. Session dims are predicates on `ca_sessions s`; hit dims are
  * `EXISTS` over the entries of the visit's own document (`json_each(s.hits)`); hit-level reports also
  * restrict their own entry rows.

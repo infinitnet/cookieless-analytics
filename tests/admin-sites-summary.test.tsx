@@ -104,7 +104,7 @@ describe("All sites", () => {
 		expect(shop.textContent).toContain("120.50 USD");
 		expect(shop.textContent).toContain("80.00 EUR");
 		expect(shop.textContent).toContain("+50.0%");
-		// The shared change cell: its own element with the judgement, not grey text glued to the figure.
+		// The shared change cell: its own element with the judgment, not gray text glued to the figure.
 		expect(shop.querySelector("td .ca-delta")?.getAttribute("data-judge")).toBe("better");
 		const total = container.querySelector("tfoot tr") as HTMLElement;
 		expect(total.textContent).toContain("700");

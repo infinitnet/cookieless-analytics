@@ -1,8 +1,8 @@
 import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION, isPassiveEvent } from "./contract.mjs";
-import { $ as sitesInTables, $i as truncateIp, $n as nextUtcDay, $r as statePrefix, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as paramRows, An as GoalSchema, Ar as OID_RE, At as revenueOrders, B as KV_WRITE_BUDGET, Bi as hourInZone, Bn as SEARCH_DIMS, Br as isCurrency, C as siteProblem, Ci as dayInt, Cn as goalPredicate, Cr as conflictsWithScope, Ct as WITH_REVENUE, D as readVisits, Di as docRead, Dn as FUNNEL_MODES, Dr as publicNames, Dt as metaOf, E as MAX_DOC_BYTES, Ei as docPut, En as DIM_NAMES, Er as parseLinkRules, Et as hasRevenue, F as UTM_KEYS, Fi as ident, Fn as PROP_KEY_RE, Fr as isSid, Ft as resolveGranularity, G as KV_CURSOR, Gi as samePeriodLastYear, Gn as copyRowsLeft, Gr as ensureHostSchema, Gt as openDay, H as budgetTargetOf, Hi as previousPeriod, Hn as COPY_DAY_ROWS, Hr as roundMinor, Ht as clearOpenDays, I as cleanHost, Ii as addDays, In as QuerySchema, Ir as validateIngest, It as timeseries, J as clearEstimateDay, Ji as getOrCreateSalt, Jn as PROVIDER_DAYS, Jr as missingDb, Jt as readSummary, K as KV_DELETE_ROWS, Ki as zonedToEpoch, Kn as nextUtcMidnight, Kr as factsDb, Kt as planFilters, Li as dayInZone, Ln as REVENUE_BREAKDOWN_DIMS, Lr as validateRevenue, Lt as weekStart, M as buildChannelRules, Mi as upsertChanged, Mn as NEGATED, Mr as isEventName, Mt as revenueSeries, N as classifyChannel, Ni as visitDayKey, Nn as NUM_OPS, Nr as isPath, Nt as withRevenue, Oi as isoDay, On as FilterSchema, Or as compileSafeRegex, Ot as revenue, P as CLICK_IDS, Pi as chunk, Pn as OPS, Pr as isReservedEvent, Pt as bucketSeries, Q as runRetention, Qi as timingSafeEqual, Qn as backfillRange, Qr as stateKv, Qt as DURATION_MS, R as normalizeUrl, Ri as daysBetween, Rn as REVENUE_DIMS, Rt as CUBE_SEG, S as registry, Si as LIKE_ESCAPE, Sn as entryProp, Sr as SATISFACTION_REPORTS, St as REVENUE_REPORTS, Ti as docObject, Tn as validateFilters, Tr as organicScope, Tt as currencyOf, U as dailyRowsApply, Ui as saltBoundary, Un as chargeCopyRows, Ur as eachDatabase, Ut as clearScanCache, V as budgetState, Vi as lastClosedDay, Vn as TRAFFIC_DIMS, Vr as normalizeCurrency, Vt as behindNotice, Wi as saltDay, Wn as copiedToday, Wr as eachTarget, X as rawFromDay, Xi as randomId, Xn as SYNC_BUDGET, Xr as pluginFactsOrNull, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yt as splitRange, Z as runChunk, Zi as sha256, Zn as SyncRows, Zr as setPluginFacts, Zt as storedThrough, _ as linkedHosts, _i as fromKysely, _n as and, _r as LOW_SAMPLE, _t as journeyNext, ai as pgOwnScope, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as isD1, bn as entriesOf, br as SATISFACTION_CAVEAT, bt as journeysFromSummary, c as ClientSiteSchema, ci as redact, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as SCHEMA_VERSION_KEY, dr as budgetWarning, dt as runRollup, ea as vkey, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as TABLES$1, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as schemaVersion, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as isOwnDatabase, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as isHyperdrive, in as keysIn, ir as SourceError, it as OTHER, ji as q, jn as LINK_BY, jr as cleanProps, jt as revenuePlan, k as isActive$1, ki as likeEscape, kn as FunnelStepsSchema, kr as validateSafeRegex, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as ensureSchemaOnce, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as INGEST_STATEMENT_MS, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as pgScope, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as ensureSchema, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qi as base64url, qn as KV_SYNC_ROWS, qr as factsTargets, ri as fromPg, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as pgStatementLimit, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as queryCacheOn, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as SCHEMA_VERSION, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as selfCheck, vn as compileSearch, vr as POGO_DEFINITION, vt as journeyPaths, w as drops, wi as docJson, wn as inList, wr as lowSampleLine, wt as currencyList, x as newSiteKey, xi as workerEnv, xn as entryCols, xt as journeysUnavailable, y as loadSites, yi as fromD1, yn as compileTraffic, yr as SATISFACTION_BY, yt as journeyPrev, zi as eachDay, zn as REVENUE_VALUE_RE, zr as formatAmount } from "./queue-sink-DZYrGtp0.mjs";
-import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-D-v-SZVV.mjs";
-import { a as runRollupReport, c as notFound$1, l as pages, n as ROLLUP_REPORTS, o as entryPages, r as rawOnly, s as exitPages, t as RAW_ONLY, u as overview } from "./rollup-CsQOfa2p.mjs";
-import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-7qQoTFK9.mjs";
+import { $ as sitesInTables, $i as truncateIp, $n as nextUtcDay, $r as statePrefix, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as paramRows, An as GoalSchema, Ar as OID_RE, At as revenueOrders, B as KV_WRITE_BUDGET, Bi as hourInZone, Bn as SEARCH_DIMS, Br as isCurrency, C as siteProblem, Ci as dayInt, Cn as goalPredicate, Cr as conflictsWithScope, Ct as WITH_REVENUE, D as readVisits, Di as docRead, Dn as FUNNEL_MODES, Dr as publicNames, Dt as metaOf, E as MAX_DOC_BYTES, Ei as docPut, En as DIM_NAMES, Er as parseLinkRules, Et as hasRevenue, F as UTM_KEYS, Fi as ident, Fn as PROP_KEY_RE, Fr as isSid, Ft as resolveGranularity, G as KV_CURSOR, Gi as samePeriodLastYear, Gn as copyRowsLeft, Gr as ensureHostSchema, Gt as openDay, H as budgetTargetOf, Hi as previousPeriod, Hn as COPY_DAY_ROWS, Hr as roundMinor, Ht as clearOpenDays, I as cleanHost, Ii as addDays, In as QuerySchema, Ir as validateIngest, It as timeseries, J as clearEstimateDay, Ji as getOrCreateSalt, Jn as PROVIDER_DAYS, Jr as missingDb, Jt as readSummary, K as KV_DELETE_ROWS, Ki as zonedToEpoch, Kn as nextUtcMidnight, Kr as factsDb, Kt as planFilters, Li as dayInZone, Ln as REVENUE_BREAKDOWN_DIMS, Lr as validateRevenue, Lt as weekStart, M as buildChannelRules, Mi as upsertChanged, Mn as NEGATED, Mr as isEventName, Mt as revenueSeries, N as classifyChannel, Ni as visitDayKey, Nn as NUM_OPS, Nr as isPath, Nt as withRevenue, Oi as isoDay, On as FilterSchema, Or as compileSafeRegex, Ot as revenue, P as CLICK_IDS, Pi as chunk, Pn as OPS, Pr as isReservedEvent, Pt as bucketSeries, Q as runRetention, Qi as timingSafeEqual, Qn as backfillRange, Qr as stateKv, Qt as DURATION_MS, R as normalizeUrl, Ri as daysBetween, Rn as REVENUE_DIMS, Rt as CUBE_SEG, S as registry, Si as LIKE_ESCAPE, Sn as entryProp, Sr as SATISFACTION_REPORTS, St as REVENUE_REPORTS, Ti as docObject, Tn as validateFilters, Tr as organicScope, Tt as currencyOf, U as dailyRowsApply, Ui as saltBoundary, Un as chargeCopyRows, Ur as eachDatabase, Ut as clearScanCache, V as budgetState, Vi as lastClosedDay, Vn as TRAFFIC_DIMS, Vr as normalizeCurrency, Vt as behindNotice, Wi as saltDay, Wn as copiedToday, Wr as eachTarget, X as rawFromDay, Xi as randomId, Xn as SYNC_BUDGET, Xr as pluginFactsOrNull, Xt as storedSessions, Y as effectiveRawDays, Yn as RowsPaused, Yt as splitRange, Z as runChunk, Zi as sha256, Zn as SyncRows, Zr as setPluginFacts, Zt as storedThrough, _ as linkedHosts, _i as fromKysely, _n as and, _r as LOW_SAMPLE, _t as journeyNext, ai as pgOwnScope, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as isD1, bn as entriesOf, br as SATISFACTION_CAVEAT, bt as journeysFromSummary, c as ClientSiteSchema, ci as redact, cn as refundDim, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as SCHEMA_VERSION_KEY, dr as budgetWarning, dt as runRollup, ea as vkey, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as TABLES$1, fn as sessionTotals, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as schemaVersion, gn as TRUE, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as isOwnDatabase, hn as QueryError, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as isHyperdrive, in as keysIn, ir as SourceError, it as OTHER, ji as q, jn as LINK_BY, jr as cleanProps, jt as revenuePlan, k as isActive$1, ki as likeEscape, kn as FunnelStepsSchema, kr as validateSafeRegex, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, ln as round, lr as budgetMb, lt as rollupDay, m as bindSite, mi as ensureSchemaOnce, mn as visitDays, mr as normalizeSettings, mt as linksFromSummary, ni as INGEST_STATEMENT_MS, nn as goalGroups, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as pgScope, on as num$2, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as ensureSchema, pn as sessionWhere, pr as d1CapMb, pt as links, q as cleanSalts, qi as base64url, qn as KV_SYNC_ROWS, qr as factsTargets, ri as fromPg, rn as hitJoin, rr as SOURCE_IDS, rt as KV_WATERMARK, si as pgStatementLimit, sn as ratio, sr as HOST_FORM_POINTER, st as counted$1, ti as queryCacheOn, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as SCHEMA_VERSION, un as sessionBreakdown, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as selfCheck, vn as compileSearch, vr as POGO_DEFINITION, vt as journeyPaths, w as drops, wi as docJson, wn as inList, wr as lowSampleLine, wt as currencyList, x as newSiteKey, xi as workerEnv, xn as entryCols, xt as journeysUnavailable, y as loadSites, yi as fromD1, yn as compileTraffic, yr as SATISFACTION_BY, yt as journeyPrev, zi as eachDay, zn as REVENUE_VALUE_RE, zr as formatAmount } from "./queue-sink-CL7kMcrY.mjs";
+import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-BmseNBmS.mjs";
+import { a as runRollupReport, c as notFound$1, l as pages, n as ROLLUP_REPORTS, o as entryPages, r as rawOnly, s as exitPages, t as RAW_ONLY, u as overview } from "./rollup-DEtCv3fA.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-D_hrfZ0f.mjs";
 import { PluginRouteError, after, definePlugin, getPluginSettings, pluginResponse } from "emdash";
 import { getDb } from "emdash/runtime";
 import { z } from "zod";
@@ -410,7 +410,7 @@ const devices = by("device");
 const browsers = by("browser");
 const os = by("os");
 const languages = by("lang");
-// src/query/reports/behaviour.ts
+// src/query/reports/behavior.ts
 /** Funnels read at most this many sessions per query. */
 const FUNNEL_SESSION_CAP = 5e4;
 const EV_KEYS_MAX = 10;
@@ -2341,7 +2341,7 @@ function rangeText(from, to) {
 	const b = bucketText(to, "day", false);
 	return from.slice(0, 4) === to.slice(0, 4) ? `${a} to ${b}` : `${a} ${from.slice(0, 4)} to ${b} ${to.slice(0, 4)}`;
 }
-/** Marker shape per series slot, so a line is told apart by more than its colour: circle, square, triangle, diamond. */
+/** Marker shape per series slot, so a line is told apart by more than its color: circle, square, triangle, diamond. */
 function shapePath(slot, cx, cy, r) {
 	const p = (x, y) => `${r1(cx + x)} ${r1(cy + y)}`;
 	switch (slot % 4) {
@@ -2464,13 +2464,13 @@ const annotationCount = (n) => `${n} annotation${n === 1 ? "" : "s"}`;
 * - rate (`percent`, rates and shares): the difference in percentage points (`+1.2 pp`, `from 41.0%`), no relative percent.
 * - duration, decimal and money: relative change, then the difference in the metric's own unit; money stays in
 *   the one currency of the format (a report answers in one currency, amounts are never converted or mixed).
-* - position (Search): the difference in positions with its judgement (`0.4 better`, `from 8.2`), no percent.
+* - position (Search): the difference in positions with its judgment (`0.4 better`, `from 8.2`), no percent.
 * - points (the Search Satisfaction score, a signed figure): the difference in points (`+4 points`, `+1 point`,
 *   `from 20`), never a relative percent, which means nothing for a value that can be 0 or negative.
 * - Rates and points take the difference of the two figures as printed, so the change always matches them.
 *
-* Judgement: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
-* `NO_JUDGEMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
+* Judgment: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
+* `NO_JUDGMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
 */
 /** Metrics where a fall is good news. */
 const LOWER_IS_BETTER = /* @__PURE__ */ new Set([
@@ -2491,7 +2491,7 @@ const LOWER_IS_BETTER = /* @__PURE__ */ new Set([
 * Metrics with no better or worse: a live count ("Active now" is not a period figure) and the measured share
 * of Satisfaction (how much of the traffic the rates rest on, a coverage figure, not an outcome).
 */
-const NO_JUDGEMENT = /* @__PURE__ */ new Set(["realtime", "measured_rate"]);
+const NO_JUDGMENT = /* @__PURE__ */ new Set(["realtime", "measured_rate"]);
 const SMALL_NOTE = `Small numbers: the comparison rests on under 30 for a count or under 100 sessions for a rate or average, so a large change can be chance.`;
 const ARROW = {
 	up: "↑",
@@ -2533,7 +2533,7 @@ function describeChange(metric, current, previous, opts) {
 	if (cur === null || prev === null || unit === "positions" && cur === 0) return {
 		kind: "none",
 		direction: null,
-		judgement: null,
+		judgment: null,
 		rel: null,
 		abs: null,
 		unit,
@@ -2548,18 +2548,18 @@ function describeChange(metric, current, previous, opts) {
 	const shown = unit === "pp" ? abs * 100 : unit === "points" ? Math.round(abs * 100) : unit === "positions" ? abs : prev === 0 ? abs : abs / Math.abs(prev) * 100;
 	const direction = Math.abs(shown) < .05 ? "flat" : abs > 0 ? "up" : "down";
 	const lower = opts.lowerIsBetter ?? LOWER_IS_BETTER.has(metric);
-	const judgement = direction === "flat" || NO_JUDGEMENT.has(metric) ? "neutral" : direction === "up" !== lower ? "better" : "worse";
+	const judgment = direction === "flat" || NO_JUDGMENT.has(metric) ? "neutral" : direction === "up" !== lower ? "better" : "worse";
 	const small = unit === "count" ? Math.abs(prev) < 30 : opts.base != null && opts.base < 100;
 	const from = `from ${fmt(prev, f)}`;
 	const base = {
 		direction,
-		judgement,
+		judgment,
 		abs,
 		unit,
 		muted: small,
 		note: small ? SMALL_NOTE : null
 	};
-	const judged = judgement === "neutral" ? "" : `, ${judgement}`;
+	const judged = judgment === "neutral" ? "" : `, ${judgment}`;
 	const quiet = small ? ", small numbers" : "";
 	if (direction === "flat") return {
 		...base,
@@ -2599,9 +2599,9 @@ function describeChange(metric, current, previous, opts) {
 			...base,
 			kind: "change",
 			rel: null,
-			label: `${n} ${judgement}`,
+			label: `${n} ${judgment}`,
 			detail: from,
-			words: `${n} positions ${judgement}${quiet}`
+			words: `${n} positions ${judgment}${quiet}`
 		};
 	}
 	if (prev === 0) return {
@@ -2635,7 +2635,7 @@ function describeChange(metric, current, previous, opts) {
 /** The change as one plain line (email, share page, tooltip): `↑ +12.0% better, +231, from 1,925`; `short` leaves out the detail. */
 function changeText(c, short = false) {
 	if (c.kind === "none") return short ? c.label : `${c.label}: ${c.note ?? "One of the two periods has no figure for this metric (no data, days not loaded yet, or a source not connected)."}`;
-	const word = c.kind === "change" && c.unit !== "positions" && c.judgement !== "neutral" ? ` ${c.judgement}` : "";
+	const word = c.kind === "change" && c.unit !== "positions" && c.judgment !== "neutral" ? ` ${c.judgment}` : "";
 	return `${c.direction ? `${ARROW[c.direction]} ` : ""}${c.label}${word}${!short && c.detail ? `, ${c.detail}` : ""}${c.kind === "change" && c.muted ? " (small numbers)" : ""}`;
 }
 /** Sessions, else impressions, else orders of a previous totals record: what a rate or average rests on. */
@@ -4164,7 +4164,7 @@ function runReport(rc, req, nowMs = Date.now()) {
 	value.catch(() => cache$2.get(key)?.value === value && cache$2.delete(key));
 	return value;
 }
-/** Visits one detailed report may scan per capacity profile (more: the summaries answer when they honour every filter). */
+/** Visits one detailed report may scan per capacity profile (more: the summaries answer when they honor every filter). */
 const SCAN_BUDGET = {
 	small: 5e4,
 	standard: 5e5,
@@ -4190,7 +4190,7 @@ function summaryPlan(report, filters, params) {
 /**
 * The routing rule (which engine answers a range). Before the detailed window: the summaries, or `raw_only` for a
 * report without them. Inside it: the detailed rows, unless the stored days hold more visits than the profile's scan
-* budget and the summaries honour every filter; a detailed report over `NARROW_FACTOR` times the budget is refused
+* budget and the summaries honor every filter; a detailed report over `NARROW_FACTOR` times the budget is refused
 * with `narrow_range` and the longest range that fits. Returns the notices of a summary answer, or null.
 */
 async function route(rc, report, from, to, filters, params, lean = false) {
@@ -5987,7 +5987,7 @@ const REVENUE_CATALOG = {
 	}
 };
 /** Catalog of funnel modes, segment comparison and journeys. */
-const BEHAVIOUR_CATALOG = {
+const BEHAVIOR_CATALOG = {
 	funnels: {
 		params: [
 			"funnel",
@@ -6085,7 +6085,7 @@ const CONTENT_CATALOG = {
 /** Catalog of the satisfaction reports (docs/sessions.md). */
 /** Catalog of the routing rule and the summary engine (docs/AGENTS.md). */
 const SUMMARY_CATALOG = {
-	rule: `A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (${Object.entries(SCAN_BUDGET).map(([k, v]) => `${k} ${v.toLocaleString("en-US")}`).join(", ")} visits). Above it the daily summaries answer when they honour every filter; otherwise the detailed visits answer up to 4 times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
+	rule: `A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (${Object.entries(SCAN_BUDGET).map(([k, v]) => `${k} ${v.toLocaleString("en-US")}`).join(", ")} visits). Above it the daily summaries answer when they honor every filter; otherwise the detailed visits answer up to 4 times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
 	filters: "Summaries apply filters on the report's own dimension. One of channel, country and device combines with page, entry, source, utm_campaign, event or goal (pair rows). Two or three of channel, country and device combine with each other (the daily cube) in overview, timeseries, channels, countries, devices, revenue and revenue_series, and revenue_breakdown by channel, country or device; next to another breakdown or another session filter only one applies. They do not apply: is_not, not_contains, not_prefix and not_regex on page, event, goal and utm_campaign, or on any dimension of a revenue read; browser, os, exit and lang on a revenue read; a filter on the own dimension of events, goals, exit_pages and of revenue_breakdown by page, event or goal. No filter is dropped silently.",
 	notices: {
 		summary: "The answer reads the daily summaries.",
@@ -6298,7 +6298,7 @@ function buildCatalog() {
 		metrics: catalogMetrics(),
 		seo: SEO_CATALOG,
 		revenue: REVENUE_CATALOG,
-		behaviour: BEHAVIOUR_CATALOG,
+		behavior: BEHAVIOR_CATALOG,
 		content: CONTENT_CATALOG,
 		links: LINKS_CATALOG,
 		satisfaction: SATISFACTION_CATALOG,
@@ -7146,7 +7146,7 @@ function receiptMarkdown(s, rawDays) {
 		"",
 		`${STATEMENT} This site counts visits with a cookieless, self-hosted tool that runs on its own server.`,
 		"",
-		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognised by a random id that lives only in the open page.",
+		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognized by a random id that lives only in the open page.",
 		"- Visits are counted per day with a key made from a shortened IP address and the browser family, mixed with a random salt that is deleted after two days. The key cannot be turned back into an IP address and cannot link visits across days.",
 		`- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language${s.captureScreen ? ", screen size class" : ""}.`,
 		`- ${SATISFACTION_LINE}`,
@@ -7992,7 +7992,7 @@ const KV_MOVE_JOB = "move:job";
 const KV_MOVE_STOP = "move:stop";
 /** Source, destination and site of every move whose counters were loaded (JSON text of the three). */
 const KV_MOVE_LEDGER = "move:counters";
-/** The cron task that continues a job; scheduled while a job is active, cancelled when none is. */
+/** The cron task that continues a job; scheduled while a job is active, canceled when none is. */
 const MOVE_CRON = "move";
 const MOVE_SCHEDULE = "* * * * *";
 const MOVE_ORDER = [
@@ -8187,12 +8187,12 @@ async function counterMode(kv, j) {
 	return ledger.includes(pairId(j.dest, j.source, j.site)) ? "max" : "add";
 }
 /**
-* The last job when it is a cancelled move of the same source, destination and site, set running again from its
+* The last job when it is a canceled move of the same source, destination and site, set running again from its
 * saved position (the stop key cleared, the job saved); null otherwise. The start route calls it before a new job.
 */
-async function resumeCancelled(kv, o) {
+async function resumeCanceled(kv, o) {
 	const job = await kv.get(KV_MOVE_JOB);
-	if (job?.status !== "cancelled" || job.dropped || job.source !== o.source || job.dest !== o.dest || job.site !== o.site) return null;
+	if (job?.status !== "canceled" || job.dropped || job.source !== o.source || job.dest !== o.dest || job.site !== o.site) return null;
 	const { finished: _f, lease: _l, holder: _h, fails: _x, ...rest } = job;
 	const j = {
 		...rest,
@@ -8219,7 +8219,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function applyStop(j, stop, now) {
 	if (stop?.id !== j.id || j.status !== "running") return;
 	j.status = stop.status;
-	if (stop.status === "cancelled") j.finished = now;
+	if (stop.status === "canceled") j.finished = now;
 }
 /**
 * One bounded call of the current job: chunks until `requests` or the wall time is spent, then the state copy and
@@ -8488,7 +8488,7 @@ const DELETE_DAY_ROWS = 15e3;
 const DELETE_PAUSE_AT = SYNC_BUDGET.small.pauseAt;
 const KV_DELETE_JOB = "delete:job";
 const KV_DELETE_LOG = "delete:log";
-/** Id of a job an admin cancelled; the next call of that job starts the cancel (a call in flight may not see a status change). */
+/** Id of a job an admin canceled; the next call of that job starts the cancel (a call in flight may not see a status change). */
 const KV_DELETE_CANCEL = "delete:cancel";
 const Day$4 = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const Hour = z.number().int().min(0).max(23);
@@ -8716,7 +8716,7 @@ const jobView = (j) => {
 	const { pred: _p, lease: _l, ...v } = j;
 	return v;
 };
-const isActive = (j) => !!j && (j.status === "running" || j.status === "cancelling");
+const isActive = (j) => !!j && (j.status === "running" || j.status === "canceling");
 /** A new job from a spec: the matched visit days of the detailed window now, and the older days when chosen. */
 async function createJob(e, spec, by, preview) {
 	const lo = spec.from < preview.rawFrom ? preview.rawFrom : spec.from;
@@ -8788,7 +8788,7 @@ const nextUtc = (now) => (Math.floor(now / 86400) + 1) * 86400;
 async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].requests) {
 	let job = await e.kv.get(KV_DELETE_JOB);
 	if (!isActive(job) || (job.lease ?? 0) > e.now || requests < 12) return job;
-	if (job.status === "running" && await e.kv.get("delete:cancel") === job.id) job.status = "cancelling";
+	if (job.status === "running" && await e.kv.get("delete:cancel") === job.id) job.status = "canceling";
 	if (job.paused && job.paused.until > e.now && job.status === "running") return job;
 	job.lease = e.now + 60;
 	job.paused = null;
@@ -8911,7 +8911,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 			await save();
 			if (rows.length < 500 && !await reclose(j.days[j.i] ?? null)) break;
 		}
-		if ((j.status === "running" && j.i >= j.days.length || j.status === "cancelling") && !j.paused && await reclose(null)) {
+		if ((j.status === "running" && j.i >= j.days.length || j.status === "canceling") && !j.paused && await reclose(null)) {
 			while (j.status === "running" && j.oi < j.old.length) {
 				const day = j.old[j.oi];
 				if (!room(0)) break;
@@ -8925,7 +8925,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 				j.oi++;
 				await save();
 			}
-			if (!Object.keys(j.reclose).length && (j.status === "cancelling" || j.oi >= j.old.length)) j.status = j.status === "cancelling" ? "cancelled" : "done";
+			if (!Object.keys(j.reclose).length && (j.status === "canceling" || j.oi >= j.old.length)) j.status = j.status === "canceling" ? "canceled" : "done";
 		}
 	} catch (err) {
 		if (!(err instanceof Budget)) {
@@ -8935,7 +8935,7 @@ async function runDeleteJob(e, requests = PROFILES[e.settings.capacityProfile].r
 		}
 	}
 	delete j.lease;
-	if (j.status === "done" || j.status === "cancelled") {
+	if (j.status === "done" || j.status === "canceled") {
 		j.finished = e.now;
 		const log = await e.kv.get("delete:log") ?? [];
 		const entry = {
@@ -9070,7 +9070,7 @@ function dataFileHandlers(env) {
 			}
 			if (isActive(await ctx.kv.get("delete:job"))) throw new PluginRouteError("delete_running", "A delete is running on the Data page. Import when it has finished.", 409);
 			const move = await ctx.kv.get(KV_MOVE_JOB);
-			if (isMoving(move) && [...bySite.keys()].some((s) => bindingOf(s) === move.dest)) throw new PluginRouteError("move_running", "A data move into this database is running or paused. Import when it is done or cancelled.", 409);
+			if (isMoving(move) && [...bySite.keys()].some((s) => bindingOf(s) === move.dest)) throw new PluginRouteError("move_running", "A data move into this database is running or paused. Import when it is done or canceled.", 409);
 			const profile = (await env.settings()).capacityProfile;
 			const per = WRITE_ROWS[b.table] ?? 1;
 			let inserted = 0;
@@ -11696,7 +11696,7 @@ const escapeHtml = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ESC[c]);
 const e = escapeHtml;
 const MUTED = "#94a3b8";
 const c = (i) => COLORS[i % COLORS.length];
-/** Line colour of a series slot: the light values of the admin's slot tokens (blue, emerald, orange, purple), each at least 3:1 on white. */
+/** Line color of a series slot: the light values of the admin's slot tokens (blue, emerald, orange, purple), each at least 3:1 on white. */
 const SLOT_HEX = [
 	"#2563eb",
 	"#059669",
@@ -11725,11 +11725,11 @@ function kpi(d) {
 	}
 	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}${d.note ? `<div class="upd">${e(d.note)}</div>` : ""}`;
 }
-/** The change line (arrow, label and the better or worse word, never colour alone) and the detail line under it. */
+/** The change line (arrow, label and the better or worse word, never color alone) and the detail line under it. */
 function changeHtml(c, tail = "") {
 	if (!c) return "";
 	if (c.kind === "none") return `<div class="same" title="${e(c.note)}">${e(c.label)}</div>`;
-	return `<div class="${c.muted || c.judgement === "neutral" ? "same" : c.judgement ?? "same"}">${e(changeText(c, true))}${e(tail)}</div>${c.detail ? `<div class="upd">${e(c.detail)}</div>` : ""}`;
+	return `<div class="${c.muted || c.judgment === "neutral" ? "same" : c.judgment ?? "same"}">${e(changeText(c, true))}${e(tail)}</div>${c.detail ? `<div class="upd">${e(c.detail)}</div>` : ""}`;
 }
 /** Marker groups (dashed line, dot, count badge, native `<title>`) and the list under the chart. */
 function annotationParts(d, sc, tz) {
@@ -11764,7 +11764,7 @@ function annotationParts(d, sc, tz) {
 }
 /** A small legend swatch: the slot shape, solid or as a dashed stroke for the comparison. */
 const swatch = (slot, dashed = false) => `<svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true" style="display:inline;width:16px;vertical-align:middle">${dashed ? `<line x1="0" x2="16" y1="5" y2="5" stroke="${slotHex(slot)}" stroke-dasharray="4 3" stroke-width="1.5"/>` : `<path d="${shapePath(slot, 8, 5, 4)}" fill="${slotHex(slot)}"/>`}</svg>`;
-/** Lines of one tile: up to 4 series on at most two axes, dashed comparisons in the series colour, a legend and direct labels. */
+/** Lines of one tile: up to 4 series on at most two axes, dashed comparisons in the series color, a legend and direct labels. */
 function line(d, title, area, tz) {
 	const height = 180;
 	const n = d.buckets.length;
@@ -11943,17 +11943,17 @@ const S = {
 	td: "text-align:left;padding:3px 6px;border-bottom:1px solid #f1f5f9;font-size:12px",
 	num: "text-align:right;padding:3px 6px;border-bottom:1px solid #f1f5f9;font-size:12px"
 };
-/** Change colours with at least 4.5:1 on white; the words carry the meaning too. */
+/** Change colors with at least 4.5:1 on white; the words carry the meaning too. */
 const JUDGE_COLOR = {
 	better: "#15803d",
 	worse: "#b91c1c",
 	neutral: "#64748b"
 };
-/** The change line of a KPI tile under its value: arrow, label and word in the judgement colour, then the detail. */
+/** The change line of a KPI tile under its value: arrow, label and word in the judgment color, then the detail. */
 function changeLine(d) {
 	const c = tileChange(d);
 	if (!c) return "";
-	return `<p style="margin:2px 0 0;font-size:13px;color:${c.kind === "none" || c.muted ? JUDGE_COLOR.neutral : JUDGE_COLOR[c.judgement ?? "neutral"]}">${escapeHtml(changeText(c, true))}</p>${c.detail ? `<p style="${S.muted}">${escapeHtml(c.detail)}</p>` : ""}`;
+	return `<p style="margin:2px 0 0;font-size:13px;color:${c.kind === "none" || c.muted ? JUDGE_COLOR.neutral : JUDGE_COLOR[c.judgment ?? "neutral"]}">${escapeHtml(changeText(c, true))}</p>${c.detail ? `<p style="${S.muted}">${escapeHtml(c.detail)}</p>` : ""}`;
 }
 /** A revenue tile whose site has no revenue is left out of the email. */
 const omitted = (report, d) => report.startsWith("revenue") && d?.empty === "No revenue recorded yet";
@@ -12657,10 +12657,10 @@ const BUILTIN_TEMPLATES = {
 			"compare": true
 		}
 	},
-	behaviour: {
+	behavior: {
 		kind: "dashboard-template",
 		v: 1,
-		name: "Behaviour",
+		name: "Behavior",
 		description: "Events, outbound links, downloads and forms.",
 		tiles: [
 			{
@@ -15380,7 +15380,7 @@ async function startBackfill(kv, site, source, from, to, today, now = Date.now()
 	return progress(b, now);
 }
 async function cancelBackfill(kv, site, source) {
-	return { cancelled: await kv.delete(backfillKey(site, source)) };
+	return { canceled: await kv.delete(backfillKey(site, source)) };
 }
 async function backfillStatus(kv, site, source, now = Date.now()) {
 	return progress(await kv.get(backfillKey(site, source)), now);
@@ -16660,7 +16660,7 @@ function moveRoutes(env) {
 				if (!src) throw new PluginRouteError("source_missing", `The binding ${name(body.source)} is not a D1 or Hyperdrive binding of this Worker.`, 400);
 				if (await sameDatabase(await env.dest(site), src)) throw new PluginRouteError("same_database", `${name(body.source)} is the database the site already writes to, under another name. Change the plugin option to the new database and deploy first.`, 400);
 				if (site === void 0 && await writtenTo(src, env.targets().filter((t) => t !== dest))) throw new PluginRouteError("source_in_use", `Sites still write to ${name(body.source)}. Choose the site to move.`, 400);
-				if (!await resumeCancelled(ctx.kv, {
+				if (!await resumeCanceled(ctx.kv, {
 					source: body.source,
 					dest,
 					site
@@ -16704,7 +16704,7 @@ function moveRoutes(env) {
 					return state(await current(ctx));
 				}
 				const pending = await ctx.kv.get(KV_MOVE_STOP);
-				if (job.status === "paused" || pending?.id === job.id && pending.status === "cancelled") return state(job);
+				if (job.status === "paused" || pending?.id === job.id && pending.status === "canceled") return state(job);
 				return state(await stop(ctx, job, "paused"));
 			}
 		},
@@ -16718,14 +16718,14 @@ function moveRoutes(env) {
 			async handler(ctx) {
 				const job = await current(ctx);
 				if (!isMoving(job)) return state(job);
-				if (job.status === "running") return state(await stop(ctx, job, "cancelled"));
+				if (job.status === "running") return state(await stop(ctx, job, "canceled"));
 				await ctx.kv.set(KV_MOVE_STOP, {
 					id: job.id,
-					status: "cancelled"
+					status: "canceled"
 				});
 				const j = {
 					...job,
-					status: "cancelled",
+					status: "canceled",
 					finished: now()
 				};
 				await ctx.kv.set(KV_MOVE_JOB, j);
@@ -17037,8 +17037,8 @@ const ADMIN_PAGES = [
 		group: "Analytics"
 	},
 	{
-		path: "/behaviour",
-		label: "Behaviour",
+		path: "/behavior",
+		label: "Behavior",
 		icon: "list",
 		group: "Analytics"
 	},

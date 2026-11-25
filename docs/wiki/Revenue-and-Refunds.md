@@ -8,7 +8,7 @@ Any event can carry an order value, a currency and an order id. The plugin store
 2. Record orders. For amounts you must trust, send them from your server through the agent events route. For a quick start, send them from the page.
 3. Attribute server orders to the visit: read `window.__ec.sid` at checkout, keep it with the order, and pass it back from your payment webhook.
 4. Book refunds and corrections from your server.
-5. Open Revenue in the Analytics menu: currency chips, key figures that toggle the lines of the chart, one panel per breakdown (channels, sources, campaigns, entry pages, pages, countries, devices, goals, events) with share of revenue, and the recent orders of the detailed window. Each order is credited to the first touch of its visit. "Revenue per funnel step" under the panels opens Behaviour, Funnels, where every step shows the revenue of the sessions that reached it ([Goals and funnels](Goals-and-Funnels)).
+5. Open Revenue in the Analytics menu: currency chips, key figures that toggle the lines of the chart, one panel per breakdown (channels, sources, campaigns, entry pages, pages, countries, devices, goals, events) with share of revenue, and the recent orders of the detailed window. Each order is credited to the first touch of its visit. "Revenue per funnel step" under the panels opens Behavior, Funnels, where every step shows the revenue of the sessions that reached it ([Goals and funnels](Goals-and-Funnels)).
 
 ### From the page
 

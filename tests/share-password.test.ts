@@ -50,7 +50,7 @@ describe("share password verifier", () => {
 		expect(await derive("pässwörd", salt, secret, 1000)).toBe(want);
 	});
 
-	it("honours the stored iter after the constant changes", async () => {
+	it("honors the stored iter after the constant changes", async () => {
 		const { secret } = generateToken();
 		const salt = crypto.getRandomValues(new Uint8Array(16));
 		const pw = { salt: base64url(salt), iter: 5000, verifier: await derive("old record pw", salt, fromBase64url(secret), 5000) };

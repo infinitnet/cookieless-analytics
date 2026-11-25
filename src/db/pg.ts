@@ -245,7 +245,7 @@ export function fromPg(binding: HyperdriveLike, name: string): Db {
 		return d;
 	};
 
-	/** Runs `f` on a client of the current scope (serialised per client), or on a client of its own. */
+	/** Runs `f` on a client of the current scope (serialized per client), or on a client of its own. */
 	async function use<T>(f0: (c: PgClient) => Promise<T>): Promise<T> {
 		const d = driver();
 		const down = failFast.get(name);

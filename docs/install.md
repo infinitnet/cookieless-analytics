@@ -229,7 +229,7 @@ What moves, what stays and the rollback are the same as for an own D1 database a
 
 ## Queue tier
 
-By default every page view, event and engagement update is written straight to the database (`ingestTier` `direct`). With the queue tier the site sends them to a Cloudflare Queue, and a small consumer Worker writes them in batches with the same statements. It absorbs bursts and keeps requests answered while the database is overloaded; a single request is not faster. Details, behaviour and the Free plan queue limits: [consumer/README.md](../consumer/README.md).
+By default every page view, event and engagement update is written straight to the database (`ingestTier` `direct`). With the queue tier the site sends them to a Cloudflare Queue, and a small consumer Worker writes them in batches with the same statements. It absorbs bursts and keeps requests answered while the database is overloaded; a single request is not faster. Details, behavior and the Free plan queue limits: [consumer/README.md](../consumer/README.md).
 
 1. Create the queue and its dead letter queue:
 

@@ -12,7 +12,7 @@ A goal marks a visit as converted when it reaches a page, sends an event or clic
 
 The event name, path, link host, property and funnel step fields suggest what the site recorded in the last 90 days, with counts; pick one or type your own. After you leave the field, a note says when an exact value was not seen in that time. A new goal for an event that has not fired yet still works: it counts once the event occurs.
 4. Save. On detailed data goals are matched when reports run, so a new goal also covers past days inside the detailed window.
-5. Open Behaviour, Goals to see completions, converting sessions and the conversion rate.
+5. Open Behavior, Goals to see completions, converting sessions and the conversion rate.
 
 A goals or funnels view on a site without goals or funnels offers **Create a goal** or **Create a funnel**, which opens the form in Definitions.
 
@@ -37,7 +37,7 @@ A goals or funnels view on a site without goals or funnels offers **Create a goa
 1. Open Definitions, Funnels.
 2. Add 2 to 6 steps. Each step is a page (`is`, `prefix` or `regex`) or an event (by name), with an optional label.
 3. Pick the mode (below) and save.
-4. Open Behaviour, Funnels and pick the funnel. The tab names its mode.
+4. Open Behavior, Funnels and pick the funnel. The tab names its mode.
 
 ![Definitions, Funnels tab](images/definitions-funnels.png)
 
@@ -59,16 +59,16 @@ A session that views `/pricing` and then `/` reaches step 2 only in the flexible
 
 ## Where they show
 
-![Behaviour, Goals tab](images/behaviour-goals.png)
+![Behavior, Goals tab](images/behavior-goals.png)
 
-- Behaviour, Goals: one row per goal with Type, Completions, Converting sessions and Conversion rate. Revenue and Orders columns appear when the site has revenue.
-- Behaviour, Funnels: per step Sessions, Drop-off and "Of first step". When the site has revenue: Revenue, Orders, Average order value, Revenue per session (Refunds and Net revenue when present) of the sessions that reached the step, in one currency, and Est. lost revenue, an estimate that values the sessions that left before the step at the revenue per session of those that reached the last step. A session counts its whole revenue in the range at every step it reached, also an order placed before the step. No orders in the range: no revenue columns.
+- Behavior, Goals: one row per goal with Type, Completions, Converting sessions and Conversion rate. Revenue and Orders columns appear when the site has revenue.
+- Behavior, Funnels: per step Sessions, Drop-off and "Of first step". When the site has revenue: Revenue, Orders, Average order value, Revenue per session (Refunds and Net revenue when present) of the sessions that reached the step, in one currency, and Est. lost revenue, an estimate that values the sessions that left before the step at the revenue per session of those that reached the last step. A session counts its whole revenue in the range at every step it reached, also an order placed before the step. No orders in the range: no revenue columns.
 - Overview: a Goals panel.
 - Filters and segments: the `goal` filter keeps visits that reached a goal.
 - Dashboards: tile reports `goals` (`kpi` needs the goal id) and `funnels` (needs the funnel id).
 - Agent API: reports `goals` and `funnels` through `agent/v1/query`. Stored funnels use their own mode; ad hoc steps take `params.mode`.
 
-![Behaviour, Funnels tab](images/behaviour-funnels.png)
+![Behavior, Funnels tab](images/behavior-funnels.png)
 
 ## Limits
 
@@ -87,4 +87,4 @@ A session that views `/pricing` and then `/` reaches step 2 only in the flexible
 
 ## Related
 
-[Events](Events), [Revenue and refunds](Revenue-and-Refunds), [Filters and segments](Filters-and-Segments), [Definitions](Definitions), [Reports](Reports), [Dashboards and sharing](Dashboards-and-Sharing). Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/behaviour.md
+[Events](Events), [Revenue and refunds](Revenue-and-Refunds), [Filters and segments](Filters-and-Segments), [Definitions](Definitions), [Reports](Reports), [Dashboards and sharing](Dashboards-and-Sharing). Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/behavior.md

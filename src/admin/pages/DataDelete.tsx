@@ -49,7 +49,7 @@ interface DeleteState {
 	log: DeleteLogEntry[];
 	dayRows: number | null;
 }
-const active = (j: DeleteJobView | null | undefined) => j?.status === "running" || j?.status === "cancelling";
+const active = (j: DeleteJobView | null | undefined) => j?.status === "running" || j?.status === "canceling";
 
 export function FilteredDelete({ view }: { view: View }) {
 	const [from, setFrom] = useState(view.state.from);
@@ -149,7 +149,7 @@ export function FilteredDelete({ view }: { view: View }) {
 			{job && active(job) && <JobProgress job={job} site={siteName(job.site)} dayRows={state?.dayRows ?? null} busy={busy} onCancel={() => void run("tools/delete-cancel", {}, setState)} />}
 			{last && (
 				<Notice tone={last.status === "done" ? "success" : "info"}>
-					{siteName(last.site)}: {last.status === "done" ? "Deleted" : "Cancelled after deleting"} {plural(last.deleted.visits, "visit")}, {plural(last.deleted.orders, "order")} and {plural(last.deleted.refunds, "refund")}. Daily summaries stored again: {plural(last.deleted.summaryDays, "day")}
+					{siteName(last.site)}: {last.status === "done" ? "Deleted" : "Canceled after deleting"} {plural(last.deleted.visits, "visit")}, {plural(last.deleted.orders, "order")} and {plural(last.deleted.refunds, "refund")}. Daily summaries stored again: {plural(last.deleted.summaryDays, "day")}
 					{last.deleted.oldDays ? `; whole summaries deleted: ${plural(last.deleted.oldDays, "day")}` : ""}.
 					{last.skipped.length ? ` ${plural(last.skipped.length, "day")} left the detailed window before its summary could be stored again and keeps the old summary.` : ""}
 				</Notice>
@@ -225,7 +225,7 @@ function JobProgress({ job, site, dayRows, busy, onCancel }: { job: DeleteJobVie
 	return (
 		<div className="ca-panel" role="status" aria-label="Delete in progress">
 			<p>
-				<strong>{job.status === "cancelling" ? "Cancelling: storing the touched days again." : `Deleting: ${done} of ${plural(job.days.length, "day")}`}</strong>
+				<strong>{job.status === "canceling" ? "Canceling: storing the touched days again." : `Deleting: ${done} of ${plural(job.days.length, "day")}`}</strong>
 				{`, ${count(job.deleted.visits)} of ${plural(job.expected, "visit")} so far. Rows written today ${count(job.utc.rows)}${dayRows ? ` of ${count(dayRows)}` : ""}.`}
 			</p>
 			{job.paused && (
@@ -355,7 +355,7 @@ function RecentDeletions({ log, siteName }: { log: DeleteLogEntry[]; siteName: (
 									<td className="ca-num">{count(l.deleted.visits)}</td>
 									<td className="ca-num">{count(l.deleted.orders)}</td>
 									<td className="ca-num">{count(l.deleted.summaryDays)}</td>
-									<td>{l.status === "done" ? "Done" : "Cancelled"}</td>
+									<td>{l.status === "done" ? "Done" : "Canceled"}</td>
 								</tr>
 							))}
 						</tbody>

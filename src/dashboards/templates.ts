@@ -1,6 +1,6 @@
 /** Templates: a dashboard with every segment, goal and funnel reference written as the record's name. */
 import acquisition from "../data/templates/acquisition.json";
-import behaviour from "../data/templates/behaviour.json";
+import behavior from "../data/templates/behavior.json";
 import content from "../data/templates/content.json";
 import overview from "../data/templates/overview.json";
 import satisfaction from "../data/templates/satisfaction.json";
@@ -21,7 +21,7 @@ export const BUILTIN_TEMPLATES: Readonly<Record<string, unknown>> = {
 	overview,
 	content,
 	acquisition,
-	behaviour,
+	behavior,
 	satisfaction,
 	revenue,
 	"weekly-digest": weeklyDigest,

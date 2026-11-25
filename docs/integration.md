@@ -21,7 +21,7 @@ const result = await recordEvent(Astro.locals, { name: "purchase", val: 49.9, cu
 - Because the post has no `Origin`, the event belongs to the local site and keeps its revenue fields even when `acceptClientRevenue` is off.
 - It returns `{ ok }`, or `null` when the plugin or its route is absent. It never throws.
 
-The client address and the privacy signals travel with the event, so an event without `sid` joins the visitor's active session through the daily visitor key, exactly as a full page load does ([sessions.md](sessions.md)), and a visitor with a privacy signal the `signals` setting honours is not recorded. The host trusts `cf-connecting-ip` only on a request that carries the `cf` object, so off Cloudflare the address is not known and events without `sid` share one daily visitor key per browser family. Pass `sid` (read from `window.__ec.sid` on the page) whenever the event must belong to one exact visit. A visitor whose page script never ran gets a session with zero page views; such sessions are stored but never count as sessions, visitors or bounces. `{ ok: true }` means the post was handed to the plugin, not that it was stored (bots and capped posts are dropped silently). A paid order reported later by a payment webhook goes through `agent/v1/events` with an API key instead ([revenue.md](revenue.md), section 3).
+The client address and the privacy signals travel with the event, so an event without `sid` joins the visitor's active session through the daily visitor key, exactly as a full page load does ([sessions.md](sessions.md)), and a visitor with a privacy signal the `signals` setting honors is not recorded. The host trusts `cf-connecting-ip` only on a request that carries the `cf` object, so off Cloudflare the address is not known and events without `sid` share one daily visitor key per browser family. Pass `sid` (read from `window.__ec.sid` on the page) whenever the event must belong to one exact visit. A visitor whose page script never ran gets a session with zero page views; such sessions are stored but never count as sessions, visitors or bounces. `{ ok: true }` means the post was handed to the plugin, not that it was stored (bots and capped posts are dropped silently). A paid order reported later by a payment webhook goes through `agent/v1/events` with an API key instead ([revenue.md](revenue.md), section 3).
 
 ## The ingest contract
 
@@ -189,7 +189,7 @@ For page requests, the middleware sets `locals.__ec` (the `namespace` setting na
 ```ts
 const scope = Astro.locals.__ec; // { audience: "human" | "robot", botId: string | null } | undefined
 if (scope?.audience === "robot") {
-  // known bot: skip your own tracking or personalisation
+  // known bot: skip your own tracking or personalization
 }
 ```
 

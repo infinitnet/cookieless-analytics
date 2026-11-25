@@ -117,10 +117,10 @@ Users without the permission to manage plugins see the steps and where the data 
 | State | Meaning |
 |---|---|
 | No move yet, the site writes to the EmDash database | Nothing to move. Switch to a new database first (above). The tab can still copy from another binding into the EmDash database, for a way back. |
-| Running | The move continues by itself: a background run each minute, and call after call while the tab is open. The daily summaries, revenue summaries, retention and Search tasks skip the new database meanwhile, and the delete tools on the Data page refuse to start, so no day is summarised or deleted from half copied rows. |
+| Running | The move continues by itself: a background run each minute, and call after call while the tab is open. The daily summaries, revenue summaries, retention and Search tasks skip the new database meanwhile, and the delete tools on the Data page refuse to start, so no day is summarized or deleted from half copied rows. |
 | Running, today's rows used | Small profile into a D1 database only: the move has written its 15,000 rows for the day (shared with imports). The tab says so, with the rows written today and at least how many more days the move takes, and checks every 5 minutes. The move continues after 00:00 UTC by itself, also without the tab open. |
 | Paused | Nothing is copied; the tasks above still skip the new database. Resume continues at the saved position. A move also pauses by itself after 5 failed tries at the same place, with the error; Resume tries again. |
-| Cancelled | Copying stopped. Rows copied so far stay. Start with the same source and site continues the cancelled move from where it stopped. |
+| Canceled | Copying stopped. Rows copied so far stay. Start with the same source and site continues the canceled move from where it stopped. |
 | Done | Every table is copied. The cron state of the old database (the summaries watermark and the task positions) is written for the new one, so the tasks close the days since the switch from complete rows. Then the check runs. |
 | Old tables removed | The move is finished and the old database no longer holds the analytics tables. The check cannot run again. |
 | Error under Start | One chunk failed (for example a database that was not reachable). The move tries it again with the next call, with half the rows; each chunk that passes doubles them back. |
@@ -138,7 +138,7 @@ A visitor who was on the site at the moment of the deploy starts a new visit in 
 - The first move of a pair adds the old database's count to the new one's.
 - Moving the same pair again (a second start after Done, or after the check found rows short) copies missing rows but adds no count again.
 - Moving back (the two databases swapped) keeps the larger of the two counts, because the new database already holds the old one's counts plus its own.
-- A cancelled move started again continues with the same rule.
+- A canceled move started again continues with the same rule.
 
 When the connection is lost in the middle of a counter write, the plugin cannot know whether that write was applied, and does not add it again; if it was not applied, those days show as short in the check rather than counted twice.
 

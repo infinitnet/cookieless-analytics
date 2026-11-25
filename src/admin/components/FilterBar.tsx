@@ -52,7 +52,7 @@ export function addFilter(filters: readonly Filter[], dim: Dim, value: string): 
 	}
 	return addIs(filters, dim, value);
 }
-/** Dims offered in the add menus (event properties need a key and come from the Behaviour page). */
+/** Dims offered in the add menus (event properties need a key and come from the Behavior page). */
 const ADDABLE = (Object.keys(DIM_LABELS) as Dim[]).filter((d) => d !== "event_prop");
 
 type BaseOp = "is" | "contains" | "prefix" | "regex";

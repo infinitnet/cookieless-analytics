@@ -22,7 +22,7 @@ Set `siteSearchParams` in the plugin settings to the query parameter names of yo
 
 When set, page views keep those parameters in the stored query string, next to the query parameter allowlist. Each value is trimmed, lowercased, whitespace collapsed and cut at 64 characters, and replaced by `redacted` when it contains an `@` or nine or more consecutive digits, a guard against emails and numbers typed into a search box. Events never keep them. No script change is needed. With the setting empty the stored query strings are exactly as before.
 
-Report `site_search` (Behaviour page, Site search tab; dashboard tile: table; agent API), raw window only:
+Report `site_search` (Behavior page, Site search tab; dashboard tile: table; agent API), raw window only:
 
 | Column | Meaning |
 |---|---|

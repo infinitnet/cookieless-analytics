@@ -16,7 +16,7 @@ The plugin counts visitors and sessions without cookies and without storing anyt
 - Each day the plugin creates one random salt (32 random bytes). The salt day follows `saltTimezone` and `saltRotationHour` (default UTC, hour 0). Salts older than two days are deleted, so an old key can never be recomputed.
 - The visitor key is a keyed hash of the salt of the day, the site, the shortened IP address, the browser family and major version, the operating system family and the device class.
 - The IP address is shortened to `/24` (IPv4) or `/48` (IPv6) before hashing. With `ipTruncation` set to `strict` it is shortened to `/16` or `/32`. The address itself is never stored.
-- Because the salt changes every day, visitors are counted per day. The same person on two days is two visitors. A visitor figure over several days is the sum of the daily visitors and is labelled so. There are no cross-day returning visitor figures, by design.
+- Because the salt changes every day, visitors are counted per day. The same person on two days is two visitors. A visitor figure over several days is the sum of the daily visitors and is labeled so. There are no cross-day returning visitor figures, by design.
 
 ### The session id
 

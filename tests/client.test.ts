@@ -100,7 +100,7 @@ describe("bail-outs", () => {
 		expect(p.sent).toHaveLength(1);
 	});
 
-	it("honours Global Privacy Control", () => {
+	it("honors Global Privacy Control", () => {
 		const p = page({ before: (w) => Object.defineProperty(w.navigator, "globalPrivacyControl", { value: true }) });
 		expect(p.sent).toEqual([]);
 	});

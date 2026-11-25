@@ -44,7 +44,7 @@ describe("classifyUa acceptance", () => {
 
 describe("classifyUa fixtures", () => {
 	const list = fixtures as Fixture[];
-	it("has about 150 labelled user agents", () => {
+	it("has about 150 labeled user agents", () => {
 		expect(list.length).toBeGreaterThanOrEqual(150);
 		expect(list.filter((f) => f.audience === "human").length).toBeGreaterThanOrEqual(60);
 	});

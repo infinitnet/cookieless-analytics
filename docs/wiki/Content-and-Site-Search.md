@@ -15,7 +15,7 @@ Each path is classified by the URL pattern of every routable collection. `{name}
 
 1. Open Settings, Page script, and set `siteSearchParams` to the query parameter names of your search, comma separated, for example `q` or `s`.
 2. Save. No script change is needed: page views keep those parameters from now on.
-3. Open Behaviour, Site search. Each row is a term with Searches, Sessions and Searches per session.
+3. Open Behavior, Site search. Each row is a term with Searches, Sessions and Searches per session.
 
 A client site can inherit this setting or keep its own list on Definitions, Sites (an own empty list turns site search off for that site).
 
@@ -34,7 +34,7 @@ To know which searches found nothing, send your own event from the results page:
 window.__ec && window.__ec.event("search_no_results", { term_length: 12 });
 ```
 
-It shows on Behaviour, Events.
+It shows on Behavior, Events.
 
 ### Traffic panel in the editor
 

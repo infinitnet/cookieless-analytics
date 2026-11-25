@@ -1,6 +1,6 @@
 import { r as PluginOptions } from "./config-C1DAdsvs.mjs";
 import { PluginContext, PluginDescriptor } from "emdash";
-/** The cron task that continues a job; scheduled while a job is active, cancelled when none is. */
+/** The cron task that continues a job; scheduled while a job is active, canceled when none is. */
 declare const MOVE_CRON = "move";
 /**
  * One-shot continuation names. The host deletes a finished one-shot row by id and `schedule()` upserts
@@ -80,8 +80,8 @@ declare const ADMIN_PAGES: readonly [{
   readonly icon: "users";
   readonly group: "Analytics";
 }, {
-  readonly path: "/behaviour";
-  readonly label: "Behaviour";
+  readonly path: "/behavior";
+  readonly label: "Behavior";
   readonly icon: "list";
   readonly group: "Analytics";
 }, {

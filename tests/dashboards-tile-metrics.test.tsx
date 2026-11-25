@@ -106,7 +106,7 @@ const lines = (keys: string[], compare: boolean): TileData => ({
 const parse = (html: string) => new DOMParser().parseFromString(html, "text/html");
 
 describe("shared page and email with several lines", () => {
-	it("draws one path per metric in its own colour, a right axis for a second scale, a legend and no script", () => {
+	it("draws one path per metric in its own color, a right axis for a second scale, a legend and no script", () => {
 		const d = dash([{ id: "l00001", report: "search_overview", kind: "line", metrics: ["clicks", "position"], w: 3 }]);
 		const tile = { ...lines(["clicks", "position"], false) };
 		const html = renderShared({ dashboard: d, tiles: [tile], range: "30d", compare: false, ranges: ["30d"], allowCompare: true, generatedAt: 1_773_000_000 });

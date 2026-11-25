@@ -80,7 +80,7 @@ export function targetLabel(t: Target, goals: ReadonlyMap<string, string> = new 
 	return row ? `${label}: ${row}` : label;
 }
 const GROUPS = [...new Set(IMPACT_OPTIONS.map((o) => o[0]))];
-/** Rates below these denominators are greyed (the impression floor default, 50 sessions). */
+/** Rates below these denominators are grayed (the impression floor default, 50 sessions). */
 const LOW_IMPRESSIONS = 50;
 const LOW_SESSIONS = 50;
 /** The fixed strip of standard KPIs under an expanded row (same scope and windows). */

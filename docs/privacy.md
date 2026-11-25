@@ -7,7 +7,7 @@ This page says what the plugin stores, what it never stores, and for how long. T
 ## Design rules
 
 - **Nothing is written to the visitor's device,** except the opt-out flag a visitor sets by clicking the opt-out control ([Visitor opt-out](#visitor-opt-out)). No cookies, no `sessionStorage`, no IndexedDB, no Cache API entries, no ETag tricks. The only other client state is a JavaScript variable that dies with the page. A full page load continues the visit through the daily visitor key, not through anything in the URL ([sessions.md](sessions.md)).
-- **No device probing, no lasting key.** The server-side visitor key is a hash of a shortened IP address and a normalised browser family, mixed with a random salt that changes every day. It reads no canvas, font or hardware value and cannot link visits across days.
+- **No device probing, no lasting key.** The server-side visitor key is a hash of a shortened IP address and a normalized browser family, mixed with a random salt that changes every day. It reads no canvas, font or hardware value and cannot link visits across days.
 - **No raw IP address and no full user agent is stored or logged.** The address is used inside one background task to build the key and is then gone.
 - **Exact counts, no sampling** for human traffic.
 - **Bots are excluded.** A known bot gets an empty 204 answer and no row of any kind is written ([bots.md](bots.md)).
@@ -21,7 +21,7 @@ This page says what the plugin stores, what it never stores, and for how long. T
 - The IP is cut before hashing: IPv4 to `/24` and IPv6 to `/48` (setting `ipTruncation` `standard`), or IPv4 `/16` and IPv6 `/32` (`strict`).
 - The salt is 32 random bytes, created on first use each day and stored in the plugin's key-value state. The `salts` cron task deletes salts older than two days. A deleted salt cannot be recomputed, so older keys can no longer be matched to anyone.
 - The salt day follows `saltTimezone` and `saltRotationHour` (default UTC, hour 0).
-- Because the key changes every day, the plugin counts visitors per day. A figure over several days is the sum of daily visitors and is labelled so.
+- Because the key changes every day, the plugin counts visitors per day. A figure over several days is the sum of daily visitors and is labeled so.
 
 ## Privacy signals: GPC and DNT
 
@@ -112,7 +112,7 @@ The Delete tab of the Data page (permission: manage, admin only) offers two acti
 3. **What is removed**: the matching rows of `ca_sessions` (with the page views and events inside each visit) and their rows in `ca_events`. Every closed day that lost visits or orders has its daily summaries (`ca_rollup`, `ca_revenue_daily`, `ca_cube`) computed again from the visits that remain, the same way the day was first stored, so summary and detailed reports agree. Days not closed yet need nothing: they are computed when read.
 4. **Days older than the detailed window** keep only daily summaries, which cannot be filtered. The preview says so and does not count them. As a separate choice you can delete the whole summaries of those days (all their traffic, not only the matches).
 
-The delete runs as a job in bounded steps (see [limits.md](limits.md#filtered-delete)); the page shows its progress and can cancel it. A cancelled job stops deleting and still stores the touched days again. Each finished or cancelled job is recorded in plugin state with who started it, when, the conditions and the counts (no visitor data); the Data page lists the last 10 as "Recent deletions". The agent API and the MCP tools have no delete route.
+The delete runs as a job in bounded steps (see [limits.md](limits.md#filtered-delete)); the page shows its progress and can cancel it. A canceled job stops deleting and still stores the touched days again. Each finished or canceled job is recorded in plugin state with who started it, when, the conditions and the counts (no visitor data); the Data page lists the last 10 as "Recent deletions". The agent API and the MCP tools have no delete route.
 
 To keep the same traffic out from then on, add a user agent rule (Definitions) or an excluded path or IP range (Settings, Privacy and exclusions). The delete never adds a rule by itself.
 
@@ -154,7 +154,7 @@ Cookieless Analytics sets no cookies and stores nothing on the visitor's device,
 ### The two rules
 
 - **Device rule.** [Art. 5(3) of the ePrivacy Directive](https://eur-lex.europa.eu/eli/dir/2002/58/2009-12-19/eng) asks consent for "the storing of information, or the gaining of access to information already stored, in the terminal equipment", unless that is strictly necessary for a service the user asked for. It covers any information, personal or not ([CJEU C-673/17 Planet49](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:62017CJ0673), paragraphs 68 to 71). The plugin writes only the opt-out flag a visitor sets by clicking, so the access half is the one that matters. The EDPB reads access widely: a page script that makes the browser send information counts ([Guidelines 2/2023](https://www.edpb.europa.eu/system/files/2024-10/edpb_guidelines_202302_technical_scope_art_53_eprivacydirective_v2_en_0.pdf), paragraphs 33 and 53), and whether consent follows depends on the exemptions (paragraph 56). Each country applies the exemptions in its own way, so the answer differs by country.
-- **Personal data rule.** A visitor's IP address is personal data for a site operator that has legal means to identify the person behind it ([CJEU C-582/14 Breyer](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:62014CJ0582), paragraph 49), and the daily visitor key can be rebuilt from an address until its salt is deleted, which makes it pseudonymous data (Recital 26), so the [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng) applies. Consent is one of six legal bases in Art. 6(1). Legitimate interest (Art. 6(1)(f), Recital 47) carries the counting of visits to your own site when you name it in your privacy notice (Art. 13), keep the data no longer than needed (Art. 5(1)(e)) and honour objections (Art. 21). An objection may come as a browser signal (Art. 21(5)); the plugin leaves out visits that send Global Privacy Control by default.
+- **Personal data rule.** A visitor's IP address is personal data for a site operator that has legal means to identify the person behind it ([CJEU C-582/14 Breyer](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:62014CJ0582), paragraph 49), and the daily visitor key can be rebuilt from an address until its salt is deleted, which makes it pseudonymous data (Recital 26), so the [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng) applies. Consent is one of six legal bases in Art. 6(1). Legitimate interest (Art. 6(1)(f), Recital 47) carries the counting of visits to your own site when you name it in your privacy notice (Art. 13), keep the data no longer than needed (Art. 5(1)(e)) and honor objections (Art. 21). An objection may come as a browser signal (Art. 21(5)); the plugin leaves out visits that send Global Privacy Control by default.
 
 ### What the page script reads
 
@@ -169,7 +169,7 @@ The device rule turns on what a script reads in the browser. This is the full li
 | Active time, visible time, scroll depth, interaction | measured in the open page | sent when the page is hidden or left |
 | Events | clicks on outbound links and downloads, form submits and the elements you mark | sent as they happen; name, path and up to 10 properties are stored |
 | Session id and page view id | random values the script makes for this page load | sent with each request; kept in a script variable only |
-| Privacy signals | `navigator.globalPrivacyControl`, `navigator.doNotTrack` | read only; when a signal that the `signals` setting honours is set, the script sends nothing |
+| Privacy signals | `navigator.globalPrivacyControl`, `navigator.doNotTrack` | read only; when a signal that the `signals` setting honors is set, the script sends nothing |
 | Opt-out flag | one `localStorage` key, read once when the page loads | read only; when it is set, the script sends nothing. It is written only when the visitor clicks the opt-out control ([Visitor opt-out](#visitor-opt-out)) |
 | Automation hints | `navigator.webdriver`, the user agent string, empty language or plugin lists | read only; an automated browser sends nothing |
 
@@ -189,7 +189,7 @@ The national exemptions and the legitimate interest test share these conditions.
 | Data kept 25 months at most | `rawRetentionDays` is 760 by default and at most; `rollupRetentionMonths` is 25 by default | Leave `rollupRetentionMonths` at 25 or lower |
 | No combining with other data | The plugin itself stores no order id, user id or email address; page paths and event properties are stored as sent, so keep such values out of them | Do not keep the session id next to customer records ([revenue.md](revenue.md)) |
 | Visitors are told | The receipt block and the text below | Publish it on your privacy page |
-| Visitors can object | The opt-out control, and Global Privacy Control, which is honoured by default (`DNT: 1` too with `signals` set to `dnt_and_gpc`) | Put the opt-out control on your privacy page and name the signal there |
+| Visitors can object | The opt-out control, and Global Privacy Control, which is honored by default (`DNT: 1` too with `signals` set to `dnt_and_gpc`) | Put the opt-out control on your privacy page and name the signal there |
 
 ### Where consent or an objection link applies
 

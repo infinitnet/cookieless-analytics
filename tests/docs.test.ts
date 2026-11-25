@@ -22,7 +22,7 @@ const DOCS = [
 	"dashboards",
 	"annotations",
 	"revenue",
-	"behaviour",
+	"behavior",
 	"content",
 	"email",
 	"mcp",

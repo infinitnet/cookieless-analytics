@@ -18,7 +18,7 @@ The Definitions page holds what the reports are built from: goals, funnels, segm
 
 | Tab | What it holds | More |
 |---|---|---|
-| **Goals** | Named goals, each a page (matched with is, starts with, contains or regex), an event (its exact name, optionally with event properties) or an outbound link (is, starts with or contains). The form offers only the match modes a type honours. A goal can be made inactive. | [Goals and Funnels](Goals-and-Funnels) |
+| **Goals** | Named goals, each a page (matched with is, starts with, contains or regex), an event (its exact name, optionally with event properties) or an outbound link (is, starts with or contains). The form offers only the match modes a type honors. A goal can be made inactive. | [Goals and Funnels](Goals-and-Funnels) |
 | **Funnels** | Named funnels of 2 to 6 steps with a mode: sequential (the default), strict or flexible. A page step matches with is, starts with or regex; an event step matches its exact name. | [Goals and Funnels](Goals-and-Funnels) |
 | **Segments** | Named lists of 1 to 20 filters, for the header, segment comparison, dashboards and the agent API. | [Filters and Segments](Filters-and-Segments) |
 | **Channel rules** | The built-in channel rules as a checklist (uncheck to turn one off) and your own rules: a channel, a priority and one condition (referrer host list, `utm_medium`, `utm_source` or `utm_campaign` pattern). | [How Visits Are Counted](How-Visits-Are-Counted) |
@@ -35,7 +35,7 @@ Screenshots of single tabs: [Goals and Funnels](Goals-and-Funnels) (funnels), [M
 
 ### Goals and Funnels
 
-A session completes a goal when one of its page views, events or outbound link clicks matches it. Goals show on Overview (Goals panel), on Behaviour, Goals, and as filters ("Goal is ..."). Funnels show on Behaviour, Funnels. The mode decides how steps chain within a session: sequential and flexible read at most 50,000 sessions, strict at most 10,000.
+A session completes a goal when one of its page views, events or outbound link clicks matches it. Goals show on Overview (Goals panel), on Behavior, Goals, and as filters ("Goal is ..."). Funnels show on Behavior, Funnels. The mode decides how steps chain within a session: sequential and flexible read at most 50,000 sessions, strict at most 10,000.
 
 ### Segments
 

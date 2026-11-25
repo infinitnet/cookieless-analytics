@@ -1,18 +1,18 @@
-/** The change of a figure against the comparison (`describeChange`): arrow, label, judgement word, detail line. */
+/** The change of a figure against the comparison (`describeChange`): arrow, label, judgment word, detail line. */
 import type { ReportResult } from "../../query/reports/index.js";
 import { ARROW } from "../../charts/change.js";
 import { rangeText } from "../../charts/geometry.js";
 import { type Change, changeText, describeChange, type Format, rateBase } from "./format.js";
 
 /**
- * `compact` (table cells, tooltip): arrow and label only, the judgement word for screen readers, nothing for
+ * `compact` (table cells, tooltip): arrow and label only, the judgment word for screen readers, nothing for
  * no change or a missing side. Otherwise (cards) the word is visible and the detail sits on a second line.
  */
 export function ChangeMark({ c, compact = false }: { c: Change; compact?: boolean }) {
 	if (compact && (c.kind === "none" || c.direction === "flat")) return null;
-	const word = c.kind === "change" && c.unit !== "positions" && c.judgement !== "neutral" && c.judgement !== null ? c.judgement : null;
+	const word = c.kind === "change" && c.unit !== "positions" && c.judgment !== "neutral" && c.judgment !== null ? c.judgment : null;
 	return (
-		<span className="ca-delta" data-judge={c.muted ? undefined : (c.judgement ?? undefined)} data-muted={c.muted ? "true" : undefined} title={changeText(c)}>
+		<span className="ca-delta" data-judge={c.muted ? undefined : (c.judgment ?? undefined)} data-muted={c.muted ? "true" : undefined} title={changeText(c)}>
 			<span className="ca-delta-main">
 				{c.direction && (
 					<span className="ca-delta-arrow" aria-hidden="true">

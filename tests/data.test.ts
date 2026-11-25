@@ -57,7 +57,7 @@ describe("agents.json", () => {
 			expect(parsed.some((r) => r.source === "crawler-user-agents")).toBe(true);
 			expect(parsed.some((r) => r.id.startsWith("__"))).toBe(false);
 			expect(readFileSync(join(out1, "THIRD_PARTY_NOTICES.md"), "utf8")).toContain("MIT License");
-			// The committed file is this generator's output (the header names our own licence, the sources keep theirs).
+			// The committed file is this generator's output (the header names our own license, the sources keep theirs).
 			expect(readFileSync(join(out1, "THIRD_PARTY_NOTICES.md"), "utf8").split("## ")[0]).toBe(readFileSync("THIRD_PARTY_NOTICES.md", "utf8").split("## ")[0]);
 			expect(readFileSync("THIRD_PARTY_NOTICES.md", "utf8")).toContain("licensed under Apache-2.0");
 		} finally {

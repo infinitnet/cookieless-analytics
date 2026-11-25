@@ -211,7 +211,7 @@ export async function annotationImpacts(rc: ReportCtx, input: RunInput): Promise
 	const limit = Math.min(input.limit, cap);
 	// Search targets are measured with `withSearch` (agents need read:search for it) and once final Search rows exist.
 	const searchOn = p.withSearch === true && (await lastFinal(rc, "all")) !== null;
-	// Neighbours up to one window outside the range can overlap a row's windows.
+	// Neighbors up to one window outside the range can overlap a row's windows.
 	const all = await rc.annotationStore.inRange(addDays(input.from, -window), addDays(input.to, window));
 	const dayOf = (a: Annotation) => dayInZone(a.ts, tz);
 	const list = all

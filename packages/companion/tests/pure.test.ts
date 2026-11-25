@@ -259,7 +259,7 @@ describe("interactions", () => {
 			{ kind: "answers", answers: { ...DEFAULT_ANSWERS } },
 		],
 	];
-	it.each(valid)("recognises %j", (input, expected) => {
+	it.each(valid)("recognizes %j", (input, expected) => {
 		expect(parseInteraction(input)).toEqual(expected);
 	});
 

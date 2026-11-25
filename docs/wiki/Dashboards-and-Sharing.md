@@ -38,7 +38,7 @@ A dashboard is a saved view of your reports: up to 12 tiles, each one report sho
 - A Goals number tile shows one goal, a Funnels tile one funnel, an Event properties tile needs the event name, which the field suggests from the events seen in the dashboard range.
 - Search tiles take a source (all, Google, Bing) and stay empty until a Search source is connected.
 - Revenue tiles show one currency: the chosen one, or the site's default currency when the tile runs.
-- A donut shows at most 7 slices, one colour each; the rest is folded into "other".
+- A donut shows at most 7 slices, one color each; the rest is folded into "other".
 - A table tile shows the name and the first three figures of its report, or the columns you check in the tile editor (up to 6, in the report's order).
 - Line and area tiles show matching annotations. The Annotations button of the dashboard view hides them.
 - Tiles with the same report, filters and options share one request. The editor shows the number of distinct requests.
@@ -47,7 +47,7 @@ A dashboard is a saved view of your reports: up to 12 tiles, each one report sho
 
 - **Export** downloads the dashboard as a template file, with or without the segments, goals and funnels it uses.
 - **Import** reads a template into the selected site. Segments, goals and funnels are matched by name; missing ones are created from the file when it carries them, otherwise the reference is dropped and listed.
-- **Gallery**: fourteen built-in templates. Analytics: Overview, Content, Acquisition, Behaviour, Search Satisfaction, Revenue, Weekly digest, Search, Links and Impact of last changes. SEO: SEO overview, Cannibalization, Position bands, and Winners and losers.
+- **Gallery**: fourteen built-in templates. Analytics: Overview, Content, Acquisition, Behavior, Search Satisfaction, Revenue, Weekly digest, Search, Links and Impact of last changes. SEO: SEO overview, Cannibalization, Position bands, and Winners and losers.
 
 ## Copy to sites
 

@@ -164,7 +164,7 @@ describe("normalizeSettings", () => {
 		expect(normalizeSettings({ scriptPath: "/same", collectPath: "/same" })).toMatchObject({ scriptPath: "/_/e.js", collectPath: "/_/e" });
 	});
 
-	it("normalises sharePath like scriptPath and keeps it apart from the other paths", () => {
+	it("normalizes sharePath like scriptPath and keeps it apart from the other paths", () => {
 		expect(normalizeSettings({ sharePath: "/view/" }).sharePath).toBe("/view");
 		expect(normalizeSettings({ sharePath: "/x//" }).sharePath).toBe("/x");
 		expect(normalizeSettings({ sharePath: "/stats" }).sharePath).toBe("/_/s");

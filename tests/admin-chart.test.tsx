@@ -24,7 +24,7 @@ describe("LineChart", () => {
 		expect(container.innerHTML).toMatchSnapshot();
 	});
 
-	it("renders the compare overlay in the series colour and annotation markers", () => {
+	it("renders the compare overlay in the series color and annotation markers", () => {
 		const markers = [
 			{ t: "2026-03-02", label: "Post published" },
 			{ t: "2026-03-02", label: "Post updated" },
@@ -91,7 +91,7 @@ const two = [
 ];
 
 describe("LineChart with several series", () => {
-	it("draws each series in its slot colour, a right axis and the axis captions", () => {
+	it("draws each series in its slot color, a right axis and the axis captions", () => {
 		const { container } = render(<LineChart label="Trend" buckets={days} series={two} compareLabel="15 Feb to 28 Feb" />);
 		expect(container.querySelector('[data-series="visitors"]')?.getAttribute("stroke")).toBe("var(--ca-series-1, #2563eb)");
 		expect(container.querySelector('[data-series="bounce_rate"]')?.getAttribute("stroke")).toBe("var(--ca-series-2, #16a34a)");
@@ -283,7 +283,7 @@ describe("other charts", () => {
 		expect(donut.innerHTML).toMatchSnapshot();
 	});
 
-	it("donut: percent in the legend, focusable slices, the centre names the hovered or focused slice", () => {
+	it("donut: percent in the legend, focusable slices, the center names the hovered or focused slice", () => {
 		const { container } = render(
 			<Donut
 				label="Sessions by device"
@@ -297,9 +297,9 @@ describe("other charts", () => {
 		expect(container.querySelector(".ca-legend")?.textContent).toBe("desktop49.6%mobile50.4%");
 		const slices = container.querySelectorAll("circle[tabindex='0']");
 		expect([...slices].map((c) => c.getAttribute("aria-label"))).toEqual(["desktop: 49.6%, 692 sessions", "mobile: 50.4%, 703 sessions"]);
-		expect(container.querySelector(".ca-donut-centre")).toBeNull();
+		expect(container.querySelector(".ca-donut-center")).toBeNull();
 		fireEvent.focus(slices[0] as Element);
-		expect([...container.querySelectorAll(".ca-donut-centre text")].map((t) => t.textContent)).toEqual(["desktop", "49.6%", "692 sessions"]);
+		expect([...container.querySelectorAll(".ca-donut-center text")].map((t) => t.textContent)).toEqual(["desktop", "49.6%", "692 sessions"]);
 		expect(slices[1]?.getAttribute("opacity")).toBe("0.35");
 		fireEvent.blur(slices[0] as Element);
 		fireEvent.pointerEnter(container.querySelectorAll(".ca-legend > span")[1] as Element);

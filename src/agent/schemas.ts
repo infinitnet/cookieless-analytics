@@ -6,7 +6,7 @@ import { z } from "zod";
 import { addDays } from "../core/time.js";
 import { LINK_BY, MAX_FILTERS, NUM_OPS, OPS, QuerySchema, REVENUE_BREAKDOWN_DIMS, REVENUE_DIMS, REVENUE_VALUE_RE, SEARCH_DIMS, TRAFFIC_DIMS } from "../query/filters.js";
 import { MAX_LIMIT, NARROW_FACTOR, ParamsSchema, REPORT_NAMES, REPORTS, SCAN_BUDGET } from "../query/reports/index.js";
-import { FUNNEL_SESSION_CAP, FUNNEL_STRICT_SESSION_CAP } from "../query/reports/behaviour.js";
+import { FUNNEL_SESSION_CAP, FUNNEL_STRICT_SESSION_CAP } from "../query/reports/behavior.js";
 import { JOURNEY_MAX_RANGE_DAYS, JOURNEY_MAX_ROWS, JOURNEY_MIN_SESSIONS, JOURNEY_SESSION_CAP } from "../query/reports/journeys.js";
 import { POGO_DEFINITION, SATISFACTION_BY, SATISFACTION_CAVEAT, SATISFACTION_MIN_MEASURED } from "../query/reports/satisfaction-copy.js";
 import { COLLECTIONS_CACHE_SECONDS } from "../query/reports/collections.js";
@@ -301,7 +301,7 @@ export const REVENUE_CATALOG = {
 } as const;
 
 /** Catalog of funnel modes, segment comparison and journeys. */
-export const BEHAVIOUR_CATALOG = {
+export const BEHAVIOR_CATALOG = {
 	funnels: {
 		params: ["funnel", "steps", "mode", "withRevenue", "currency"],
 		modes: {
@@ -359,7 +359,7 @@ export const CONTENT_CATALOG = {
 export const SUMMARY_CATALOG = {
 	rule: `A report reads the detailed visits when its range lies inside the detailed window (status.rawFrom onward) and the stored days hold at most the scan budget of the capacity profile (${Object.entries(SCAN_BUDGET)
 		.map(([k, v]) => `${k} ${v.toLocaleString("en-US")}`)
-		.join(", ")} visits). Above it the daily summaries answer when they honour every filter; otherwise the detailed visits answer up to ${NARROW_FACTOR} times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
+		.join(", ")} visits). Above it the daily summaries answer when they honor every filter; otherwise the detailed visits answer up to ${NARROW_FACTOR} times the budget, and beyond that the error narrow_range names the longest range that fits. A range before the detailed window reads the summaries; reports without summaries answer raw_only. Days not stored yet (today, and yesterday until it closes) are computed from the visits on read, so summary figures include today.`,
 	filters: "Summaries apply filters on the report's own dimension. One of channel, country and device combines with page, entry, source, utm_campaign, event or goal (pair rows). Two or three of channel, country and device combine with each other (the daily cube) in overview, timeseries, channels, countries, devices, revenue and revenue_series, and revenue_breakdown by channel, country or device; next to another breakdown or another session filter only one applies. They do not apply: is_not, not_contains, not_prefix and not_regex on page, event, goal and utm_campaign, or on any dimension of a revenue read; browser, os, exit and lang on a revenue read; a filter on the own dimension of events, goals, exit_pages and of revenue_breakdown by page, event or goal. No filter is dropped silently.",
 	notices: {
 		summary: "The answer reads the daily summaries.",
@@ -457,7 +457,7 @@ export function buildCatalog() {
 		metrics: catalogMetrics(),
 		seo: SEO_CATALOG,
 		revenue: REVENUE_CATALOG,
-		behaviour: BEHAVIOUR_CATALOG,
+		behavior: BEHAVIOR_CATALOG,
 		content: CONTENT_CATALOG,
 		links: LINKS_CATALOG,
 		satisfaction: SATISFACTION_CATALOG,

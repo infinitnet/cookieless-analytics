@@ -81,7 +81,7 @@ describe("stylesheet", () => {
 		for (const f of sources("src/admin/pages")) expect(readFileSync(join("src/admin/pages", f), "utf8"), f).not.toMatch(/className="ca-row-end">\s*<label>\s*\w/);
 	});
 
-	it("a table row with action buttons centres every cell, so its text sits level with the buttons", () => {
+	it("a table row with action buttons centers every cell, so its text sits level with the buttons", () => {
 		expect(ADMIN_CSS).toContain(".ca-root :where(table) tr:has(> td > .ca-row-actions, > td:last-child > button) > :where(td, th) { vertical-align: middle; }");
 	});
 
@@ -184,7 +184,7 @@ describe("Search connection cards", () => {
 	});
 	const card = (name: RegExp) => screen.getByRole("group", { name });
 
-	it("not connected: both cards with the badge, labelled fields and the redirect URI to copy", async () => {
+	it("not connected: both cards with the badge, labeled fields and the redirect URI to copy", async () => {
 		sources = [src("google", { configured: false, property: "" }), src("bing", { configured: false, property: "" })];
 		render(<Search />);
 		await screen.findByRole("heading", { name: "Connect a Search source" });

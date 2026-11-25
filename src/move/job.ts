@@ -25,7 +25,7 @@
  *   keeps both halves (`SPLIT_SUFFIX`). Counters per day (`ca_srv`, `ca_drops`) follow a ledger in the host KV
  *   (`KV_MOVE_LEDGER`) of source, destination and site: the first move of a pair adds the source count to a key
  *   the destination holds, a move of the same pair again leaves it, and a move back (the reverse pair) keeps the
- *   larger count. A cancelled job is resumed from its position (`resumeCancelled`) rather than started again.
+ *   larger count. A canceled job is resumed from its position (`resumeCanceled`) rather than started again.
  *   Adding is not idempotent: a `pending` marker with the chunk's position and row count is saved before the write,
  *   and a marker found on resume counts as applied: the same rows are loaded again without adding. A write that fails with a definite SQL error did not apply and clears the
  *   marker. The limit: when the outcome is unknown (connection lost, timeout) the marker stays, so if that write did
@@ -66,7 +66,7 @@ export const KV_MOVE_JOB = "move:job";
 export const KV_MOVE_STOP = "move:stop";
 /** Source, destination and site of every move whose counters were loaded (JSON text of the three). */
 export const KV_MOVE_LEDGER = "move:counters";
-/** The cron task that continues a job; scheduled while a job is active, cancelled when none is. */
+/** The cron task that continues a job; scheduled while a job is active, canceled when none is. */
 export const MOVE_CRON = "move";
 export const MOVE_SCHEDULE = "* * * * *";
 export const MOVE_ORDER: readonly TableName[] = ["ca_rollup", "ca_cube", "ca_revenue_daily", "ca_search_daily", "ca_events", "ca_srv", "ca_drops", "ca_sessions", "ca_aliases"];
@@ -118,7 +118,7 @@ export interface MoveJob {
 	dest: string | null;
 	/** Only this site's rows; absent: every site of the source. The destination is this site's database. */
 	site?: string;
-	status: "running" | "paused" | "done" | "cancelled";
+	status: "running" | "paused" | "done" | "canceled";
 	/** Position: index into `MOVE_ORDER` and the key of the last row copied of that table. */
 	t: number;
 	after: Param[] | null;
@@ -303,12 +303,12 @@ async function counterMode(kv: KvLike, j: MoveJob): Promise<NonNullable<MoveJob[
 }
 
 /**
- * The last job when it is a cancelled move of the same source, destination and site, set running again from its
+ * The last job when it is a canceled move of the same source, destination and site, set running again from its
  * saved position (the stop key cleared, the job saved); null otherwise. The start route calls it before a new job.
  */
-export async function resumeCancelled(kv: KvLike, o: { source: string | null; dest: string | null; site?: string | undefined }): Promise<MoveJob | null> {
+export async function resumeCanceled(kv: KvLike, o: { source: string | null; dest: string | null; site?: string | undefined }): Promise<MoveJob | null> {
 	const job = await kv.get<MoveJob>(KV_MOVE_JOB);
-	if (job?.status !== "cancelled" || job.dropped || job.source !== o.source || job.dest !== o.dest || job.site !== o.site) return null;
+	if (job?.status !== "canceled" || job.dropped || job.source !== o.source || job.dest !== o.dest || job.site !== o.site) return null;
 	const { finished: _f, lease: _l, holder: _h, fails: _x, ...rest } = job;
 	const j: MoveJob = { ...rest, status: "running", error: null };
 	await kv.delete(KV_MOVE_STOP);
@@ -349,12 +349,12 @@ export interface MoveEnv {
 class Budget extends Error {}
 /** Another call holds the job now: this call stops without saving it. */
 class Lost extends Error {}
-type Stop = { id: string; status: "paused" | "cancelled" };
+type Stop = { id: string; status: "paused" | "canceled" };
 const same = (a: readonly Param[] | null, b: readonly Param[] | null) => JSON.stringify(a) === JSON.stringify(b);
 function applyStop(j: MoveJob, stop: Stop | null, now: number): void {
 	if (stop?.id !== j.id || j.status !== "running") return;
 	j.status = stop.status;
-	if (stop.status === "cancelled") j.finished = now;
+	if (stop.status === "canceled") j.finished = now;
 }
 
 /**

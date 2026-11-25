@@ -123,7 +123,7 @@ function AttributionPanel({ view, dim, code, total, refunds }: { view: View; dim
 			]}
 			// Visitors rows without an order stay out: these panels rank where the money came from.
 			// A funnel table is too wide for a grid cell: its stepwise revenue lives on the Funnels tab, linked from the goals panel.
-			{...(dim === "goal" && { more: "/behaviour?tab=funnels", moreLabel: "Revenue per funnel step", setup: "goals" as const })}
+			{...(dim === "goal" && { more: "/behavior?tab=funnels", moreLabel: "Revenue per funnel step", setup: "goals" as const })}
 			mapRows={(rows) => rows.filter((r) => Number(r.orders) > 0 || Number(r.refunds) > 0).map((r) => ({ ...r, share: total > 0 ? Number(r.revenue) / total : null }))}
 		/>
 	);

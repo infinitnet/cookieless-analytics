@@ -51,14 +51,14 @@ const S = {
 	num: "text-align:right;padding:3px 6px;border-bottom:1px solid #f1f5f9;font-size:12px",
 };
 
-/** Change colours with at least 4.5:1 on white; the words carry the meaning too. */
+/** Change colors with at least 4.5:1 on white; the words carry the meaning too. */
 const JUDGE_COLOR = { better: "#15803d", worse: "#b91c1c", neutral: "#64748b" } as const;
 
-/** The change line of a KPI tile under its value: arrow, label and word in the judgement colour, then the detail. */
+/** The change line of a KPI tile under its value: arrow, label and word in the judgment color, then the detail. */
 function changeLine(d: TileData): string {
 	const c = tileChange(d);
 	if (!c) return "";
-	const color = c.kind === "none" || c.muted ? JUDGE_COLOR.neutral : JUDGE_COLOR[c.judgement ?? "neutral"];
+	const color = c.kind === "none" || c.muted ? JUDGE_COLOR.neutral : JUDGE_COLOR[c.judgment ?? "neutral"];
 	return `<p style="margin:2px 0 0;font-size:13px;color:${color}">${e(changeText(c, true))}</p>${c.detail ? `<p style="${S.muted}">${e(c.detail)}</p>` : ""}`;
 }
 

@@ -146,7 +146,7 @@ export function TileView({ tile, view, filters, refs, searchOff }: { tile: Tile;
 }
 
 /**
- * The lines of a tile: the stored metrics, each with its slot colour and shape, on at most two axes.
+ * The lines of a tile: the stored metrics, each with its slot color and shape, on at most two axes.
  * With two or more metrics the legend under the title toggles lines for this view only (same rules as the
  * cards of the report pages); the stored list changes only in the tile editor.
  */

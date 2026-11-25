@@ -13,7 +13,7 @@ import { fromPg, pgScope } from "../src/db/pg.js";
 import { ensureSchema } from "../src/db/schema.js";
 import { dayTotals, SPLIT_SUFFIX } from "../src/move/chunks.js";
 import { COPY_DAY_ROWS, KV_COPY_ROWS, nextUtcMidnight } from "../src/move/day-budget.js";
-import { definiteSqlError, KV_MOVE_JOB, KV_MOVE_STOP, MOVE_CRON, MOVE_LEASE_S, MOVE_MAX_FAILS, MOVE_ORDER, type MoveEnv, type MoveJob, moveView, newMoveJob, resumeCancelled, runMoveJob, sourceState, sourceTotals, STATE_KEYS, verifyTable } from "../src/move/job.js";
+import { definiteSqlError, KV_MOVE_JOB, KV_MOVE_STOP, MOVE_CRON, MOVE_LEASE_S, MOVE_MAX_FAILS, MOVE_ORDER, type MoveEnv, type MoveJob, moveView, newMoveJob, resumeCanceled, runMoveJob, sourceState, sourceTotals, STATE_KEYS, verifyTable } from "../src/move/job.js";
 import { createPlugin, resetCronTurns } from "../src/index.js";
 import { KV_CURSOR } from "../src/query/retention.js";
 import { KV_REVENUE_CURSOR, KV_ROLLUP_CURSOR, KV_WATERMARK, runRollup } from "../src/query/rollup.js";
@@ -98,8 +98,8 @@ describe("move job", () => {
 		const kv = new MemoryKv();
 		await start(kv, src.db);
 		const n = { v: 0 };
-		const cancelled: string[] = [];
-		const e = env(countingKv(kv, n), counting(src.db, n), counting(dst.db, n), { cron: { schedule: async () => undefined, cancel: async (name) => void cancelled.push(name) } });
+		const canceled: string[] = [];
+		const e = env(countingKv(kv, n), counting(src.db, n), counting(dst.db, n), { cron: { schedule: async () => undefined, cancel: async (name) => void canceled.push(name) } });
 		let ticks = 0;
 		let job: MoveJob | null = null;
 		while (job?.status !== "done") {
@@ -112,7 +112,7 @@ describe("move job", () => {
 		expect(await totals(dst.db)).toEqual(await totals(src.db));
 		for (const t of MOVE_ORDER) expect(job.verify[t]?.short, t).toBe(0);
 		expect(job.read).toEqual(job.total);
-		expect(cancelled).toEqual([MOVE_CRON]);
+		expect(canceled).toEqual([MOVE_CRON]);
 		// A finished job does nothing more.
 		n.v = 0;
 		await runMoveJob(e, 40);
@@ -363,16 +363,16 @@ describe("move routes", () => {
 		const src = await seeded();
 		const dst = await fresh();
 		const kv = new MemoryKv();
-		const cancelled: string[] = [];
-		const cron = { schedule: async () => undefined, cancel: async (n: string) => void cancelled.push(n) };
+		const canceled: string[] = [];
+		const cron = { schedule: async () => undefined, cancel: async (n: string) => void canceled.push(n) };
 		const r = moveRoutes({ settings, source: async () => src.db, dest: async () => dst.db, destKv: (k) => k, destBinding: () => null, targets: () => [null], now: () => NOW });
 		const call = (name: keyof typeof r, input: unknown = {}) => r[name].handler({ input, kv, cron } as never) as Promise<{ job: MoveJob | null }>;
 		await kv.set("delete:job", { status: "running" });
 		await expect(call("move/start", { source: "CA_OLD" })).rejects.toThrow("delete is still running");
 		await kv.delete("delete:job");
 		await call("move/start", { source: "CA_OLD" });
-		expect((await call("move/cancel")).job?.status).toBe("cancelled");
-		expect(cancelled).toEqual([MOVE_CRON]);
+		expect((await call("move/cancel")).job?.status).toBe("canceled");
+		expect(canceled).toEqual([MOVE_CRON]);
 		await expect(call("move/drop-old-tables", { confirm: "DELETE" })).rejects.toThrow("finished move");
 	});
 
@@ -434,15 +434,15 @@ describe("while a move is active", () => {
 		const p = createPlugin({ database: { binding: "CA_DB" } }) as unknown as { hooks: { cron: { handler: (e: unknown, c: unknown) => Promise<void> } } };
 		const kv = new MemoryKv();
 		await start(kv, old.db, { dest: "CA_DB" });
-		const cancelled: string[] = [];
-		const ctx = { log: { warn: vi.fn() }, kv, storage: {}, cron: { schedule: async () => undefined, cancel: async (n: string) => void cancelled.push(n), list: async () => [] } };
+		const canceled: string[] = [];
+		const ctx = { log: { warn: vi.fn() }, kv, storage: {}, cron: { schedule: async () => undefined, cancel: async (n: string) => void canceled.push(n), list: async () => [] } };
 		for (let i = 0; i < 100 && (await kv.get<MoveJob>(KV_MOVE_JOB))?.status !== "done"; i++) {
 			resetCronTurns();
 			await p.hooks.cron.handler({ name: MOVE_CRON, scheduledAt: "" }, ctx);
 		}
 		expect((await kv.get<MoveJob>(KV_MOVE_JOB))?.status).toBe("done");
 		expect(await totals(m.db)).toEqual(await totals(old.db));
-		expect(cancelled).toEqual([MOVE_CRON]);
+		expect(canceled).toEqual([MOVE_CRON]);
 	});
 });
 
@@ -493,7 +493,7 @@ describe("counters when moving again", () => {
 		expect((await kv.get<MoveJob>(KV_MOVE_JOB))?.verify.ca_srv?.short).toBe(0);
 	});
 
-	it("a cancelled move is resumed from its position and adds each count once", async () => {
+	it("a canceled move is resumed from its position and adds each count once", async () => {
 		const src = await seeded();
 		const dst = await fresh();
 		await dst.db.run("INSERT INTO ca_srv (site, day, status, path, ref, n, last_ts) VALUES ('default', 20260605, 404, '/x', '', 5, 9)");
@@ -506,11 +506,11 @@ describe("counters when moving again", () => {
 		const e = env(kv, src.db, dst.db);
 		for (let i = 0; i < 200 && ((await kv.get<MoveJob>(KV_MOVE_JOB))?.t ?? 0) <= MOVE_ORDER.indexOf("ca_srv"); i++) await runMoveJob(env(kv, src.db, timed, { clock: () => ms }), 40);
 		expect((await kv.get<MoveJob>(KV_MOVE_JOB))?.t).toBe(MOVE_ORDER.indexOf("ca_drops"));
-		await kv.set(KV_MOVE_STOP, { id: job.id, status: "cancelled" });
-		expect((await runMoveJob(e, 40))?.status).toBe("cancelled");
+		await kv.set(KV_MOVE_STOP, { id: job.id, status: "canceled" });
+		expect((await runMoveJob(e, 40))?.status).toBe("canceled");
 		const at = (await kv.get<MoveJob>(KV_MOVE_JOB))!;
-		expect(await resumeCancelled(kv, { source: "CA_OTHER", dest: null })).toBeNull();
-		const resumed = await resumeCancelled(kv, { source: "CA_OLD", dest: null });
+		expect(await resumeCanceled(kv, { source: "CA_OTHER", dest: null })).toBeNull();
+		const resumed = await resumeCanceled(kv, { source: "CA_OLD", dest: null });
 		expect([resumed?.id, resumed?.status, resumed?.t, resumed?.after]).toEqual([job.id, "running", at.t, at.after]);
 		expect(await kv.get(KV_MOVE_STOP)).toBeNull();
 		await drive(e, 40);
@@ -600,11 +600,11 @@ describe("stop key", () => {
 		expect((await kv.get<MoveJob>(KV_MOVE_JOB))?.status).toBe("paused");
 		await kv.delete(KV_MOVE_STOP);
 		await kv.set(KV_MOVE_JOB, { ...(await kv.get<MoveJob>(KV_MOVE_JOB))!, status: "running" });
-		await kv.set(KV_MOVE_STOP, { id: job.id, status: "cancelled" });
-		const cancelled: string[] = [];
-		const c = await runMoveJob(env(kv, counting(src.db, n), counting(dst.db, n), { cron: { schedule: async () => undefined, cancel: async (x) => void cancelled.push(x) } }), 40);
-		expect([n.v, c?.status, c?.finished, c?.read]).toEqual([0, "cancelled", NOW, before.read]);
-		expect(cancelled).toEqual([MOVE_CRON]);
+		await kv.set(KV_MOVE_STOP, { id: job.id, status: "canceled" });
+		const canceled: string[] = [];
+		const c = await runMoveJob(env(kv, counting(src.db, n), counting(dst.db, n), { cron: { schedule: async () => undefined, cancel: async (x) => void canceled.push(x) } }), 40);
+		expect([n.v, c?.status, c?.finished, c?.read]).toEqual([0, "canceled", NOW, before.read]);
+		expect(canceled).toEqual([MOVE_CRON]);
 	});
 
 	it("a pause sent while a chunk is saved: the call keeps the position it reached", async () => {

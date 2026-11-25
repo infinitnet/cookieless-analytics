@@ -261,7 +261,7 @@ describe("Config page", () => {
 		expect(store.goals?.size ?? 0).toBe(0);
 	});
 
-	it("goals: Match offers only the modes the engine honours for each type", async () => {
+	it("goals: Match offers only the modes the engine honors for each type", async () => {
 		const panel = await openTab("Goals");
 		click(panel, "New goal");
 		const form = within(panel).getByRole("form", { name: "New goal" });

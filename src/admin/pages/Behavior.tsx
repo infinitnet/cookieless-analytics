@@ -1,4 +1,4 @@
-/** Behaviour (`/behaviour`): Events (with properties), Goals, Funnels, Journeys, Site search, Outbound, Downloads, Forms, Scroll. */
+/** Behavior (`/behavior`): Events (with properties), Goals, Funnels, Journeys, Site search, Outbound, Downloads, Forms, Scroll. */
 import { useEffect, useState } from "react";
 import { type FunnelItem, listFunnels, useReport } from "../api.js";
 import { BarList } from "../components/Chart.js";
@@ -242,11 +242,11 @@ export function SiteSearchTab({ view }: { view: View }) {
 	);
 }
 
-export default function Behaviour() {
+export default function Behavior() {
 	return (
 		<TabPage
 			docs={({ tab }) => (tab === "goals" || tab === "funnels" ? "Goals-and-Funnels" : "Events")}
-			title="Behaviour"
+			title="Behavior"
 			tabs={[
 				["events", "Events", (v) => <EventsTab view={v} />],
 				[

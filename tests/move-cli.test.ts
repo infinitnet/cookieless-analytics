@@ -387,7 +387,7 @@ describe("data/load checks", () => {
 		expect(shop.status).toBe(409);
 		expect(shop.json).toMatchObject({ error: "move_running" });
 		expect((await load(s, { table: "ca_drops", rows: [drop(1)] })).json.data).toEqual({ table: "ca_drops", inserted: 1 });
-		await dst.kv.set(KV_MOVE_JOB, { status: "cancelled", dest: "CA_SHOP" });
+		await dst.kv.set(KV_MOVE_JOB, { status: "canceled", dest: "CA_SHOP" });
 		expect((await load(s, { table: "ca_drops", rows: [drop(1, "shop")] })).json.data).toEqual({ table: "ca_drops", inserted: 1 });
 	});
 

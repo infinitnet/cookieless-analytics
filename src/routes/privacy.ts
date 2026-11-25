@@ -195,7 +195,7 @@ export function receiptMarkdown(s: Settings, rawDays: number): string {
 		"",
 		`${STATEMENT} This site counts visits with a cookieless, self-hosted tool that runs on its own server.`,
 		"",
-		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognised by a random id that lives only in the open page.",
+		"- Nothing is stored on your device unless you choose to stop being counted, and then only that choice. A visit is recognized by a random id that lives only in the open page.",
 		"- Visits are counted per day with a key made from a shortened IP address and the browser family, mixed with a random salt that is deleted after two days. The key cannot be turned back into an IP address and cannot link visits across days.",
 		`- Stored per visit: pages viewed, active and visible time per page, scroll depth, referring site, campaign tags, country, device class, browser and system family, language${s.captureScreen ? ", screen size class" : ""}.`,
 		`- ${SATISFACTION_LINE}`,

@@ -149,7 +149,7 @@ describe("Dashboards page", () => {
 		expect(ADMIN_CSS).toMatch(/\.ca-panel \{ background: var\(--ca-surface\)/);
 		const tr = name.closest("tr") as HTMLElement;
 		expect([tr.tabIndex, name.tabIndex]).toEqual([0, -1]);
-		// Tiles is a number column (right); "Not shared" keeps the cell size, only its colour is muted.
+		// Tiles is a number column (right); "Not shared" keeps the cell size, only its color is muted.
 		expect([...tr.querySelectorAll("td")].map((td) => td.className)).toEqual(["", "ca-num", "", ""]);
 		expect(within(tr).getByText("Not shared").className).toBe("ca-muted");
 		expect(ADMIN_CSS).toContain(".ca-muted { color: var(--ca-muted-text); }");
@@ -402,7 +402,7 @@ describe("Dashboards page", () => {
 		expect(routeCalls("dashboards/delete")).toEqual([{ id: "abcdefabcdef" }, { id: "abcdefabcdef" }]);
 	});
 
-	it("shares a dashboard: several labelled links, the link shown once, state per link, revoke one", async () => {
+	it("shares a dashboard: several labeled links, the link shown once, state per link, revoke one", async () => {
 		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/dashboards?from=2026-03-01&to=2026-03-07&d=abcdefabcdef");
 		const writeText = vi.fn(async () => {});
 		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });

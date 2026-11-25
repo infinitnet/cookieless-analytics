@@ -219,7 +219,7 @@ const MATCHES = [
 	["regex", "regex"],
 ] as const;
 const STEP_MATCHES = MATCHES.filter((m): m is Exclude<(typeof MATCHES)[number], readonly ["contains", string]> => m[0] !== "contains");
-/** The modes the engine honours for an outbound goal (compile.ts: no regex); an event goal or step matches its name exactly. */
+/** The modes the engine honors for an outbound goal (compile.ts: no regex); an event goal or step matches its name exactly. */
 const OUTBOUND_MATCHES = MATCHES.filter((m) => m[0] !== "regex");
 /** A goal's match after a type change: "is" for an event, and for an outbound goal that held regex. */
 const goalMatch = (type: Goal["type"], match: Goal["match"]): Goal["match"] => (type === "event" || (type === "outbound" && match === "regex") ? "is" : match);

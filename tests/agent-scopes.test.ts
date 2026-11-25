@@ -12,7 +12,7 @@ import { SCHEMA_VERSION } from "../src/db/schema.js";
 import { kpi, storedDash } from "./fixtures/dashboards.js";
 
 const Q = { query: { ...RANGE } };
-/** Every endpoint (and the three query flavours) with the scope sets that may call it. */
+/** Every endpoint (and the three query flavors) with the scope sets that may call it. */
 const MATRIX: Array<{ label: string; name: string; method?: "GET" | "POST"; input?: unknown; allowed: (s: Scope[]) => boolean }> = [
 	{ label: "query traffic", name: "agent/v1/query", input: { report: "overview", ...Q }, allowed: (s) => s.includes("read:analytics") },
 	{ label: "query search", name: "agent/v1/query", input: { report: "search_overview", ...Q }, allowed: (s) => s.includes("read:search") },

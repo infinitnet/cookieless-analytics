@@ -82,7 +82,7 @@ export function factsDb(option: DatabaseOption | DatabasesOption | undefined, ho
 			});
 			let ready = false;
 			// The host migrates only its own database: create the tables here, until one check succeeds per binding and
-			// isolate. Each call runs its own check meanwhile (never one shared with another request, which may be cancelled).
+			// isolate. Each call runs its own check meanwhile (never one shared with another request, which may be canceled).
 			// A failure surfaces on the statements that follow. The KV is unused (the version row is in `db`).
 			get = async () => {
 				const db = await own;
@@ -124,7 +124,7 @@ export function setPluginFacts(dbFor: DbFor): DbFor {
  * unknown then, and a write must not guess the host database.
  */
 export function pluginFacts(): DbFor {
-	if (!current) throw new Error("cookieless-analytics: the plugin is not initialised in this isolate; the analytics database is unknown.");
+	if (!current) throw new Error("cookieless-analytics: the plugin is not initialized in this isolate; the analytics database is unknown.");
 	return current;
 }
 

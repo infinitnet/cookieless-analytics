@@ -425,7 +425,7 @@ describe("site search terms", () => {
 		expect(query()).toEqual(["utm_source=news"]);
 	});
 
-	it("keeps the configured names on pageviews, sanitised; s never matches utm_source", async () => {
+	it("keeps the configured names on pageviews, sanitized; s never matches utm_source", async () => {
 		await recordClientEvent(deps({ siteSearchParams: "q, s" } as unknown as Partial<Settings>), pv(SID, H1, url), info());
 		expect(query()).toEqual(["q=red+shoes&s=x&utm_source=news"]);
 		await recordClientEvent(deps({ siteSearchParams: "s" } as unknown as Partial<Settings>, T0 + 5), pv(SID, H2, "/?utm_source=abc"), info());

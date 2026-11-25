@@ -104,7 +104,7 @@ describe.each(["UTC", "America/New_York"])("rollup in %s", (tz) => {
 		expect(ch.data.rows?.map((r) => r.key)).toEqual(["Direct"]);
 		expect(ch.notices).toEqual(expect.arrayContaining(["summary", "filter_unavailable:page:combination", "filter_unavailable:region:not_kept"]));
 
-		// Totals honour one session dim: equal to the raw totals for the same filter.
+		// Totals honor one session dim: equal to the raw totals for the same filter.
 		const a = await run(raw, "overview", RANGE.from, RANGE.to, [direct]);
 		const b = await run(rolled, "overview", RANGE.from, RANGE.to, [direct, { dim: "page", op: "is", values: ["/pricing"] }]);
 		expect(b.data.totals).toEqual(a.data.totals);

@@ -7,7 +7,7 @@ This page lists every kind of event the plugin records, the ways to send each on
 1. Find the event you need in "What gets recorded" below.
 2. Pick a way of sending it: HTML data attributes, the window API, another EmDash plugin (`recordEvent`), your server (the agent events route), or a site on another CMS.
 3. Copy the example, change the name, properties and amounts.
-4. Check the result on the Behaviour page (Events tab) or in the report named in the table at the end.
+4. Check the result on the Behavior page (Events tab) or in the report named in the table at the end.
 
 ## What gets recorded
 
@@ -230,7 +230,7 @@ A rule with `-` is a deny list for outbound clicks. A rule on a linked host reco
 
 ## What shows up in which report
 
-| Event | Behaviour tabs | Other places | Agent API report |
+| Event | Behavior tabs | Other places | Agent API report |
 |---|---|---|---|
 | Custom event, link rule click | Events (with Properties), Goals for event goals | Dashboards, segments and filters on event | `events`, `event_props`, `goals` |
 | `_outbound` | Outbound, Goals for outbound goals | Dashboards | `outbound` |

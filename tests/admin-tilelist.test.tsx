@@ -76,7 +76,7 @@ describe("TileList", () => {
 		expect(last.map((t) => t.id)).toEqual(["aaaaaa", "bbbbbb", "cccccc", "dddddd"]);
 	});
 
-	it("a drop on its own place or a cancelled drag changes nothing", () => {
+	it("a drop on its own place or a canceled drag changes nothing", () => {
 		render(<Harness />);
 		mockRects();
 		const h = screen.getAllByRole("button", { name: "Drag to reorder" })[1] as HTMLElement;

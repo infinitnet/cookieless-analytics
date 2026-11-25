@@ -15,7 +15,7 @@ An annotation is a dated note on your charts: a release, a published post, a cam
 
 ### Read impact
 
-1. Open Analytics, **Annotations**. Each row shows the date, kind, title, scope, target and the impact: an arrow, the percent change and a word, Up, Down, Flat, Too early or Not enough data. The colour says whether the change is good news, so a fall in bounce rate or Search position is green. Hover for both values and both windows.
+1. Open Analytics, **Annotations**. Each row shows the date, kind, title, scope, target and the impact: an arrow, the percent change and a word, Up, Down, Flat, Too early or Not enough data. The color says whether the change is good news, so a fall in bounce rate or Search position is green. Hover for both values and both windows.
 2. Choose the window above the list: 7, 14 (default) or 28 days. The page keeps your choice. To find an annotation, type in **Search**: it matches the title, kind, scope (a page, host or query) and the slug of the published item, in any case, and the term stays in the link; the x clears it.
 3. A recent annotation shows "Day 5 of 14" until its after window is complete. A row that says "Overlaps with ..." has another change on the same scope inside its windows; their effects cannot be separated.
 4. Click **Details** for the full impact panel: the chart with the annotation day marked, before and after, another metric or row to compare, the annotation scope or site-wide, and a strip of the standard KPIs for the same scope and windows. "Impact of a date" opens the same panel for any date.
@@ -88,7 +88,7 @@ Impact is also a dashboard tile (number or line). The template "Impact of last c
 - An annotation without a scope is site-wide and shows on every chart.
 - A query-scoped annotation never shows on traffic charts.
 - Before and after is correlation only. Check the listed overlapping annotations and the season before drawing conclusions.
-- The impact view greys out results below 50 sessions or impressions.
+- The impact view grays out results below 50 sessions or impressions.
 - Annotation texts are visible to anyone with a share link when shared annotations are on.
 
 Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/annotations.md

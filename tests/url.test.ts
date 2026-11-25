@@ -1,4 +1,4 @@
-/** Site search term sanitiser and its place in `normalizeUrl`. */
+/** Site search term sanitizer and its place in `normalizeUrl`. */
 import { describe, expect, it } from "vitest";
 import { normalizeUrl, sanitizeSearchTerm } from "../src/core/url.js";
 import { normalizeSettings, parseSiteSearchParams } from "../src/settings.js";
@@ -19,7 +19,7 @@ describe("sanitizeSearchTerm", () => {
 });
 
 describe("normalizeUrl with site search names", () => {
-	it("keeps only the exact names, sanitised, next to the allowlist", () => {
+	it("keeps only the exact names, sanitized, next to the allowlist", () => {
 		expect(normalizeUrl("/s?S=Hello%20World&utm_source=x&sx=1", ["utm_*"], ["s"]).query).toBe("s=hello+world&utm_source=x");
 		expect(normalizeUrl("/s?q=%20%20", [], ["q"]).query).toBe("");
 		expect(normalizeUrl("/s?q=hi", []).query).toBe("");

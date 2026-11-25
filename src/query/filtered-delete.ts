@@ -53,7 +53,7 @@ export const DELETE_PAUSE_AT = SYNC_BUDGET.small.pauseAt as number;
 export const LEASE_S = 60;
 export const KV_DELETE_JOB = "delete:job";
 export const KV_DELETE_LOG = "delete:log";
-/** Id of a job an admin cancelled; the next call of that job starts the cancel (a call in flight may not see a status change). */
+/** Id of a job an admin canceled; the next call of that job starts the cancel (a call in flight may not see a status change). */
 export const KV_DELETE_CANCEL = "delete:cancel";
 export const LOG_KEEP = 10;
 
@@ -291,7 +291,7 @@ export interface DeleteJob {
 	deleted: DeleteCounts;
 	/** Closed days that left the detailed window before their summary could be stored again: they keep the old summary. */
 	skipped: string[];
-	status: "running" | "cancelling" | "done" | "cancelled";
+	status: "running" | "canceling" | "done" | "canceled";
 	/** Rows this job wrote in the UTC day. */
 	utc: { day: string; rows: number };
 	/** Waiting for the next UTC day: the job's daily rows are used (`day_rows`) or the write guard's estimate is high (`guard`). */
@@ -305,7 +305,7 @@ export interface DeleteLogEntry {
 	by: string | null;
 	site: string;
 	summary: string;
-	status: "done" | "cancelled";
+	status: "done" | "canceled";
 	deleted: DeleteCounts;
 	skipped: number;
 }
@@ -317,7 +317,7 @@ export const jobView = (j: DeleteJob | null): DeleteJobView | null => {
 	const { pred: _p, lease: _l, ...v } = j;
 	return v;
 };
-export const isActive = (j: DeleteJob | null): j is DeleteJob => !!j && (j.status === "running" || j.status === "cancelling");
+export const isActive = (j: DeleteJob | null): j is DeleteJob => !!j && (j.status === "running" || j.status === "canceling");
 
 /** A new job from a spec: the matched visit days of the detailed window now, and the older days when chosen. */
 export async function createJob(e: DeleteEnv, spec: DeleteSpec, by: string | null, preview: DeletePreview): Promise<DeleteJob> {
@@ -381,7 +381,7 @@ const nextUtc = (now: number) => (Math.floor(now / 86_400) + 1) * 86_400;
 export async function runDeleteJob(e: JobEnv, requests = PROFILES[e.settings.capacityProfile].requests): Promise<DeleteJob | null> {
 	let job = await e.kv.get<DeleteJob>(KV_DELETE_JOB);
 	if (!isActive(job) || (job.lease ?? 0) > e.now || requests < MIN_REQUESTS) return job;
-	if (job.status === "running" && (await e.kv.get<string>(KV_DELETE_CANCEL)) === job.id) job.status = "cancelling";
+	if (job.status === "running" && (await e.kv.get<string>(KV_DELETE_CANCEL)) === job.id) job.status = "canceling";
 	if (job.paused && job.paused.until > e.now && job.status === "running") return job;
 	job.lease = e.now + LEASE_S;
 	job.paused = null;
@@ -490,7 +490,7 @@ export async function runDeleteJob(e: JobEnv, requests = PROFILES[e.settings.cap
 			if (rows.length < DELETE_CHUNK && !(await reclose(j.days[j.i] ?? null))) break;
 		}
 		const deleting = j.status === "running" && j.i >= j.days.length;
-		if ((deleting || j.status === "cancelling") && !j.paused && (await reclose(null))) {
+		if ((deleting || j.status === "canceling") && !j.paused && (await reclose(null))) {
 			while (j.status === "running" && j.oi < j.old.length) {
 				const day = j.old[j.oi] as string;
 				// Only days still before the window: their detailed rows are gone, so nothing could store them again.
@@ -505,7 +505,7 @@ export async function runDeleteJob(e: JobEnv, requests = PROFILES[e.settings.cap
 				j.oi++;
 				await save();
 			}
-			if (!Object.keys(j.reclose).length && (j.status === "cancelling" || j.oi >= j.old.length)) j.status = j.status === "cancelling" ? "cancelled" : "done";
+			if (!Object.keys(j.reclose).length && (j.status === "canceling" || j.oi >= j.old.length)) j.status = j.status === "canceling" ? "canceled" : "done";
 		}
 	} catch (err) {
 		if (!(err instanceof Budget)) {
@@ -515,7 +515,7 @@ export async function runDeleteJob(e: JobEnv, requests = PROFILES[e.settings.cap
 		}
 	}
 	delete j.lease;
-	if (j.status === "done" || j.status === "cancelled") {
+	if (j.status === "done" || j.status === "canceled") {
 		j.finished = e.now;
 		const log = (await e.kv.get<DeleteLogEntry[]>(KV_DELETE_LOG)) ?? [];
 		const entry: DeleteLogEntry = { at: j.at, finished: e.now, by: j.by, site, summary: j.summary, status: j.status, deleted: j.deleted, skipped: j.skipped.length };

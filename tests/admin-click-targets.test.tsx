@@ -24,7 +24,7 @@ describe("KPI card", () => {
 		expect(card.querySelector(":scope > .ca-info")).not.toBeNull();
 		fireEvent.click(btn, { shiftKey: true });
 		expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ shiftKey: true }));
-		// The slot: colour on the top edge, shape and axis in the chip.
+		// The slot: color on the top edge, shape and axis in the chip.
 		expect(card.getAttribute("data-slot")).toBe("1");
 		expect(card.style.getPropertyValue("--ca-slot")).toBe("var(--ca-series-2, #16a34a)");
 		expect(card.querySelector(".ca-kpi-chip")?.getAttribute("title")).toBe("Right axis");

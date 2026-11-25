@@ -148,7 +148,7 @@ export function rangeText(from: string, to: string): string {
 	return from.slice(0, 4) === to.slice(0, 4) ? `${a} to ${b}` : `${a} ${from.slice(0, 4)} to ${b} ${to.slice(0, 4)}`;
 }
 
-/** Marker shape per series slot, so a line is told apart by more than its colour: circle, square, triangle, diamond. */
+/** Marker shape per series slot, so a line is told apart by more than its color: circle, square, triangle, diamond. */
 export function shapePath(slot: number, cx: number, cy: number, r: number): string {
 	const p = (x: number, y: number) => `${r1(cx + x)} ${r1(cy + y)}`;
 	switch (slot % 4) {

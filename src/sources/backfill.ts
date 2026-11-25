@@ -45,8 +45,8 @@ export async function startBackfill(kv: KvLike, site: string, source: SourceId, 
 	return progress(b, now) as BackfillProgress;
 }
 
-export async function cancelBackfill(kv: KvLike, site: string, source: SourceId): Promise<{ cancelled: boolean }> {
-	return { cancelled: await kv.delete(backfillKey(site, source)) };
+export async function cancelBackfill(kv: KvLike, site: string, source: SourceId): Promise<{ canceled: boolean }> {
+	return { canceled: await kv.delete(backfillKey(site, source)) };
 }
 
 export async function backfillStatus(kv: KvLike, site: string, source: SourceId, now = Date.now()): Promise<BackfillProgress | null> {

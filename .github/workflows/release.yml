@@ -8,7 +8,7 @@ permissions:
   contents: write
   id-token: write
 
-# A release is never cancelled half way.
+# A release is never canceled half way.
 concurrency:
   group: release
   cancel-in-progress: false

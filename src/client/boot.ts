@@ -13,7 +13,7 @@ export interface ClientConfig {
 	n: string;
 	/** Data attribute prefix, for example `data-ec-`. */
 	a: string;
-	/** Privacy signals honoured. */
+	/** Privacy signals honored. */
 	g: "none" | "gpc" | "dnt_and_gpc";
 	/** Auto outbound, download and form events. */
 	o: 0 | 1;

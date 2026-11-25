@@ -174,7 +174,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-root > *, .ca-stack > *, .ca-section > *, .ca-panel > * { min-width: 0; }
 .ca-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 184px), 1fr)); gap: var(--ca-3); min-width: 0; }
 .ca-kpi { position: relative; background: var(--ca-surface); border: 1px solid var(--ca-line); border-radius: var(--ca-radius); display: grid; min-width: 0; transition: border-color .15s, box-shadow .15s; }
-/* Charted card: the slot colour as a 3 px top edge (an inset shadow, so the card keeps its height) and the slot shape. */
+/* Charted card: the slot color as a 3 px top edge (an inset shadow, so the card keeps its height) and the slot shape. */
 .ca-kpi[data-slot] { box-shadow: inset 0 3px 0 var(--ca-slot); }
 .ca-kpi .ca-kpi-btn { font: inherit; color: inherit; background: none; border: 0; margin: 0; padding: var(--ca-3) var(--ca-4); height: auto; display: grid; gap: 2px; align-content: start; text-align: left; width: 100%; min-width: 0; border-radius: inherit; }
 .ca-kpi button.ca-kpi-btn { cursor: pointer; }
@@ -189,7 +189,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-kpi svg:not(.ca-shape) { margin-top: var(--ca-1); max-width: 100%; }
 .ca-bars g[role=button]:hover .ca-bar-hit { fill: var(--ca-hover); }
 .ca-bars g[role=button]:focus-visible { outline: 2px solid var(--ca-focus); outline-offset: 1px; }
-/* Relative: the hidden judgement word stays inside a table's scroll box instead of widening the page. */
+/* Relative: the hidden judgment word stays inside a table's scroll box instead of widening the page. */
 .ca-delta { position: relative; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--ca-muted); }
 .ca-delta[data-judge="better"] { color: var(--ca-good); }
 .ca-delta[data-judge="worse"] { color: var(--ca-bad); }
@@ -197,7 +197,7 @@ export const ADMIN_CSS = `@layer components {
 /* Cards: the change line, then the absolute change and the previous value on a second, quieter line. */
 .ca-kpi .ca-delta, .ca-impact-grid .ca-delta { display: grid; }
 .ca-delta-detail { font-weight: 400; color: var(--ca-muted); overflow-wrap: anywhere; }
-/* On the page background the muted token falls under 4.5:1, so the compare label takes the text colour. */
+/* On the page background the muted token falls under 4.5:1, so the compare label takes the text color. */
 .ca-kpi-cmp { margin: 0; font-size: 12px; color: var(--ca-fg); }
 .ca-chart { margin: 0; display: grid; gap: var(--ca-2); min-width: 0; }
 .ca-chart svg { display: block; overflow: visible; }
@@ -233,8 +233,8 @@ export const ADMIN_CSS = `@layer components {
 .ca-shape { flex: none; display: inline-block; }
 .ca-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex: none; }
 .ca-donut svg circle[tabindex] { outline: none; cursor: default; transition: opacity 80ms linear; }
-.ca-chart svg .ca-donut-centre text { fill: var(--ca-fg); }
-.ca-chart svg .ca-donut-centre .ca-donut-pct { fill: var(--ca-strong); }
+.ca-chart svg .ca-donut-center text { fill: var(--ca-fg); }
+.ca-chart svg .ca-donut-center .ca-donut-pct { fill: var(--ca-strong); }
 .ca-bars svg text { fill: var(--ca-fg); }
 
 /* Tables */
@@ -278,7 +278,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-tile .ca-kpi { position: static; }
 .ca-tile .ca-kpi > .ca-info { top: var(--ca-4); right: var(--ca-4); }
 .ca-root td:last-child:has(> button) { white-space: nowrap; }
-/* A row with action buttons centres every cell, so one-line text sits level with the buttons. */
+/* A row with action buttons centers every cell, so one-line text sits level with the buttons. */
 .ca-root :where(table) tr:has(> td > .ca-row-actions, > td:last-child > button) > :where(td, th) { vertical-align: middle; }
 .ca-row-actions { flex-wrap: nowrap; }
 .ca-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ca-2); min-width: 0; }
@@ -291,7 +291,7 @@ export const ADMIN_CSS = `@layer components {
 .ca-loading { display: flex; align-items: center; gap: var(--ca-2); color: var(--ca-muted); padding: var(--ca-3) 0; }
 .ca-linkbtn { font: inherit; color: var(--ca-link); background: none; border: 0; padding: 3px 0; margin: -3px 0; cursor: pointer; text-align: left; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; border-radius: 2px; }
 .ca-linkbtn:hover { text-decoration-style: solid; }
-/* Values that filter: plain text in the default colour, underline and a funnel mark on hover and focus; 24 px tall target. */
+/* Values that filter: plain text in the default color, underline and a funnel mark on hover and focus; 24 px tall target. */
 .ca-linkbtn.ca-cell-filter { position: relative; color: inherit; text-decoration: none; padding: 3px 0; margin: -3px 0; min-width: 24px; }
 .ca-cell-filter:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 3px; }
 /* Out of the flow (in the cell padding), so it never wraps a line or widens the column. */

@@ -1,4 +1,4 @@
-/** The plugin has no crawler reporting: no crawler report artefact in the source or the tests (bot exclusion is separate). */
+/** The plugin has no crawler reporting: no crawler report artifact in the source or the tests (bot exclusion is separate). */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -15,7 +15,7 @@ function files(dir: string): string[] {
 }
 
 describe("no crawler reporting", () => {
-	it("no source or test file mentions a crawler report artefact", () => {
+	it("no source or test file mentions a crawler report artifact", () => {
 		const hits = files("src")
 			.concat(files("tests"))
 			.flatMap((f) => {

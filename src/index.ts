@@ -83,7 +83,7 @@ export const ADMIN_PAGES = [
 	{ path: "/satisfaction", label: "Search Satisfaction", icon: "star", group: "Analytics" },
 	{ path: "/sources", label: "Sources", icon: "link", group: "Analytics" },
 	{ path: "/audience", label: "Audience", icon: "users", group: "Analytics" },
-	{ path: "/behaviour", label: "Behaviour", icon: "list", group: "Analytics" },
+	{ path: "/behavior", label: "Behavior", icon: "list", group: "Analytics" },
 	{ path: "/revenue", label: "Revenue", icon: "coins", group: "Analytics" },
 	{ path: "/links", label: "Links", icon: "tag", group: "Analytics" },
 	{ path: "/annotations", label: "Annotations", icon: "calendar", group: "Analytics" },

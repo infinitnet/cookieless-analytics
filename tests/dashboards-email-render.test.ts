@@ -89,7 +89,7 @@ describe("renderEmail of every tile kind", () => {
 	it("shows KPI value and change, series as latest, previous and change, tables, the budget line and the caveats", () => {
 		expect(out.text).toContain("1,234\n\u2191 +12.0% better, +132, from 1,102");
 		expect(out.html).toContain("color:#15803d\">\u2191 +12.0% better</p>");
-		// Small numbers stay muted in words; the judgement still reads.
+		// Small numbers stay muted in words; the judgment still reads.
 		expect(out.text).toContain("Latest: 20, previous: 16, change: \u2191 +4 better (small numbers)");
 		expect(out.text).toContain("Latest: 20, previous: 10, change: \u2191 +10 better (small numbers)");
 		expect(out.text).toContain("- <img src=x>: Visitors 50");

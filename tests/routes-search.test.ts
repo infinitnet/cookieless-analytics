@@ -109,7 +109,7 @@ describe("search routes", () => {
 		expect(await h.call("search/backfill", { action: "status" })).toMatchObject({ backfill: { from: "2026-01-01", cursor: "2026-01-01" } });
 		expect((await h.call("search/status")).sources[0].backfill).toMatchObject({ days: 31 });
 		await expect(h.call("search/backfill", { action: "start", from: "2026-01-02", to: "2026-01-01" })).rejects.toMatchObject({ code: "invalid_range" });
-		expect(await h.call("search/backfill", { action: "cancel" })).toEqual({ cancelled: true });
+		expect(await h.call("search/backfill", { action: "cancel" })).toEqual({ canceled: true });
 		expect(await h.call("search/backfill", { action: "status" })).toMatchObject({ backfill: null });
 	});
 

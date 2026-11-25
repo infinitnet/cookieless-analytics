@@ -44,7 +44,7 @@ export const LABEL = {
 } as const;
 
 export const ERROR = {
-	unknownAction: "That action was not recognised. Reload the page.",
+	unknownAction: "That action was not recognized. Reload the page.",
 	readFailed: "Your progress could not be read. The steps still work.",
 	saveFailed: "Your progress could not be saved.",
 } as const;

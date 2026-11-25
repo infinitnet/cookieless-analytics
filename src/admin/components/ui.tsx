@@ -53,7 +53,7 @@ export function Tabs<T extends string>({ tabs, value, onChange, label }: { tabs:
 	);
 }
 
-/** One-of-n switch as pressed buttons in a labelled group (source switch, "Links by"). */
+/** One-of-n switch as pressed buttons in a labeled group (source switch, "Links by"). */
 export function Segmented<T extends string>({ label, value, options, onChange, showLabel = true, radio = false }: { label: string; value: T; options: ReadonlyArray<readonly [T, string]>; onChange: (v: T) => void; showLabel?: boolean; radio?: boolean }) {
 	// `radio`: a choice of form mode (radiogroup, arrows select); otherwise a view switch of pressed buttons.
 	const group = (

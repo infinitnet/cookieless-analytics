@@ -50,7 +50,7 @@ describe("recordEvent", () => {
 		expect(c.request.headers.get("user-agent")).toContain("Chrome/130.0");
 		expect(c.request.headers.get("accept-language")).toBe("de-DE,de;q=0.9");
 		expect((c.request as unknown as { cf: unknown }).cf).toEqual({ country: "DE", region: "Berlin" });
-		// The address and the privacy signals let the event join the visitor's session and honour the signals.
+		// The address and the privacy signals let the event join the visitor's session and honor the signals.
 		expect(Object.fromEntries(["cf-connecting-ip", "sec-gpc", "dnt", "sec-ch-ua-mobile", "sec-ch-ua-platform"].map((h) => [h, c.request.headers.get(h)]))).toEqual({
 			"cf-connecting-ip": "203.0.113.7",
 			"sec-gpc": "1",

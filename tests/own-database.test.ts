@@ -298,7 +298,7 @@ describe("middleware resolver", () => {
 	it("pluginFacts refuses to guess before createPlugin, then returns the plugin's resolver", async () => {
 		vi.resetModules();
 		const facts = await import("../src/db/facts.js");
-		expect(() => facts.pluginFacts()).toThrow(/not initialised/);
+		expect(() => facts.pluginFacts()).toThrow(/not initialized/);
 		const d1 = fakeD1();
 		const dbFor = facts.setPluginFacts(facts.factsDb({ binding: "CA_DB" }, async () => memoryDb().db, async () => ({ CA_DB: d1 })));
 		expect(facts.pluginFacts()).toBe(dbFor);

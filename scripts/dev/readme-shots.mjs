@@ -19,7 +19,7 @@ const W = 1440;
 const H = 800;
 const MAX_BYTES = 150 * 1024;
 // The README names these files; each crop keeps the source's name.
-const SHOTS = ["overview", "revenue", "search-satisfaction", "annotations", "search", "dashboard-open", "behaviour-funnels", "settings", "sites-all"];
+const SHOTS = ["overview", "revenue", "search-satisfaction", "annotations", "search", "dashboard-open", "behavior-funnels", "settings", "sites-all"];
 
 mkdirSync(out, { recursive: true });
 for (const name of SHOTS) {

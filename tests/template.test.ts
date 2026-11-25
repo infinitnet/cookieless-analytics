@@ -79,7 +79,7 @@ describe("template/ (Deploy to Cloudflare)", () => {
 		expect(read("src/layouts/Base.astro")).toMatch(/<EmDashHead page=\{pageCtx\} \/>/);
 	});
 
-	it("keeps the starter's MIT licence and the attribution NOTICE", () => {
+	it("keeps the starter's MIT license and the attribution NOTICE", () => {
 		expect(read("LICENSE")).toMatch(/^The MIT License\n\nCopyright 2026 Cloudflare Inc\./);
 		expect(read("NOTICE")).toContain("https://github.com/emdash-cms/templates/tree/main/starter-cloudflare");
 		expect(read(".gitignore")).toContain("!.dev.vars.example");

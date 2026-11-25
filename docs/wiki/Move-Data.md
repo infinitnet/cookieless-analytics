@@ -10,7 +10,7 @@ For a database bound to this Worker, the Data page copies the tables for you. Sw
 
 1. **Where the data is now**: the EmDash database or the old binding, and one site or every site.
 2. **Where it goes**: the database the site writes to now, its engine and health.
-3. **Start**: chunks of 50 rows (Small) or 200, continued each minute in the background and faster while the tab is open. "Moving data: N percent. Older days appear as they arrive." Pause, Resume and Cancel; Start with the same source and site continues a cancelled move. Summaries, retention and Search skip the new database and the delete tools wait until the move ends. On Small into a D1 database the move writes at most 15,000 rows a day (shared with imports) and continues after 00:00 UTC by itself.
+3. **Start**: chunks of 50 rows (Small) or 200, continued each minute in the background and faster while the tab is open. "Moving data: N percent. Older days appear as they arrive." Pause, Resume and Cancel; Start with the same source and site continues a canceled move. Summaries, retention and Search skip the new database and the delete tools wait until the move ends. On Small into a D1 database the move writes at most 15,000 rows a day (shared with imports) and continues after 00:00 UTC by itself.
 4. **Check**: per table, site and day, inside the new database's detailed window; on days where the new database holds more rows, the old rows are looked up one by one. Short means rows are missing; More means rows written since the switch or split visits.
 5. **Remove the old tables**: type `DELETE`; enabled once the check found nothing short, and refused when the old database is one the site writes to under another binding name.
 

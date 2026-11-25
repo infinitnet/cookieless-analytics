@@ -165,10 +165,10 @@ export interface ChartSeries {
 	key: string;
 	label: string;
 	format: Format;
-	/** Colour and shape slot 0 to 3; the index in `series` when absent. */
+	/** Color and shape slot 0 to 3; the index in `series` when absent. */
 	slot?: number;
 	values: ReadonlyArray<number | null>;
-	/** Comparison values aligned by index: drawn dashed in the series colour. */
+	/** Comparison values aligned by index: drawn dashed in the series color. */
 	compare?: ReadonlyArray<number | null> | undefined;
 	axis?: "left" | "right";
 	/** 1 at the top (Search position). */
@@ -607,7 +607,7 @@ const pct = (share: number) => `${(share * 100).toFixed(1)}%`;
 
 /**
  * Donut of shares with the percent in the legend. Hover or focus on a slice, or hover on its
- * legend row, dims the others and writes label, percent and value in the centre; slices are focusable.
+ * legend row, dims the others and writes label, percent and value in the center; slices are focusable.
  */
 export function Donut({ slices, label, size = 120, format = "number", unit }: { slices: readonly BarRow[]; label: string; size?: number; format?: Format; unit?: string }) {
 	const [on, setOn] = useState<number | null>(null);
@@ -641,7 +641,7 @@ export function Donut({ slices, label, size = 120, format = "number", unit }: { 
 					/>
 				))}
 				{a && on !== null && (
-					<g aria-hidden="true" className="ca-donut-centre" textAnchor="middle">
+					<g aria-hidden="true" className="ca-donut-center" textAnchor="middle">
 						<text x={50} y={41} fontSize={8}>
 							{a.label.length > 14 ? `${a.label.slice(0, 13)}...` : a.label}
 						</text>

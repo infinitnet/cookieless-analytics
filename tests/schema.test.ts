@@ -103,7 +103,7 @@ describe("ensureSchema", () => {
 });
 
 describe("Db adapter on SQLite", () => {
-	it("runs parameterised statements, batches and upserts", async () => {
+	it("runs parameterized statements, batches and upserts", async () => {
 		const { db, kysely } = memoryDb();
 		await ensureSchema(db, new MemoryKv());
 		expect(await selfCheck(db)).toEqual({ ok: true, dialect: "sqlite" });

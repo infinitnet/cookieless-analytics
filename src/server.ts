@@ -11,7 +11,7 @@ export type ServerEvent = Pick<IngestEvent, "name" | "u" | "p" | "val" | "cur" |
 
 /**
  * Headers copied from the visitor's request, so the event joins the visitor's session by visitor key and
- * honours the privacy signals; nothing else is (no cookie, origin, referer or forwarding header).
+ * honors the privacy signals; nothing else is (no cookie, origin, referer or forwarding header).
  */
 const COPIED = ["user-agent", "accept-language", "cf-connecting-ip", "sec-gpc", "dnt", "sec-ch-ua-mobile", "sec-ch-ua-platform"] as const;
 

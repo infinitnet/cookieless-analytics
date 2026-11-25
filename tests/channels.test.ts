@@ -49,7 +49,7 @@ describe("classifyChannel", () => {
 		expect(classifyChannel(input)).toEqual({ channel, source });
 	});
 
-	it("merges user rules by priority and honours disabled built-ins", () => {
+	it("merges user rules by priority and honors disabled built-ins", () => {
 		const rules = buildChannelRules([{ id: "partners", channel: "Partners", priority: 5, any: [{ sourceIn: ["partner"] }] }], ["ai_assistants"]);
 		expect(rules[0]?.id).toBe("partners");
 		expect(classifyChannel(fromUrl("/?utm_source=partner"), { rules }).channel).toBe("Partners");

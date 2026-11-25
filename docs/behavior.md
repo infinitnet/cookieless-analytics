@@ -6,7 +6,7 @@ Three views on the rows the plugin already stores. None of them adds a table, a 
 
 ## 1. Funnel modes
 
-A funnel has 2 to 6 steps (a page or an event) and one of three modes. Pick the mode in Definitions, Funnels; the Behaviour page, Funnels tab names the mode of the selected funnel. A funnel saved without a mode runs as sequential.
+A funnel has 2 to 6 steps (a page or an event) and one of three modes. Pick the mode in Definitions, Funnels; the Behavior page, Funnels tab names the mode of the selected funnel. A funnel saved without a mode runs as sequential.
 
 - **Sequential** (default): step n is reached by a matching hit after the step n-1 hit in the same session; anything may happen between.
 - **Strict**: step n must be the next countable hit of the session after the step n-1 hit. Countable hits are page views, your own events (not the automatic `_` events such as scroll or engagement) and any hit that matches one of the funnel's steps, so a step on `_outbound` or `_download` works. Hit times have second resolution: hits in the same second are simultaneous, they never count as a hit between two steps and may satisfy consecutive steps in either order. When the next second does not continue the chain, the chain may start again later in the session; the session counts the furthest it got.
@@ -40,7 +40,7 @@ Agents: `query.compare: "segment"` with `query.compareSegment`. The answer holds
 
 ## 3. Journeys
 
-Page flows within one visit; there are no paths across visits or people. The Behaviour page, Journeys tab has a page picker, the bar lists "Came from" and "Went to" for that page, and the table of top paths.
+Page flows within one visit; there are no paths across visits or people. The Behavior page, Journeys tab has a page picker, the bar lists "Came from" and "Went to" for that page, and the table of top paths.
 
 - `journey_next` (`params.path`): the pages that followed the page, with `(exit)` for sessions that ended there; `sessions` and `share` of the sessions that viewed the page.
 - `journey_prev` (`params.path`): the pages that came before it, with `(entry)` for sessions that started there.
@@ -58,7 +58,7 @@ Each journey report costs one statement plus one count statement for the session
 
 ## 4. Internal site search
 
-The `site_search` report (Behaviour page, Site search tab) lists the words visitors searched for on your own site, from the query parameters named in the `siteSearchParams` setting. It is off until that setting is filled, keeps emails and long numbers out, and shared pages and emails omit terms used in fewer than 2 sessions. The setting, the columns and the limits are in [content.md](content.md), section 2.
+The `site_search` report (Behavior page, Site search tab) lists the words visitors searched for on your own site, from the query parameters named in the `siteSearchParams` setting. It is off until that setting is filled, keeps emails and long numbers out, and shared pages and emails omit terms used in fewer than 2 sessions. The setting, the columns and the limits are in [content.md](content.md), section 2.
 
 ## Summary data
 

@@ -57,7 +57,7 @@ describe("nothing in flight is shared between requests", () => {
 			return never();
 		} });
 		armed = true;
-		// The first request's probe never answers (its request was cancelled; its timer may never fire).
+		// The first request's probe never answers (its request was canceled; its timer may never fire).
 		void queryCacheOn(db).catch(() => undefined);
 		await vi.waitFor(() => expect(stuck).toBe(true));
 		expect(await queryCacheOn(db)).toBe(false);

@@ -64,7 +64,7 @@ Below the reports a short sync line shows the last sync with **Sync now** and **
 - **Overview**: cards for clicks, impressions, CTR and average position with the comparison, and a chart with annotation markers.
 - **Queries**, **Pages**, **Countries**, **Devices**: tables with click to filter and export. Countries and Devices are Google only and hidden when only Bing is mapped.
 - **Positions**: position bands (1-3, 4-10, 11-20, 21-50, 51+), bands over time, band movement and striking distance (Google page and query pairs with an average position from 4 to below 21, with an estimate of extra clicks).
-- **Cannibalization**: queries where two or more of your pages each hold at least `searchOverlapMinShare` percent of the impressions, labelled Dominant, Split, Inverted or Shared, and the competing pages.
+- **Cannibalization**: queries where two or more of your pages each hold at least `searchOverlapMinShare` percent of the impressions, labeled Dominant, Split, Inverted or Shared, and the competing pages.
 - **Changes**: rising and declining pages and queries, new and lost queries, and decay (pages falling in three periods in a row, with a diagnosis of Position, CTR or Demand).
 
 The Pages report of the traffic pages also gets impressions, clicks, CTR and position per page, and a Queries drawer per page, once the site has a connected and mapped source.
@@ -73,7 +73,7 @@ The Pages report of the traffic pages also gets impressions, clicks, CTR and pos
 
 - The plugin checks hourly and pulls a site at most every `searchSyncHours` hours per source.
 - Each Google pull refreshes the last 7 days. The newest three days are provisional, because Google updates them for 2 to 3 days. A day whose rows equal the stored rows is not written again, so a pull of unchanged days writes nothing.
-- **Load older days** fills older dates: Last 30 days, Last 90 days, Last 180 days, Last 12 months, Everything the source offers, or from a date. Each option shows its estimate (days, rows, budget) before Start. It runs in batches across runs and days and can be cancelled.
+- **Load older days** fills older dates: Last 30 days, Last 90 days, Last 180 days, Last 12 months, Everything the source offers, or from a date. Each option shows its estimate (days, rows, budget) before Start. It runs in batches across runs and days and can be canceled.
 - The first connect of a source loads `backfillDays` days by itself, except on the `small` capacity profile, where you press Start.
 
 ## Settings

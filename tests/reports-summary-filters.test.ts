@@ -60,7 +60,7 @@ beforeAll(async () => {
 	expect(await recordAgentEvents({ db: env.db, kv: env.kv, settings, now: t0 + 7200 }, "default", [{ name: "purchase", val: 33, cur: "EUR", oid: "O-4" }])).toMatchObject({ accepted: 1 });
 	await rollupDay({ db: env.db, site: "default", settings, goals: GOALS }, DAY);
 	raw = { db: env.db, site: "default", settings, now: zonedToEpoch("2026-03-13", 12, TZ), goals: GOALS, funnels: {}, annotations: [], defaultCurrency: "EUR" };
-	// Inside the window with a scan budget of 1 visit: the summaries answer whenever they honour every filter.
+	// Inside the window with a scan budget of 1 visit: the summaries answer whenever they honor every filter.
 	win = { ...raw, rawFrom: DAY, summaryThrough: DAY };
 	before = { ...raw, rawFrom: "2030-01-01", summaryThrough: DAY };
 	(SCAN_BUDGET as Record<string, number>).standard = 1;

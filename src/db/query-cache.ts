@@ -56,7 +56,7 @@ export function hyperdriveDb(db: Db, name: string): Db {
 /**
  * Whether `db` is a Hyperdrive binding with query caching on: false for any other database. Until a result is
  * stored for the binding in this isolate, each call runs a probe of its own, with its own timer, so a request
- * cancelled mid-probe never holds up another. A probe that fails or takes longer than `PROBE_MS` (the database is
+ * canceled mid-probe never holds up another. A probe that fails or takes longer than `PROBE_MS` (the database is
  * down or slow) stores nothing and rethrows: the write would fail the same way.
  */
 export async function queryCacheOn(db: Db): Promise<boolean> {

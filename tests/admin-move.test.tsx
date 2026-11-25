@@ -47,7 +47,7 @@ async function handle(route: string, body: Body): Promise<Response> {
 		if (!MovePauseBody.safeParse(body).success) return fail(400, "Invalid request body");
 		return ok({ job: job({ status: body.resume ? "running" : "paused" }), dest: "CA_PG" });
 	}
-	if (route === "move/cancel") return ok({ job: job({ status: "cancelled" }), dest: "CA_PG" });
+	if (route === "move/cancel") return ok({ job: job({ status: "canceled" }), dest: "CA_PG" });
 	if (route === "move/drop-old-tables") {
 		if (!MoveDropBody.safeParse(body).success) return fail(400, "Invalid request body");
 		return dropError ? fail(400, dropError) : ok({ job: { ...done(), dropped: 1_772_010_000 }, dest: "CA_PG" });
@@ -232,11 +232,11 @@ describe("Move data tab", () => {
 		expect(within(panel).queryByRole("textbox")).toBeNull();
 	});
 
-	it("after a cancelled move a new one starts from the same source and site", async () => {
-		status = { job: job({ status: "cancelled", source: "CA_OLD", site: "main" }), dest: "CA_PG" };
+	it("after a canceled move a new one starts from the same source and site", async () => {
+		status = { job: job({ status: "canceled", source: "CA_OLD", site: "main" }), dest: "CA_PG" };
 		render(<Data />);
 		const start = await screen.findByRole("button", { name: "Start a new move" });
-		expect(screen.getByText(MOVE_TEXT.cancelled)).toBeTruthy();
+		expect(screen.getByText(MOVE_TEXT.canceled)).toBeTruthy();
 		expect((screen.getByRole("textbox", { name: "Binding name in your wrangler config" }) as HTMLInputElement).value).toBe("CA_OLD");
 		fireEvent.click(start);
 		await waitFor(() => expect(routeCalls("move/start")).toEqual([{ source: "CA_OLD", site: "main" }]));

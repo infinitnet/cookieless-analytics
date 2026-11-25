@@ -14,7 +14,7 @@ export const JOURNEY_SESSION_CAP = 50_000;
 /** Rows with fewer sessions are omitted and counted in `hidden_sessions`: a one session path is one person's route. */
 export const JOURNEY_MIN_SESSIONS = 2;
 export const JOURNEY_MAX_ROWS = 20;
-/** Grouped rows read before the floor; one page has far fewer distinct neighbours. */
+/** Grouped rows read before the floor; one page has far fewer distinct neighbors. */
 const GROUP_LIMIT = 5000;
 
 export const EXIT = "(exit)";
@@ -60,7 +60,7 @@ function floor<T extends { sessions: number }>(rows: T[]): { rows: T[]; hidden_s
 	return { rows: kept.slice(0, JOURNEY_MAX_ROWS), hidden_sessions: rows.filter((r) => r.sessions < JOURNEY_MIN_SESSIONS).reduce((a, r) => a + r.sessions, 0) };
 }
 
-function neighbour(column: "next" | "prev", none: string) {
+function neighbor(column: "next" | "prev", none: string) {
 	return async (rc: ReportCtx, input: RunInput): Promise<ReportData> => {
 		const path = input.params.path;
 		if (!path) throw new QueryError("invalid_params", `journey_${column} needs params.path.`);
@@ -79,9 +79,9 @@ FROM seq t WHERE t.path = ? AND COALESCE(t.${column}, '') <> t.path GROUP BY ${k
 }
 
 /** What followed the page, including `(exit)`. A drill-down, not a tile report. */
-export const journeyNext = neighbour("next", EXIT);
+export const journeyNext = neighbor("next", EXIT);
 /** What preceded the page, including `(entry)`. A drill-down, not a tile report. */
-export const journeyPrev = neighbour("prev", ENTRY);
+export const journeyPrev = neighbor("prev", ENTRY);
 
 /** The most common three step sequences from the entry page (`params.entry` narrows the entry page). */
 export async function journeyPaths(rc: ReportCtx, input: RunInput): Promise<ReportData> {
@@ -140,7 +140,7 @@ UNION ALL SELECT 'path3', t.path, ${p2} || '${STEP_SEP}' || ${p3}, COUNT(*) FROM
 
 type Runner = (rc: ReportCtx, input: RunInput) => Promise<ReportData & { notices: string[] }>;
 
-/** `dim:reason` of the filters a journey summary answer cannot honour: every filter (journey rows have no segments). */
+/** `dim:reason` of the filters a journey summary answer cannot honor: every filter (journey rows have no segments). */
 export const journeysUnavailable = (filters: RunInput["filters"]): string[] => [...new Set(filters.map((f) => `${f.dim}:not_kept`))];
 
 /** Range rule and notices of a summary answer: no filter applies to the journey rows. */
@@ -152,7 +152,7 @@ function summaryNotices(input: RunInput): string[] {
 const read = async (rc: ReportCtx, input: RunInput, dim: (typeof JOURNEY_DIMS)[number], o: { key?: string; segkey?: string }) =>
 	(await import("../rollup.js")).readFamily(rc, input.from, input.to, { table: "ca_rollup", dim, seg: "", ...o });
 
-function neighbourFromSummary(column: "next" | "prev"): Runner {
+function neighborFromSummary(column: "next" | "prev"): Runner {
 	return async (rc, input) => {
 		const notices = summaryNotices(input);
 		const path = input.params.path;
@@ -171,8 +171,8 @@ function neighbourFromSummary(column: "next" | "prev"): Runner {
  * answer is the top paths per day (`top_paths_per_day`); filters do not apply (`filter_unavailable:<dim>:not_kept`).
  */
 export const journeysFromSummary: Record<"journey_next" | "journey_prev" | "journey_paths", Runner> = {
-	journey_next: neighbourFromSummary("next"),
-	journey_prev: neighbourFromSummary("prev"),
+	journey_next: neighborFromSummary("next"),
+	journey_prev: neighborFromSummary("prev"),
 	journey_paths: async (rc, input) => {
 		const notices = summaryNotices(input);
 		const entry = input.params.entry;

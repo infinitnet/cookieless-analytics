@@ -51,7 +51,7 @@ A filter has four parts:
 | `currency` | Currency | ISO 4217 code of an order in the session |
 | `revenue` | Revenue at least | the sum of the session's order values in one currency |
 
-Search reports use their own dimensions, `page` (the normalised page key), `query`, `country`, `device` and `source`, with the same operators. Traffic dimensions are ignored there and the report says so.
+Search reports use their own dimensions, `page` (the normalized page key), `query`, `country`, `device` and `source`, with the same operators. Traffic dimensions are ignored there and the report says so.
 
 ## Operators
 
@@ -77,7 +77,7 @@ A negative operator negates the whole predicate. For a hit dimension that means 
 
 ### Event property filters
 
-`event_prop` needs `prop`, the property key (`^[A-Za-z0-9_]{1,32}$`). The values are compared as text, so a number is compared as the string you type (`"3"`). The admin adds these filters from the event properties report on the Behaviour page. Events carry at most 10 properties ([integration.md](integration.md)).
+`event_prop` needs `prop`, the property key (`^[A-Za-z0-9_]{1,32}$`). The values are compared as text, so a number is compared as the string you type (`"3"`). The admin adds these filters from the event properties report on the Behavior page. Events carry at most 10 properties ([integration.md](integration.md)).
 
 ### Goal filters
 
@@ -97,7 +97,7 @@ Other operators on `revenue`, numeric operators on any other dimension, and any 
 
 - At most 20 filters per query and 500 values per filter. Large lists are sent to the database in chunks of 90, and one query may bind at most 60 filter parameters in total (each `contains` or `prefix` value uses one; `is` values and regex matches are packed 90 to a parameter). Beyond that the error is `too_many_values` ("combine values with prefix or regex").
 - A range is at most 1,000 days.
-- Filters compile to parameterised SQL. Column names come from a fixed list, never from input.
+- Filters compile to parameterized SQL. Column names come from a fixed list, never from input.
 
 ## Safe regex limits
 
@@ -116,7 +116,7 @@ Non-capturing `(?:...)` and named groups are allowed. A pattern that fails any r
 
 ## Segments
 
-A segment is a named list of filters (1 to 20 filters, name up to 64 characters), saved per site. Save the current filter bar as a segment with "Save as segment", or build one under Definitions, Segments. A selected segment applies in addition to the filters in the bar. Segments can be compared side by side ([behaviour.md](behaviour.md)), used as the default of a dashboard ([dashboards.md](dashboards.md)) and passed to the agent API by id ([AGENTS.md](AGENTS.md)). An unknown id is the error `unknown_segment`.
+A segment is a named list of filters (1 to 20 filters, name up to 64 characters), saved per site. Save the current filter bar as a segment with "Save as segment", or build one under Definitions, Segments. A selected segment applies in addition to the filters in the bar. Segments can be compared side by side ([behavior.md](behavior.md)), used as the default of a dashboard ([dashboards.md](dashboards.md)) and passed to the agent API by id ([AGENTS.md](AGENTS.md)). An unknown id is the error `unknown_segment`.
 
 ## URL state
 
@@ -184,8 +184,8 @@ A page view or an event counts on the day its visit started, also after midnight
 | error `raw_only` | The report needs detailed data; the message ends "Detailed data starts on <day>." | "Show <day> to <to> with all filters" |
 | error `narrow_range` | "This range holds about <n> visits, more than one detailed report may read with these filters. Choose <from> to <to>, or filters the daily summaries can answer." | "Show <from> to <to>" |
 
-Which behaviour reports answer from summaries: [behaviour.md](behaviour.md#summary-data). Revenue: [revenue.md](revenue.md).
+Which behavior reports answer from summaries: [behavior.md](behavior.md#summary-data). Revenue: [revenue.md](revenue.md).
 
 ## Related
 
-[sessions.md](sessions.md), [behaviour.md](behaviour.md), [dashboards.md](dashboards.md), [revenue.md](revenue.md), [AGENTS.md](AGENTS.md).
+[sessions.md](sessions.md), [behavior.md](behavior.md), [dashboards.md](dashboards.md), [revenue.md](revenue.md), [AGENTS.md](AGENTS.md).

@@ -64,7 +64,7 @@ describe("filtered delete", () => {
 	const finish = async (o: Partial<JobEnv> = {}, requests?: number) => {
 		for (let k = 0; k < 200; k++) {
 			const j = await runDeleteJob(jenv(o), requests);
-			if (!j || (j.status !== "running" && j.status !== "cancelling") || j.paused) return j;
+			if (!j || (j.status !== "running" && j.status !== "canceling") || j.paused) return j;
 		}
 		throw new Error("job did not finish");
 	};
@@ -336,13 +336,13 @@ describe("filtered delete", () => {
 		expect(gone).toBeGreaterThan(0);
 		const r = await call("tools/delete-cancel", {});
 		j = r.job as DeleteJob;
-		if (j.status === "cancelling") j = (await finish()) as DeleteJob;
-		expect(j.status).toBe("cancelled");
+		if (j.status === "canceling") j = (await finish()) as DeleteJob;
+		expect(j.status).toBe("canceled");
 		expect(j.deleted.visits).toBe(gone);
 		expect(Object.keys(j.reclose)).toEqual([]);
 		expect(await sessions([], true, "2026-03-10", "2026-03-11")).toBe(await sessions([], false, "2026-03-10", "2026-03-11"));
 		const log = (await call("tools/delete-status")).log as Array<Record<string, unknown>>;
-		expect(log[0]).toMatchObject({ status: "cancelled", by: "owner@example.com", summary: "2026-03-10 to 2026-03-12: country is DE, US" });
+		expect(log[0]).toMatchObject({ status: "canceled", by: "owner@example.com", summary: "2026-03-10 to 2026-03-12: country is DE, US" });
 		expect(JSON.stringify(log)).not.toMatch(/sid|vkey/);
 	});
 

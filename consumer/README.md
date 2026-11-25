@@ -44,7 +44,7 @@ Messages carry the plugin's own format. After every plugin update, set this Work
 
 Set **Ingest tier** back to **Direct**. Leave this Worker running until the queue is empty (the queue's backlog in the Cloudflare dashboard reads 0), then delete it, the two queues and the producer binding.
 
-## Behaviour
+## Behavior
 
 - Delivery is at least once. Every statement is keyed by the page view or event id, so a message applied twice changes nothing; an engagement update only raises stored values. One exception: a reload that was not counted (same path within the reload dedupe time) can be counted when it is delivered again after a later page view of its visit. Drop reasons are counted on the first delivery only.
 - Within a batch, messages are applied in event time order, grouped per visitor, so the messages of one visit keep their order inside a batch. Queues do not promise order across batches; `max_concurrency: 1` keeps one batch at a time. A replay changes nothing and an early engagement update is retried, but a page view that arrives after a later page view of its visit (possible after a retry) is applied in arrival order: counts stay exact, while that visit's entry page, start time and duration can differ from what the direct path would store.

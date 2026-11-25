@@ -4,7 +4,7 @@ import type { Db } from "../src/db/adapter.js";
 import { MAX_PARAMS } from "../src/db/sql.js";
 import { QuerySchema } from "../src/query/filters.js";
 import type { ReportCtx } from "../src/query/reports/base.js";
-import { FUNNEL_SIDS_PER_PARAM, funnelSidStatements } from "../src/query/reports/behaviour.js";
+import { FUNNEL_SIDS_PER_PARAM, funnelSidStatements } from "../src/query/reports/behavior.js";
 import { clearReportCache, type Params, runReport } from "../src/query/reports/index.js";
 import { putHits, schemaDb } from "./helpers.js";
 

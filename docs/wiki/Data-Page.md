@@ -56,7 +56,7 @@ The Delete tab needs the manage permission (admins only). It offers:
 3. **Confirm** by typing the number of matching visits, or `DELETE`. Any change to the conditions drops the preview.
 4. The delete runs as a job in budgeted steps. While the page is open, it continues the job call by call; otherwise the hourly `retention` task continues it. The progress panel shows days done, visits deleted and rows written today.
 5. On Small, the job pauses by itself when today's rows for deleting are used or the write guard is high ("Paused: the daily write guard is high, so recording keeps priority."), and resumes after 00:00 UTC. **Cancel delete** stops it; the touched days are still stored again.
-6. **Recent deletions** lists the last 10 finished or cancelled jobs: who started it, when, the conditions and the counts.
+6. **Recent deletions** lists the last 10 finished or canceled jobs: who started it, when, the conditions and the counts.
 
 Every closed day that lost visits or orders has its daily summaries computed again from the visits that remain, so summary and detailed reports agree.
 

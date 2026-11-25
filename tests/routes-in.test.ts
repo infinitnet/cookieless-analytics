@@ -344,7 +344,7 @@ describe("write before the response, 503 and idempotent events", () => {
 		expect(res.status).toBe(204);
 	});
 
-	it("recognises the D1 overload texts and code", () => {
+	it("recognizes the D1 overload texts and code", () => {
 		for (const m of ["D1 DB is overloaded. Requests queued for too long.", "D1 DB is overloaded. Too many requests queued.", "D1 DB is overloaded. Too many resources consumed within a 10 second window"]) expect(isOverload(new Error(m))).toBe(true);
 		for (const m of ["no such table", "row 7429 not found"]) expect(isOverload(new Error(m))).toBe(false);
 		expect(isOverload(null)).toBe(false);

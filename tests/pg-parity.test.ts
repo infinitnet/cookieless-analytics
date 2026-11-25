@@ -162,7 +162,7 @@ async function scenario(db: Db, kv: Kv): Promise<Result> {
 		await kv.set(KV_DELETE_JOB, await createJob(env as never, spec, null, preview as never));
 		const run = () => runDeleteJob({ kv, db: async () => db, settings: S, goals: async () => [], now: NOW } as never, 400);
 		let j = await run();
-		for (let i = 0; i < 30 && j && (j.status === "running" || j.status === "cancelling"); i++) j = await run();
+		for (let i = 0; i < 30 && j && (j.status === "running" || j.status === "canceling"); i++) j = await run();
 		return { preview, status: j?.status, counts: (j as { counts?: unknown } | null)?.counts };
 	});
 	await step("retention", async () => {

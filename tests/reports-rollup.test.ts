@@ -268,7 +268,7 @@ describe("the engine and notices per report and filter set (summaries before the
 		]);
 	});
 
-	it("revenue reports honour one segment filter: totals, and a pair dimension's breakdown", async () => {
+	it("revenue reports honor one segment filter: totals, and a pair dimension's breakdown", async () => {
 		const t = await run(rc, "revenue", DAY, DAY, [f("country", "DE")]);
 		expect(t.data.totals).toMatchObject({ revenue: 20, orders: 2, visitors: 5, sessions: 6 });
 		const b = await run(rc, "revenue_breakdown", DAY, DAY, [f("country", "DE")], { dim: "page" });
@@ -391,7 +391,7 @@ describe("the scan budget inside the detailed window", () => {
 		expect(r.data.totals?.sessions).toBe(0);
 	});
 
-	it("over the budget with filters the summaries honour: the summaries, without a range fix", async () => {
+	it("over the budget with filters the summaries honor: the summaries, without a range fix", async () => {
 		const r = await run(rc, "overview", "2026-03-10", "2026-03-19");
 		expect(r.notices).toEqual(["summary"]);
 		expect(r.data.totals?.sessions).toBe(200_000);
@@ -408,7 +408,7 @@ describe("the scan budget inside the detailed window", () => {
 		await expect(run(rc, "regions", "2026-03-05", "2026-03-19")).rejects.toMatchObject({ code: "narrow_range" });
 	});
 
-	it("links and journeys: summaries over the budget when they honour every filter, else detailed, then narrow_range", async () => {
+	it("links and journeys: summaries over the budget when they honor every filter, else detailed, then narrow_range", async () => {
 		const m = (r: { notices: string[] }) => [...r.notices].sort();
 		expect(m(await run(rc, "links", "2026-03-10", "2026-03-19"))).toEqual(["summary"]);
 		expect(m(await run(rc, "links", "2026-03-10", "2026-03-19", [f("device", "mobile")]))).toEqual(["summary"]);

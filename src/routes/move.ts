@@ -12,7 +12,7 @@ import { BINDING_RE } from "../multisite/config.js";
 import { bindSite, SiteField, type SitesColl } from "../multisite/registry.js";
 import { isActive as deleteActive, KV_DELETE_JOB, type DeleteJob } from "../query/filtered-delete.js";
 import { PROFILES, type Settings } from "../settings.js";
-import { dropTables, isMoving, KV_MOVE_JOB, KV_MOVE_STOP, MOVE_CRON, MOVE_ORDER, MOVE_SCHEDULE, type MoveEnv, type MoveJob, moveView, newMoveJob, resumeCancelled, runMoveJob, sourceState, sourceTotals, verifyFrom, verifyTable } from "../move/job.js";
+import { dropTables, isMoving, KV_MOVE_JOB, KV_MOVE_STOP, MOVE_CRON, MOVE_ORDER, MOVE_SCHEDULE, type MoveEnv, type MoveJob, moveView, newMoveJob, resumeCanceled, runMoveJob, sourceState, sourceTotals, verifyFrom, verifyTable } from "../move/job.js";
 
 export interface MoveCtx {
 	input: unknown;
@@ -102,7 +102,7 @@ export function moveRoutes(env: MoveRoutesEnv) {
 		return false;
 	};
 	/** Apply a stop key now when no call runs; a call in flight applies it at its end. Never rewrites the position. */
-	const stop = async (ctx: MoveCtx, job: MoveJob, status: "paused" | "cancelled") => {
+	const stop = async (ctx: MoveCtx, job: MoveJob, status: "paused" | "canceled") => {
 		await ctx.kv.set(KV_MOVE_STOP, { id: job.id, status });
 		return runMoveJob(await jobEnv(ctx), 0);
 	};
@@ -136,8 +136,8 @@ export function moveRoutes(env: MoveRoutesEnv) {
 					throw new PluginRouteError("same_database", `${name(body.source)} is the database the site already writes to, under another name. Change the plugin option to the new database and deploy first.`, 400);
 				if (site === undefined && (await writtenTo(src, env.targets().filter((t) => t !== dest))))
 					throw new PluginRouteError("source_in_use", `Sites still write to ${name(body.source)}. Choose the site to move.`, 400);
-				// A cancelled move of the same source, destination and site continues from its position.
-				const resumed = await resumeCancelled(ctx.kv, { source: body.source, dest, site });
+				// A canceled move of the same source, destination and site continues from its position.
+				const resumed = await resumeCanceled(ctx.kv, { source: body.source, dest, site });
 				if (!resumed)
 					await ctx.kv.set(KV_MOVE_JOB, newMoveJob({ source: body.source, dest, site, by: ctx.user?.email ?? null, now: now(), total: await sourceTotals(src, site), state: await sourceState(ctx.kv, body.source) }));
 				await ctx.cron?.schedule(MOVE_CRON, { schedule: MOVE_SCHEDULE });
@@ -170,7 +170,7 @@ export function moveRoutes(env: MoveRoutesEnv) {
 				}
 				const pending = await ctx.kv.get<{ id: string; status: string }>(KV_MOVE_STOP);
 				// A cancel not applied yet stays a cancel.
-				if (job.status === "paused" || (pending?.id === job.id && pending.status === "cancelled")) return state(job);
+				if (job.status === "paused" || (pending?.id === job.id && pending.status === "canceled")) return state(job);
 				return state(await stop(ctx, job, "paused"));
 			},
 		},
@@ -184,10 +184,10 @@ export function moveRoutes(env: MoveRoutesEnv) {
 			async handler(ctx: MoveCtx) {
 				const job = await current(ctx);
 				if (!isMoving(job)) return state(job);
-				if (job.status === "running") return state(await stop(ctx, job, "cancelled"));
+				if (job.status === "running") return state(await stop(ctx, job, "canceled"));
 				// Paused: no call runs it, so the status is written from a fresh read.
-				await ctx.kv.set(KV_MOVE_STOP, { id: job.id, status: "cancelled" });
-				const j: MoveJob = { ...job, status: "cancelled", finished: now() };
+				await ctx.kv.set(KV_MOVE_STOP, { id: job.id, status: "canceled" });
+				const j: MoveJob = { ...job, status: "canceled", finished: now() };
 				await ctx.kv.set(KV_MOVE_JOB, j);
 				await ctx.cron?.cancel(MOVE_CRON).catch(() => {});
 				return state(j);

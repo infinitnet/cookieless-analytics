@@ -90,7 +90,7 @@ describe("date presets in the site timezone", () => {
 		expect(presetRange("mtd", "Europe/Berlin", NOW)).toEqual({ from: "2026-03-01", to: "2026-03-01" });
 	});
 
-	it("recognises a preset range and treats others as custom", () => {
+	it("recognizes a preset range and treats others as custom", () => {
 		expect(matchPreset({ from: "2026-02-22", to: "2026-02-28" }, LA, NOW)).toBe("7d");
 		expect(matchPreset({ from: "2026-02-21", to: "2026-02-28" }, LA, NOW)).toBeNull();
 	});

@@ -21,7 +21,7 @@ type Env = Awaited<ReturnType<typeof schemaDb>>;
 const T0 = Date.parse("2026-06-10T12:00:00Z") / 1000;
 const SID = "aaaaaaaaaaaaaaaaaaaa";
 
-/** Fake queue binding: keeps what was sent, as the runtime would serialise it. */
+/** Fake queue binding: keeps what was sent, as the runtime would serialize it. */
 class FakeQueue implements QueueLike {
 	sent: Array<{ body: unknown; timestamp: Date }> = [];
 	fail = false;

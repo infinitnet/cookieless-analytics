@@ -8,7 +8,7 @@ A session is a run of page views by one visitor with gaps shorter than the sessi
 
 - **Salt.** One random salt per day (32 random bytes), created the first time it is needed and stored in the plugin's key-value state. The salt day follows `saltTimezone` and `saltRotationHour` (default UTC, hour 0). The `salts` cron task deletes salts older than two days, so a deleted salt cannot be recomputed.
 - **Visitor key (`vkey`).** `base64url(HMAC-SHA256(salt of the day, site | truncated IP | browser family and major, OS family, device class))`, cut to 22 characters. The IP is cut to `/24` (IPv4) or `/48` (IPv6); with `ipTruncation` set to `strict`, to `/16` or `/32`.
-- **Visitors are counted per day.** The key changes every day, so the same person on two days is two visitors. A figure over several days is the sum of daily visitors and is labelled so. Cross-day returning-visitor figures do not exist, by design.
+- **Visitors are counted per day.** The key changes every day, so the same person on two days is two visitors. A figure over several days is the sum of daily visitors and is labeled so. Cross-day returning-visitor figures do not exist, by design.
 
 Details on what is stored: [privacy.md](privacy.md).
 

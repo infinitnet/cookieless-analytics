@@ -74,7 +74,7 @@ describe("row verdict", () => {
 		expect(verdictOf("visitors", f({ before: null, after: 9 })).verdict).toBe("no_data");
 		expect(verdictOf("bounce_rate", f({ before: 0.4, after: 0.6, measured: { before: 30, after: 400 } })).verdict).toBe("no_data");
 	});
-	it("rates use a 5 percent band, and lower is better colours a fall as good news", () => {
+	it("rates use a 5 percent band, and lower is better colors a fall as good news", () => {
 		expect(verdictOf("engaged_rate", f({ before: 0.5, after: 0.51, measured: { before: 500, after: 500 } })).verdict).toBe("flat");
 		expect(verdictOf("bounce_rate", f({ before: 0.5, after: 0.4, measured: { before: 500, after: 500 } }))).toEqual({ verdict: "down", good: true });
 		expect(verdictOf("position", f({ before: 8, after: 5, measured: { before: 900, after: 900 } }))).toEqual({ verdict: "down", good: true });

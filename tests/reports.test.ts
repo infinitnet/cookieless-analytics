@@ -8,7 +8,7 @@ import { QueryError } from "../src/query/compile.js";
 import type { Filter, Goal, QueryInput } from "../src/query/filters.js";
 import { QuerySchema } from "../src/query/filters.js";
 import type { ReportCtx, Row } from "../src/query/reports/base.js";
-import { FUNNEL_SESSION_CAP } from "../src/query/reports/behaviour.js";
+import { FUNNEL_SESSION_CAP } from "../src/query/reports/behavior.js";
 import { clearReportCache, guardDb, NO_COMPARE, type Params, REPORT_NAMES, type ReportName, runReport, SELF_COMPARED } from "../src/query/reports/index.js";
 import { resolveGranularity, weekStart } from "../src/query/reports/timeseries.js";
 import type { Settings } from "../src/settings.js";

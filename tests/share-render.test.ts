@@ -87,7 +87,7 @@ describe.each([false, true])("shared page renderer (annotations %s)", (annotated
 		expect(doc.querySelector("footer")?.textContent).toContain("Shared view");
 	});
 
-	it("renders one labelled section and h2 per tile, aria on every svg, a table under bars and donut", () => {
+	it("renders one labeled section and h2 per tile, aria on every svg, a table under bars and donut", () => {
 		const doc = parse(renderShared(input()));
 		const sections = [...doc.querySelectorAll("main > section")];
 		expect(sections).toHaveLength(9);

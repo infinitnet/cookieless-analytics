@@ -4,7 +4,7 @@
 
 Self-hosted, cookieless web analytics for EmDash and any site. A 2.7 KB script, no extra service, your own database.
 
-[![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
+[![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
 
 [Install](#install) · [Docs](#documentation) · [Wiki](https://github.com/infinitnet/cookieless-analytics/wiki)
 
@@ -42,7 +42,7 @@ Most cookieless tools count page views and stop there. Cookieless Analytics is a
 - **Revenue and refunds.** Cookieless Analytics reports orders by source, campaign and entry page, with refunds and net revenue. Each report uses one currency and never converts. [Revenue](docs/revenue.md)
 - **Search data next to traffic.** Google Search Console and Bing Webmaster Tools data sit in the same UI as your sessions, with SEO views. [Search sources](docs/search-sources.md)
 - **Annotations with measured impact.** An annotation marks a release or a publish, and any metric compares before and after it. [Annotations](docs/annotations.md)
-- **Search Satisfaction.** Search Satisfaction is an approximation of how a click-based system such as Navboost could rate your pages: long and short clicks, bad experiences and estimated pogo-sticking from search visits, labelled as estimates. [Search Satisfaction](docs/sessions.md#search-satisfaction-metrics)
+- **Search Satisfaction.** Search Satisfaction is an approximation of how a click-based system such as Navboost could rate your pages: long and short clicks, bad experiences and estimated pogo-sticking from search visits, labeled as estimates. [Search Satisfaction](docs/sessions.md#search-satisfaction-metrics)
 - **Dashboards you can share.** A share link opens a read-only plain HTML page with no script, no cookie and an optional password. Any dashboard can also go out by scheduled email. [Dashboards](docs/dashboards.md)
 - **Built for agents.** Cookieless Analytics offers scoped API keys, an OpenAPI description and MCP tools through your EmDash site. [Agent API](docs/AGENTS.md)
 - **Many sites, one admin.** One admin reads client sites in the same database and connected EmDash installs through their agent API. [Multi-site](docs/multi-site.md)
@@ -145,7 +145,7 @@ Details: [packages/companion/README.md](packages/companion/README.md) and the wi
 <table>
 <tr>
 <td width="50%" valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Revenue-and-Refunds"><img src="docs/readme/revenue.png" alt="Revenue page: revenue, refunds, net revenue and orders in EUR compared with the previous period, above a revenue per day chart" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Revenue-and-Refunds">Revenue and refunds</a></b>: gross, refunds and net per currency, by first-touch source.</td>
-<td width="50%" valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Search-Satisfaction"><img src="docs/readme/search-satisfaction.png" alt="Search Satisfaction page: long clicks, short clicks, bad experience, estimated pogo-sticking and returns from search, with rates over time" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Search-Satisfaction">Search Satisfaction</a></b>: long clicks, bad experiences and search behaviour per landing page.</td>
+<td width="50%" valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Search-Satisfaction"><img src="docs/readme/search-satisfaction.png" alt="Search Satisfaction page: long clicks, short clicks, bad experience, estimated pogo-sticking and returns from search, with rates over time" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Search-Satisfaction">Search Satisfaction</a></b>: long clicks, bad experiences and search behavior per landing page.</td>
 </tr>
 <tr>
 <td valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Annotations-and-Impact"><img src="docs/readme/annotations.png" alt="Annotations page: releases, publishes and manual notes with their scope, target metric and measured change after 14 days" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Annotations-and-Impact">Annotations and impact</a></b>: each change measured on its own metric, before and after.</td>
@@ -153,7 +153,7 @@ Details: [packages/companion/README.md](packages/companion/README.md) and the wi
 </tr>
 <tr>
 <td valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Dashboards-and-Sharing"><img src="docs/readme/dashboard-open.png" alt="A custom dashboard named Weekly overview with KPI tiles and a visitors and sessions chart, with Edit, Share and More buttons" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Dashboards-and-Sharing">Dashboards and sharing</a></b>: custom tiles, share links, scheduled email.</td>
-<td valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels"><img src="docs/readme/behaviour-funnels.png" alt="Behaviour page, Funnels tab: a three step funnel from the pricing page to signup with drop-off per step" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels">Behaviour and funnels</a></b>: events, goals, funnels, journeys, outbound links, forms.</td>
+<td valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels"><img src="docs/readme/behavior-funnels.png" alt="Behavior page, Funnels tab: a three step funnel from the pricing page to signup with drop-off per step" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels">Behavior and funnels</a></b>: events, goals, funnels, journeys, outbound links, forms.</td>
 </tr>
 <tr>
 <td valign="top"><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Multi-Site-and-Sites-View"><img src="docs/readme/sites-all.png" alt="All sites view: one table with sessions, pageviews, visitors, bounce rate and revenue for every measured site" width="420"></a><br><b><a href="https://github.com/infinitnet/cookieless-analytics/wiki/Multi-Site-and-Sites-View">All sites</a></b>: one table over every site you measure.</td>
@@ -171,12 +171,12 @@ Details: [packages/companion/README.md](packages/companion/README.md) and the wi
 - **Audience.** The Audience report shows country, region, device, browser, OS and language. [Reports](https://github.com/infinitnet/cookieless-analytics/wiki/Reports)
 - **Content and site search.** Cookieless Analytics reports traffic per EmDash collection and what visitors search for on your site, and adds a Traffic panel to the content editor. [Content and site search](https://github.com/infinitnet/cookieless-analytics/wiki/Content-and-Site-Search), [content.md](docs/content.md)
 
-#### Behaviour
+#### Behavior
 
-- **Events.** The Behaviour page shows events, properties, goals, outbound links, downloads, forms and scroll. [Events](https://github.com/infinitnet/cookieless-analytics/wiki/Events)
-- **Goals and funnels.** Funnels run in sequential, strict (no other page in between) or flexible (any order) mode, with revenue per step. [Goals and funnels](https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels), [behaviour.md](docs/behaviour.md)
-- **Journeys.** Journeys show the next and previous pages of a page and the most common paths. [behaviour.md](docs/behaviour.md)
-- **Segment comparison.** Segment comparison puts two saved segments side by side over the same range. [behaviour.md](docs/behaviour.md)
+- **Events.** The Behavior page shows events, properties, goals, outbound links, downloads, forms and scroll. [Events](https://github.com/infinitnet/cookieless-analytics/wiki/Events)
+- **Goals and funnels.** Funnels run in sequential, strict (no other page in between) or flexible (any order) mode, with revenue per step. [Goals and funnels](https://github.com/infinitnet/cookieless-analytics/wiki/Goals-and-Funnels), [behavior.md](docs/behavior.md)
+- **Journeys.** Journeys show the next and previous pages of a page and the most common paths. [behavior.md](docs/behavior.md)
+- **Segment comparison.** Segment comparison puts two saved segments side by side over the same range. [behavior.md](docs/behavior.md)
 - **Filters and segments.** A filter applies to any dimension, event property, currency or revenue. It supports is, is not, contains, does not contain, starts with and regex, as include or exclude. Segments save a filter, and the whole view lives in the URL. [Filters and segments](https://github.com/infinitnet/cookieless-analytics/wiki/Filters-and-Segments), [filters.md](docs/filters.md)
 
 #### Search and SEO
@@ -268,7 +268,7 @@ For deploy scripts, reporting bots and AI clients. Cookieless Analytics provides
 
 ### Privacy-sensitive sites
 
-For sites that want analytics without storing anything on the device (the opt-out flag a visitor sets by clicking is the only exception). Cookieless Analytics stores no cookies and no raw IP address or user agent, honours Global Privacy Control by default and writes a privacy receipt for your privacy page. [Privacy](docs/privacy.md)
+For sites that want analytics without storing anything on the device (the opt-out flag a visitor sets by clicking is the only exception). Cookieless Analytics stores no cookies and no raw IP address or user agent, honors Global Privacy Control by default and writes a privacy receipt for your privacy page. [Privacy](docs/privacy.md)
 
 ### Small sites on the Free plan
 
@@ -294,7 +294,7 @@ A visitor key is a daily salted hash of a truncated IP address and the browser f
 
 The page script never changes a link or the address and makes no history call. A full page load continues the visit through the daily key, and soft navigations keep the in-memory session id.
 
-Visitor counts are per day, and multi-day visitor figures are labelled as sums of daily visitors. Details: [docs/sessions.md](docs/sessions.md).
+Visitor counts are per day, and multi-day visitor figures are labeled as sums of daily visitors. Details: [docs/sessions.md](docs/sessions.md).
 
 </details>
 
@@ -338,7 +338,7 @@ A page views per day figure for the Workers Free plan is not published until it 
 
 - **No device storage.** Cookieless Analytics stores no cookies and writes to the device only the opt-out flag a visitor sets by clicking the opt-out control. It keeps no raw IP address and no raw user agent.
 - **IP address.** The IP address is used only inside one request to derive the daily key.
-- **Privacy signals.** Global Privacy Control is honoured by default, Do Not Track optionally.
+- **Privacy signals.** Global Privacy Control is honored by default, Do Not Track optionally.
 - **Privacy receipt.** The admin has a privacy receipt that lists every table and column in plain language with its retention, and a Markdown block for your privacy page.
 - **Consent.** Cookieless Analytics sets no cookies and stores nothing on the visitor's device, so it has no cookie to ask consent for. The only value it writes is the opt-out flag a visitor sets by clicking the opt-out control, which gives every visitor a one-click way to object. Counting visits rests on legitimate interest (GDPR Art. 6(1)(f)), which needs a privacy notice and a way to object, not consent. France, Spain, Italy, the Netherlands and the United Kingdom exempt audience measurement from the consent rule for device access under conditions; Germany, Austria and Ireland have no such exemption. Conditions, country notes and sources: [Consent and the law](docs/privacy.md#consent-and-the-law).
 
@@ -369,7 +369,7 @@ Details: [docs/AGENTS.md](docs/AGENTS.md), [docs/openapi.json](docs/openapi.json
 | [privacy.md](docs/privacy.md) | What is stored per table, privacy signals, retention, deleting data, the privacy receipt |
 | [bots.md](docs/bots.md) | How bots are kept out, your own user agent rules |
 | [filters.md](docs/filters.md) | Filter dimensions and operators, segments |
-| [behaviour.md](docs/behaviour.md) | Funnel modes, segment comparison, journeys |
+| [behavior.md](docs/behavior.md) | Funnel modes, segment comparison, journeys |
 | [revenue.md](docs/revenue.md) | Order values, currencies, refunds, revenue reports |
 | [search-sources.md](docs/search-sources.md) | Google Search Console and Bing setup, SEO views, annotation impact |
 | [annotations.md](docs/annotations.md) | Scopes, automatic annotations, impact |
@@ -397,14 +397,14 @@ Thanks to everyone who has helped. The [contributors graph](https://github.com/i
 
 Please report security problems privately through GitHub private vulnerability reporting, not in a public issue. The policy and the security model in short: [SECURITY.md](SECURITY.md).
 
-## Licence and notices
+## License and notices
 
 Cookieless Analytics is licensed under Apache-2.0, see [LICENSE](LICENSE). Copyright 2026 Constantin Oesterling (Infinitnet).
 
 Copies and derivative works must keep the attribution in [NOTICE](NOTICE) (Apache-2.0, section 4(d)).
 
 - Website: <https://infinitnet.io/cookieless-analytics/>
-- Bundled data sources and their licences: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- Bundled data sources and their licenses: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 - Changes: see the GitHub releases
 - Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)

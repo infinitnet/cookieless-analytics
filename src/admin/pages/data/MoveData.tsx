@@ -47,12 +47,12 @@ export const MOVE_TEXT = {
 	dropped: "The old tables were deleted.",
 	capped: (rows: number, cap: number, days: number) =>
 		`Today's rows for moving are used: ${count(rows)} rows were written into the new database today, and on the small profile a move writes at most ${count(cap)} a day so recording keeps priority. The move continues tomorrow after 00:00 UTC by itself, also without this page open. At this pace it takes at least ${count(days)} more ${days === 1 ? "day" : "days"}.`,
-	cancelled: "Starting again with the same source and site continues this move from where it stopped.",
+	canceled: "Starting again with the same source and site continues this move from where it stopped.",
 } as const;
 
 const name = (b: string | null) => (b ? `Binding ${b}` : "The EmDash database");
 const nameIn = (b: string | null) => (b ? `the binding ${b}` : "the EmDash database");
-const statusWord = { running: "Running", paused: "Paused", done: "Done", cancelled: "Cancelled" } as const;
+const statusWord = { running: "Running", paused: "Paused", done: "Done", canceled: "Canceled" } as const;
 
 function Step({ n, title, panel, children }: { n: number; title: string; panel: PanelId; children: ReactNode }) {
 	return (
@@ -104,7 +104,7 @@ export function MoveData({ view }: { view: View }) {
 		call<MoveState>("move/status").then(
 			(r) => {
 				setSt(r);
-				// A new move starts from the last one's source and site: for a cancelled move the start route then continues it.
+				// A new move starts from the last one's source and site: for a canceled move the start route then continues it.
 				if (r.job?.source) (setFromBinding(true), setBinding(r.job.source));
 				if (r.job?.site) setSite(r.job.site);
 			},
@@ -112,7 +112,7 @@ export function MoveData({ view }: { view: View }) {
 		);
 		call<Receipt>("privacy/receipt", withApiSite({})).then(setReceipt, () => {});
 		call<{ job: DeleteJobView | null }>("tools/delete-status").then(
-			(d) => setDeleting(d.job?.status === "running" || d.job?.status === "cancelling"),
+			(d) => setDeleting(d.job?.status === "running" || d.job?.status === "canceling"),
 			() => {},
 		);
 	}, []);
@@ -287,7 +287,7 @@ export function MoveData({ view }: { view: View }) {
 					<p>{job.status === "done" ? "Done." : `${statusWord[job.status]}, ${job.percent} percent.`}</p>
 				)}
 				{job?.status === "done" && <p className="ca-small">{MOVE_TEXT.split}</p>}
-				{job?.status === "cancelled" && !job.dropped && <p className="ca-small">{MOVE_TEXT.cancelled}</p>}
+				{job?.status === "canceled" && !job.dropped && <p className="ca-small">{MOVE_TEXT.canceled}</p>}
 				{job?.error && <Notice tone="error">{job.status === "paused" ? job.error : `The last chunk failed (${job.error}). It is tried again with the next call.`}</Notice>}
 				{canAct && (
 					<div className="ca-actions">

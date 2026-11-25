@@ -570,7 +570,7 @@ function fromD1(d1) {
 	return db;
 }
 // src/db/adapter.ts
-/** Detect the SQL flavour the same way EmDash core does (adapter class), with a capability fallback. */
+/** Detect the SQL flavor the same way EmDash core does (adapter class), with a capability fallback. */
 function detectDialect(db) {
 	const adapter = db.getExecutor().adapter;
 	if (adapter.constructor?.name?.includes("Postgres")) return "postgres";
@@ -964,7 +964,7 @@ function fromPg(binding, name) {
 		if (!d) throw new Error(`binding ${name} is a Hyperdrive binding; set engine: "postgres" in the plugin options`);
 		return d;
 	};
-	/** Runs `f` on a client of the current scope (serialised per client), or on a client of its own. */
+	/** Runs `f` on a client of the current scope (serialized per client), or on a client of its own. */
 	async function use(f0) {
 		const d = driver();
 		const down = failFast.get(name);
@@ -1095,7 +1095,7 @@ function hyperdriveDb(db, name) {
 /**
 * Whether `db` is a Hyperdrive binding with query caching on: false for any other database. Until a result is
 * stored for the binding in this isolate, each call runs a probe of its own, with its own timer, so a request
-* cancelled mid-probe never holds up another. A probe that fails or takes longer than `PROBE_MS` (the database is
+* canceled mid-probe never holds up another. A probe that fails or takes longer than `PROBE_MS` (the database is
 * down or slow) stores nothing and rethrows: the write would fail the same way.
 */
 async function queryCacheOn(db) {
@@ -1197,7 +1197,7 @@ function setPluginFacts(dbFor) {
 * unknown then, and a write must not guess the host database.
 */
 function pluginFacts() {
-	if (!current) throw new Error("cookieless-analytics: the plugin is not initialised in this isolate; the analytics database is unknown.");
+	if (!current) throw new Error("cookieless-analytics: the plugin is not initialized in this isolate; the analytics database is unknown.");
 	return current;
 }
 /** The resolver `createPlugin` recorded, or null (tests and tools that build routes without the plugin). */
@@ -2115,7 +2115,7 @@ const OID_RE = new RegExp(`^[A-Za-z0-9_.:\\-]{1,64}$`);
 /**
 * Revenue fields of an event: null when there is no `val` (a lone `cur` or `oid` is ignored),
 * an error when any of the three is invalid (the caller then drops all three and keeps the event).
-* `cur` is normalised but never defaulted here; rounding needs the effective currency and happens on write.
+* `cur` is normalized but never defaulted here; rounding needs the effective currency and happens on write.
 */
 function validateRevenue(b) {
 	if (b.val === void 0) return null;
@@ -4311,7 +4311,7 @@ function annotationsIn(rc, from, to) {
 * closed days of a range, merged in memory with the rows `computeDay` returns for the days that are not stored
 * yet (today, and yesterday until it closes). Stored and open rows come from the same function, so a range that
 * ends today answers like the detailed reports. Also the filter plan of the summary engine: which filters a
-* summary answer honours (single dimension rows, a pair row of the report's dimension and one segment, or the
+* summary answer honors (single dimension rows, a pair row of the report's dimension and one segment, or the
 * cube for segments combined) and which it cannot, with the reason.
 *
 * `../rollup.js` is loaded on demand: it imports the revenue report module, which imports this one.
@@ -4405,7 +4405,7 @@ const REVENUE_METRICS = [
 const isSegment = (d) => SEGMENTS$1.includes(d ?? "");
 const isSessionDim = (d) => TRAFFIC_DIMS[d]?.scope === "session";
 /**
-* Which filters a summary answer honours. `own` is the report's dimension (null for totals and series, which take
+* Which filters a summary answer honors. `own` is the report's dimension (null for totals and series, which take
 * the first filtered session dimension that is not a segment, else the first filtered segment). One segment
 * combines with a pair dimension through its pair rows. Segments combine with each other through the cube, for
 * totals and series and for a breakdown by a segment; a second segment beside a pair dimension does not.
@@ -5258,7 +5258,7 @@ async function withRevenue(rc, input, report, data) {
 	};
 }
 const JOURNEY_SESSION_CAP = 5e4;
-/** Grouped rows read before the floor; one page has far fewer distinct neighbours. */
+/** Grouped rows read before the floor; one page has far fewer distinct neighbors. */
 const GROUP_LIMIT = 5e3;
 const EXIT = "(exit)";
 const ENTRY = "(entry)";
@@ -5301,7 +5301,7 @@ function floor(rows) {
 		hidden_sessions: rows.filter((r) => r.sessions < 2).reduce((a, r) => a + r.sessions, 0)
 	};
 }
-function neighbour(column, none) {
+function neighbor(column, none) {
 	return async (rc, input) => {
 		const path = input.params.path;
 		if (!path) throw new QueryError("invalid_params", `journey_${column} needs params.path.`);
@@ -5326,9 +5326,9 @@ FROM seq t WHERE t.path = ? AND COALESCE(t.${column}, '') <> t.path GROUP BY ${k
 	};
 }
 /** What followed the page, including `(exit)`. A drill-down, not a tile report. */
-const journeyNext = neighbour("next", EXIT);
+const journeyNext = neighbor("next", EXIT);
 /** What preceded the page, including `(entry)`. A drill-down, not a tile report. */
-const journeyPrev = neighbour("prev", ENTRY);
+const journeyPrev = neighbor("prev", ENTRY);
 /** The most common three step sequences from the entry page (`params.entry` narrows the entry page). */
 async function journeyPaths(rc, input) {
 	const base = await journeyBase(rc, input);
@@ -5374,7 +5374,7 @@ UNION ALL SELECT 'path3', t.path, ${p2} || '' || ${p3}, COUNT(*) FROM seq t WHE
 		sessions: num(r.sessions)
 	}));
 }
-/** `dim:reason` of the filters a journey summary answer cannot honour: every filter (journey rows have no segments). */
+/** `dim:reason` of the filters a journey summary answer cannot honor: every filter (journey rows have no segments). */
 const journeysUnavailable = (filters) => [...new Set(filters.map((f) => `${f.dim}:not_kept`))];
 /** Range rule and notices of a summary answer: no filter applies to the journey rows. */
 function summaryNotices(input) {
@@ -5387,7 +5387,7 @@ const read = async (rc, input, dim, o) => (await Promise.resolve().then(() => ro
 	seg: "",
 	...o
 });
-function neighbourFromSummary(column) {
+function neighborFromSummary(column) {
 	return async (rc, input) => {
 		const notices = summaryNotices(input);
 		const path = input.params.path;
@@ -5417,8 +5417,8 @@ function neighbourFromSummary(column) {
 * answer is the top paths per day (`top_paths_per_day`); filters do not apply (`filter_unavailable:<dim>:not_kept`).
 */
 const journeysFromSummary = {
-	journey_next: neighbourFromSummary("next"),
-	journey_prev: neighbourFromSummary("prev"),
+	journey_next: neighborFromSummary("next"),
+	journey_prev: neighborFromSummary("prev"),
 	journey_paths: async (rc, input) => {
 		const notices = summaryNotices(input);
 		const entry = input.params.entry;
@@ -5755,7 +5755,7 @@ async function linkDay(rc, day, segs) {
 	}));
 }
 /**
-* What a links summary answer honours, or null when the breakdown has no summary rows (by page or a session dim,
+* What a links summary answer honors, or null when the breakdown has no summary rows (by page or a session dim,
 * placements of one link). By link: one of channel, country and device through the pair rows; by placement: none.
 * `unavailable` holds `dim:reason` like `planFilters`.
 */
@@ -5771,7 +5771,7 @@ function linksPlan(input) {
 }
 /**
 * The links report from the daily summary rows, in the detailed report's shape (see `linksPlan`). Filters it cannot
-* honour are named in `filter_unavailable:<dim>:<reason>`. Each day keeps its top links (`(other)` holds the rest).
+* honor are named in `filter_unavailable:<dim>:<reason>`. Each day keeps its top links (`(other)` holds the rest).
 */
 async function linksFromSummary(rc, input) {
 	const plan = linksPlan(input);
@@ -5781,7 +5781,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-CsQOfa2p.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-DEtCv3fA.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -8343,7 +8343,7 @@ const SESSION_INTS = [
 	"max_scroll",
 	"interacted"
 ];
-/** Postgres returns BIGINT as strings; normalise numeric columns. The day goes back to its ISO form. */
+/** Postgres returns BIGINT as strings; normalize numeric columns. The day goes back to its ISO form. */
 function toSession(r) {
 	const row = { ...r };
 	for (const c of SESSION_INTS) row[c] = Number(row[c]);

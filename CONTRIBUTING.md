@@ -1,10 +1,10 @@
 # Contributing
 
-Thanks for helping with Cookieless Analytics by Infinitnet. This page covers the licence of contributions, the setup, the scripts, what a change has to test and the rules it has to follow. Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
+Thanks for helping with Cookieless Analytics by Infinitnet. This page covers the license of contributions, the setup, the scripts, what a change has to test and the rules it has to follow. Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 
-## Licence of contributions
+## License of contributions
 
-The project is licensed under Apache-2.0 ([LICENSE](LICENSE), [NOTICE](NOTICE)). Inbound equals outbound: under section 5 of the licence, anything you submit for inclusion is licensed under the same Apache-2.0 terms, with no further agreement to sign. Only submit work you have the right to license that way. Do not add copyright headers to files; the holder and the attribution live in LICENSE and NOTICE.
+The project is licensed under Apache-2.0 ([LICENSE](LICENSE), [NOTICE](NOTICE)). Inbound equals outbound: under section 5 of the license, anything you submit for inclusion is licensed under the same Apache-2.0 terms, with no further agreement to sign. Only submit work you have the right to license that way. Do not add copyright headers to files; the holder and the attribution live in LICENSE and NOTICE.
 
 ## Setup
 

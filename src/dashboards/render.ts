@@ -35,7 +35,7 @@ const e = escapeHtml;
 
 const MUTED = "#94a3b8";
 const c = (i: number) => COLORS[i % COLORS.length] as string;
-/** Line colour of a series slot: the light values of the admin's slot tokens (blue, emerald, orange, purple), each at least 3:1 on white. */
+/** Line color of a series slot: the light values of the admin's slot tokens (blue, emerald, orange, purple), each at least 3:1 on white. */
 const SLOT_HEX = ["#2563eb", "#059669", "#ea580c", "#9333ea"] as const;
 const slotHex = (slot: number) => SLOT_HEX[slot % SLOT_HEX.length] as string;
 const presetLabel = (p: Preset) => PRESETS.find((x) => x[0] === p)?.[1] ?? p;
@@ -62,11 +62,11 @@ function kpi(d: TileData): string {
 	return `<div class="kpi">${e(formatValue(d.metric, d.value, d.currency))}</div>${changeHtml(tileChange(d))}${d.note ? `<div class="upd">${e(d.note)}</div>` : ""}`;
 }
 
-/** The change line (arrow, label and the better or worse word, never colour alone) and the detail line under it. */
+/** The change line (arrow, label and the better or worse word, never color alone) and the detail line under it. */
 function changeHtml(c: Change | null, tail = ""): string {
 	if (!c) return "";
 	if (c.kind === "none") return `<div class="same" title="${e(c.note)}">${e(c.label)}</div>`;
-	const cls = c.muted || c.judgement === "neutral" ? "same" : (c.judgement ?? "same");
+	const cls = c.muted || c.judgment === "neutral" ? "same" : (c.judgment ?? "same");
 	return `<div class="${cls}">${e(changeText(c, true))}${e(tail)}</div>${c.detail ? `<div class="upd">${e(c.detail)}</div>` : ""}`;
 }
 
@@ -100,7 +100,7 @@ function annotationParts(d: TileData, sc: Pick<ReturnType<typeof lineScale>, "x"
 const swatch = (slot: number, dashed = false) =>
 	`<svg viewBox="0 0 16 10" width="16" height="10" aria-hidden="true" style="display:inline;width:16px;vertical-align:middle">${dashed ? `<line x1="0" x2="16" y1="5" y2="5" stroke="${slotHex(slot)}" stroke-dasharray="4 3" stroke-width="1.5"/>` : `<path d="${shapePath(slot, 8, 5, 4)}" fill="${slotHex(slot)}"/>`}</svg>`;
 
-/** Lines of one tile: up to 4 series on at most two axes, dashed comparisons in the series colour, a legend and direct labels. */
+/** Lines of one tile: up to 4 series on at most two axes, dashed comparisons in the series color, a legend and direct labels. */
 function line(d: TileData, title: string, area: boolean, tz: string): string {
 	const height = 180;
 	const n = d.buckets.length;

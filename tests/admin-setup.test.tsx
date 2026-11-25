@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Overview from "../src/admin/pages/Overview.js";
-import Behaviour from "../src/admin/pages/Behaviour.js";
+import Behavior from "../src/admin/pages/Behavior.js";
 import Config from "../src/admin/pages/Config.js";
 import { TileView, tileSetup } from "../src/admin/pages/Dashboards.js";
 import { resetDefinitionCounts, resetSearchStatus } from "../src/admin/api.js";
@@ -110,9 +110,9 @@ describe("goals", () => {
 		expect(within(panel).queryByRole("link", { name: "Create a goal" })).toBeNull();
 	});
 
-	it("the Behaviour Goals tab shows the same prompt", async () => {
-		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behaviour?from=2026-03-01&to=2026-03-02&tab=goals");
-		const { findByRole } = render(<Behaviour />);
+	it("the Behavior Goals tab shows the same prompt", async () => {
+		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behavior?from=2026-03-01&to=2026-03-02&tab=goals");
+		const { findByRole } = render(<Behavior />);
 		expect((await findByRole("link", { name: "Create a goal" })).getAttribute("href")).toMatch(/tab=goals&new=1$/);
 	});
 
@@ -128,15 +128,15 @@ describe("goals", () => {
 
 describe("funnels", () => {
 	it("with no funnels the tab offers Create a funnel", async () => {
-		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behaviour?from=2026-03-01&to=2026-03-02&tab=funnels");
-		const { findByRole } = render(<Behaviour />);
+		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behavior?from=2026-03-01&to=2026-03-02&tab=funnels");
+		const { findByRole } = render(<Behavior />);
 		expect((await findByRole("link", { name: "Create a funnel" })).getAttribute("href")).toMatch(/tab=funnels&new=1$/);
 	});
 
 	it("with a funnel but no data the tab keeps the plain empty message", async () => {
 		lists.funnels = [{ id: "f1", data: { name: "Checkout", mode: "sequential" } }];
-		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behaviour?from=2026-03-01&to=2026-03-02&tab=funnels");
-		const { findByText, queryByRole } = render(<Behaviour />);
+		window.history.replaceState(null, "", "/_emdash/admin/plugins/x/behavior?from=2026-03-01&to=2026-03-02&tab=funnels");
+		const { findByText, queryByRole } = render(<Behavior />);
 		await findByText("No data for this range and these filters.");
 		expect(queryByRole("link", { name: "Create a funnel" })).toBeNull();
 	});
@@ -220,7 +220,7 @@ describe("source scan", () => {
 	 */
 	const OPTED_IN: Record<string, readonly string[]> = {
 		"src/admin/pages/Overview.tsx": ['setup="goals"'],
-		"src/admin/pages/Behaviour.tsx": ['setup="goals"', '<SetupEmpty kind="funnels" />'],
+		"src/admin/pages/Behavior.tsx": ['setup="goals"', '<SetupEmpty kind="funnels" />'],
 		"src/admin/pages/Revenue.tsx": ['setup: "goals"'],
 		"src/admin/pages/Links.tsx": ['setup="links"'],
 		"src/admin/pages/Dashboards.tsx": ["<SetupEmpty kind={setup} />", 'SETUP_COPY["segment-removed"]'],

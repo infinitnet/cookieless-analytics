@@ -270,7 +270,7 @@ export async function linkDay(rc: ReportCtx, day: string, segs: ReadonlyArray<Ex
 }
 
 /**
- * What a links summary answer honours, or null when the breakdown has no summary rows (by page or a session dim,
+ * What a links summary answer honors, or null when the breakdown has no summary rows (by page or a session dim,
  * placements of one link). By link: one of channel, country and device through the pair rows; by placement: none.
  * `unavailable` holds `dim:reason` like `planFilters`.
  */
@@ -284,7 +284,7 @@ export function linksPlan(input: Pick<RunInput, "filters" | "params">): { by: Li
 
 /**
  * The links report from the daily summary rows, in the detailed report's shape (see `linksPlan`). Filters it cannot
- * honour are named in `filter_unavailable:<dim>:<reason>`. Each day keeps its top links (`(other)` holds the rest).
+ * honor are named in `filter_unavailable:<dim>:<reason>`. Each day keeps its top links (`(other)` holds the rest).
  */
 export async function linksFromSummary(rc: ReportCtx, input: RunInput): Promise<ReportData & { notices: string[] }> {
 	const plan = linksPlan(input);

@@ -34,7 +34,7 @@ export interface DbMeta {
 
 type AnyKysely = Kysely<any>;
 
-/** Detect the SQL flavour the same way EmDash core does (adapter class), with a capability fallback. */
+/** Detect the SQL flavor the same way EmDash core does (adapter class), with a capability fallback. */
 export function detectDialect(db: AnyKysely): Dialect {
 	const adapter = db.getExecutor().adapter as { constructor?: { name?: string }; supportsTransactionalDdl?: boolean };
 	if (adapter.constructor?.name?.includes("Postgres")) return "postgres";

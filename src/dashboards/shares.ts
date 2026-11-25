@@ -7,7 +7,7 @@ import { MAX_SHARE_LABEL, mostPermissive, shareState, type ShareView } from "./s
 export { mostPermissive, shareState };
 import { makeVerifier, type PasswordRecord } from "./password.js";
 
-/** Several labelled links per dashboard, bounded per dashboard and per site. */
+/** Several labeled links per dashboard, bounded per dashboard and per site. */
 export { MAX_SHARES_PER_DASHBOARD, MAX_SHARES_PER_SITE };
 export { MAX_SHARE_LABEL };
 

@@ -96,7 +96,7 @@ export async function handleCollect(ctx: MwContext, s: Settings): Promise<Respon
 	if (ctx.request.method === "OPTIONS") return preflight();
 	if (ctx.request.method !== "POST") return null;
 	const origin = ctx.request.headers.get("origin");
-	// Editors are recognised on the master's own pages only; a client site's visitors are never editors here.
+	// Editors are recognized on the master's own pages only; a client site's visitors are never editors here.
 	if (s.excludeEditors && role(ctx) >= 30 && (!origin || origin === ctx.url.origin)) return noContent();
 	const dispatch = getPublicPluginApiRouteHandler(ctx.locals as Parameters<typeof getPublicPluginApiRouteHandler>[0]);
 	// No dispatcher, or one that throws: the event was not handed to the route, so it is not stored. Answered 503

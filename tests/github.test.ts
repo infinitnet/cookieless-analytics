@@ -53,7 +53,7 @@ describe("CI workflow", () => {
 	const job = Object.values(ci.jobs);
 	const runs = job[0]?.steps.map((s) => s.run ?? "").join("\n") ?? "";
 
-	it("is one job on Node 24, no matrix, read only, superseded runs cancelled", () => {
+	it("is one job on Node 24, no matrix, read only, superseded runs canceled", () => {
 		expect(job).toHaveLength(1);
 		expect(job[0]?.name).toBe("CI");
 		expect(job[0]?.strategy).toBeUndefined();

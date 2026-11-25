@@ -55,7 +55,7 @@ describe("agent API and Search", () => {
 		expect(start.json.data).toMatchObject({ site: "default", backfill: { days: 10, completed: 0 } });
 		expect((await h.call("agent/v1/search/backfill", { token: k, input: { action: "status" } })).json.data.backfill).toMatchObject({ from: "2026-02-01" });
 		expect((await h.call("agent/v1/search/backfill", { token: k, input: { action: "status", site: "shop" } })).json.data).toEqual({ site: "shop", source: "google", backfill: null });
-		expect((await h.call("agent/v1/search/backfill", { token: k, input: { action: "cancel" } })).json.data).toEqual({ cancelled: true });
+		expect((await h.call("agent/v1/search/backfill", { token: k, input: { action: "cancel" } })).json.data).toEqual({ canceled: true });
 		expect((await h.call("agent/v1/search/backfill", { token: k, input: { action: "start", site: "shop", from: "2026-02-01", to: "2026-02-02" } })).json.error).toBe("not_mapped");
 		// A range in days back from yesterday, clamped to what Google keeps; it ends before the oldest stored day.
 		const days = (await h.call("agent/v1/search/backfill", { token: k, input: { action: "start", days: 1000 } })).json.data;

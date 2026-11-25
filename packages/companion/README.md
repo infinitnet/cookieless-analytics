@@ -95,6 +95,6 @@ pnpm --filter @infinitnet/cookieless-analytics-companion bundle
 
 The listing text lives in `listing/`.
 
-## Licence
+## License
 
 Apache-2.0. Copyright 2026 Constantin Oesterling (Infinitnet). See [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE).

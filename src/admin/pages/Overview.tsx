@@ -147,7 +147,7 @@ function OverviewReport(view: View) {
 					{...p}
 					report="goals"
 					title="Goals"
-					more="/behaviour?tab=goals"
+					more="/behavior?tab=goals"
 					setup="goals"
 					columnsId="overview.goals"
 					columns={[

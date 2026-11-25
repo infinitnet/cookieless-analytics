@@ -9,7 +9,7 @@ describe("chart geometry", () => {
 		expect(s.y(null)).toBe(180);
 	});
 
-	it("centres a single point", () => {
+	it("centers a single point", () => {
 		const s = lineScale(1, [5], 200);
 		expect(s.x(0)).toBe(W / 2);
 		expect(s.y(5)).toBe(16);
@@ -141,7 +141,7 @@ describe("markerGroups", () => {
 		expect(rangeText("2025-12-20", "2026-01-02")).toBe("20 Dec 2025 to 2 Jan 2026");
 	});
 
-	it("four slot shapes and colours, and scale families", () => {
+	it("four slot shapes and colors, and scale families", () => {
 		const shapes = [0, 1, 2, 3].map((i) => shapePath(i, 5, 5, 4));
 		expect(new Set(shapes).size).toBe(4);
 		expect(shapePath(4, 5, 5, 4)).toBe(shapes[0]);

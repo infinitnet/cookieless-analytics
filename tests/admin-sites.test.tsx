@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/** Config, Sites tab and per-site admin behaviour: the real site, key and tool routes run behind fetch. */
+/** Config, Sites tab and per-site admin behavior: the real site, key and tool routes run behind fetch. */
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setApiSite } from "../src/admin/api.js";
@@ -279,7 +279,7 @@ describe("Sites tab", () => {
 	});
 });
 
-describe("per-site admin behaviour", () => {
+describe("per-site admin behavior", () => {
 	beforeEach(async () => {
 		await sites.put("blog", { id: "blog", label: "Blog", key: "b".repeat(20), hosts: ["blog.example.net"], gscProperty: "", bingSiteUrl: "", paused: false, created: 0 });
 	});
@@ -322,6 +322,6 @@ describe("per-site admin behaviour", () => {
 	});
 
 	it("adds no admin page", () => {
-		expect(ADMIN_PAGES.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behaviour", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
+		expect(ADMIN_PAGES.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behavior", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
 	});
 });

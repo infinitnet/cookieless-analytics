@@ -19,7 +19,7 @@ Self-hosted, cookieless web analytics for EmDash CMS sites and any other site, w
 
 | Page | What it covers |
 |---|---|
-| [Reports](Reports) | Overview, Pages, Sources, Audience, Behaviour, the charts and the header controls |
+| [Reports](Reports) | Overview, Pages, Sources, Audience, Behavior, the charts and the header controls |
 | [Filters and segments](Filters-and-Segments) | Filter dimensions and operators, saved segments, segment comparison |
 | [Search Satisfaction](Search-Satisfaction) | Long clicks, short clicks, bad experiences, pogo sticking, returns from search |
 | [Goals and funnels](Goals-and-Funnels) | Goal types, funnel modes, conversion reports |

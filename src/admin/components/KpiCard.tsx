@@ -3,7 +3,7 @@
  * over the whole card: label, value and change inside, so the name reads "Visitors 820, up 12.0
  * percent, better, +88, from 732"; the info mark is a sibling in the corner. The sparkline never draws the
  * comparison (the chart owns comparison lines). A charted card carries its series slot: a top border in the slot
- * colour and the slot shape.
+ * color and the slot shape.
  */
 import type { CSSProperties, ReactNode } from "react";
 import { slotColor } from "../../charts/geometry.js";
@@ -22,7 +22,7 @@ export interface KpiCardProps {
 	compare?: Record<string, unknown> | null | undefined;
 	trend?: readonly number[] | undefined;
 	active?: boolean;
-	/** Series slot of an active card on a multi series chart: colour and shape. */
+	/** Series slot of an active card on a multi series chart: color and shape. */
 	slot?: number | undefined;
 	/** "Left axis" or "Right axis" of the charted series, as hidden text and a tooltip on the chip. */
 	axis?: string | undefined;

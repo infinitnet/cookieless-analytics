@@ -71,7 +71,7 @@ export interface Revenue {
 /**
  * Revenue fields of an event: null when there is no `val` (a lone `cur` or `oid` is ignored),
  * an error when any of the three is invalid (the caller then drops all three and keeps the event).
- * `cur` is normalised but never defaulted here; rounding needs the effective currency and happens on write.
+ * `cur` is normalized but never defaulted here; rounding needs the effective currency and happens on write.
  */
 export function validateRevenue(b: { val?: unknown; cur?: unknown; oid?: unknown }): Revenue | { error: RevenueError } | null {
 	if (b.val === undefined) return null;

@@ -1,7 +1,7 @@
 {
 	"kind": "dashboard-template",
 	"v": 1,
-	"name": "Behaviour",
+	"name": "Behavior",
 	"description": "Events, outbound links, downloads and forms.",
 	"tiles": [
 		{

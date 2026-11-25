@@ -25,9 +25,9 @@ const DESCRIPTION =
 	"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.";
 
 describe("package metadata", () => {
-	it("name, version, author, licence and repository", () => {
+	it("name, version, author, license and repository", () => {
 		expect(pkg.name).toBe("@infinitnet/cookieless-analytics");
-		expect(pkg.version).toBe("1.3.0");
+		expect(pkg.version).toBe("1.3.1");
 		expect(VERSION).toBe(pkg.version);
 		// The credit line in the admin footer shows the version with a v prefix (Header and Settings).
 		for (const f of ["src/admin/components/Header.tsx", "src/admin/pages/Settings.tsx"]) expect(readFileSync(f, "utf8"), f).toContain("{PRODUCT_NAME}</a> v{VERSION}");
@@ -84,7 +84,7 @@ describe("package metadata", () => {
 		// npm 10 prints an array, npm 11 an object keyed by package name.
 		const raw = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })) as Packed[] | Record<string, Packed>;
 		const info = Array.isArray(raw) ? raw[0] : Object.values(raw)[0];
-		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.3.0.tgz");
+		expect(info?.filename).toBe("infinitnet-cookieless-analytics-1.3.1.tgz");
 		const top = new Set(info?.files.map((f) => f.path.split("/")[0]));
 		expect([...top].sort()).toEqual(["LICENSE", "NOTICE", "README.md", "THIRD_PARTY_NOTICES.md", "dist", "package.json", "scripts", "src"]);
 		expect(info?.files.filter((f) => f.path.startsWith("packages/"))).toEqual([]);
@@ -96,7 +96,7 @@ describe("package metadata", () => {
 	});
 });
 
-describe("licence: LICENSE, NOTICE and package.json agree", () => {
+describe("license: LICENSE, NOTICE and package.json agree", () => {
 	const license = readFileSync("LICENSE", "utf8");
 	const notice = readFileSync("NOTICE", "utf8");
 
@@ -117,15 +117,15 @@ describe("licence: LICENSE, NOTICE and package.json agree", () => {
 		expect(notice).toContain("Apache License, Version 2.0");
 	});
 
-	it("the README names the same licence and holder", () => {
-		const section = readme.slice(readme.indexOf("## Licence and notices"));
+	it("the README names the same license and holder", () => {
+		const section = readme.slice(readme.indexOf("## License and notices"));
 		expect(section).toContain("Apache-2.0");
 		expect(section).toContain(pkg.author.name);
 		expect(section).toContain("[NOTICE](NOTICE)");
 		expect(readme).not.toMatch(/\bMIT, see \[LICENSE\]/);
 	});
 
-	it("the README head has the CI, licence and EmDash badges and the website badge; contributors are an image, not a workflow", () => {
+	it("the README head has the CI, license and EmDash badges and the website badge; contributors are an image, not a workflow", () => {
 		const head = readme.slice(0, readme.indexOf("## Why"));
 		expect(head).toContain("actions/workflows/ci.yml/badge.svg");
 		expect(head).toContain("(LICENSE)");
@@ -174,7 +174,7 @@ describe("README", () => {
 			"Documentation",
 			"Contributors",
 			"Security",
-			"Licence and notices",
+			"License and notices",
 		];
 		expect(heads).toEqual(want);
 		expect(readme).toContain("Hosted on your EmDash install, measuring every site you register.");

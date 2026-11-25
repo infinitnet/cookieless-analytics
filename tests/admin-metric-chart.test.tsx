@@ -31,7 +31,7 @@ const free = { compare: false, narrow: false };
 describe("slots", () => {
 	it("a kept metric keeps its slot; a new one takes the lowest free slot", () => {
 		expect(nextSlots({}, ["a", "b", "c"])).toEqual({ a: 0, b: 1, c: 2 });
-		// b off: c stays in slot 2, so its colour does not change.
+		// b off: c stays in slot 2, so its color does not change.
 		expect(nextSlots({ a: 0, b: 1, c: 2 }, ["a", "c"])).toEqual({ a: 0, c: 2 });
 		// d on: slot 1 is free.
 		expect(nextSlots({ a: 0, c: 2 }, ["a", "c", "d"])).toEqual({ a: 0, c: 2, d: 1 });

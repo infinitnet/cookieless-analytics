@@ -97,7 +97,7 @@ export function impactTitle(r: ImpactRow): string {
 	return `Before ${fmt(r.before ?? null, f)} (${before.from} to ${before.to}), after ${fmt(r.after ?? null, f)} (${after.from} to ${after.to}), ${r.days_after} days each.`;
 }
 
-/** Arrow, percent and the plain word; Too early shows the day count and no verdict. Colour from `good`, so a fall in bounce reads as good news. */
+/** Arrow, percent and the plain word; Too early shows the day count and no verdict. Color from `good`, so a fall in bounce reads as good news. */
 export function ImpactMark({ r }: { r: ImpactRow }) {
 	const title = impactTitle(r);
 	if (r.verdict === "too_early")

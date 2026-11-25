@@ -7,13 +7,13 @@
  * - rate (`percent`, rates and shares): the difference in percentage points (`+1.2 pp`, `from 41.0%`), no relative percent.
  * - duration, decimal and money: relative change, then the difference in the metric's own unit; money stays in
  *   the one currency of the format (a report answers in one currency, amounts are never converted or mixed).
- * - position (Search): the difference in positions with its judgement (`0.4 better`, `from 8.2`), no percent.
+ * - position (Search): the difference in positions with its judgment (`0.4 better`, `from 8.2`), no percent.
  * - points (the Search Satisfaction score, a signed figure): the difference in points (`+4 points`, `+1 point`,
  *   `from 20`), never a relative percent, which means nothing for a value that can be 0 or negative.
  * - Rates and points take the difference of the two figures as printed, so the change always matches them.
  *
- * Judgement: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
- * `NO_JUDGEMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
+ * Judgment: the arrow shows the raw direction; better, worse or neutral comes from `LOWER_IS_BETTER` and
+ * `NO_JUDGMENT` below. Every other metric is higher-is-better (traffic volume, engagement, revenue, orders).
  */
 import { fmt, type Format } from "./geometry.js";
 
@@ -37,7 +37,7 @@ export const LOWER_IS_BETTER: ReadonlySet<string> = new Set([
  * Metrics with no better or worse: a live count ("Active now" is not a period figure) and the measured share
  * of Satisfaction (how much of the traffic the rates rest on, a coverage figure, not an outcome).
  */
-export const NO_JUDGEMENT: ReadonlySet<string> = new Set(["realtime", "measured_rate"]);
+export const NO_JUDGMENT: ReadonlySet<string> = new Set(["realtime", "measured_rate"]);
 
 /** A count whose previous value is under this is small numbers: the change shows muted. */
 export const SMALL_COUNT = 30;
@@ -54,7 +54,7 @@ export interface Change {
 	kind: "change" | "new" | "none";
 	/** Raw direction of the figure (the arrow). */
 	direction: "up" | "down" | "flat" | null;
-	judgement: "better" | "worse" | "neutral" | null;
+	judgment: "better" | "worse" | "neutral" | null;
 	/** Relative change as a fraction; null for rates, positions, a zero or missing base. */
 	rel: number | null;
 	/** Difference in the metric's unit (fraction points for a rate). */
@@ -64,7 +64,7 @@ export interface Change {
 	label: string;
 	/** Second line: absolute difference and the previous value (`+231, from 1,925`). */
 	detail: string;
-	/** Small numbers: shown without the good or bad colour. */
+	/** Small numbers: shown without the good or bad color. */
 	muted: boolean;
 	/** Why it is muted or missing, for the tooltip. */
 	note: string | null;
@@ -117,20 +117,20 @@ export function describeChange(metric: string, current: unknown, previous: unkno
 	// Position 0 means no impressions, not first place.
 	const prev = unit === "positions" && num(previous) === 0 ? null : num(previous);
 	if (cur === null || prev === null || (unit === "positions" && cur === 0))
-		return { kind: "none", direction: null, judgement: null, rel: null, abs: null, unit, label: "No comparison", detail: "", muted: true, note: opts.reason ?? MISSING_NOTE, words: "no comparison" };
+		return { kind: "none", direction: null, judgment: null, rel: null, abs: null, unit, label: "No comparison", detail: "", muted: true, note: opts.reason ?? MISSING_NOTE, words: "no comparison" };
 	// A rate or score changes by the difference of the two figures as printed (`fmt`), so the sentence never says
 	// "No change, from 21" beside a printed 20, nor +0.1 pp between two figures that print alike.
 	const printed = (v: number) => (unit === "pp" ? Number.parseFloat(fmt(v, "percent")) : Number(fmt(v, "points")));
 	const abs = unit === "pp" || unit === "points" ? (printed(cur) - printed(prev)) / 100 : cur - prev;
-	// A change that shows as 0.0 (percent, points or positions) is no change: no arrow, no judgement.
+	// A change that shows as 0.0 (percent, points or positions) is no change: no arrow, no judgment.
 	const shown = unit === "pp" ? abs * 100 : unit === "points" ? Math.round(abs * 100) : unit === "positions" ? abs : prev === 0 ? abs : (abs / Math.abs(prev)) * 100;
 	const direction = Math.abs(shown) < 0.05 ? "flat" : abs > 0 ? "up" : "down";
 	const lower = opts.lowerIsBetter ?? LOWER_IS_BETTER.has(metric);
-	const judgement = direction === "flat" || NO_JUDGEMENT.has(metric) ? "neutral" : (direction === "up") !== lower ? "better" : "worse";
+	const judgment = direction === "flat" || NO_JUDGMENT.has(metric) ? "neutral" : (direction === "up") !== lower ? "better" : "worse";
 	const small = unit === "count" ? Math.abs(prev) < SMALL_COUNT : opts.base != null && opts.base < SMALL_BASE;
 	const from = `from ${fmt(prev, f)}`;
-	const base = { direction, judgement, abs, unit, muted: small, note: small ? SMALL_NOTE : null } as const;
-	const judged = judgement === "neutral" ? "" : `, ${judgement}`;
+	const base = { direction, judgment, abs, unit, muted: small, note: small ? SMALL_NOTE : null } as const;
+	const judged = judgment === "neutral" ? "" : `, ${judgment}`;
 	const quiet = small ? ", small numbers" : "";
 	if (direction === "flat") return { ...base, kind: "change", rel: unit === "pp" || unit === "points" || unit === "positions" ? null : 0, muted: false, note: null, label: "No change", detail: from, words: "no change" };
 	if (unit === "pp") {
@@ -143,7 +143,7 @@ export function describeChange(metric: string, current: unknown, previous: unkno
 	}
 	if (unit === "positions") {
 		const n = Math.abs(abs).toFixed(1);
-		return { ...base, kind: "change", rel: null, label: `${n} ${judgement}`, detail: from, words: `${n} positions ${judgement}${quiet}` };
+		return { ...base, kind: "change", rel: null, label: `${n} ${judgment}`, detail: from, words: `${n} positions ${judgment}${quiet}` };
 	}
 	// Nothing to compare with: "New", shown quietly, never an infinite percent.
 	if (prev === 0) return { ...base, kind: "new", rel: null, muted: true, note: null, label: "New", detail: `${signed(abs, unit, f)}, ${from}`, words: "new, previously 0" };
@@ -157,7 +157,7 @@ export function describeChange(metric: string, current: unknown, previous: unkno
 /** The change as one plain line (email, share page, tooltip): `↑ +12.0% better, +231, from 1,925`; `short` leaves out the detail. */
 export function changeText(c: Change, short = false): string {
 	if (c.kind === "none") return short ? c.label : `${c.label}: ${c.note ?? MISSING_NOTE}`;
-	const word = c.kind === "change" && c.unit !== "positions" && c.judgement !== "neutral" ? ` ${c.judgement}` : "";
+	const word = c.kind === "change" && c.unit !== "positions" && c.judgment !== "neutral" ? ` ${c.judgment}` : "";
 	return `${c.direction ? `${ARROW[c.direction]} ` : ""}${c.label}${word}${!short && c.detail ? `, ${c.detail}` : ""}${c.kind === "change" && c.muted ? " (small numbers)" : ""}`;
 }
 

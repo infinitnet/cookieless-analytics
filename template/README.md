@@ -40,6 +40,6 @@ pnpm run deploy
 
 The first deploy creates the D1 database and the R2 bucket named in `wrangler.jsonc`.
 
-## Licence
+## License
 
 The site code is the EmDash Cloudflare starter under the MIT License (see [LICENSE](LICENSE) and [NOTICE](NOTICE)). The plugin is installed from npm under the Apache License 2.0.

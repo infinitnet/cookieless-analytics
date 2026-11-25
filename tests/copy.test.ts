@@ -13,16 +13,16 @@ import { TARGET_MESSAGES, VERDICT_WORDS } from "../src/annotations/target.js";
 import { ORDER_SESSION_LINE, REVENUE_LINE } from "../src/routes/privacy.js";
 import { currencyLines, metricLabel, REVENUE_EMPTY, valueLabel } from "../src/dashboards/tiles.js";
 import { chipText, DIM_LABELS } from "../src/admin/components/FilterBar.js";
-import { BEHAVIOUR_CATALOG, REVENUE_CATALOG } from "../src/agent/schemas.js";
+import { BEHAVIOR_CATALOG, REVENUE_CATALOG } from "../src/agent/schemas.js";
 import { FUNNEL_MODE_TEXT, UA_RULES_TEXT } from "../src/admin/pages/Config.js";
 import { RULE_TEXT } from "../src/agents/lines.js";
-import { FUNNEL_REVENUE_NOTE, hiddenText } from "../src/admin/pages/Behaviour.js";
+import { FUNNEL_REVENUE_NOTE, hiddenText } from "../src/admin/pages/Behavior.js";
 import { ATTRIBUTION_NOTE, ORDERS_NOTE, REFUNDS_NOTE } from "../src/admin/pages/Revenue.js";
 import { ORDERS_RAW_ONLY } from "../src/query/reports/revenue-copy.js";
 import { filterReason, NOTICE_COPY, noticeCopy, noticeText } from "../src/charts/caveats.js";
 import { SEGMENT_COMPARE_NOT_SUPPORTED } from "../src/query/reports/index.js";
 import { PANEL_TEXT } from "../src/admin/components/TrafficPanel.js";
-import { SITE_SEARCH_TEXT } from "../src/admin/pages/Behaviour.js";
+import { SITE_SEARCH_TEXT } from "../src/admin/pages/Behavior.js";
 import { SITE_NOTICES } from "../src/charts/caveats.js";
 import { SITE_SEARCH_LINE } from "../src/routes/privacy.js";
 import { hiddenTermsText, tileTitle } from "../src/dashboards/tiles.js";
@@ -100,7 +100,7 @@ describe("copy rules", () => {
 			"Revenue comes from events that carry an order value. Send one from the order confirmation page, or record orders from your server with an API key.",
 			"__ec is the default value of the Window namespace setting. The figures, the breakdowns and the recent orders appear here with the first order.",
 			"Where the revenue came from",
-			// Funnel revenue (Behaviour, Funnels) and its link from the Revenue page.
+			// Funnel revenue (Behavior, Funnels) and its link from the Revenue page.
 			FUNNEL_REVENUE_NOTE,
 			"Est. lost revenue (USD)",
 			"Revenue per session (USD)",
@@ -123,12 +123,12 @@ describe("copy rules", () => {
 		const strings = [
 			...Object.values(FUNNEL_MODE_TEXT),
 			UNSEEN_TEXT,
-			...Object.values(BEHAVIOUR_CATALOG.funnels.modes),
-			BEHAVIOUR_CATALOG.funnels.modeRule,
-			BEHAVIOUR_CATALOG.funnels.revenueRule,
-			BEHAVIOUR_CATALOG.compareSegment.rule,
-			BEHAVIOUR_CATALOG.compareSegment.notSupported,
-			BEHAVIOUR_CATALOG.journeys.rule,
+			...Object.values(BEHAVIOR_CATALOG.funnels.modes),
+			BEHAVIOR_CATALOG.funnels.modeRule,
+			BEHAVIOR_CATALOG.funnels.revenueRule,
+			BEHAVIOR_CATALOG.compareSegment.rule,
+			BEHAVIOR_CATALOG.compareSegment.notSupported,
+			BEHAVIOR_CATALOG.journeys.rule,
 			SEGMENT_COMPARE_NOT_SUPPORTED,
 			...noticeText(["compare_segment_missing"]),
 			hiddenText(3) ?? "",
@@ -206,7 +206,7 @@ describe("copy rules", () => {
 			"Recent deletions",
 			"No deletions yet.",
 			"Cancel delete",
-			"Cancelling: storing the touched days again.",
+			"Canceling: storing the touched days again.",
 			"Paused: the daily write guard is high, so recording keeps priority.",
 			"Paused: today's rows for deleting are used.",
 			"It continues by itself after 00:00 UTC.",
@@ -223,7 +223,7 @@ describe("copy rules", () => {
 	});
 
 	it("page wiring strings (first run, errors, Data attention, trends, sidebar) carry no dash and no forbidden word", () => {
-		const files = ["Overview", "Data", "SitesSummary", "SearchSeo", "Links", "Sources", "Search", "Behaviour"].map((p) => `src/admin/pages/${p}.tsx`);
+		const files = ["Overview", "Data", "SitesSummary", "SearchSeo", "Links", "Sources", "Search", "Behavior"].map((p) => `src/admin/pages/${p}.tsx`);
 		const src = [...files, "src/admin/components/ReportNotices.tsx", "src/admin/pages/report.tsx", "src/index.ts"].map((f) => readFileSync(f, "utf8")).join("\n");
 		const strings = [
 			"No visits yet",
@@ -551,7 +551,7 @@ describe("metric definition copy", () => {
 		const { settingsSchema } = await import("../src/settings.js");
 		const { METRICS, SEO_CATALOG } = await import("../src/agent/schemas.js");
 		const { LINKS_NOTE } = await import("../src/admin/pages/Links.js");
-		const { SCROLL_TEXT } = await import("../src/admin/pages/Behaviour.js");
+		const { SCROLL_TEXT } = await import("../src/admin/pages/Behavior.js");
 		const { SEARCH_ROWS_TEXT } = await import("../src/admin/pages/Search.js");
 		const { ATTRIBUTION_NOTE } = await import("../src/admin/pages/Revenue.js");
 		const { WIDGET_COMPARE } = await import("../src/admin/widget.js");

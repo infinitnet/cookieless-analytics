@@ -1,4 +1,4 @@
-/** Labelling convention for admin surfaces: one sidebar folder, product names where the host shows none, no bracket prefixes. */
+/** Labeling convention for admin surfaces: one sidebar folder, product names where the host shows none, no bracket prefixes. */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -6,7 +6,7 @@ import { ADMIN_PAGES, ADMIN_WIDGETS, cookielessAnalytics, createPlugin, PLUGIN_L
 
 const walk = (dir: string): string[] => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
 
-describe("admin labelling", () => {
+describe("admin labeling", () => {
 	it("fourteen pages (Settings last), every one in the Analytics folder, titles without the product name", () => {
 		expect(ADMIN_PAGES).toHaveLength(14);
 		for (const p of ADMIN_PAGES) {

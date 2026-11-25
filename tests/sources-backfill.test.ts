@@ -18,7 +18,7 @@ describe("search backfill", () => {
 		await expect(startBackfill(kv, "default", "google", "2026-03-01", TODAY, TODAY)).rejects.toMatchObject({ code: "invalid_range" });
 		await expect(startBackfill(kv, "default", "google", "2024-01-01", "2024-02-01", TODAY)).rejects.toMatchObject({ code: "invalid_range" });
 		expect(await startBackfill(kv, "default", "google", "2026-02-01", "2026-02-10", TODAY)).toMatchObject({ days: 10, completed: 0, done: false, cursor: "2026-02-01" });
-		expect(await cancelBackfill(kv, "default", "google")).toEqual({ cancelled: true });
+		expect(await cancelBackfill(kv, "default", "google")).toEqual({ canceled: true });
 		expect(await backfillStatus(kv, "default", "google")).toBeNull();
 	});
 

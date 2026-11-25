@@ -119,7 +119,7 @@ Figures limits.md marks as not measured should be confirmed when the deployment 
 ## SEO views and impact
 
 - On the staging D1 database with real Search rows, open the Cannibalization, Positions and Changes tabs at 30 and at 93 days and record the D1 duration and rows read per statement from the D1 metrics (expected near `searchMaxRowsPerDay * days` rows read; see `docs/limits.md`).
-- On EmDash 1.4 and 1.5 hosts, check the sidebar: the nine pages sit in one folder labelled "Analytics" in the Plugins section, the folder remembers its open state, and the dashboard widget is titled "Cookieless Analytics". On 1.5 the plugin list shows "Cookieless Analytics by Infinitnet" with the description.
+- On EmDash 1.4 and 1.5 hosts, check the sidebar: the nine pages sit in one folder labeled "Analytics" in the Plugins section, the folder remembers its open state, and the dashboard widget is titled "Cookieless Analytics". On 1.5 the plugin list shows "Cookieless Analytics by Infinitnet" with the description.
 
 ## Production site
 

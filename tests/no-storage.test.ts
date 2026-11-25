@@ -49,6 +49,6 @@ describe("no browser storage", () => {
 	});
 
 	it("keeps the admin pages of the descriptor", () => {
-		expect(ADMIN_PAGES.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behaviour", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
+		expect(ADMIN_PAGES.map((p) => p.path)).toEqual(["/", "/dashboards", "/pages", "/satisfaction", "/sources", "/audience", "/behavior", "/revenue", "/links", "/annotations", "/search", "/config", "/data", "/settings"]);
 	});
 });

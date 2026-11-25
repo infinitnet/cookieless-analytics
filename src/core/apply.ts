@@ -112,7 +112,7 @@ export const SESSION_COLS = [
 ] as const satisfies readonly (keyof SessionRow)[];
 const SESSION_INTS = ["hour", "started", "last_seen", "window_s", "pageviews", "events", "engaged_ms", "max_scroll", "interacted"] as const;
 
-/** Postgres returns BIGINT as strings; normalise numeric columns. The day goes back to its ISO form. */
+/** Postgres returns BIGINT as strings; normalize numeric columns. The day goes back to its ISO form. */
 function toSession(r: Record<string, unknown>): SessionRow {
 	const row = { ...r } as Record<string, unknown>;
 	for (const c of SESSION_INTS) row[c] = Number(row[c]);

@@ -288,7 +288,7 @@ describe("reports against a row-per-hit reference on traffic written by the real
 		expect((await run("channels", {}, [{ dim: "event", op: "is", values: ["signup"] }])).data.rows).toEqual(groups(signedUp, (v) => v.channel ?? "(not set)"));
 	});
 
-	it("behaviour: events, event properties, goals, sequential funnel, scroll", async () => {
+	it("behavior: events, event properties, goals, sequential funnel, scroll", async () => {
 		const total = counted().length;
 		const evs = hitsOf("ev");
 		const own = [...by(evs.filter((h) => !h.name?.startsWith("_")), (h) => String(h.name))].map(([key, hs]) => ({ key, events: hs.length, sessions: sessionsOf(hs), rate: rnd(rate(sessionsOf(hs), total)) }));

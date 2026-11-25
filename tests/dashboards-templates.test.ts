@@ -21,7 +21,7 @@ function creator(target: Lookups) {
 
 describe("built-in gallery", () => {
 	it("has fourteen templates in two groups that validate and import into an empty site", async () => {
-		expect(BUILTIN_NAMES).toEqual(["overview", "content", "acquisition", "behaviour", "satisfaction", "revenue", "weekly-digest", "search", "impact-last-changes", "seo-overview", "cannibalization", "position-bands", "winners-losers", "links"]);
+		expect(BUILTIN_NAMES).toEqual(["overview", "content", "acquisition", "behavior", "satisfaction", "revenue", "weekly-digest", "search", "impact-last-changes", "seo-overview", "cannibalization", "position-bands", "winners-losers", "links"]);
 		expect(BUILTIN_NAMES.filter((n) => BUILTIN_GROUPS[n] === "Analytics")).toHaveLength(10);
 		expect(BUILTIN_NAMES.filter((n) => BUILTIN_GROUPS[n] === "SEO")).toEqual(["seo-overview", "cannibalization", "position-bands", "winners-losers"]);
 		const coll = memColl();
@@ -70,7 +70,7 @@ describe("built-in gallery", () => {
 		]);
 		// One engagement figure per template: bounce rate. Engaged rate stays a tile metric for saved and new tiles.
 		const kpis = (name: string) => readTemplate({ builtin: name }).tiles.filter((t) => t.kind === "kpi").map((t) => t.metric);
-		expect(kpis("behaviour")).toEqual(["views_per_session", "avg_duration", "bounce_rate"]);
+		expect(kpis("behavior")).toEqual(["views_per_session", "avg_duration", "bounce_rate"]);
 		expect(kpis("acquisition")).toContain("bounce_rate");
 		for (const name of BUILTIN_NAMES) expect(kpis(name)).not.toContain("engaged_rate");
 		expect(TILE_METRICS.overview).toContain("engaged_rate");
