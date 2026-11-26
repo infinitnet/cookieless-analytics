@@ -163,6 +163,7 @@ Keys marked Advanced sit under the closed Advanced disclosure of the section.
 | Key | Type | Default | Range or options | Meaning |
 |---|---|---|---|---|
 | `agentRateLimitPerMinute` | number | `60` | 5 to 1200 | Agent API requests per minute: Rate limit per API key and isolate, so approximate across isolates. |
+| `proxyRateLimitPerMinute` (Advanced) | number | `3000` | 60 to 60000 | Proxy requests per minute: Most page views, events and engagement updates a server proxy may forward for one site per minute. Counted per site and isolate, so approximate across isolates. Requests above it are answered 503 with Retry-After: the page script sends page views and events again while the page stays open; engagement updates are not sent again. It stops a proxy that runs away; it is not a security limit. |
 | `maxPageviewsPerSession` (Advanced) | number | `500` | 10 to 10000 | Maximum pageviews per session: Further pageviews in the same session are dropped. |
 | `maxEventsPerSession` (Advanced) | number | `200` | 10 to 10000 | Maximum events per session: Further events in the same session are dropped. |
 | `maxEventsPerSidPerMinute` (Advanced) | number | `60` | 10 to 600 | Events per session per minute: Rate cap per session id. |

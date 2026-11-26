@@ -33,8 +33,18 @@ export const ClientSiteSchema = z.object({
 	 * the visitor key and the visit continue across the hosts. Its per-site settings do not apply then.
 	 */
 	linked: z.boolean().optional(),
+	/**
+	 * Hex SHA-256 of the site's proxy secret (`keys/proxy-secret.ts`); the secret itself is never stored. It rides
+	 * on this record so the event route checks it from the registry snapshot, without a read of its own.
+	 */
+	proxyHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+	/** Epoch seconds the proxy secret was made; present exactly while `proxyHash` is. */
+	proxyCreated: z.number().int().optional(),
 });
 export type ClientSite = z.output<typeof ClientSiteSchema>;
+/** A site record as the routes return it: everything but the proxy secret's hash. `proxyCreated` tells that a secret exists. */
+export type ClientSiteView = Omit<ClientSite, "proxyHash">;
+export const siteView = ({ proxyHash: _h, ...rest }: ClientSite): ClientSiteView => rest;
 
 /** Structural subset of the host `StorageCollection` (`plugins/types.ts`). */
 export interface SitesColl {
@@ -53,9 +63,24 @@ export interface Registry {
 	byId: ReadonlyMap<string, ClientSite>;
 	sites: readonly ClientSite[];
 	linked: readonly ClientSite[];
+	/** Epoch ms of the last successful load of the collection; 0 when it was never read. */
+	loadedAt: number;
 }
 
-const EMPTY: Registry = { byKey: new Map(), byId: new Map(), sites: [], linked: [] };
+const EMPTY: Registry = { byKey: new Map(), byId: new Map(), sites: [], linked: [], loadedAt: 0 };
+/**
+ * Proxy secrets are accepted from a snapshot at most this old. A read error keeps the last good snapshot for
+ * everything else, but a removed or replaced secret must not stay valid while the collection cannot be read.
+ */
+export const PROXY_SNAPSHOT_MAX_AGE_MS = 600_000;
+
+/**
+ * The proxy secret hash of `site` from `reg`, or undefined when the site has none or the snapshot was last loaded
+ * more than `PROXY_SNAPSHOT_MAX_AGE_MS` ago: then every secret is refused (fail closed) until a load succeeds.
+ */
+export function proxyHashOf(reg: Registry, site: ClientSite | undefined, nowMs = Date.now()): string | undefined {
+	return site && nowMs - reg.loadedAt <= PROXY_SNAPSHOT_MAX_AGE_MS ? site.proxyHash : undefined;
+}
 let snap: { reg: Registry; at: number } | undefined;
 
 /** Drop the snapshot so the next read reloads (after a save, a delete or a key change). */
@@ -81,14 +106,17 @@ export async function loadSites(coll: Pick<SitesColl, "query"> | undefined): Pro
 	return out.sort((a, b) => a.label.localeCompare(b.label) || (a.id < b.id ? -1 : 1));
 }
 
-/** The registry snapshot, reloaded at most every 60 s per isolate; the last good one survives a read error. */
+/**
+ * The registry snapshot, reloaded at most every 60 s per isolate; the last good one survives a read error (its
+ * `loadedAt` stays, so `proxyHashOf` can refuse proxy secrets from a snapshot that is too old).
+ */
 export async function registry(coll: Pick<SitesColl, "query"> | undefined, nowMs = Date.now()): Promise<Registry> {
 	if (snap && nowMs - snap.at < TTL_MS) return snap.reg;
 	let reg = snap?.reg ?? EMPTY;
 	try {
 		const all = await loadSites(coll);
 		const sites = all.filter((s) => !s.linked);
-		reg = { sites, linked: all.filter((s) => s.linked), byKey: new Map(all.map((s) => [s.key, s])), byId: new Map(sites.map((s) => [s.id, s])) };
+		reg = { sites, linked: all.filter((s) => s.linked), byKey: new Map(all.map((s) => [s.key, s])), byId: new Map(sites.map((s) => [s.id, s])), loadedAt: nowMs };
 	} catch {
 		// Keep the last good snapshot.
 	}

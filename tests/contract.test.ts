@@ -20,6 +20,7 @@ describe("contract", () => {
 			RESERVED_EVENTS: contract.RESERVED_EVENTS,
 			FORBIDDEN_PUBLIC_WORDS: contract.FORBIDDEN_PUBLIC_WORDS,
 			DIRECT_IN_PATH,
+			PROXY_HEADERS: contract.PROXY_HEADERS,
 			discovery: contractBody(DEFAULT_SETTINGS),
 		}).toMatchInlineSnapshot(`
 			{
@@ -42,6 +43,11 @@ describe("contract", () => {
 			  ],
 			  "HIT_RE": "/^[a-z0-9]{12}$/",
 			  "PLUGIN_ID": "cookieless-analytics",
+			  "PROXY_HEADERS": {
+			    "clientIp": "X-EC-Client-IP",
+			    "country": "X-EC-Country",
+			    "key": "X-EC-Proxy-Key",
+			  },
 			  "RESERVED_EVENTS": {
 			    "_download": "file",
 			    "_form": "form",
@@ -50,6 +56,7 @@ describe("contract", () => {
 			  "ROUTES": {
 			    "contract": "contract",
 			    "in": "in",
+			    "proxyCheck": "proxy/check",
 			    "rollup": "rollup",
 			    "session": "session",
 			    "shareView": "share/view",
@@ -59,6 +66,7 @@ describe("contract", () => {
 			    "collectPath": "/_/e",
 			    "namespace": "__ec",
 			    "pluginId": "cookieless-analytics",
+			    "proxy": true,
 			    "scriptPath": "/_/e.js",
 			    "v": 1,
 			  },

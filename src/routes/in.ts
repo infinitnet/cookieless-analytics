@@ -3,11 +3,12 @@ import type { IngestBody } from "../contract.js";
 import { validateIngest } from "../core/ids.js";
 import type { IngestSink } from "../core/apply.js";
 import { type DropKind, drops } from "../core/drops.js";
-import { type DropReason, type RecorderDeps, recordClientEvent, requestInfo, sinkOf } from "../core/recorder.js";
+import { bump, type DropReason, forwardedFacts, type RecorderDeps, recordClientEvent, requestInfo, sinkOf } from "../core/recorder.js";
 import { dayInZone } from "../core/time.js";
 import { INGEST_STATEMENT_MS, pgStatementLimit } from "../db/pg.js";
 import { CACHE_ON_MESSAGE } from "../db/query-cache.js";
-import { type ClientSite, hostnameOf, linkedHosts, markHostSeen, registry } from "../multisite/registry.js";
+import { PROXY_KEY_HEADER, proxySecretOk } from "../keys/proxy-secret.js";
+import { type ClientSite, hostnameOf, linkedHosts, markHostSeen, proxyHashOf, registry } from "../multisite/registry.js";
 import { pluginResponse } from "emdash";
 import { noContent, type RouteCtx, type RouteEnv } from "./env.js";
 
@@ -79,7 +80,7 @@ export function retryOnce(sink: IngestSink, pauseMs = () => 50 + Math.random() *
 }
 
 /** 503 with `Retry-After`: the event was not stored and the client sends it again. */
-export const unavailable = () => pluginResponse({ status: 503, headers: { "content-type": "text/plain", "retry-after": String(RETRY_AFTER_S) } });
+export const unavailable = (seconds = RETRY_AFTER_S) => pluginResponse({ status: 503, headers: { "content-type": "text/plain", "retry-after": String(seconds) } });
 
 /** 503 without `Retry-After`: the day's write allowance is used up and the client stops sending this event. */
 export const blocked = () => pluginResponse({ status: 503, headers: { "content-type": "text/plain" } });
@@ -92,6 +93,10 @@ export const blocked = () => pluginResponse({ status: 503, headers: { "content-t
  * condition, counted as `write_error`), so it does not. Engagement updates are
  * written after the response (a beacon cannot retry; the next update carries the same totals). Every request
  * that is not stored is counted in `drops` (bots as `bot`, nothing else of them), flushed in an `after()`.
+ *
+ * Proxy mode: a post that carries `X-EC-Proxy-Key` comes from a server proxy on a client site's own host. When the
+ * header is the proxy secret of the event's site, the visitor's address and country are taken from `X-EC-Client-IP`
+ * and `X-EC-Country` and never from the connection, which is the proxy's. A post without the header never reads them.
  */
 export function inRoute(env: RouteEnv) {
 	return {
@@ -124,7 +129,8 @@ export function inRoute(env: RouteEnv) {
 	}
 
 	async function decide(ctx: RouteCtx, deps: RecorderDeps) {
-		const day = dayInZone(deps.now ?? Math.floor(Date.now() / 1000), deps.settings.siteTimezone);
+		const now = deps.now ?? Math.floor(Date.now() / 1000);
+		const day = dayInZone(now, deps.settings.siteTimezone);
 		const count = (reason: DropKind, site = deps.settings.siteId) => {
 			drops.add(site, day, reason);
 			return noContent();
@@ -136,7 +142,31 @@ export function inRoute(env: RouteEnv) {
 		const reg = await registry(ctx.storage?.sites);
 		const res = resolveOrigin(ctx.request, body, reg.byKey);
 		if ("drop" in res) return count(res.drop);
-		const info = { ...requestInfo(ctx.request, ctx.requestMeta ? ctx.requestMeta.ip : undefined), host: res.host, hasOrigin: ctx.request.headers.has("origin") };
+		// Proxy mode. The secret belongs to the record of the event's own key (a linked host has its own), which the
+		// registry snapshot already holds, so the check costs one hash and no read. Every failure drops the event:
+		// it is never recorded with the proxy's own address.
+		const proxyKey = ctx.request.headers.get(PROXY_KEY_HEADER);
+		let fwd: ReturnType<typeof forwardedFacts> = null;
+		if (proxyKey !== null) {
+			const rec = body.k ? reg.byKey.get(body.k) : undefined;
+			// Counted under this install's own site, like `bot` and `unknown_key`: the caller is not authenticated.
+			if (!rec || !(await proxySecretOk(proxyHashOf(reg, rec), proxyKey))) return count("proxy_auth");
+			const site = res.site ? res.site.id : deps.settings.siteId;
+			// A runaway guard, not a security bound: one counter per site and isolate.
+			if (bump("proxy", rec.id, now) > deps.settings.proxyRateLimitPerMinute) {
+				count("proxy_rate", site);
+				return unavailable(60 - (now % 60));
+			}
+			fwd = forwardedFacts(ctx.request.headers);
+			if (!fwd) return count("invalid", site);
+		}
+		const info = {
+			...requestInfo(ctx.request, ctx.requestMeta ? ctx.requestMeta.ip : undefined),
+			host: res.host,
+			hasOrigin: ctx.request.headers.has("origin"),
+			// The proxy's own edge location says nothing about the visitor: country from the header or none, no region.
+			...(fwd ? { ip: fwd.ip, country: fwd.country, region: null } : {}),
+		};
 		const linked = linkedHosts(reg.linked);
 		let d: RecorderDeps = deps;
 		if (res.site) {

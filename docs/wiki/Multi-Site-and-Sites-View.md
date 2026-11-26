@@ -55,6 +55,29 @@ emdash({
 
 Every report page then works for the connected site. Definitions and Data show a link to its own admin instead of forms.
 
+### A server proxy on the site's own host
+
+The script tag above is the default. Proxy mode is opt-in: a server on the client's own host (a Worker on its zone, a route of its CMS) answers `/_/e.js` and `/_/e` there and forwards them to this install, so both paths are first party for the client's visitors.
+
+![Proxy secret panel of a client site on the Sites tab, right after the secret was made](images/definitions-sites-proxy-secret.png)
+
+1. On the Sites tab, select **Proxy secret** for the site and create one. Copy it at once: it is shown once, and only its hash is stored.
+2. Store the secret on the proxy server. Never put it into a page.
+3. The proxy forwards each post of the event path to `https://<this install>/_/e` with the body unchanged and these headers:
+
+| Header | Value |
+|---|---|
+| `X-EC-Proxy-Key` | The proxy secret. |
+| `X-EC-Client-IP` | The visitor's address as the proxy's own connection saw it. |
+| `X-EC-Country` | Optional: the visitor's country, two letters. |
+| `Origin` | The site's own https origin on a registered host name: the one the browser sent, passed on unchanged. |
+| `User-Agent`, `Accept-Language`, `Sec-GPC`, `DNT`, `Sec-CH-UA-Mobile`, `Sec-CH-UA-Platform` | The visitor's. |
+
+4. It returns the status and `Retry-After` to the browser unchanged.
+5. Test it: `GET /_emdash/api/plugins/cookieless-analytics/proxy/check?k=<site key>` with the secret in `X-EC-Proxy-Key` answers 200 when the secret is the one of that site and 403 otherwise. A new secret reaches every Worker within 60 seconds, so a test right after making it can answer 403: retry for a minute.
+
+Without the secret a proxy's posts all arrive from the proxy's own address, so its visitors merge into shared visits. With it, the address the proxy states is used once for the visitor key and never stored. A post with a wrong secret, or with the right secret and no usable address, is dropped and counted (see [Troubleshooting](Troubleshooting)); it is never recorded under the proxy's address.
+
 ## The site select
 
 The site select in the header appears once a client or connected site exists. It lists **All sites** first, then this install, the client sites and the connected sites, each with its kind. A connected site whose key is missing shows "key missing". The range, comparison, filters and site carry over between admin pages for the browser session.
@@ -75,6 +98,7 @@ With **All sites** selected, the Overview shows one table: a row per site with s
 
 - **Pause** stops a site at once. Its data stays.
 - **New key** invalidates the old key at once. Pages with the old snippet stop sending until you update them.
+- **Proxy secret**: a second secret replaces the first, and **Remove proxy secret** deletes it. The old secret stops within 60 seconds. While the site list cannot be read, every proxy secret is refused once the last successful read is 10 minutes old.
 - **Delete** removes the site after a typed confirmation. With "also delete its data" every row of the site is deleted; without it, the rows stay until retention removes them.
 
 ## Own database per site
@@ -100,7 +124,8 @@ Moving a site to another database does not move its data. See [Quick Install](Qu
 | Key | Default | What it does |
 |---|---|---|
 | `siteId` | default | Id of this install's own site. Client and connected site ids must differ from it. |
-| `siteOrigin` | empty | Canonical origin; set it when the event path is proxied on a shop's own zone. |
+| `siteOrigin` | empty | Canonical origin; set it when the event path is proxied on a shop's own host. |
+| `proxyRateLimitPerMinute` | 3000 | Posts a server proxy may forward for one site per minute, per Worker isolate. Above it the proxy gets 503 with `Retry-After`. It stops a proxy that runs away; it is not a security limit. |
 | `defaultCurrency` | USD | Inherited by client sites that do not set their own. |
 | `acceptClientRevenue` | true | Inherited by client sites that do not set their own. |
 | `siteSearchParams` | empty | Inherited by client sites that do not set their own. |
@@ -112,7 +137,7 @@ Moving a site to another database does not move its data. See [Quick Install](Qu
 - Client site ids: up to 32 characters; 1 to 10 host names per site. The id `all` is reserved.
 - Connected sites: each call times out after 8 seconds, answers are capped at 1 MB and cached for 60 seconds. At most 10 connected sites are read on the All sites table, three at a time.
 - Exports of a connected site are capped at 1,000 rows.
-- A pause, link or unlink reaches every Worker within 60 seconds. Browsers cache the page script, which names the linked hosts, for up to an hour.
+- A pause, link or unlink, and a replaced or removed proxy secret, reach every Worker within 60 seconds. Browsers cache the page script, which names the linked hosts, for up to an hour.
 
 ## Gotchas
 
@@ -124,6 +149,8 @@ Moving a site to another database does not move its data. See [Quick Install](Qu
 - This install's Search connection serves its client sites, never a connected site.
 - The host names of linked sites are named in the served page script.
 - The middleware must be installed for client sites; the Sites tab warns when it has not been seen for a day.
+- A server proxy must answer the event path at the root of the client's host (default `/_/e`): the page script sends there, whatever path the script file was served from. `collectPath` is one setting for every site of this install.
+- Proxy mode carries no country unless the proxy sends `X-EC-Country`, and never a region.
 
 Full reference: https://github.com/infinitnet/cookieless-analytics/blob/main/docs/client-sites.md
 

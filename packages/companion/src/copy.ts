@@ -68,7 +68,7 @@ export const BENEFITS = {
 		"Search Satisfaction for visits that arrive from a search engine.",
 		"Annotations with their measured impact on traffic.",
 		"An agent API with scoped keys for scripts and AI agents.",
-		"A page script of about 2.5 KB gzipped.",
+		"A page script of about 3 KB gzipped.",
 	],
 } as const;
 

@@ -64,38 +64,50 @@ function expandIpv6(ip) {
 	return groups.map((g) => Number.parseInt(g, 16));
 }
 /**
-* Truncate an IP to its network prefix: IPv4 /24 (strict /16), IPv6 /48 (strict /32).
-* Unparseable input returns "" so it still hashes but never leaks.
+* Parse an address into 4 bytes (IPv4) or 16 bytes (IPv6), or null. An IPv4-mapped IPv6 address
+* (`::ffff:0:0/96`, dotted `::ffff:203.0.113.7` or hex `::ffff:cb00:7107`, in any spelling of its zero groups)
+* is its IPv4 address, so every notation of one address truncates, compares and is excluded alike. A zone id
+* (`%eth0`) is ignored.
+*/
+function ipBytes(ip) {
+	const octets = (q) => {
+		const o = q.split(".").map(Number);
+		return o.every((n) => n <= 255) ? o : null;
+	};
+	const trimmed = ip.trim().toLowerCase();
+	if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(trimmed)) return octets(trimmed);
+	const v = trimmed.replace(/%.*$/, "");
+	const dotted = /^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(v);
+	const g = expandIpv6(dotted ? `${dotted[1]}0:0` : v);
+	if (!g) return null;
+	const mapped = g.slice(0, 5).every((n) => n === 0) && g[5] === 65535;
+	if (dotted) return mapped ? octets(dotted[2]) : null;
+	if (mapped) return [
+		g[6] >> 8,
+		g[6] & 255,
+		g[7] >> 8,
+		g[7] & 255
+	];
+	return g.flatMap((n) => [n >> 8, n & 255]);
+}
+/**
+* Truncate an IP to its network prefix: IPv4 /24 (strict /16), IPv6 /48 (strict /32). An IPv4-mapped IPv6
+* address truncates as its IPv4 address. Unparseable input returns "" so it still hashes but never leaks.
 */
 function truncateIp(ip, mode = "standard") {
 	if (!ip) return "";
-	let v = ip.trim().toLowerCase();
-	const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
-	if (mapped?.[1]) v = mapped[1];
-	const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
-	if (v4) {
-		const o = v4.slice(1, 5).map(Number);
-		if (o.some((n) => n > 255)) return "";
-		return mode === "strict" ? `${o[0]}.${o[1]}.0.0` : `${o[0]}.${o[1]}.${o[2]}.0`;
-	}
-	const g = expandIpv6(v.replace(/%.*$/, ""));
-	if (!g) return "";
+	const b = ipBytes(ip);
+	if (!b) return "";
+	if (b.length === 4) return mode === "strict" ? `${b[0]}.${b[1]}.0.0` : `${b[0]}.${b[1]}.${b[2]}.0`;
 	const keep = mode === "strict" ? 2 : 3;
-	return `${g.slice(0, keep).map((n) => n.toString(16)).join(":")}::`;
+	return `${Array.from({ length: keep }, (_, i) => (b[i * 2] << 8 | b[i * 2 + 1]).toString(16)).join(":")}::`;
 }
-/** True when `ip` lies inside `cidr` (IPv4 or IPv6, already validated by settings). */
+/** True when `ip` lies inside `cidr` (IPv4 or IPv6, already validated by settings). An IPv4-mapped address is IPv4. */
 function ipInCidr(ip, cidr) {
 	const [net = "", bitsRaw = ""] = cidr.split("/");
 	const bits = Number(bitsRaw);
-	const words = (v) => {
-		const m = v.trim().toLowerCase().replace(/^::ffff:(?=\d+\.)/, "");
-		const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(m);
-		if (v4) return v4.slice(1, 5).map(Number);
-		const g = expandIpv6(m.replace(/%.*$/, ""));
-		return g ? g.flatMap((n) => [n >> 8, n & 255]) : null;
-	};
-	const a = words(ip);
-	const b = words(net);
+	const a = ipBytes(ip);
+	const b = ipBytes(net);
 	if (!a || !b || a.length !== b.length || !(bits >= 0 && bits <= a.length * 8)) return false;
 	for (let i = 0; i < a.length; i++) {
 		const keep = Math.max(0, Math.min(8, bits - i * 8));
@@ -3019,6 +3031,14 @@ const settingsSchema = {
 		min: 5,
 		max: 1200
 	},
+	proxyRateLimitPerMinute: {
+		type: "number",
+		label: "Proxy requests per minute",
+		description: "Most page views, events and engagement updates a server proxy may forward for one site per minute. Counted per site and isolate, so approximate across isolates. Requests above it are answered 503 with Retry-After: the page script sends page views and events again while the page stays open; engagement updates are not sent again. It stops a proxy that runs away; it is not a security limit.",
+		default: 3e3,
+		min: 60,
+		max: 6e4
+	},
 	maxPageviewsPerSession: {
 		type: "number",
 		label: "Maximum pageviews per session",
@@ -5850,7 +5870,7 @@ async function linksFromSummary(rc, input) {
 	const applied = input.filters.filter((f) => f.dim === seg);
 	const notices = plan.unavailable.map((u) => `filter_unavailable:${u}`);
 	const dim = by === "link" ? "link" : "link_place";
-	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-D8lfKcbv.mjs").then((n) => n.i)]);
+	const [{ readFamily }, { matchKey }] = await Promise.all([Promise.resolve().then(() => rollup_exports), import("./rollup-B3W0TZWj.mjs").then((n) => n.i)]);
 	const pass = (r) => applied.every((f) => matchKey(f, String(r.segkey)));
 	const read = (table) => readFamily(rc, input.from, input.to, {
 		table,
@@ -8863,14 +8883,30 @@ const ClientSiteSchema = z.object({
 	* Linked to this install's own site: its events are stored under the local site id with the host recorded, so
 	* the visitor key and the visit continue across the hosts. Its per-site settings do not apply then.
 	*/
-	linked: z.boolean().optional()
+	linked: z.boolean().optional(),
+	/**
+	* Hex SHA-256 of the site's proxy secret (`keys/proxy-secret.ts`); the secret itself is never stored. It rides
+	* on this record so the event route checks it from the registry snapshot, without a read of its own.
+	*/
+	proxyHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+	/** Epoch seconds the proxy secret was made; present exactly while `proxyHash` is. */
+	proxyCreated: z.number().int().optional()
 });
+const siteView = ({ proxyHash: _h, ...rest }) => rest;
 const EMPTY = {
 	byKey: /* @__PURE__ */ new Map(),
 	byId: /* @__PURE__ */ new Map(),
 	sites: [],
-	linked: []
+	linked: [],
+	loadedAt: 0
 };
+/**
+* The proxy secret hash of `site` from `reg`, or undefined when the site has none or the snapshot was last loaded
+* more than `PROXY_SNAPSHOT_MAX_AGE_MS` ago: then every secret is refused (fail closed) until a load succeeds.
+*/
+function proxyHashOf(reg, site, nowMs = Date.now()) {
+	return site && nowMs - reg.loadedAt <= 6e5 ? site.proxyHash : void 0;
+}
 let snap;
 /** Drop the snapshot so the next read reloads (after a save, a delete or a key change). */
 function invalidateRegistry() {
@@ -8896,7 +8932,10 @@ async function loadSites(coll) {
 	}
 	return out.sort((a, b) => a.label.localeCompare(b.label) || (a.id < b.id ? -1 : 1));
 }
-/** The registry snapshot, reloaded at most every 60 s per isolate; the last good one survives a read error. */
+/**
+* The registry snapshot, reloaded at most every 60 s per isolate; the last good one survives a read error (its
+* `loadedAt` stays, so `proxyHashOf` can refuse proxy secrets from a snapshot that is too old).
+*/
 async function registry(coll, nowMs = Date.now()) {
 	if (snap && nowMs - snap.at < TTL_MS) return snap.reg;
 	let reg = snap?.reg ?? EMPTY;
@@ -8907,7 +8946,8 @@ async function registry(coll, nowMs = Date.now()) {
 			sites,
 			linked: all.filter((s) => s.linked),
 			byKey: new Map(all.map((s) => [s.key, s])),
-			byId: new Map(sites.map((s) => [s.id, s]))
+			byId: new Map(sites.map((s) => [s.id, s])),
+			loadedAt: nowMs
 		};
 	} catch {}
 	snap = {
@@ -9197,4 +9237,4 @@ async function consumeBatch(batch, db, kv) {
 	for (const [site, day, reason] of dropped) drops.add(site, day, reason);
 	if (dropped.length) await drops.flush(db).catch(() => {});
 }
-export { sitesInTables as $, timingSafeEqual as $i, nextUtcDay as $n, statePrefix as $r, ORDER_SUMS as $t, BUILTIN_CHANNEL_RULES as A, paramRows as Ai, LINK_BY as An, OID_RE as Ar, revenueOrders as At, KV_WRITE_BUDGET as B, eachDay as Bi, TRAFFIC_DIMS as Bn, isCurrency as Br, SEGMENTS$1 as Bt, siteProblem as C, dayInt as Ci, inList as Cn, conflictsWithScope as Cr, WITH_REVENUE as Ct, readVisits as D, docRead as Di, FilterSchema as Dn, publicNames as Dr, metaOf as Dt, MAX_DOC_BYTES as E, docPut as Ei, FUNNEL_MODES as En, parseLinkRules as Er, hasRevenue as Et, UTM_KEYS as F, chunk as Fi, QuerySchema as Fn, isSid as Fr, resolveGranularity as Ft, KV_CURSOR as G, saltDay as Gi, copyRowsLeft as Gn, ensureHostSchema as Gr, openDay as Gt, budgetTargetOf as H, lastClosedDay as Hi, COPY_DAY_ROWS as Hn, roundMinor as Hr, clearOpenDays as Ht, cleanHost as I, ident as Ii, REVENUE_BREAKDOWN_DIMS as In, validateIngest as Ir, timeseries as It, clearEstimateDay as J, base64url as Ji, PROVIDER_DAYS as Jn, missingDb as Jr, readSummary as Jt, KV_DELETE_ROWS as K, samePeriodLastYear as Ki, nextUtcMidnight as Kn, factsDb as Kr, planFilters as Kt, hostInList as L, addDays as Li, REVENUE_DIMS$1 as Ln, validateRevenue as Lr, weekStart as Lt, buildChannelRules as M, textMatch as Mi, NUM_OPS as Mn, isEventName as Mr, revenueSeries as Mt, classifyChannel as N, upsertChanged as Ni, OPS as Nn, isPath as Nr, withRevenue as Nt, MAX_VISIT_MINUTES as O, isoDay as Oi, FunnelStepsSchema as On, compileSafeRegex as Or, revenue as Ot, CLICK_IDS as P, visitDayKey as Pi, PROP_KEY_RE as Pn, isReservedEvent as Pr, bucketSeries as Pt, runRetention as Q, sha256 as Qi, backfillRange as Qn, stateKv as Qr, DURATION_MS as Qt, normalizeUrl as R, dayInZone as Ri, REVENUE_VALUE_RE as Rn, REVENUE_MAX_VALUE as Rr, CUBE_SEG as Rt, registry as S, LIKE_ESCAPE as Si, goalPredicate as Sn, SATISFACTION_REPORTS as Sr, REVENUE_REPORTS as St, D1Sink as T, docObject as Ti, DIM_NAMES as Tn, organicScope as Tr, currencyOf as Tt, dailyRowsApply as U, previousPeriod as Ui, chargeCopyRows as Un, eachDatabase as Ur, clearScanCache as Ut, budgetState as V, hourInZone as Vi, unionAllChunked as Vn, normalizeCurrency as Vr, behindNotice as Vt, CHUNK_ROWS as W, saltBoundary as Wi, copiedToday as Wn, eachTarget as Wr, matchKey as Wt, rawFromDay as X, ipInCidr as Xi, SYNC_BUDGET as Xn, pluginFactsOrNull as Xr, storedSessions as Xt, effectiveRawDays as Y, getOrCreateSalt as Yi, RowsPaused as Yn, pluginFacts as Yr, splitRange as Yt, runChunk as Z, randomId as Zi, SyncRows as Zn, setPluginFacts as Zr, storedThrough as Zt, linkedHosts as _, fromKysely as _i, compileSearch as _n, LOW_SAMPLE as _r, journeyNext as _t, queueBinding as a, pgOwnScope as ai, num as an, ThrottledError as ar, SEGS as at, markHostSeen as b, isD1 as bi, entryCols as bn, SATISFACTION_CAVEAT as br, journeysFromSummary as bt, ClientSiteSchema as c, redact as ci, round as cn, PROFILES as cr, dayStatements as ct, SITE_ID_RE as d, SCHEMA_VERSION_KEY as di, sessionTotals as dn, budgetWarning as dr, runRollup as dt, truncateIp as ea, CACHE_ON_MESSAGE as ei, annotationsIn as en, utcDay as er, CUBE_CAP as et, SITE_KEY_RE as f, TABLES as fi, sessionWhere as fn, cachedSettings as fr, sitesOfDay as ft, invalidateRegistry as g, schemaVersion as gi, and as gn, settingsSchema as gr, JOURNEY_SESSION_CAP as gt, hostnameOf as h, isOwnDatabase as hi, TRUE as hn, parseSiteSearchParams as hr, linksPlan as ht, ingestStatus as i, isHyperdrive as ii, liveVisits as in, SourceError as ir, OTHER as it, DEFAULT_HOSTS as j, q as ji, NEGATED as jn, cleanProps as jr, revenuePlan as jt, isActive as k, likeEscape as ki, GoalSchema as kn, validateSafeRegex as kr, revenueBreakdown as kt, HOST_SEEN_PREFIX as l, usePgDriver as li, sessionBreakdown as ln, budgetMb as lr, rollupDay as lt, bindSite as m, ensureSchemaOnce as mi, QueryError as mn, normalizeSettings as mr, linksFromSummary as mt, QUEUE_BINDING as n, __exportAll as na, INGEST_STATEMENT_MS as ni, hitJoin as nn, MAPPING_FIELD as nr, KV_ROLLUP_CURSOR as nt, routedSink as o, pgScope as oi, ratio as on, DEFAULT_SETTINGS as or, SUMMARY_DIMS as ot, SiteField as p, ensureSchema as pi, visitDays as pn, d1CapMb as pr, links as pt, cleanSalts as q, zonedToEpoch as qi, KV_SYNC_ROWS as qn, factsTargets as qr, planRows as qt, consumeBatch as r, fromPg as ri, keysIn as rn, SOURCE_IDS as rr, KV_WATERMARK as rt, visitorGroups as s, pgStatementLimit as si, refundDim as sn, HOST_FORM_POINTER as sr, counted as st, ORPHAN_ATTEMPTS as t, vkey as ta, queryCacheOn as ti, bounceRate as tn, BudgetExhausted as tr, KV_REVENUE_CURSOR as tt, LINKED_HOSTS_KEY as u, SCHEMA_VERSION as ui, sessionMetrics as un, budgetRange as ur, runRevenue as ut, linkedHostsOf as v, selfCheck as vi, compileTraffic as vn, POGO_DEFINITION as vr, journeyPaths as vt, drops as w, docJson as wi, validateFilters as wn, lowSampleLine as wr, currencyList as wt, newSiteKey as x, workerEnv as xi, entryProp as xn, SATISFACTION_RAW_ONLY as xr, journeysUnavailable as xt, loadSites as y, fromD1 as yi, entriesOf as yn, SATISFACTION_BY as yr, journeyPrev as yt, parseReferrer as z, daysBetween as zi, SEARCH_DIMS as zn, formatAmount as zr, FILTER_DIMS as zt };
+export { runChunk as $, randomId as $i, SyncRows as $n, setPluginFacts as $r, storedThrough as $t, MAX_VISIT_MINUTES as A, isoDay as Ai, FunnelStepsSchema as An, compileSafeRegex as Ar, revenue as At, normalizeUrl as B, dayInZone as Bi, REVENUE_VALUE_RE as Bn, REVENUE_MAX_VALUE as Br, CUBE_SEG as Bt, registry as C, workerEnv as Ci, entryProp as Cn, SATISFACTION_RAW_ONLY as Cr, journeysUnavailable as Ct, D1Sink as D, docObject as Di, DIM_NAMES as Dn, organicScope as Dr, currencyOf as Dt, drops as E, docJson as Ei, validateFilters as En, lowSampleLine as Er, currencyList as Et, classifyChannel as F, upsertChanged as Fi, OPS as Fn, isPath as Fr, withRevenue as Ft, dailyRowsApply as G, previousPeriod as Gi, chargeCopyRows as Gn, eachDatabase as Gr, clearScanCache as Gt, KV_WRITE_BUDGET as H, eachDay as Hi, TRAFFIC_DIMS as Hn, isCurrency as Hr, SEGMENTS$1 as Ht, CLICK_IDS as I, visitDayKey as Ii, PROP_KEY_RE as In, isReservedEvent as Ir, bucketSeries as It, KV_DELETE_ROWS as J, samePeriodLastYear as Ji, nextUtcMidnight as Jn, factsDb as Jr, planFilters as Jt, CHUNK_ROWS as K, saltBoundary as Ki, copiedToday as Kn, eachTarget as Kr, matchKey as Kt, UTM_KEYS as L, chunk as Li, QuerySchema as Ln, isSid as Lr, resolveGranularity as Lt, BUILTIN_CHANNEL_RULES as M, paramRows as Mi, LINK_BY as Mn, OID_RE as Mr, revenueOrders as Mt, DEFAULT_HOSTS as N, q as Ni, NEGATED as Nn, cleanProps as Nr, revenuePlan as Nt, MAX_DOC_BYTES as O, docPut as Oi, FUNNEL_MODES as On, parseLinkRules as Or, hasRevenue as Ot, buildChannelRules as P, textMatch as Pi, NUM_OPS as Pn, isEventName as Pr, revenueSeries as Pt, rawFromDay as Q, ipInCidr as Qi, SYNC_BUDGET as Qn, pluginFactsOrNull as Qr, storedSessions as Qt, cleanHost as R, ident as Ri, REVENUE_BREAKDOWN_DIMS as Rn, validateIngest as Rr, timeseries as Rt, proxyHashOf as S, isD1 as Si, entryCols as Sn, SATISFACTION_CAVEAT as Sr, journeysFromSummary as St, siteView as T, dayInt as Ti, inList as Tn, conflictsWithScope as Tr, WITH_REVENUE as Tt, budgetState as U, hourInZone as Ui, unionAllChunked as Un, normalizeCurrency as Ur, behindNotice as Ut, parseReferrer as V, daysBetween as Vi, SEARCH_DIMS as Vn, formatAmount as Vr, FILTER_DIMS as Vt, budgetTargetOf as W, lastClosedDay as Wi, COPY_DAY_ROWS as Wn, roundMinor as Wr, clearOpenDays as Wt, clearEstimateDay as X, base64url as Xi, PROVIDER_DAYS as Xn, missingDb as Xr, readSummary as Xt, cleanSalts as Y, zonedToEpoch as Yi, KV_SYNC_ROWS as Yn, factsTargets as Yr, planRows as Yt, effectiveRawDays as Z, getOrCreateSalt as Zi, RowsPaused as Zn, pluginFacts as Zr, splitRange as Zt, linkedHosts as _, isOwnDatabase as _i, TRUE as _n, parseSiteSearchParams as _r, linksPlan as _t, queueBinding as a, fromPg as ai, keysIn as an, SOURCE_IDS as ar, KV_WATERMARK as at, markHostSeen as b, selfCheck as bi, compileTraffic as bn, POGO_DEFINITION as br, journeyPaths as bt, ClientSiteSchema as c, pgScope as ci, ratio as cn, DEFAULT_SETTINGS as cr, SUMMARY_DIMS as ct, SITE_ID_RE as d, usePgDriver as di, sessionBreakdown as dn, budgetMb as dr, rollupDay as dt, sha256 as ea, stateKv as ei, DURATION_MS as en, backfillRange as er, runRetention as et, SITE_KEY_RE as f, SCHEMA_VERSION as fi, sessionMetrics as fn, budgetRange as fr, runRevenue as ft, invalidateRegistry as g, ensureSchemaOnce as gi, QueryError as gn, normalizeSettings as gr, linksFromSummary as gt, hostnameOf as h, ensureSchema as hi, visitDays as hn, d1CapMb as hr, links as ht, ingestStatus as i, __exportAll as ia, INGEST_STATEMENT_MS as ii, hitJoin as in, MAPPING_FIELD as ir, KV_ROLLUP_CURSOR as it, isActive as j, likeEscape as ji, GoalSchema as jn, validateSafeRegex as jr, revenueBreakdown as jt, readVisits as k, docRead as ki, FilterSchema as kn, publicNames as kr, metaOf as kt, HOST_SEEN_PREFIX as l, pgStatementLimit as li, refundDim as ln, HOST_FORM_POINTER as lr, counted as lt, bindSite as m, TABLES as mi, sessionWhere as mn, cachedSettings as mr, sitesOfDay as mt, QUEUE_BINDING as n, truncateIp as na, CACHE_ON_MESSAGE as ni, annotationsIn as nn, utcDay as nr, CUBE_CAP as nt, routedSink as o, isHyperdrive as oi, liveVisits as on, SourceError as or, OTHER as ot, SiteField as p, SCHEMA_VERSION_KEY as pi, sessionTotals as pn, budgetWarning as pr, runRollup as pt, KV_CURSOR as q, saltDay as qi, copyRowsLeft as qn, ensureHostSchema as qr, openDay as qt, consumeBatch as r, vkey as ra, queryCacheOn as ri, bounceRate as rn, BudgetExhausted as rr, KV_REVENUE_CURSOR as rt, visitorGroups as s, pgOwnScope as si, num as sn, ThrottledError as sr, SEGS as st, ORPHAN_ATTEMPTS as t, timingSafeEqual as ta, statePrefix as ti, ORDER_SUMS as tn, nextUtcDay as tr, sitesInTables as tt, LINKED_HOSTS_KEY as u, redact as ui, round as un, PROFILES as ur, dayStatements as ut, linkedHostsOf as v, schemaVersion as vi, and as vn, settingsSchema as vr, JOURNEY_SESSION_CAP as vt, siteProblem as w, LIKE_ESCAPE as wi, goalPredicate as wn, SATISFACTION_REPORTS as wr, REVENUE_REPORTS as wt, newSiteKey as x, fromD1 as xi, entriesOf as xn, SATISFACTION_BY as xr, journeyPrev as xt, loadSites as y, fromKysely as yi, compileSearch as yn, LOW_SAMPLE as yr, journeyNext as yt, hostInList as z, addDays as zi, REVENUE_DIMS$1 as zn, validateRevenue as zr, weekStart as zt };

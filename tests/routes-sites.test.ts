@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { invalidateRegistry, registry } from "../src/multisite/registry.js";
 import { purgeKey, purgeSite } from "../src/query/purge.js";
 import { MW_SEEN_KEY } from "../src/middleware-core.js";
-import { SaveBody, siteRoutes, type SitesCtx } from "../src/routes/sites.js";
+import { proxySecretOk } from "../src/keys/proxy-secret.js";
+import { hashSecret } from "../src/keys/token.js";
+import { ProxySecretBody, SaveBody, siteRoutes, type SitesCtx } from "../src/routes/sites.js";
 import { memColl } from "./agent.helpers.js";
 import { createRemote } from "../src/multisite/proxy.js";
 import { cloneSite, schemaDb, sitesColl } from "./helpers.js";
@@ -30,7 +32,7 @@ describe("site routes", () => {
 	it("declares the permissions", () => {
 		const r = routes();
 		expect(r["sites/list"]?.permission).toBe("plugins:read");
-		for (const n of ["sites/save", "sites/delete", "sites/key"]) expect(r[n]?.permission).toBe("plugins:manage");
+		for (const n of ["sites/save", "sites/delete", "sites/key", "sites/proxy-secret"]) expect(r[n]?.permission).toBe("plugins:manage");
 	});
 
 	it("creates a site with a fresh key, lists the kinds in order local then client and refreshes the snapshot", async () => {
@@ -104,6 +106,62 @@ describe("site routes", () => {
 		for (const key of ["short", "A".repeat(20), "a".repeat(21)]) await expect(call("sites/key", { id: "blog", key })).rejects.toMatchObject({ code: "invalid_site" });
 		expect((await call("sites/key", { id: "blog", key: "z".repeat(20) })).site.key).toBe("z".repeat(20));
 		await expect(call("sites/key", { id: "gone" })).rejects.toMatchObject({ code: "not_found" });
+	});
+
+	it("makes a proxy secret shown once, stores only its hash, replaces it and removes it", async () => {
+		await call("sites/save", blog);
+		expect(sites.items.get("blog")).not.toHaveProperty("proxyHash");
+		const made = await call("sites/proxy-secret", { id: "blog" });
+		expect(made.secret).toMatch(/^[A-Za-z0-9_-]{43}$/);
+		// The answer is the site as every other route returns it (no hash) plus the secret, this once.
+		expect(Object.keys(made).sort()).toEqual(["secret", "site"]);
+		expect(made.site).toMatchObject({ id: "blog", proxyCreated: NOW });
+		expect(made.site).not.toHaveProperty("proxyHash");
+		const hash = await hashSecret(made.secret);
+		expect(sites.items.get("blog")).toMatchObject({ proxyHash: hash, proxyCreated: NOW });
+		expect(JSON.stringify(sites.items.get("blog"))).not.toContain(made.secret);
+		// The registry snapshot of this isolate holds it at once.
+		expect((await registry(sites)).byKey.get(made.site.key)?.proxyHash).toBe(hash);
+		expect(await proxySecretOk((await registry(sites)).byId.get("blog")?.proxyHash, made.secret)).toBe(true);
+
+		// A second call replaces it: another secret, another hash, and the first does not match.
+		const next = await call("sites/proxy-secret", { id: "blog" });
+		expect(next.secret).not.toBe(made.secret);
+		const stored = (await registry(sites)).byId.get("blog")?.proxyHash;
+		expect(stored).toBe(await hashSecret(next.secret));
+		expect(await proxySecretOk(stored, made.secret)).toBe(false);
+
+		// Editing, pausing and a new site key keep the secret; no body field can set it.
+		await call("sites/save", { id: "blog", label: "Blog 2", hosts: ["blog.example.net"], paused: true });
+		await call("sites/key", { id: "blog" });
+		expect(sites.items.get("blog")).toMatchObject({ label: "Blog 2", paused: true, proxyHash: stored, proxyCreated: NOW });
+		for (const extra of [{ proxyHash: "0".repeat(64) }, { proxyCreated: 1 }, { proxySecret: "x" }]) expect(SaveBody.safeParse({ ...blog, ...extra }).success).toBe(false);
+
+		// No list ever returns the hash; it tells that a secret exists by its date.
+		const list = await call("sites/list", { counts: true });
+		expect(list.sites[1].client).toMatchObject({ id: "blog", proxyCreated: NOW });
+		expect(JSON.stringify(list)).not.toContain(stored);
+
+		const gone = await call("sites/proxy-secret", { id: "blog", revoke: true });
+		expect(gone).toEqual({ site: expect.not.objectContaining({ proxyCreated: expect.anything() }) });
+		expect(sites.items.get("blog")).not.toHaveProperty("proxyHash");
+		expect(sites.items.get("blog")).not.toHaveProperty("proxyCreated");
+		expect((await registry(sites)).byId.get("blog")?.proxyHash).toBeUndefined();
+		// Removing what is not there is fine; an unknown site and an unknown field are refused.
+		expect((await call("sites/proxy-secret", { id: "blog", revoke: true })).site.id).toBe("blog");
+		await expect(call("sites/proxy-secret", { id: "gone" })).rejects.toMatchObject({ code: "not_found", status: 404 });
+		expect(ProxySecretBody.safeParse({ id: "blog", secret: "x" }).success).toBe(false);
+	});
+
+	it("a linked site has a proxy secret of its own, and its list entry never holds the hash", async () => {
+		await call("sites/save", { ...blog, id: "shop", label: "Shop", hosts: ["shop.example.net"], linked: true });
+		const { secret, site } = await call("sites/proxy-secret", { id: "shop" });
+		expect(site).toMatchObject({ id: "shop", linked: true, proxyCreated: NOW });
+		const reg = await registry(sites);
+		expect(await proxySecretOk(reg.byKey.get(site.key)?.proxyHash, secret)).toBe(true);
+		const list = await call("sites/list");
+		expect(list.linked).toEqual([expect.objectContaining({ id: "shop", proxyCreated: NOW })]);
+		expect(list.linked[0]).not.toHaveProperty("proxyHash");
 	});
 
 	it("deletes the record, and with deleteData its rows, leaving other sites alone", async () => {

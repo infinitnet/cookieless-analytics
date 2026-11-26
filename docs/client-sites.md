@@ -48,7 +48,7 @@ An event with a key is recorded only when all of these hold:
 - the request carries an `Origin` header with `https` and one of the site's registered host names (browsers set `Origin` themselves; a page cannot forge it);
 - the key belongs to a registered site that is not paused.
 
-Everything else is answered with the same empty 204 and counted as `origin_rejected`, `unknown_key` or `site_paused` in the drop counters of the privacy receipt. The event endpoint answers with `access-control-allow-origin: *`: the answer has no body and uses no credentials, so it exposes nothing. `OPTIONS` on the event path is answered for callers that post JSON.
+Everything else is answered with the same empty 204 and counted as `origin_rejected`, `unknown_key` or `site_paused` in the drop counters of the privacy receipt. A post from a server proxy passes the same checks first and then the check of its proxy secret (section 4a). The event endpoint answers with `access-control-allow-origin: *`: the answer has no body and uses no credentials, so it exposes nothing. `OPTIONS` on the event path is answered for callers that post JSON.
 
 Sessions and visitor keys are per site: the same person on two sites gets two unrelated visitor keys, and a session id of one site is never continued on another. Pages of one site continue a visit through the visitor key on full page loads and through the in-memory session id on soft navigations; no link is changed.
 
@@ -66,7 +66,7 @@ When a second host belongs to this site, for example `shop.example.net` next to 
 - The `host` filter matches the host of a visit's first page only; pages viewed on the shop inside a visit that began on the main host are not filtered out by `host is example.com`. Page reports have no host column: `/` on the shop and `/` on the main host are one row in Pages, entry and exit pages, goals and funnels. Give the shop's paths a prefix of their own when they must stay apart.
 - A link, an unlink or a pause reaches every Worker isolate within 60 seconds; the page script, which names the linked hosts, is cached by browsers for up to an hour.
 - The host names of linked sites are part of the served page script, so it can leave their links alone. Do not link a host you do not want named there.
-- Set `siteOrigin` when the event path is proxied on the shop's own zone (section 4): the main host is then known from it.
+- Set `siteOrigin` when the event path is proxied on the shop's own host (section 4a): the main host is then known from it. A linked host that proxies has a proxy secret of its own.
 
 The Sites tab lists the hosts of this site with the time of the last page view or event from each (updated about every 10 minutes, only while a linked site exists, and for this site's own host only when `siteOrigin` is set), and the limits of a visit across hosts: a change of network or browser in the middle of a visit, a payment finished on another network, and the daily salt change start a new visit.
 
@@ -75,14 +75,60 @@ The Sites tab lists the hosts of this site with the time of the last page view o
 - **Not found** shows "not available for this site": error pages are seen by the server that serves the page, and a client site sends page views only.
 - No `excludeEditors`: visitors of a client site are never editors of this install.
 - No automatic annotations from publishing; add annotations by hand or through the agent API.
-- No first-party script path. Content blockers block a third-party script and endpoint more easily than first-party ones. As an operator setup (not a plugin feature), you can proxy `/_/e.js` and `/_/e` on the client's own Cloudflare zone to your install with a Worker route or a Transform Rule; the snippet then points at the client's own host. The `Origin` rule still applies.
+- No first-party script path by itself. Content blockers block a third-party script and endpoint more easily than first-party ones. A server proxy on the client's own host can serve both paths; it needs the site's proxy secret (section 4a).
 
 The middleware must be installed: the direct plugin route only accepts same-origin requests, so central ingest needs the event path the middleware serves. The Sites tab warns when the middleware has not been seen for a day.
+
+## 4a. A server proxy on the site's own host
+
+A server on the client's own host (a Worker on its zone, a route of its CMS) can answer `/_/e.js` and `/_/e` there and forward them to your install, so the snippet points at the client's own host. The default setup is the plain script tag of section 2 with orders sent from the site's server ([revenue.md](revenue.md), section 3); proxy mode is opt-in.
+
+A proxy is not the visitor's own connection: its requests reach your install from the proxy's address. Without proxy mode every visitor behind it with the same browser, system and device class gets one daily visitor key, so their visits merge, they share the per-visitor caps, the country is the proxy's and `excludeIpPrefixes` never matches. Proxy mode lets the proxy state the visitor's address, and it is the only way the event route takes an address from a request header.
+
+**The proxy secret.** On the Sites tab, select Proxy secret for the site and create one. It is shown once; the site record keeps only its SHA-256 hash. A site has one secret, and a linked host (section 3a) has its own. The secret belongs on the server: never in a page, a script or a link. The event path's preflight allows the `content-type` header only, so a browser cannot send it across origins either.
+
+**What the proxy answers.**
+
+- `GET` and `HEAD` of the script path: pass `If-None-Match` on and return the status, `content-type`, `cache-control` and `etag` unchanged.
+- `POST` of the event path, at the root of its own origin. With a key, the page script sends to `collectPath` at the root of the origin its file was loaded from, so the proxy must answer exactly that path (default `/_/e`); a site that lives in a subdirectory cannot move it under its prefix. `collectPath` is one setting of the install: changing it moves the path of every proxying site at once. The script file itself may be served from any path of the host.
+
+**What the proxy sends.** Each post goes to `https://your-install.example/_/e` (the event path, not the direct plugin route, which refuses another site's `Origin`) with the browser's body unchanged (at most 8,192 bytes; it holds the site key) and these headers. Build them from this list; never pass on an `X-EC-*` header that arrived from the browser.
+
+| Header | Value |
+|---|---|
+| `X-EC-Proxy-Key` | The site's proxy secret. |
+| `X-EC-Client-IP` | The visitor's address as the proxy's own connection saw it: one IPv4 or IPv6 address, never taken from a header the visitor can set. |
+| `X-EC-Country` | Optional: the visitor's country as two letters, when the proxy knows it. |
+| `Origin` | The site's own `https` origin, for example `https://www.example.com`: the `Origin` the browser sent, passed on unchanged. It must name a registered host of the site. Never replace another site's `Origin` with your own, or pages of other sites can post through the proxy. |
+| `User-Agent` | The visitor's. A proxy that sends its own is answered as a robot and counted as `bot` under this install's own site. |
+| `Accept-Language`, `Sec-GPC`, `DNT`, `Sec-CH-UA-Mobile`, `Sec-CH-UA-Platform` | The visitor's, when present. |
+
+The proxy returns the status (204 or 503) and a `Retry-After` header to the browser unchanged, so the page script's retries work.
+
+**What your install does with it.** With the site's secret, the address and the country come from the two headers and never from the connection. The address is used once, for the visitor key and `excludeIpPrefixes`, and never stored, exactly as for a direct post. Without `X-EC-Country` the visit has no country, and no region is stored in proxy mode. Everything else is the path of a browser post: the bot check, the privacy signals, the origin rule, the caps and `acceptClientRevenue`. The secret carries no authority over revenue.
+
+A post without `X-EC-Proxy-Key` is a plain browser post: the two other headers are never read. A post with the header is recorded only when every check passes, never with the proxy's own address:
+
+- `proxy_auth`: the secret is not the one of the post's site key (wrong, malformed, the site has none, or the body has no `k`). Answered with the same empty 204 and counted under this install's own site, because the caller is not known.
+- `invalid`: the secret is right, but `X-EC-Client-IP` is missing, is not one address (a list, a port, a zone id such as `fe80::1%eth0`, or more than 45 characters), or is a loopback or unspecified address (`127.0.0.1`, `::1`, `0.0.0.0`, `::`, and the IPv4-mapped forms `::ffff:127.0.0.1` and `::ffff:7f00:1`), which is the proxy reporting itself. An IPv4-mapped address in either notation counts as its IPv4 address. Private addresses are accepted: visitors of an intranet site have them.
+- `proxy_rate`: more than `proxyRateLimitPerMinute` posts for the site in one minute (default 3000, counted per site and Worker isolate). Answered `503` with `Retry-After` set to the seconds until the next minute, for page views, events and engagement updates alike. It stops a proxy that runs away; it is not a security limit, since a leaked secret can be used from many places.
+
+All three show on the Data page under "Not recorded".
+
+**Testing the connection.** `GET /_emdash/api/plugins/cookieless-analytics/proxy/check?k=<site key>` with the secret in `X-EC-Proxy-Key` answers `200` and `{ "v": 1, "ok": true }` when the secret is the one of that site. Anything else is `403` and `{ "v": 1, "ok": false }`: an unknown site key, a site without a secret and a wrong secret give the same answer, so the route tells nothing about any other site. It writes nothing and counts nothing, and a paused site's secret still checks. A new or replaced secret is known to every Worker isolate within 60 seconds (each isolate keeps the sites registry for that long), so right after the secret is made a check served by another isolate can answer `403`, and a post with it can be counted as `proxy_auth`: a connection test should retry for a minute before it reports a failure. Whether an install has proxy mode at all is the `proxy` field of the `contract` route ([integration.md](integration.md)).
+
+**Limits, stated plainly.**
+
+- The visitor's address is only as good as the proxy's own view of it. Behind a load balancer or CDN of its own, the proxy must take the address from the header that layer sets, not from a header the visitor can send. A proxy that sends one constant address merges its visitors again, with no error on this side.
+- A visit continues across linked hosts only when both hosts see the same shortened address ([sessions.md](sessions.md)). A visitor who reaches the proxied host over IPv4 and the other host over IPv6 gets two visitor keys, and the visit splits at the hop. The same holds for a site that serves some pages directly and some through the proxy.
+- The opt-out flag and `window.__ec.off` live in the browser ([integration.md](integration.md)). A server that reports orders for the page's `sid` learns that state only from what its own page code sends it.
+- A secret that leaks lets its holder invent visits of that one site with any address and country. It cannot read anything, reach another site, or write revenue while `acceptClientRevenue` is off. Replace it on the Sites tab.
 
 ## 5. Pause, new key, delete
 
 - **Pause** stops a site at once (within the 60 second registry cache of each Worker isolate). Its data stays.
-- **New key** invalidates the old key at once. Every page still using the old snippet stops sending until the snippet is updated.
+- **New key** invalidates the old key at once. Every page still using the old snippet stops sending until the snippet is updated. The proxy secret stays.
+- **Proxy secret** (section 4a): a second secret replaces the first, and Remove proxy secret deletes it. Both stop the old secret within the same 60 seconds, and the new secret works on every isolate within that time; until the proxy sends a valid one, its posts are counted as `proxy_auth`. When an isolate cannot read the sites collection it keeps its last registry for everything else, but refuses every proxy secret once that registry was loaded more than 10 minutes ago, so a removed secret never outlives a read failure by more than 10 minutes.
 - **Delete** removes the site after a typed confirmation. With "also delete its data", every row of the site is deleted in chunks of 2000 rows per table; the deletion resumes where it stopped if interrupted. Without it, the rows stay until retention removes them; there is no automatic purge of unregistered sites.
 
 ## 6. Retention and privacy

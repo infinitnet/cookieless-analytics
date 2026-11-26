@@ -1,8 +1,8 @@
 import { LINK_EVENTS, PLUGIN_ID, PRODUCT_NAME, ROUTES, SID_RE, VERSION, isPassiveEvent } from "./contract.mjs";
-import { $ as sitesInTables, $i as timingSafeEqual, $n as nextUtcDay, $r as statePrefix, $t as ORDER_SUMS, A as BUILTIN_CHANNEL_RULES, Ai as paramRows, An as LINK_BY, Ar as OID_RE, At as revenueOrders, B as KV_WRITE_BUDGET, Bi as eachDay, Bn as TRAFFIC_DIMS, Br as isCurrency, C as siteProblem, Ci as dayInt, Cn as inList, Cr as conflictsWithScope, Ct as WITH_REVENUE, D as readVisits, Di as docRead, Dn as FilterSchema, Dr as publicNames, Dt as metaOf, E as MAX_DOC_BYTES, Ei as docPut, En as FUNNEL_MODES, Er as parseLinkRules, Et as hasRevenue, F as UTM_KEYS, Fi as chunk, Fn as QuerySchema, Fr as isSid, Ft as resolveGranularity, G as KV_CURSOR, Gi as saltDay, Gn as copyRowsLeft, Gr as ensureHostSchema, Gt as openDay, H as budgetTargetOf, Hi as lastClosedDay, Hn as COPY_DAY_ROWS, Hr as roundMinor, Ht as clearOpenDays, I as cleanHost, Ii as ident, In as REVENUE_BREAKDOWN_DIMS, Ir as validateIngest, It as timeseries, J as clearEstimateDay, Ji as base64url, Jn as PROVIDER_DAYS, Jr as missingDb, Jt as readSummary, K as KV_DELETE_ROWS, Ki as samePeriodLastYear, Kn as nextUtcMidnight, Kr as factsDb, Kt as planFilters, Li as addDays, Ln as REVENUE_DIMS, Lr as validateRevenue, Lt as weekStart, M as buildChannelRules, Mi as textMatch, Mn as NUM_OPS, Mr as isEventName, Mt as revenueSeries, N as classifyChannel, Ni as upsertChanged, Nn as OPS, Nr as isPath, Nt as withRevenue, Oi as isoDay, On as FunnelStepsSchema, Or as compileSafeRegex, Ot as revenue, P as CLICK_IDS, Pi as visitDayKey, Pn as PROP_KEY_RE, Pr as isReservedEvent, Pt as bucketSeries, Q as runRetention, Qi as sha256, Qn as backfillRange, Qr as stateKv, Qt as DURATION_MS, R as normalizeUrl, Ri as dayInZone, Rn as REVENUE_VALUE_RE, Rt as CUBE_SEG, S as registry, Si as LIKE_ESCAPE, Sn as goalPredicate, Sr as SATISFACTION_REPORTS, St as REVENUE_REPORTS, Ti as docObject, Tn as DIM_NAMES, Tr as organicScope, Tt as currencyOf, U as dailyRowsApply, Ui as previousPeriod, Un as chargeCopyRows, Ur as eachDatabase, Ut as clearScanCache, V as budgetState, Vi as hourInZone, Vn as unionAllChunked, Vr as normalizeCurrency, Vt as behindNotice, Wi as saltBoundary, Wn as copiedToday, Wr as eachTarget, X as rawFromDay, Xn as SYNC_BUDGET, Xr as pluginFactsOrNull, Xt as storedSessions, Y as effectiveRawDays, Yi as getOrCreateSalt, Yn as RowsPaused, Yt as splitRange, Z as runChunk, Zi as randomId, Zn as SyncRows, Zr as setPluginFacts, Zt as storedThrough, _ as linkedHosts, _i as fromKysely, _n as compileSearch, _r as LOW_SAMPLE, _t as journeyNext, ai as pgOwnScope, an as num$2, ar as ThrottledError, at as SEGS, b as markHostSeen, bi as isD1, bn as entryCols, br as SATISFACTION_CAVEAT, bt as journeysFromSummary, c as ClientSiteSchema, ci as redact, cn as round, cr as PROFILES, ct as dayStatements, d as SITE_ID_RE, di as SCHEMA_VERSION_KEY, dn as sessionTotals, dr as budgetWarning, dt as runRollup, ea as truncateIp, en as annotationsIn, er as utcDay, et as CUBE_CAP, f as SITE_KEY_RE, fi as TABLES$1, fn as sessionWhere, fr as cachedSettings, ft as sitesOfDay, g as invalidateRegistry, gi as schemaVersion, gn as and, gr as settingsSchema, gt as JOURNEY_SESSION_CAP, h as hostnameOf, hi as isOwnDatabase, hn as TRUE, hr as parseSiteSearchParams, ht as linksPlan, i as ingestStatus, ii as isHyperdrive, ir as SourceError, it as OTHER, ji as q, jn as NEGATED, jr as cleanProps, jt as revenuePlan, k as isActive$1, ki as likeEscape, kn as GoalSchema, kr as validateSafeRegex, kt as revenueBreakdown, l as HOST_SEEN_PREFIX, ln as sessionBreakdown, lr as budgetMb, lt as rollupDay, m as bindSite, mi as ensureSchemaOnce, mn as QueryError, mr as normalizeSettings, mt as linksFromSummary, ni as INGEST_STATEMENT_MS, nn as hitJoin, nr as MAPPING_FIELD, nt as KV_ROLLUP_CURSOR, o as routedSink, oi as pgScope, on as ratio, or as DEFAULT_SETTINGS, ot as SUMMARY_DIMS, p as SiteField, pi as ensureSchema, pn as visitDays, pr as d1CapMb, pt as links, q as cleanSalts, qi as zonedToEpoch, qn as KV_SYNC_ROWS, qr as factsTargets, ri as fromPg, rn as keysIn, rr as SOURCE_IDS, rt as KV_WATERMARK, si as pgStatementLimit, sn as refundDim, sr as HOST_FORM_POINTER, st as counted$1, ta as vkey, ti as queryCacheOn, tn as bounceRate, tr as BudgetExhausted, tt as KV_REVENUE_CURSOR, u as LINKED_HOSTS_KEY, ui as SCHEMA_VERSION, ur as budgetRange, ut as runRevenue, v as linkedHostsOf, vi as selfCheck, vn as compileTraffic, vr as POGO_DEFINITION, vt as journeyPaths, w as drops, wi as docJson, wn as validateFilters, wr as lowSampleLine, wt as currencyList, x as newSiteKey, xi as workerEnv, xn as entryProp, xt as journeysUnavailable, y as loadSites, yi as fromD1, yn as entriesOf, yr as SATISFACTION_BY, yt as journeyPrev, zi as daysBetween, zn as SEARCH_DIMS, zr as formatAmount } from "./queue-sink-BMpCPS7L.mjs";
-import { C as AGENT_CATEGORIES, S as AGENTS, _ as parseUa, a as scriptBody, b as classifyUa, d as bump, f as orderHitId, g as sinkOf, h as requestInfo, i as middlewareLiveAt, o as AGENT_RULES_KEY, p as recordClientEvent, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as uaNorm, w as compileUserRules, x as createClassifier, y as siteSetting } from "./middleware-core-DA_rSZpL.mjs";
-import { a as runRollupReport, c as notFound$1, l as pages, n as ROLLUP_REPORTS, o as entryPages, r as rawOnly, s as exitPages, t as RAW_ONLY, u as overview } from "./rollup-D8lfKcbv.mjs";
-import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-Cb8ltp3m.mjs";
+import { $ as runChunk, $i as randomId, $n as SyncRows, $r as setPluginFacts, $t as storedThrough, Ai as isoDay, An as FunnelStepsSchema, Ar as compileSafeRegex, At as revenue, B as normalizeUrl, Bi as dayInZone, Bn as REVENUE_VALUE_RE, Bt as CUBE_SEG, C as registry, Ci as workerEnv, Cn as entryProp, Ct as journeysUnavailable, Di as docObject, Dn as DIM_NAMES, Dr as organicScope, Dt as currencyOf, E as drops, Ei as docJson, En as validateFilters, Er as lowSampleLine, Et as currencyList, F as classifyChannel, Fi as upsertChanged, Fn as OPS, Fr as isPath, Ft as withRevenue, G as dailyRowsApply, Gi as previousPeriod, Gn as chargeCopyRows, Gr as eachDatabase, Gt as clearScanCache, H as KV_WRITE_BUDGET, Hi as eachDay, Hn as TRAFFIC_DIMS, Hr as isCurrency, I as CLICK_IDS, Ii as visitDayKey, In as PROP_KEY_RE, Ir as isReservedEvent, It as bucketSeries, J as KV_DELETE_ROWS, Ji as samePeriodLastYear, Jn as nextUtcMidnight, Jr as factsDb, Jt as planFilters, Ki as saltBoundary, Kn as copiedToday, Kr as eachTarget, L as UTM_KEYS, Li as chunk, Ln as QuerySchema, Lr as isSid, Lt as resolveGranularity, M as BUILTIN_CHANNEL_RULES, Mi as paramRows, Mn as LINK_BY, Mr as OID_RE, Mt as revenueOrders, Ni as q, Nn as NEGATED, Nr as cleanProps, Nt as revenuePlan, O as MAX_DOC_BYTES, Oi as docPut, On as FUNNEL_MODES, Or as parseLinkRules, Ot as hasRevenue, P as buildChannelRules, Pi as textMatch, Pn as NUM_OPS, Pr as isEventName, Pt as revenueSeries, Q as rawFromDay, Qn as SYNC_BUDGET, Qr as pluginFactsOrNull, Qt as storedSessions, R as cleanHost, Ri as ident, Rn as REVENUE_BREAKDOWN_DIMS, Rr as validateIngest, Rt as timeseries, S as proxyHashOf, Si as isD1, Sn as entryCols, Sr as SATISFACTION_CAVEAT, St as journeysFromSummary, T as siteView, Ti as dayInt, Tn as inList, Tr as conflictsWithScope, Tt as WITH_REVENUE, U as budgetState, Ui as hourInZone, Un as unionAllChunked, Ur as normalizeCurrency, Ut as behindNotice, Vi as daysBetween, Vn as SEARCH_DIMS, Vr as formatAmount, W as budgetTargetOf, Wi as lastClosedDay, Wn as COPY_DAY_ROWS, Wr as roundMinor, Wt as clearOpenDays, X as clearEstimateDay, Xi as base64url, Xn as PROVIDER_DAYS, Xr as missingDb, Xt as readSummary, Y as cleanSalts, Yi as zonedToEpoch, Yn as KV_SYNC_ROWS, Yr as factsTargets, Z as effectiveRawDays, Zi as getOrCreateSalt, Zn as RowsPaused, Zt as splitRange, _ as linkedHosts, _i as isOwnDatabase, _n as TRUE, _r as parseSiteSearchParams, _t as linksPlan, ai as fromPg, an as keysIn, ar as SOURCE_IDS, at as KV_WATERMARK, b as markHostSeen, bi as selfCheck, bn as compileTraffic, br as POGO_DEFINITION, bt as journeyPaths, c as ClientSiteSchema, ci as pgScope, cn as ratio, cr as DEFAULT_SETTINGS, ct as SUMMARY_DIMS, d as SITE_ID_RE, dn as sessionBreakdown, dr as budgetMb, dt as rollupDay, ea as sha256, ei as stateKv, en as DURATION_MS, er as backfillRange, et as runRetention, f as SITE_KEY_RE, fi as SCHEMA_VERSION, fr as budgetRange, ft as runRevenue, g as invalidateRegistry, gi as ensureSchemaOnce, gn as QueryError, gr as normalizeSettings, gt as linksFromSummary, h as hostnameOf, hi as ensureSchema, hn as visitDays, hr as d1CapMb, ht as links, i as ingestStatus, ii as INGEST_STATEMENT_MS, in as hitJoin, ir as MAPPING_FIELD, it as KV_ROLLUP_CURSOR, j as isActive$1, ji as likeEscape, jn as GoalSchema, jr as validateSafeRegex, jt as revenueBreakdown, k as readVisits, ki as docRead, kn as FilterSchema, kr as publicNames, kt as metaOf, l as HOST_SEEN_PREFIX, li as pgStatementLimit, ln as refundDim, lr as HOST_FORM_POINTER, lt as counted$1, m as bindSite, mi as TABLES$1, mn as sessionWhere, mr as cachedSettings, mt as sitesOfDay, na as truncateIp, nn as annotationsIn, nr as utcDay, nt as CUBE_CAP, o as routedSink, oi as isHyperdrive, or as SourceError, ot as OTHER, p as SiteField, pi as SCHEMA_VERSION_KEY, pn as sessionTotals, pr as budgetWarning, pt as runRollup, q as KV_CURSOR, qi as saltDay, qn as copyRowsLeft, qr as ensureHostSchema, qt as openDay, ra as vkey, ri as queryCacheOn, rn as bounceRate, rr as BudgetExhausted, rt as KV_REVENUE_CURSOR, si as pgOwnScope, sn as num$2, sr as ThrottledError, st as SEGS, ta as timingSafeEqual, ti as statePrefix, tn as ORDER_SUMS, tr as nextUtcDay, tt as sitesInTables, u as LINKED_HOSTS_KEY, ui as redact, un as round, ur as PROFILES, ut as dayStatements, v as linkedHostsOf, vi as schemaVersion, vn as and, vr as settingsSchema, vt as JOURNEY_SESSION_CAP, w as siteProblem, wi as LIKE_ESCAPE, wn as goalPredicate, wr as SATISFACTION_REPORTS, wt as REVENUE_REPORTS, x as newSiteKey, xi as fromD1, xn as entriesOf, xr as SATISFACTION_BY, xt as journeyPrev, y as loadSites, yi as fromKysely, yn as compileSearch, yr as LOW_SAMPLE, yt as journeyNext, zi as addDays, zn as REVENUE_DIMS, zr as validateRevenue, zt as weekStart } from "./queue-sink-CaP3WkIr.mjs";
+import { A as AGENT_CATEGORIES, C as proxySecretOk, D as classifyUa, E as parseToken, O as createClassifier, S as newProxySecret, T as hashSecret, _ as sinkOf, a as scriptBody, b as siteSetting, d as bump, f as forwardedFacts, g as requestInfo, i as middlewareLiveAt, j as compileUserRules, k as AGENTS, m as recordClientEvent, o as AGENT_RULES_KEY, p as orderHitId, r as currentAudience, s as resetStoredAgentRules, t as MW_SEEN_KEY, u as MAX_RECORD_BYTES, v as parseUa, w as generateToken, x as PROXY_KEY_HEADER, y as uaNorm } from "./middleware-core-4cCk1_7E.mjs";
+import { a as runRollupReport, c as notFound$1, l as pages, n as ROLLUP_REPORTS, o as entryPages, r as rawOnly, s as exitPages, t as RAW_ONLY, u as overview } from "./rollup-B3W0TZWj.mjs";
+import { i as parseOptions, n as allowedHostsFor, r as engineOf, t as BINDING_RE } from "./config-CA_qEoFE.mjs";
 import { PluginRouteError, after, definePlugin, getPluginSettings, pluginResponse } from "emdash";
 import { getDb } from "emdash/runtime";
 import { z } from "zod";
@@ -309,30 +309,6 @@ async function recordAgentEvents(deps, site, events) {
 		duplicates,
 		rejected: rejected.sort((a, b) => a.index - b.index)
 	};
-}
-// src/keys/token.ts
-/** API key tokens: `<8 char prefix>.<secret>`, the secret is 32 random bytes in base64url. */
-const TOKEN_RE = /^([a-z0-9]{8})\.([A-Za-z0-9_-]{43})$/;
-function generateToken() {
-	const prefix = randomId(8);
-	const secret = base64url(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
-	return {
-		prefix,
-		secret,
-		token: `${prefix}.${secret}`
-	};
-}
-/** Prefix and secret of a well formed token, else null. */
-function parseToken(raw) {
-	const m = TOKEN_RE.exec(raw?.trim() ?? "");
-	return m ? {
-		prefix: m[1],
-		secret: m[2]
-	} : null;
-}
-/** Hex SHA-256 of the secret; 256 bits of entropy make a slow or salted hash unnecessary. */
-async function hashSecret(secret) {
-	return [...await sha256(secret)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 const view = (id, k) => {
 	const { hash: _h, ...rest } = k;
@@ -7325,7 +7301,7 @@ const SERIES_REPORTS = /* @__PURE__ */ new Set([
 * Resolve segment, goals, funnels, annotations and the raw window, then run the report. Shared with the
 * agent API. `preloaded` replaces the annotation read and keeps goals and the raw window state for a dashboard run.
 */
-async function answer(env, ctx, body, preloaded) {
+async function answer$1(env, ctx, body, preloaded) {
 	const s = await env.settings();
 	const bound = await bindSite(body.query.site, s.siteId, ctx.storage.sites);
 	const site = bound.id;
@@ -7517,7 +7493,7 @@ async function proxied(remote, ctx, site, body) {
 /** `answer`, or the satellite's answer when `query.site` names a remote satellite. */
 async function answerAny(env, ctx, body) {
 	const site = await remoteOf(env, ctx, body.query.site);
-	return site && env.remote ? proxied(env.remote, ctx, site, body) : answer(env, ctx, body);
+	return site && env.remote ? proxied(env.remote, ctx, site, body) : answer$1(env, ctx, body);
 }
 function dataQueryRoute(env) {
 	return {
@@ -7635,11 +7611,11 @@ function retryOnce(sink, pauseMs = () => 50 + Math.random() * 150) {
 	} };
 }
 /** 503 with `Retry-After`: the event was not stored and the client sends it again. */
-const unavailable = () => pluginResponse({
+const unavailable = (seconds = 5) => pluginResponse({
 	status: 503,
 	headers: {
 		"content-type": "text/plain",
-		"retry-after": String(5)
+		"retry-after": String(seconds)
 	}
 });
 /** 503 without `Retry-After`: the day's write allowance is used up and the client stops sending this event. */
@@ -7655,6 +7631,10 @@ const blocked = () => pluginResponse({
 * condition, counted as `write_error`), so it does not. Engagement updates are
 * written after the response (a beacon cannot retry; the next update carries the same totals). Every request
 * that is not stored is counted in `drops` (bots as `bot`, nothing else of them), flushed in an `after()`.
+*
+* Proxy mode: a post that carries `X-EC-Proxy-Key` comes from a server proxy on a client site's own host. When the
+* header is the proxy secret of the event's site, the visitor's address and country are taken from `X-EC-Client-IP`
+* and `X-EC-Country` and never from the connection, which is the proxy's. A post without the header never reads them.
 */
 function inRoute(env) {
 	return {
@@ -7685,7 +7665,8 @@ function inRoute(env) {
 		}
 	}
 	async function decide(ctx, deps) {
-		const day = dayInZone(deps.now ?? Math.floor(Date.now() / 1e3), deps.settings.siteTimezone);
+		const now = deps.now ?? Math.floor(Date.now() / 1e3);
+		const day = dayInZone(now, deps.settings.siteTimezone);
 		const count = (reason, site = deps.settings.siteId) => {
 			drops.add(site, day, reason);
 			return noContent();
@@ -7696,10 +7677,28 @@ function inRoute(env) {
 		const reg = await registry(ctx.storage?.sites);
 		const res = resolveOrigin(ctx.request, body, reg.byKey);
 		if ("drop" in res) return count(res.drop);
+		const proxyKey = ctx.request.headers.get(PROXY_KEY_HEADER);
+		let fwd = null;
+		if (proxyKey !== null) {
+			const rec = body.k ? reg.byKey.get(body.k) : void 0;
+			if (!rec || !await proxySecretOk(proxyHashOf(reg, rec), proxyKey)) return count("proxy_auth");
+			const site = res.site ? res.site.id : deps.settings.siteId;
+			if (bump("proxy", rec.id, now) > deps.settings.proxyRateLimitPerMinute) {
+				count("proxy_rate", site);
+				return unavailable(60 - now % 60);
+			}
+			fwd = forwardedFacts(ctx.request.headers);
+			if (!fwd) return count("invalid", site);
+		}
 		const info = {
 			...requestInfo(ctx.request, ctx.requestMeta ? ctx.requestMeta.ip : void 0),
 			host: res.host,
-			hasOrigin: ctx.request.headers.has("origin")
+			hasOrigin: ctx.request.headers.has("origin"),
+			...fwd ? {
+				ip: fwd.ip,
+				country: fwd.country,
+				region: null
+			} : {}
 		};
 		const linked = linkedHosts(reg.linked);
 		let d = deps;
@@ -10065,7 +10064,7 @@ function handlers(env) {
 			const bound = agentBounds(body);
 			if (bound) throw new InputError(bound.error, bound.message);
 			if (!requiredScopes(body).every((s) => scopes.includes(s))) throw new ScopeError();
-			return reportOut(await answer(env, ctx, {
+			return reportOut(await answer$1(env, ctx, {
 				...body,
 				query: {
 					...body.query,
@@ -10079,7 +10078,7 @@ function handlers(env) {
 		"agent/v1/summary": { async GET({ ctx, site, tz, now }) {
 			const r = range(ctx.input, dayInZone(now, tz), 7, SummaryParams);
 			const compare = parse(SummaryParams, ctx.input).compare ?? "previous";
-			const ov = await answer(env, ctx, {
+			const ov = await answer$1(env, ctx, {
 				report: "overview",
 				query: {
 					...r,
@@ -10089,7 +10088,7 @@ function handlers(env) {
 					granularity: "auto"
 				}
 			});
-			const rev = await answer(env, ctx, {
+			const rev = await answer$1(env, ctx, {
 				report: "revenue",
 				query: {
 					...r,
@@ -10226,7 +10225,7 @@ function handlers(env) {
 				site,
 				tz,
 				now,
-				dispatch: (b, a) => answer(env, ctx, b, a),
+				dispatch: (b, a) => answer$1(env, ctx, b, a),
 				loadAnnotations: (r) => loadAnnotations(ctx.storage.annotations, site, r.from, r.to, tz),
 				segmentExists: async (id) => (await ctx.storage.segments?.get(id))?.site === site
 			}, d, {
@@ -11292,10 +11291,11 @@ function contractBody(s) {
 		pluginId: PLUGIN_ID,
 		collectPath: s.collectPath,
 		scriptPath: s.scriptPath,
-		namespace: s.namespace
+		namespace: s.namespace,
+		proxy: true
 	};
 }
-/** Public discovery route for sibling plugins. */
+/** Public discovery route for sibling plugins and for servers that send to this install; `proxy` tells them the event route has the proxy mode. */
 function contractRoute(env) {
 	return {
 		public: true,
@@ -11304,6 +11304,43 @@ function contractRoute(env) {
 		cacheControl: "public, max-age=60",
 		async handler(ctx) {
 			return json$1(contractBody((await env.deps(ctx)).settings));
+		}
+	};
+}
+// src/routes/proxy-check.ts
+const answer = (ok) => {
+	return pluginResponse({
+		status: ok ? 200 : 403,
+		headers: { "content-type": "application/json; charset=utf-8" },
+		body: {
+			kind: "text",
+			value: JSON.stringify({
+				v: 1,
+				ok
+			})
+		}
+	});
+};
+/**
+* Connection test of a server proxy: `GET .../proxy/check?k=<site key>` with the proxy secret in `X-EC-Proxy-Key`
+* answers 200 `{ ok: true }` when the secret is the one of that site. Everything else is one 403 `{ ok: false }`:
+* no key, an unknown key, a site without a secret, a missing, malformed or wrong secret. It answers for the given
+* site key only, so it tells nothing about any other site, and a paused site's secret still checks.
+*
+* Like the event route it refuses every secret while the snapshot is older than `PROXY_SNAPSHOT_MAX_AGE_MS`
+* (the sites collection could not be read for that long). It reads the sites registry snapshot and nothing else: no settings, no database, no counter, no write. The host
+* sends `Cache-Control: private, no-store` with both answers.
+*/
+function proxyCheckRoute() {
+	return {
+		public: true,
+		methods: ["GET"],
+		response: "raw",
+		async handler(ctx) {
+			const k = ctx.input?.k;
+			const reg = typeof k === "string" && SITE_KEY_RE.test(k) ? await registry(ctx.storage?.sites) : void 0;
+			const hash = reg ? proxyHashOf(reg, reg.byKey.get(k)) : void 0;
+			return answer(await proxySecretOk(hash, ctx.request.headers.get(PROXY_KEY_HEADER)));
 		}
 	};
 }
@@ -12393,7 +12430,7 @@ function mailDeps(env, base, s, origin) {
 				site,
 				tz: s.siteTimezone,
 				now,
-				dispatch: (b, a) => answer({
+				dispatch: (b, a) => answer$1({
 					...env,
 					db: async (other) => other === void 0 || other === site ? db : env.db(other),
 					now: () => now
@@ -14260,6 +14297,11 @@ const KeyBody = z.object({
 	id: z.string().regex(SITE_ID_RE),
 	key: z.string().optional()
 }).strict();
+/** Make the proxy secret of a site, or replace it (the answer shows it once); `revoke` removes it. */
+const ProxySecretBody = z.object({
+	id: z.string().regex(SITE_ID_RE),
+	revoke: z.boolean().optional()
+}).strict();
 const bad = (msg) => new PluginRouteError("invalid_site", msg, 400);
 function coll$1(ctx) {
 	const c = ctx.storage?.sites;
@@ -14312,7 +14354,7 @@ function siteRoutes(env) {
 		await syncLinked(ctx, [...(await loadSites(coll$1(ctx))).filter((o) => o.id !== site.id), site]);
 		await coll$1(ctx).put(site.id, site);
 		invalidateRegistry();
-		return { site };
+		return { site: siteView(site) };
 	}
 	return {
 		"sites/list": {
@@ -14322,8 +14364,8 @@ function siteRoutes(env) {
 				const body = ListBody.parse(ctx.input ?? void 0);
 				const s = await env.settings();
 				const all = await loadSites(ctx.storage?.sites);
-				const clients = all.filter((c) => !c.linked);
-				const linked = all.filter((c) => c.linked);
+				const clients = all.filter((c) => !c.linked).map(siteView);
+				const linked = all.filter((c) => c.linked).map(siteView);
 				const sites = [{
 					id: s.siteId,
 					label: "This site",
@@ -14538,6 +14580,26 @@ function siteRoutes(env) {
 					...cur.data,
 					key: body.key ?? newSiteKey()
 				}, body.id));
+			}
+		},
+		"sites/proxy-secret": {
+			permission: "plugins:manage",
+			input: ProxySecretBody,
+			async handler(ctx) {
+				const body = ProxySecretBody.parse(ctx.input);
+				const cur = ClientSiteSchema.safeParse(await coll$1(ctx).get(body.id));
+				if (!cur.success) throw new PluginRouteError("not_found", "Unknown site.", 404);
+				const { proxyHash: _h, proxyCreated: _c, ...rest } = cur.data;
+				if (body.revoke) return write(ctx, rest);
+				const { secret, hash } = await newProxySecret();
+				return {
+					...await write(ctx, {
+						...rest,
+						proxyHash: hash,
+						proxyCreated: now()
+					}),
+					secret
+				};
 			}
 		},
 		"sites/delete": {
@@ -14797,7 +14859,7 @@ function shareViewRoute(env) {
 				site,
 				tz: s.siteTimezone,
 				now,
-				dispatch: (b, a) => answer(env, dctx, b, a),
+				dispatch: (b, a) => answer$1(env, dctx, b, a),
 				loadAnnotations: (r) => loadAnnotations(ctx.storage.annotations, site, r.from, r.to, s.siteTimezone),
 				segmentExists: async (id) => (await ctx.storage.segments?.get(id))?.site === site
 			}, dash, {
@@ -15079,12 +15141,14 @@ const SETTINGS_SECTIONS = [
 		label: "Limits and API",
 		keys: [
 			"agentRateLimitPerMinute",
+			"proxyRateLimitPerMinute",
 			"maxPageviewsPerSession",
 			"maxEventsPerSession",
 			"maxEventsPerSidPerMinute",
 			"maxEventsPerVkeyPerMinute"
 		],
 		advanced: [
+			"proxyRateLimitPerMinute",
 			"maxPageviewsPerSession",
 			"maxEventsPerSession",
 			"maxEventsPerSidPerMinute",
@@ -17105,7 +17169,7 @@ const ADMIN_WIDGETS = [{
 */
 const PLUGIN_LABELS = {
 	displayName: PRODUCT_NAME,
-	description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped."
+	description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 3 KB gzipped."
 };
 /**
 * `options.sites`: remote satellites; `options.database`: the D1 or Hyperdrive binding of an own analytics database;
@@ -17528,6 +17592,7 @@ function createPlugin(options = {}) {
 			in: inRoute(env),
 			session: sessionRoute(env),
 			contract: contractRoute(env),
+			[ROUTES.proxyCheck]: proxyCheckRoute(),
 			[ROUTES.shareView]: {
 				...shareView,
 				handler: (ctx) => shareView.handler(ctx)

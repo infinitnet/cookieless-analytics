@@ -25,6 +25,7 @@ import { annotate } from "./annotations/hook.js";
 import { type PreviewCtx, previewRoute } from "./routes/annotations.js";
 import { type EditorCtx, editorRoutes } from "./routes/editor.js";
 import { contractRoute } from "./routes/contract.js";
+import { proxyCheckRoute } from "./routes/proxy-check.js";
 import { type DashCtx, dashboardRoutes } from "./routes/dashboards.js";
 import { mailDeps, runMailTick, type MailTickCtx } from "./dashboards/mail.js";
 import { type Coll, type DataCtx, dataCatalogRoute, dataExportRoute, dataQueryRoute, loadGoals } from "./routes/data.js";
@@ -102,7 +103,7 @@ export const ADMIN_WIDGETS = [{ id: "today", title: "Cookieless Analytics", size
 export const PLUGIN_LABELS = {
 	displayName: PRODUCT_NAME,
 	description:
-		"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.",
+		"Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 3 KB gzipped.",
 } as const;
 
 /**
@@ -454,6 +455,7 @@ export function createPlugin(options: PluginOptions = {}) {
 			in: inRoute(env),
 			session: sessionRoute(env),
 			contract: contractRoute(env),
+			[ROUTES.proxyCheck]: proxyCheckRoute(),
 			[ROUTES.shareView]: { ...shareView, handler: (ctx: RouteContext) => shareView.handler(ctx as unknown as ShareViewCtx) },
 			"data/query": wrap<DataCtx>(dataQuery),
 			"data/export": wrap<DataCtx>(dataExport),

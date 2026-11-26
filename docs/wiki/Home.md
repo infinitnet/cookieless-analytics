@@ -3,7 +3,7 @@
 Self-hosted, cookieless web analytics for EmDash CMS sites and any other site, with the reports inside the EmDash admin.
 
 - **Privacy first, with metrics others lack.** No cookie and nothing stored on the device unless a visitor opts out, yet real sessions, Search Satisfaction, Search Console and Bing data, funnels and revenue by source.
-- **Light and fast.** A page script of about 2.7 KB gzipped, loaded with `defer` and cached for an hour; one request per page view plus one engagement update. Pages never wait for the analytics database, and there is no extra service to run. Measured figures: [performance.md](https://github.com/infinitnet/cookieless-analytics/blob/main/docs/performance.md).
+- **Light and fast.** A page script of about 3 KB gzipped, loaded with `defer` and cached for an hour; one request per page view plus one engagement update. Pages never wait for the analytics database, and there is no extra service to run. Measured figures: [performance.md](https://github.com/infinitnet/cookieless-analytics/blob/main/docs/performance.md).
 - **Flexible setup.** Deploy a new site with one click or add the npm package to an existing EmDash site. Measure other sites with one script tag or Google Tag Manager. Keep the data in D1 (the default) or in Postgres through Hyperdrive, with a capacity profile for your Cloudflare plan.
 
 ![Overview page with synthetic data](images/overview.png)

@@ -26,7 +26,7 @@ The plugin counts visits without writing anything to the visitor's device unless
 vkey = base64url(HMAC-SHA256(salt of the day, site | truncated IP | browser family and major, OS family, device class)), cut to 22 characters
 ```
 
-- The IP is cut before hashing: IPv4 to /24 and IPv6 to /48 (`ipTruncation` `standard`), or /16 and /32 (`strict`). The address is then gone.
+- The IP is cut before hashing: IPv4 to /24 and IPv6 to /48 (`ipTruncation` `standard`), or /16 and /32 (`strict`). The address is then gone. An address that a client site's server proxy forwards is cut and used the same way.
 - The salt is 32 random bytes, created on first use each day. The `salts` task deletes salts older than two days. A deleted salt cannot be recomputed, so older keys can no longer be matched to anyone.
 - The salt day follows `saltTimezone` and `saltRotationHour`.
 - Because the key changes every day, visitors are counted per day. A figure over several days is the sum of daily visitors and is labeled so.

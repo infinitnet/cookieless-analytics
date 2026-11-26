@@ -241,6 +241,65 @@ describe("Sites tab", () => {
 		await within(panel).findByText(/served by this install/);
 	});
 
+	it("makes a proxy secret shown once, replaces and removes it after confirmation, and never shows it again", async () => {
+		const panel = await openSites();
+		await addBlog(panel);
+		const row = () => within(panel).getByRole("cell", { name: "Blog" }).closest("tr") as HTMLElement;
+		const rec = () => sites.items.get("blog") as { proxyHash?: string; proxyCreated?: number };
+		click(row(), "Proxy secret");
+		const box = () => within(panel).getByRole("region", { name: "Proxy secret for Blog" });
+		expect(box().textContent).toContain("No proxy secret.");
+		expect(box().textContent).toContain("The script tag alone needs no secret.");
+		expect(within(box()).queryByRole("button", { name: "Remove proxy secret" })).toBeNull();
+
+		click(box(), "Create proxy secret");
+		const code = await within(box()).findByLabelText("Proxy secret of Blog", { selector: "code" });
+		const first = code.textContent ?? "";
+		expect(first).toMatch(/^[A-Za-z0-9_-]{43}$/);
+		expect(calls.filter((c) => c.route === "sites/proxy-secret").map((c) => c.body)).toEqual([{ id: "blog" }]);
+		expect(box().textContent).toContain("Copy the secret now: it is not shown again.");
+		expect(box().textContent).toContain("Every server of this install accepts it within 60 seconds, so a connection test can fail during that minute.");
+		// The stored record holds the hash, not what the page shows.
+		const hash = rec().proxyHash as string;
+		expect(hash).toMatch(/^[0-9a-f]{64}$/);
+		expect(JSON.stringify(rec())).not.toContain(first);
+		await waitFor(() => expect(box().textContent).toMatch(/A proxy secret exists, made on \d{4}-\d{2}-\d{2}\./));
+		// The row says so too.
+		expect(row().textContent).toContain("active, proxy secret set");
+		expect(panel.textContent).not.toContain(hash);
+
+		// Closing and opening the panel: the secret is gone from the page for good.
+		click(row(), "Proxy secret");
+		expect(within(panel).queryByRole("region", { name: "Proxy secret for Blog" })).toBeNull();
+		click(row(), "Proxy secret");
+		expect(box().textContent).not.toContain(first);
+		expect(within(box()).queryByLabelText("Proxy secret of Blog", { selector: "code" })).toBeNull();
+
+		// A new secret needs a second click and says what it does to the old one.
+		click(box(), "New proxy secret");
+		expect(box().textContent).toContain("A new secret stops the old one within 60 seconds.");
+		expect(box().textContent).toContain("While the site list cannot be read, every proxy secret is refused once the last successful read is 10 minutes old.");
+		expect(rec().proxyHash).toBe(hash);
+		click(box(), "Confirm new proxy secret");
+		await waitFor(() => expect(rec().proxyHash).not.toBe(hash));
+		const second = (await within(box()).findByLabelText("Proxy secret of Blog", { selector: "code" })).textContent ?? "";
+		expect(second).toMatch(/^[A-Za-z0-9_-]{43}$/);
+		expect(second).not.toBe(first);
+
+		// Removing it, again after a confirmation; Cancel leaves it.
+		click(box(), "Remove proxy secret");
+		expect(box().textContent).toContain("Removing the secret stops it within 60 seconds.");
+		click(box(), "Cancel");
+		expect(rec().proxyHash).toBeTruthy();
+		click(box(), "Remove proxy secret");
+		click(box(), "Confirm removal");
+		await waitFor(() => expect(rec()).not.toHaveProperty("proxyHash"));
+		await waitFor(() => expect(box().textContent).toContain("No proxy secret."));
+		expect(row().textContent).not.toContain("proxy secret set");
+		expect(box().textContent).not.toContain(second);
+		expect(calls.filter((c) => c.route === "sites/proxy-secret").map((c) => c.body)).toEqual([{ id: "blog" }, { id: "blog" }, { id: "blog", revoke: true }]);
+	});
+
 	it("pauses, regenerates the key after confirmation and deletes with the typed confirmation and data", async () => {
 		const panel = await openSites();
 		const blog = await addBlog(panel);

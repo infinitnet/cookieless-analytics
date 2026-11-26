@@ -144,6 +144,33 @@ describe("collect path", () => {
 		expect(cross.dispatch).toHaveBeenCalledOnce();
 	});
 
+	it("a preflight that asks for the proxy headers is still allowed content-type only, so no browser can send the proxy secret", async () => {
+		const asked = "content-type, x-ec-proxy-key, x-ec-client-ip, x-ec-country";
+		const t = setup({ path: "/_/e", method: "OPTIONS", headers: { origin: "https://blog.example.net", "access-control-request-method": "POST", "access-control-request-headers": asked } });
+		const res = await handleRequest(t.ctx, t.next, t.deps);
+		// Exactly this value: a browser refuses to send a cross-origin post with any header that is not in it.
+		expect(res.headers.get("access-control-allow-headers")).toBe("content-type");
+		expect([...res.headers.keys()].sort()).toEqual(["access-control-allow-headers", "access-control-allow-methods", "access-control-allow-origin", "access-control-max-age", "cache-control"]);
+		expect(res.headers.has("access-control-allow-credentials")).toBe(false);
+		expect(t.dispatch).not.toHaveBeenCalled();
+	});
+
+	it("hands a server proxy's post to the in route untouched, with its three headers", async () => {
+		const sent = { origin: "https://blog.example.net", "x-ec-proxy-key": "A".repeat(43), "x-ec-client-ip": "203.0.113.7", "x-ec-country": "FR" };
+		const t = setup({ path: "/_/e", method: "POST", headers: sent });
+		await handleRequest(t.ctx, t.next, t.deps);
+		const req = (t.dispatch.mock.calls[0] as unknown[])[3] as Request;
+		expect(req).toBe(t.request);
+		for (const [name, value] of Object.entries(sent)) expect(req.headers.get(name), name).toBe(value);
+	});
+
+	it("passes on the proxy ceiling's 503 with its own Retry-After, the seconds to the next minute", async () => {
+		const t = setup({ path: "/_/e", method: "POST", headers: { origin: "https://blog.example.net" } });
+		t.dispatch.mockResolvedValueOnce({ success: true, data: pluginResponse({ status: 503, headers: { "retry-after": "30" } }) } as never);
+		const res = await handleRequest(t.ctx, t.next, t.deps);
+		expect([res.status, res.headers.get("retry-after"), res.headers.get("access-control-expose-headers")]).toEqual([503, "30", "retry-after"]);
+	});
+
 	it("other methods on the plugin paths go to the site and are never logged", async () => {
 		for (const [method, path] of [["GET", "/_/e"], ["POST", "/_/e.js"]]) {
 			const t = setup({ method, path, response: new Response(null, { status: 404 }) });

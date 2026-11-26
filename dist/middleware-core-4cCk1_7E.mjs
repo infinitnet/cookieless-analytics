@@ -1,5 +1,5 @@
-import { Br as isCurrency, Dr as publicNames, Gi as saltDay, Hr as roundMinor, I as cleanHost, L as hostInList, Li as addDays, Or as compileSafeRegex, Qi as sha256, R as normalizeUrl, Ri as dayInZone, T as D1Sink, Wi as saltBoundary, Xi as ipInCidr, Yi as getOrCreateSalt, Zi as randomId, ea as truncateIp, j as DEFAULT_HOSTS, ta as vkey, w as drops, z as parseReferrer } from "./queue-sink-BMpCPS7L.mjs";
-import { PLUGIN_ID, ROUTES, isPassiveEvent } from "./contract.mjs";
+import { $i as randomId, Ar as compileSafeRegex, B as normalizeUrl, Bi as dayInZone, D as D1Sink, E as drops, Hr as isCurrency, Ki as saltBoundary, N as DEFAULT_HOSTS, Qi as ipInCidr, R as cleanHost, V as parseReferrer, Wr as roundMinor, Xi as base64url, Zi as getOrCreateSalt, ea as sha256, kr as publicNames, na as truncateIp, qi as saltDay, ra as vkey, ta as timingSafeEqual, z as hostInList, zi as addDays } from "./queue-sink-CaP3WkIr.mjs";
+import { PLUGIN_ID, PROXY_HEADERS, ROUTES, isPassiveEvent } from "./contract.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getPublicPluginApiRouteHandler } from "emdash/plugin-utils";
 // src/data/agents.json
@@ -19692,6 +19692,68 @@ function classifyUa(ua, userRules) {
 	}
 	return c.classify(ua);
 }
+// src/keys/token.ts
+/** API key tokens: `<8 char prefix>.<secret>`, the secret is 32 random bytes in base64url. */
+const TOKEN_RE = /^([a-z0-9]{8})\.([A-Za-z0-9_-]{43})$/;
+function generateToken() {
+	const prefix = randomId(8);
+	const secret = base64url(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
+	return {
+		prefix,
+		secret,
+		token: `${prefix}.${secret}`
+	};
+}
+/** Prefix and secret of a well formed token, else null. */
+function parseToken(raw) {
+	const m = TOKEN_RE.exec(raw?.trim() ?? "");
+	return m ? {
+		prefix: m[1],
+		secret: m[2]
+	} : null;
+}
+/** Hex SHA-256 of the secret; 256 bits of entropy make a slow or salted hash unnecessary. */
+async function hashSecret(secret) {
+	return [...await sha256(secret)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+// src/keys/proxy-secret.ts
+/**
+* Proxy secret of a client site: the one credential of the event route's proxy mode. A server proxy on the site's
+* own host sends it in `X-EC-Proxy-Key`; only then does the route read the visitor's address from the proxy.
+* The secret is 32 random bytes in base64url, shown once when it is made. The site record keeps only its hex
+* SHA-256 (`hashSecret`, as for API keys), so a check costs one hash and no storage read: the record is already
+* in the sites registry snapshot.
+*/
+/** Request header that carries the secret. The event path's preflight never allows it, so a browser cannot send it. */
+const PROXY_KEY_HEADER = PROXY_HEADERS.key;
+/** The visitor's address as the proxy saw it: one IPv4 or IPv6 address. */
+const CLIENT_IP_HEADER = PROXY_HEADERS.clientIp;
+/** The visitor's country, two letters, when the proxy knows it. */
+const COUNTRY_HEADER = PROXY_HEADERS.country;
+const SECRET_RE = /^[A-Za-z0-9_-]{43}$/;
+/** Stored form: lowercase hex SHA-256. */
+const PROXY_HASH_RE = /^[0-9a-f]{64}$/;
+/** Compared against when a site has no secret, so that answer takes the same work as a wrong secret. */
+const NO_HASH = "0".repeat(64);
+/** A new secret and the hash to store. */
+async function newProxySecret() {
+	const secret = base64url(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32)));
+	return {
+		secret,
+		hash: await hashSecret(secret)
+	};
+}
+/**
+* True when `header` is the secret behind `stored`. A missing or malformed header, a site without a secret and
+* a wrong secret are all false; the hashes are compared in constant time.
+*/
+async function proxySecretOk(stored, header) {
+	const secret = header?.trim() ?? "";
+	if (!SECRET_RE.test(secret)) return false;
+	const hash = await hashSecret(secret);
+	const known = stored !== void 0 && PROXY_HASH_RE.test(stored);
+	return timingSafeEqual(hash, known ? stored : NO_HASH) && known;
+}
 // src/core/site-settings.ts
 function siteSetting(settings, client, key) {
 	const own = client?.[key];
@@ -19783,6 +19845,34 @@ function requestInfo(request, ip) {
 		chPlatform: h.get("sec-ch-ua-platform"),
 		host,
 		referer: h.get("referer")
+	};
+}
+/**
+* Addresses no visitor can have: a proxy that sends one is reporting itself or its own reverse proxy. An
+* IPv4-mapped IPv6 address (`::ffff:127.0.0.1`, `::ffff:7f00:1`) is compared as its IPv4 address.
+*/
+const NOT_A_CLIENT = [
+	"127.0.0.0/8",
+	"0.0.0.0/32",
+	"::1/128",
+	"::/128"
+];
+/**
+* Client facts a server proxy forwards: `X-EC-Client-IP` (one IPv4 or IPv6 address) and the optional
+* `X-EC-Country` (two letters). The `in` route calls this only after the site's proxy secret matched.
+* Null: no usable address. The value is one address of at most 45 characters made of hex digits, colons and
+* dots only, so a list, a port in brackets and a zone id (`fe80::1%eth0`, which names an interface of the
+* proxy, not a visitor) are refused. `truncateIp` returns "" for anything it cannot parse, which would hash every
+* such visitor into one key, so an address counts only when it truncates to something.
+*/
+function forwardedFacts(h) {
+	const ip = (h.get(CLIENT_IP_HEADER) ?? "").trim();
+	if (!ip || ip.length > 45 || !/^[0-9a-fA-F:.]+$/.test(ip)) return null;
+	if (truncateIp(ip) === "" || NOT_A_CLIENT.some((c) => ipInCidr(ip, c))) return null;
+	const country = (h.get(COUNTRY_HEADER) ?? "").trim().toUpperCase();
+	return {
+		ip,
+		country: /^[A-Z]{2}$/.test(country) && country !== "XX" ? country : null
 	};
 }
 /** The sink of `deps`: the given one, or the database behind the write guard of the `small` profile. */
@@ -20002,7 +20092,7 @@ function resetStoredAgentRules() {
 	snap = void 0;
 }
 // src/client/generated.ts
-const PAGE_SCRIPT = "(function(){let e=/bot|crawl|spider|slurp|headless|lighthouse|phantom|puppeteer|playwright|preview|fetch(er)?\\b|python|curl|wget|httpclient/i,t=[5,15,45];function n(n,r){let i=n.document,a=n.navigator,o=n.location,s=a.userAgent||``,c=``,l=r.c,u=``;try{let e=i.currentScript,t=new URL(e.src||`x:`,o.href),n=e.getAttribute(`${r.a}key`)||t.searchParams.get(`k`)||``;/^[a-z0-9]{20}$/.test(n)&&(c=n,l=new URL(r.c,t.origin).href,u=t.hostname)}catch(e){}if(a.webdriver===!0||e.test(s)||!a.languages||!a.languages.length||/Chrome\\//.test(s)&&!/Mobile|Android/.test(s)&&a.plugins&&a.plugins.length===0)return;let d=`${r.a}optout`,f=!1;try{f=!!n.localStorage.getItem(d)}catch(e){}let p=f||r.g!==`none`&&a.globalPrivacyControl===!0||r.g===`dnt_and_gpc`&&a.doNotTrack===`1`,m=e=>{let t=``;for(;t.length<e;)for(let r of n.crypto.getRandomValues(new Uint8Array(e*2)))r<252&&t.length<e&&(t+=`abcdefghijklmnopqrstuvwxyz0123456789`[r%36]);return t},h=m(20),g=0;try{let e=n.performance.getEntriesByType(`navigation`)[0].type;g=e===`reload`?1:e===`back_forward`?2:0}catch(e){}let _=r.a,v=r.x.length?RegExp(`\\\\.(${r.x.join(`|`)})$`,`i`):null,y=()=>Date.now(),b=()=>(o.pathname+o.search).slice(0,2048),x=``,S=!0,C=!1,w=``,T=0,E=0,D=!0,O=0,k=-0xe8d4a51000,A=0,j=0,M=``,N=(e,r)=>n.fetch(l,{method:`POST`,body:e,keepalive:!0}).then(e=>{let t=e.status===503&&e.headers.get(`retry-after`);return t?+t||0:-1},()=>0).then(n=>{n>=0&&r<3&&setTimeout(()=>p||N(e,r+1),Math.max(n,t[r])*(1+Math.random()/2)*1e3)}),P=(e,t)=>{if(p)return;e.v=1,e.sid=h,c&&(e.k=c);let r=JSON.stringify(e);t&&n.fetch?N(r,0):!(a.sendBeacon&&a.sendBeacon(l,r))&&n.fetch&&n.fetch(l,{method:`POST`,body:r,keepalive:!0}).catch(()=>{})},F=()=>{let e=y();D&&(E+=e-O,e-k<6e4&&(T+=Math.min(e-O,6e4))),O=e},I=()=>{let e=i.documentElement.scrollHeight-n.innerHeight,t=e>0?Math.round(Math.min(1,Math.max(0,n.scrollY/e))*100):100;t>A&&(A=t)},L=e=>{if(!x||S&&!e)return;S=!0,F(),I();let t={t:`en`,h:x,d:Math.min(Math.round(T),r.m),e:Math.max(1,Math.min(Math.round(E),r.m)),s:A,i:j};e!==void 0&&(t.x=e);let n=JSON.stringify(t);n!==M&&(M=n,P(t))},R=e=>{let t=typeof e==`string`&&e[0]===`/`?e.slice(0,2048):b();if(C&&t===w)return;L(),x=m(12),S=!1,T=0,E=0,O=y(),A=0,j=0;let a={t:`pv`,h:x,u:t,w:r.s&&n.screen?n.screen.width:0};C||(a.r=i.referrer||``,a.n=1,a.nt=g),P(a,1),C=!0,w=t},z=(e,t,n)=>{if(typeof e!=`string`||!C)return;let r={t:`ev`,h:m(12),name:e,u:b()};t&&typeof t==`object`&&(r.p=t),n&&typeof n==`object`&&(typeof n.currency==`string`&&(r.cur=n.currency.slice(0,3)),typeof n.id==`string`&&(r.oid=n.id.slice(0,64)),n=n.value),typeof n==`number`&&isFinite(n)&&(r.val=n),P(r,1)},B=e=>r.i.some(t=>e.indexOf(t)===0),V=()=>{H(),i.addEventListener(`DOMContentLoaded`,H);for(let e of[`pointerdown`,`keydown`,`scroll`,`touchstart`])n.addEventListener(e,t=>{F(),k=y(),j=1,e===`scroll`&&I()},{capture:!0,passive:!0});i.addEventListener(`visibilitychange`,()=>{F(),D=!i.hidden,i.hidden?L(0):S=!1}),n.addEventListener(`pagehide`,e=>L(e.persisted?2:1)),i.addEventListener(`astro:page-load`,()=>R()),i.addEventListener(`click`,e=>{let t=e.target;if(!t||!t.closest)return;if(t.closest(`[${d}]`)){f=!f,p=p||f;try{n.localStorage[f?`setItem`:`removeItem`](d,`1`)}catch(e){}H();return}let i=t.closest(`[${_}event]`);if(i){let e={};for(let t of i.attributes)t.name.indexOf(`${_}prop-`)===0&&(e[t.name.slice(_.length+5).replace(/-/g,`_`)]=t.value.slice(0,128));let t=e=>i.getAttribute(_+e);z(t(`event`),e,t(`value`)&&{value:+t(`value`),currency:t(`currency`),id:t(`id`)})}let a=t.closest(`a[href]`);if(!a||a.hasAttribute(`${_}ignore`))return;let s=/^https?:$/.test(a.protocol),c=a.host===o.host;if(!i&&!(s&&c&&B(a.pathname))){let e=(s?(c?``:a.host)+a.pathname:a.href.split(`?`)[0]).slice(0,512);for(let[t,n,i]of r.r){let r;try{if(t[0]===`~`){let n=new RegExp(t.slice(1),`i`).exec(e);n&&(r=n[1]||n[0])}else e.indexOf(t)||(r=e.slice(t.length))}catch(e){}if(r!==void 0){n!==`-`&&z(n,{slug:(i||r.replace(/\\/$/,``)||e).slice(0,128)});return}}}s&&(c?r.dl&&v&&v.test(a.pathname)&&!B(a.pathname)&&z(`_download`,{file:a.pathname.slice(0,128)}):r.o&&r.l.indexOf(a.hostname)<0&&!(a.hostname===u&&r.l.indexOf(o.hostname)>=0)&&z(`_outbound`,{url:(a.host+a.pathname).slice(0,128)}))},!0),i.addEventListener(`submit`,e=>{let t=e.target;if(!r.f||!t||t.hasAttribute(`${_}ignore`))return;let n=``;try{let r=new URL(e.submitter&&e.submitter.getAttribute(`formaction`)||t.getAttribute(`action`)||``,o.href);if(n=r.pathname,r.host===o.host&&B(n))return}catch(e){}z(`_form`,{form:String(t.id||t.getAttribute(`name`)||n).slice(0,128)})},!0),R();let e={v:1,sid:h,ready:!0,event:z,page:R,onReady:e=>t(e)},t=t=>{try{typeof t==`function`?t(e):e[t[0]](...t.slice(1))}catch(e){}},a=n[`${r.n}q`];n[r.n]=e,n[`${r.n}q`]={push:t},a&&a.forEach&&a.forEach(t),n.dispatchEvent(new n.CustomEvent(`${r.n}:ready`,{detail:e}))},H=()=>{for(let e of i.querySelectorAll(`[${d}]`)){let t=e.getAttribute(`${d}-${f?`on`:`off`}`);e.setAttribute(`aria-pressed`,f),e.setAttribute(`${d}-state`,f?`out`:`in`),t&&(e.textContent=t)}},U=()=>!i.prerendering&&!i.hidden;if(U())V();else{let e=()=>{U()&&(i.removeEventListener(`visibilitychange`,e),i.removeEventListener(`prerenderingchange`,e),V())};i.addEventListener(`visibilitychange`,e),i.addEventListener(`prerenderingchange`,e)}}n(window,__CFG__)})();";
+const PAGE_SCRIPT = "(function(){let e=/bot|crawl|spider|slurp|headless|lighthouse|phantom|puppeteer|playwright|preview|fetch(er)?\\b|python|curl|wget|httpclient/i,t=[5,15,45];function n(n,r){let i=n.document,a=n.navigator,o=n.location,s=a.userAgent||``,c=``,l=r.c,u=``;try{let e=i.currentScript,t=new URL(e.src||`x:`,o.href),n=e.getAttribute(`${r.a}key`)||t.searchParams.get(`k`)||``;/^[a-z0-9]{20}$/.test(n)&&(c=n,l=new URL(r.c,t.origin).href,u=t.hostname)}catch(e){}if(a.webdriver===!0||e.test(s)||!a.languages||!a.languages.length||/Chrome\\//.test(s)&&!/Mobile|Android/.test(s)&&a.plugins&&a.plugins.length===0)return;let d=`${r.a}optout`,f=!1;try{f=!!n.localStorage.getItem(d)}catch(e){}let p=f||r.g!==`none`&&a.globalPrivacyControl===!0||r.g===`dnt_and_gpc`&&a.doNotTrack===`1`,m=e=>{let t=``;for(;t.length<e;)for(let r of n.crypto.getRandomValues(new Uint8Array(e*2)))r<252&&t.length<e&&(t+=`abcdefghijklmnopqrstuvwxyz0123456789`[r%36]);return t},h=m(20),g=0;try{let e=n.performance.getEntriesByType(`navigation`)[0].type;g=e===`reload`?1:e===`back_forward`?2:0}catch(e){}let _=r.a,v=r.x.length?RegExp(`\\\\.(${r.x.join(`|`)})$`,`i`):null,y=()=>Date.now(),b=()=>(o.pathname+o.search).slice(0,2048),x=``,S=!0,C=!1,w=``,T=0,E=0,D=!0,O=0,k=-0xe8d4a51000,A=0,j=0,M=``,N=(e,r)=>n.fetch(l,{method:`POST`,body:e,keepalive:!0}).then(e=>{let t=e.status===503&&e.headers.get(`retry-after`);return t?+t||0:-1},()=>0).then(n=>{n>=0&&r<3&&setTimeout(()=>p||N(e,r+1),Math.max(n,t[r])*(1+Math.random()/2)*1e3)}),P=(e,t)=>{if(p)return;e.v=1,e.sid=h,c&&(e.k=c);let r=JSON.stringify(e);t&&n.fetch?N(r,0):!(a.sendBeacon&&a.sendBeacon(l,r))&&n.fetch&&n.fetch(l,{method:`POST`,body:r,keepalive:!0}).catch(()=>{})},F=()=>{let e=y();D&&(E+=e-O,e-k<6e4&&(T+=Math.min(e-O,6e4))),O=e},I=()=>{let e=i.documentElement.scrollHeight-n.innerHeight,t=e>0?Math.round(Math.min(1,Math.max(0,n.scrollY/e))*100):100;t>A&&(A=t)},L=e=>{if(!x||S&&!e)return;S=!0,F(),I();let t={t:`en`,h:x,d:Math.min(Math.round(T),r.m),e:Math.max(1,Math.min(Math.round(E),r.m)),s:A,i:j};e!==void 0&&(t.x=e);let n=JSON.stringify(t);n!==M&&(M=n,P(t))},R=e=>{let t=typeof e==`string`&&e[0]===`/`?e.slice(0,2048):b();if(C&&t===w)return;L(),x=m(12),S=!1,T=0,E=0,O=y(),A=0,j=0;let a={t:`pv`,h:x,u:t,w:r.s&&n.screen?n.screen.width:0};C||(a.r=i.referrer||``,a.n=1,a.nt=g),P(a,1),C=!0,w=t},z=(e,t,n)=>{if(typeof e!=`string`||!C)return;let r={t:`ev`,h:m(12),name:e,u:b()};t&&typeof t==`object`&&(r.p=t),n&&typeof n==`object`&&(typeof n.currency==`string`&&(r.cur=n.currency.slice(0,3)),typeof n.id==`string`&&(r.oid=n.id.slice(0,64)),n=n.value),typeof n==`number`&&isFinite(n)&&(r.val=n),P(r,1)},B=e=>r.i.some(t=>e.indexOf(t)===0),V=()=>{H(),i.addEventListener(`DOMContentLoaded`,H);for(let e of[`pointerdown`,`keydown`,`scroll`,`touchstart`])n.addEventListener(e,t=>{F(),k=y(),j=1,e===`scroll`&&I()},{capture:!0,passive:!0});i.addEventListener(`visibilitychange`,()=>{F(),D=!i.hidden,i.hidden?L(0):S=!1}),n.addEventListener(`pagehide`,e=>L(e.persisted?2:1)),i.addEventListener(`astro:page-load`,()=>R()),i.addEventListener(`click`,e=>{let t=e.target;if(!t||!t.closest)return;if(t.closest(`[${d}]`)){f=!f,p=p||f;try{n.localStorage[f?`setItem`:`removeItem`](d,`1`)}catch(e){}H();return}let i=t.closest(`[${_}event]`);if(i){let e={};for(let t of i.attributes)t.name.indexOf(`${_}prop-`)===0&&(e[t.name.slice(_.length+5).replace(/-/g,`_`)]=t.value.slice(0,128));let t=e=>i.getAttribute(_+e);z(t(`event`),e,t(`value`)&&{value:+t(`value`),currency:t(`currency`),id:t(`id`)})}let a=t.closest(`a[href]`);if(!a||a.hasAttribute(`${_}ignore`))return;let s=/^https?:$/.test(a.protocol),c=a.host===o.host;if(!i&&!(s&&c&&B(a.pathname))){let e=(s?(c?``:a.host)+a.pathname:a.href.split(`?`)[0]).slice(0,512);for(let[t,n,i]of r.r){let r;try{if(t[0]===`~`){let n=new RegExp(t.slice(1),`i`).exec(e);n&&(r=n[1]||n[0])}else e.indexOf(t)||(r=e.slice(t.length))}catch(e){}if(r!==void 0){n!==`-`&&z(n,{slug:(i||r.replace(/\\/$/,``)||e).slice(0,128)});return}}}s&&(c?r.dl&&v&&v.test(a.pathname)&&!B(a.pathname)&&z(`_download`,{file:a.pathname.slice(0,128)}):r.o&&r.l.indexOf(a.hostname)<0&&!(a.hostname===u&&r.l.indexOf(o.hostname)>=0)&&z(`_outbound`,{url:(a.host+a.pathname).slice(0,128)}))},!0),i.addEventListener(`submit`,e=>{let t=e.target;if(!r.f||!t||t.hasAttribute(`${_}ignore`))return;let n=``;try{let r=new URL(e.submitter&&e.submitter.getAttribute(`formaction`)||t.getAttribute(`action`)||``,o.href);if(n=r.pathname,r.host===o.host&&B(n))return}catch(e){}z(`_form`,{form:String(t.id||t.getAttribute(`name`)||n).slice(0,128)})},!0),R();let e={v:1,sid:h,ready:!0,event:z,page:R,onReady:e=>t(e),get off(){return p}},t=t=>{try{typeof t==`function`?t(e):e[t[0]](...t.slice(1))}catch(e){}},a=n[`${r.n}q`];n[r.n]=e,n[`${r.n}q`]={push:t},a&&a.forEach&&a.forEach(t),n.dispatchEvent(new n.CustomEvent(`${r.n}:ready`,{detail:e}))},H=()=>{for(let e of i.querySelectorAll(`[${d}]`)){let t=e.getAttribute(`${d}-${f?`on`:`off`}`);e.setAttribute(`aria-pressed`,f),e.setAttribute(`${d}-state`,f?`out`:`in`),t&&(e.textContent=t)}},U=()=>!i.prerendering&&!i.hidden;if(U())V();else{let e=()=>{U()&&(i.removeEventListener(`visibilitychange`,e),i.removeEventListener(`prerenderingchange`,e),V())};i.addEventListener(`visibilitychange`,e),i.addEventListener(`prerenderingchange`,e)}}n(window,__CFG__)})();";
 // src/client/serve.ts
 /** Direct plugin route, used when the middleware is not installed (degraded mode). */
 const DIRECT_IN_PATH = `/_emdash/api/plugins/${PLUGIN_ID}/${ROUTES.in}`;
@@ -20266,4 +20356,4 @@ async function handle(ctx, next, deps) {
 	}
 	return res;
 }
-export { AGENT_CATEGORIES as C, AGENTS as S, parseUa as _, scriptBody as a, classifyUa as b, storedAgentRules as c, bump as d, orderHitId as f, sinkOf as g, requestInfo as h, middlewareLiveAt as i, MAIL_MAX_HTML_BYTES as l, recordServerHit as m, handleRequest as n, AGENT_RULES_KEY as o, recordClientEvent as p, currentAudience as r, resetStoredAgentRules as s, MW_SEEN_KEY as t, MAX_RECORD_BYTES as u, uaNorm as v, compileUserRules as w, createClassifier as x, siteSetting as y };
+export { AGENT_CATEGORIES as A, proxySecretOk as C, classifyUa as D, parseToken as E, createClassifier as O, newProxySecret as S, hashSecret as T, sinkOf as _, scriptBody as a, siteSetting as b, storedAgentRules as c, bump as d, forwardedFacts as f, requestInfo as g, recordServerHit as h, middlewareLiveAt as i, compileUserRules as j, AGENTS as k, MAIL_MAX_HTML_BYTES as l, recordClientEvent as m, handleRequest as n, AGENT_RULES_KEY as o, orderHitId as p, currentAudience as r, resetStoredAgentRules as s, MW_SEEN_KEY as t, MAX_RECORD_BYTES as u, parseUa as v, generateToken as w, PROXY_KEY_HEADER as x, uaNorm as y };

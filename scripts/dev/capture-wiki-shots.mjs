@@ -26,7 +26,8 @@ const MAX_BYTES = 200 * 1024;
 
 // The admin URL state of every shot: the last 4 weeks of the demo data, compared with the 4 weeks before.
 const Q = "from=2026-06-03&to=2026-06-30&cmp=previous";
-// [file name, admin page, extra query, harness params, widths, tab to click, button to click (the info marker opens its note)]
+// [file name, admin page, extra query, harness params, widths, tab to click, button or buttons to click in order (the info
+// marker opens its note)]
 const SHOTS = [
 	["overview", "/", "", {}, [1440, 390]],
 	["overview-info", "/", "", {}, [1440], undefined, "About this number"],
@@ -49,6 +50,8 @@ const SHOTS = [
 	["definitions-goals", "/config", "", {}, [1440], "Goals"],
 	["definitions-funnels", "/config", "", {}, [1440], "Funnels"],
 	["definitions-sites", "/config", "", {}, [1440], "Sites"],
+	// The Blog row's proxy secret panel right after Create: the secret is the stub's placeholder.
+	["definitions-sites-proxy-secret", "/config", "", {}, [1440], "Sites", ["Proxy secret", "Create proxy secret"]],
 	["definitions-user-agent-rules", "/config", "", {}, [1440], "User agent rules", "Built-in list"],
 	["definitions-user-agent-rules-text", "/config", "", {}, [1440], "User agent rules", /edit as text/i],
 	["definitions-api-keys", "/config", "", {}, [1440], "API keys"],
@@ -125,7 +128,7 @@ try {
 			};
 			try {
 				if (tab) await click("tab", tab);
-				if (button) await click("button", button);
+				for (const b of button === undefined ? [] : Array.isArray(button) ? button : [button]) await click("button", b);
 			} catch (e) {
 				problems.push(`${name} ${w}: ${e.message.split("\n")[0]}`);
 			}

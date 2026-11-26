@@ -64,19 +64,32 @@ describe("validateSafeRegex", () => {
 			if (a.match.mode === "regex") expect(validateSafeRegex(a.match.pattern, "i").ok, a.match.pattern).toBe(true);
 	});
 
-	it("validates and runs an adversarial corpus in under 50 ms", () => {
-		const corpus = [
+	// Deterministic: which patterns of an adversarial corpus get through is pinned exactly, and each one that does
+	// is bounded by the validator's own rules (one open-ended repeat, or two after `^`, so at most quadratic on the
+	// 512 character inputs; at most 1000 combinations of bounded repeats). The clock is only a sanity bound, set
+	// far above any loaded runner (one round takes a few milliseconds) and far below what one backtracking pattern
+	// costs on these inputs (exponential in the input length, so it would not finish at all).
+	it("refuses every catastrophic pattern of an adversarial corpus; the few that pass are bounded by construction", () => {
+		const adversarial = [
 			"(a+)+$", "(a|a)*$", "(.*a){20}", "^(([a-z])+.)+[A-Z]([a-z])+$", "(\\w+\\s?)*$", "(x+x+)+y", "^(a|aa)+$", "(.*)*",
 			"([a-zA-Z]+)*", "(a|b|c|d)+$", "^[a-z]+(\\.[a-z]+)*$", ".*.*.*.*!", "\\w*\\w*\\w*\\w*!", "a{0,50}a{0,50}a{0,50}!", ".*x.*!",
-			"[a-z]+x[a-z]+!", "\\w+\\d+!", "^.*x.*!", "^\\w+\\d+!", "^.{0,50}.{0,50}x", "a?a?a?a?a?a?a?a?a?b", ...ACCEPT,
+			"[a-z]+x[a-z]+!", "\\w+\\d+!", "^.*x.*!", "^\\w+\\d+!", "^.{0,50}.{0,50}x", "a?a?a?a?a?a?a?a?a?b",
 		];
+		// Two open-ended repeats after `^` (quadratic at most) and 2^9 = 512 combinations of `?` (under 1000).
+		expect(adversarial.filter((p) => compileSafeRegex(p) !== null)).toEqual(["^.*x.*!", "^\\w+\\d+!", "a?a?a?a?a?a?a?a?a?b"]);
+		expect(ACCEPT.every((p) => compileSafeRegex(p) !== null)).toBe(true);
 		const inputs = ["a".repeat(512), "a".repeat(511) + "!", "x".repeat(512), "1".repeat(512), `${"ab".repeat(256)}`, "/blog/".repeat(80)];
 		const t0 = performance.now();
-		for (let round = 0; round < 5; round++)
-			for (const p of corpus) {
-				const re = compileSafeRegex(p);
-				if (re) for (const s of inputs) re.test(s);
+		let runs = 0;
+		for (const p of [...adversarial, ...ACCEPT]) {
+			const re = compileSafeRegex(p);
+			if (!re) continue;
+			for (const s of inputs) {
+				re.test(s);
+				runs++;
 			}
-		expect(performance.now() - t0).toBeLessThan(50);
+		}
+		expect(runs).toBe((3 + ACCEPT.length) * inputs.length);
+		expect(performance.now() - t0).toBeLessThan(2000);
 	});
 });

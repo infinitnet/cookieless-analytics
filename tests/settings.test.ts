@@ -13,7 +13,7 @@ const SETTING_KEYS = [
 	"captureLanguage", "captureRegion", "captureScreen", "autoOutbound", "autoDownloads", "autoForms", "ignorePathPrefixes", "linkRules", "downloadExtensions",
 	"logErrorPages", "ingestTier",
 	"rawRetentionDays", "rollupRetentionMonths", "capacityProfile", "storageBudgetMb",
-	"agentRateLimitPerMinute", "siteOrigin", "gscAuth", "gscProperty", "gscClientId", "gscClientSecret", "gscRefreshToken",
+	"agentRateLimitPerMinute", "proxyRateLimitPerMinute", "siteOrigin", "gscAuth", "gscProperty", "gscClientId", "gscClientSecret", "gscRefreshToken",
 	"gscServiceAccount", "bingEnabled", "bingAuth", "bingApiKey", "bingClientId", "bingClientSecret", "bingRefreshToken", "bingSiteUrl", "searchSyncHours", "syncSubrequestBudget", "searchRetentionDays", "backfillDays", "searchMaxRowsPerDay",
 	"searchMinImpressions", "searchOverlapMinShare", "searchBrandTerms", "defaultCurrency", "acceptClientRevenue", "siteSearchParams",
 	"autoAnnotations", "annotatePublish", "annotateUpdate", "annotateCollections", "autoAnnotationsPerDay",
@@ -37,6 +37,8 @@ describe("settingsSchema", () => {
 		expect(fields.siteOrigin?.type).toBe("url");
 		expect(fields.bingSiteUrl?.type).toBe("url");
 		expect([fields.agentRateLimitPerMinute?.min, fields.agentRateLimitPerMinute?.max]).toEqual([5, 1200]);
+		// The proxy ceiling: default 3000 a minute for one site, never below one request a second.
+		expect([fields.proxyRateLimitPerMinute?.min, fields.proxyRateLimitPerMinute?.max, fields.proxyRateLimitPerMinute?.default]).toEqual([60, 60000, 3000]);
 		expect([fields.searchSyncHours?.min, fields.searchSyncHours?.max]).toEqual([1, 24]);
 		expect([fields.searchRetentionDays?.min, fields.searchRetentionDays?.max]).toEqual([90, 1000]);
 		expect([fields.searchMaxRowsPerDay?.min, fields.searchMaxRowsPerDay?.max]).toEqual([1000, 25000]);
@@ -50,6 +52,9 @@ describe("settingsSchema", () => {
 		expect(normalizeSettings({ bingSiteUrl: "ftp://example.com/" }).bingSiteUrl).toBe("");
 		expect(normalizeSettings({ gscAuth: "magic" }).gscAuth).toBe("off");
 		expect(normalizeSettings({ agentRateLimitPerMinute: 1 }).agentRateLimitPerMinute).toBe(5);
+		expect(normalizeSettings({ proxyRateLimitPerMinute: 1 }).proxyRateLimitPerMinute).toBe(60);
+		expect(normalizeSettings({ proxyRateLimitPerMinute: 1e9 }).proxyRateLimitPerMinute).toBe(60000);
+		expect(normalizeSettings({}).proxyRateLimitPerMinute).toBe(3000);
 	});
 
 	it("offers every listed currency as the default currency, USD by default, and falls back to USD", () => {
@@ -87,6 +92,7 @@ describe("settingsSchema", () => {
 			rawRetentionDays: 760,
 			capacityProfile: "standard",
 			agentRateLimitPerMinute: 60,
+			proxyRateLimitPerMinute: 3000,
 			siteOrigin: "",
 			gscAuth: "off",
 			gscProperty: "",

@@ -66,8 +66,8 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
 	{
 		id: "limits",
 		label: "Limits and API",
-		keys: ["agentRateLimitPerMinute", "maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute"],
-		advanced: ["maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute"],
+		keys: ["agentRateLimitPerMinute", "proxyRateLimitPerMinute", "maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute"],
+		advanced: ["proxyRateLimitPerMinute", "maxPageviewsPerSession", "maxEventsPerSession", "maxEventsPerSidPerMinute", "maxEventsPerVkeyPerMinute"],
 	},
 ];
 

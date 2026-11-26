@@ -64,7 +64,7 @@ The attribute prefix comes from the `namespace` setting: the default `__ec` give
 
 ## 2. The window API
 
-When the script runs it defines `window.__ec` and dispatches `__ec:ready` on `window`. If the script did nothing (a bot, a privacy signal, a blocked script), `window.__ec` does not exist, so check for it.
+When the script runs it defines `window.__ec` and dispatches `__ec:ready` on `window`. If the script did nothing (a bot, a blocked script), `window.__ec` does not exist, so check for it. With the visitor's opt-out flag or an honored privacy signal it exists, `window.__ec.off` is `true` and its calls do nothing.
 
 ```js
 // event(name, props?, value?)
@@ -81,7 +81,12 @@ window.__ec && window.__ec.page("/checkout/step-2");
 
 // Session id of this page, to tie a server side order to the visit
 const sid = window.__ec && window.__ec.sid;
+
+// True while this page sends nothing (opt-out flag or an honored privacy signal); read only, browser only
+const off = window.__ec && window.__ec.off;
 ```
+
+`off` and the opt-out flag exist in the browser only. A server that reports orders learns the state only from what its own page code sends along, for example in a form field next to the `sid`.
 
 Calls made before the script loads go into the queue `window.__ecq` and are replayed in order:
 
@@ -227,6 +232,7 @@ A rule with `-` is a deny list for outbound clicks. A rule on a linked host reco
 - Agent route: 1 to 20 events per call, `agentRateLimitPerMinute` requests per minute per key (default 60). The browser caps above do not apply to it.
 - Browser and `recordEvent` posts: the three rate caps above. An order is stored, and counted as an event of its visit, even when the visit has reached `maxEventsPerSession`.
 - Agent `sid`: attaches only to a visit that started at most 7 days ago.
+- A server proxy of a client site: `proxyRateLimitPerMinute` posts per minute and site (default 3000); above it the proxy gets 503 with `Retry-After` ([Multi-Site-and-Sites-View](Multi-Site-and-Sites-View)).
 
 ## What shows up in which report
 

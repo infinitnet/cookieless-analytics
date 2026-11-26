@@ -304,6 +304,14 @@ describe("ipInCidr", () => {
 		expect(ipInCidr("2001:db9::5", "2001:db8::/32")).toBe(false);
 		expect(ipInCidr("10.1.2.3", "2001:db8::/32")).toBe(false);
 	});
+
+	it("compares an IPv4-mapped address in either notation as its IPv4 address", () => {
+		for (const ip of ["::ffff:7f00:1", "::ffff:7f00:0001", "0:0:0:0:0:ffff:7f00:1", "0:0:0:0:0:ffff:127.0.0.1"]) expect(ipInCidr(ip, "127.0.0.0/8"), ip).toBe(true);
+		expect(ipInCidr("::ffff:cb00:7107", "203.0.113.0/24")).toBe(true);
+		expect(ipInCidr("::ffff:cb00:7107", "198.51.100.0/24")).toBe(false);
+		expect(ipInCidr("::ffff:0:0", "0.0.0.0/32")).toBe(true);
+		expect(ipInCidr("::ffff:7f00:1", "::/96")).toBe(false);
+	});
 });
 
 describe("client sites", () => {

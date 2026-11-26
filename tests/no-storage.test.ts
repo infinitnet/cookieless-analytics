@@ -42,9 +42,10 @@ describe("no browser storage", () => {
 		expect(readFileSync("src/admin/prefs.ts", "utf8")).not.toMatch(/document\.cookie|cookieStore|indexedDB/);
 	});
 
-	it("keeps the 77 settings, five of them for automatic annotations", () => {
+	// 78: the 77 of 1.3 and `proxyRateLimitPerMinute`, the ceiling of the event route's proxy mode.
+	it("keeps the 78 settings, five of them for automatic annotations", () => {
 		const keys = Object.keys(settingsSchema);
-		expect(keys).toHaveLength(77);
+		expect(keys).toHaveLength(78);
 		expect(keys.filter((k) => /annot|scope|marker/i.test(k))).toEqual(["autoAnnotations", "annotatePublish", "annotateUpdate", "annotateCollections", "autoAnnotationsPerDay"]);
 	});
 

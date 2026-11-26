@@ -92,6 +92,7 @@ export const settingsSchema = {
 	rollupRetentionMonths: { type: "number", label: "Summary retention (months)", description: "Months of daily summaries kept.", default: 25, min: 1, max: 120 },
 	ingestTier: { type: "select", label: "Ingest tier", description: "Where page views, events and engagement updates are written. Direct writes them to the database. Queue sends them to a Cloudflare Queue for the consumer Worker to write; it is used only while the CA_QUEUE binding exists, and a failed send is written directly. See Limits.", options: opts([["direct", "Direct to the database"], ["queue", "Queue (needs the CA_QUEUE binding and the consumer Worker)"]]), default: "direct" },
 	agentRateLimitPerMinute: { type: "number", label: "Agent API requests per minute", description: "Rate limit per API key and isolate, so approximate across isolates.", default: 60, min: 5, max: 1200 },
+	proxyRateLimitPerMinute: { type: "number", label: "Proxy requests per minute", description: "Most page views, events and engagement updates a server proxy may forward for one site per minute. Counted per site and isolate, so approximate across isolates. Requests above it are answered 503 with Retry-After: the page script sends page views and events again while the page stays open; engagement updates are not sent again. It stops a proxy that runs away; it is not a security limit.", default: 3000, min: 60, max: 60000 },
 	maxPageviewsPerSession: { type: "number", label: "Maximum pageviews per session", description: "Further pageviews in the same session are dropped.", default: 500, min: 10, max: 10000 },
 	maxEventsPerSession: { type: "number", label: "Maximum events per session", description: "Further events in the same session are dropped.", default: 200, min: 10, max: 10000 },
 	maxEventsPerSidPerMinute: { type: "number", label: "Events per session per minute", description: "Rate cap per session id.", default: 60, min: 10, max: 600 },
@@ -153,6 +154,7 @@ export interface Settings {
 	/** Whole megabytes; 0 is the profile default. Read through `storageBudget`, never directly. */
 	storageBudgetMb: number;
 	agentRateLimitPerMinute: number;
+	proxyRateLimitPerMinute: number;
 	/** Canonical origin (`https://host`) or empty. */
 	siteOrigin: string;
 	gscAuth: "off" | "oauth" | "service_account";

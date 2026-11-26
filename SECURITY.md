@@ -16,7 +16,7 @@ You will get an acknowledgment, and the advisory stays private until a fixed ver
 
 ## Security model in short
 
-- **Keys are hashed.** Agent API keys are shown once and stored as a prefix and a SHA-256 hash. Share tokens are 256 bit secrets stored the same way and compared in constant time.
+- **Keys are hashed.** Agent API keys are shown once and stored as a prefix and a SHA-256 hash. Share tokens are 256 bit secrets stored the same way and compared in constant time. A client site's proxy secret is a 256 bit secret too: shown once, stored on the site record as a SHA-256 hash only, compared in constant time, and never returned by any route after it was made.
 - **`X-Api-Key`, and 404 on failure.** The agent API reads the key only from the `X-Api-Key` header, never from the query string. A missing, wrong, revoked, expired or out of scope key gets the same 404 as a route that does not exist. Scopes are narrow: there is no scope for settings, keys, deletion or raw visitor data.
 - **Admin routes use the host's permissions.** Reading needs `plugins:read`, changing anything needs `plugins:manage`, and the host's own CSRF rule applies. The editor panel needs the Editor role.
 - **Outbound requests go through `ctx.http`** with an exact `allowedHosts` list (the Search providers' hosts and, for a multi-site master, the exact hosts you configure). The plugin never uses a global `fetch`. Secrets for the Search providers are encrypted with `EMDASH_ENCRYPTION_KEY`, and satellite keys are read from environment variables when needed and are never stored, logged or returned.

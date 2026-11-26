@@ -68,6 +68,7 @@ Limits, stated plainly:
 - A payment finished in another app or on another network (a banking app on mobile data) returns with another address and starts a new visit. Add the payment hosts to `ignoreReferrerHosts` so that visit is not counted as a referral from the payment page.
 - The salt changes once a day at `saltRotationHour`. For one session window after the change a move to the other host still finds the visit; a later move starts a new visit, and the person counts as a new visitor.
 - A move to the same path on the other host within `reloadDedupeSeconds` counts as a reload, not as a page view.
+- A linked host behind a server proxy ([client-sites.md](client-sites.md), section 4a) is seen with the address the visitor used to reach that proxy. When that is another address family than the one used for the main host (IPv4 there, IPv6 here), the visitor key differs and the next page on the other host starts a new visit.
 - Two people behind one shared address with the same browser can be joined, as described under the merge policy below.
 
 ## The history rule

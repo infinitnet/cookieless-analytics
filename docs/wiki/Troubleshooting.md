@@ -26,7 +26,7 @@ Signed-in editors and administrators are not recorded while `excludeEditors` is 
 
 ## Blocked by an ad blocker
 
-Content blockers look for words in paths. The plugin serves its script and event path from your own origin under neutral paths (`scriptPath` `/_/e.js`, `collectPath` `/_/e`). If you change them, avoid such words: a path that contains one falls back to its default. Client sites load the script from your install, a third party host for them; proxy `/_/e.js` and `/_/e` on the client's own zone if that matters.
+Content blockers look for words in paths. The plugin serves its script and event path from your own origin under neutral paths (`scriptPath` `/_/e.js`, `collectPath` `/_/e`). If you change them, avoid such words: a path that contains one falls back to its default. Client sites load the script from your install, a third party host for them. To serve both paths from the client's own host, run a server proxy there in proxy mode: it sends the site's proxy secret in `X-EC-Proxy-Key`, each visitor's address in `X-EC-Client-IP` and country in `X-EC-Country`, and the site's own https `Origin`. Without the secret every visitor behind the proxy counts as one. Setup: [Multi-Site-and-Sites-View](Multi-Site-and-Sites-View), "A server proxy on the site's own host", and [client-sites.md, section 4a](https://github.com/infinitnet/cookieless-analytics/blob/main/docs/client-sites.md#4a-a-server-proxy-on-the-sites-own-host).
 
 ## Search not syncing or throttled
 
@@ -85,6 +85,10 @@ The Data page counts them under these reasons:
 | `origin_rejected` | The page's host is not listed for the site, or the page is not on https. | Add the exact host name (with and without www) on Definitions, Sites. |
 | `unknown_key` | The key is wrong, or was replaced with **New key**. | Copy the current snippet from the Sites tab. |
 | `site_paused` | The site is paused. | Resume it on the Sites tab. Changes reach every isolate within 60 seconds. |
+| `proxy_auth` | A server proxy sent a proxy secret that is not the one of the site (wrong, replaced, removed, or the body has no site key). Counted under this install's own site. | Make a proxy secret on the Sites tab and store it on the proxy. Test it with the `proxy/check` route. |
+| `proxy_rate` | A server proxy sent more posts for the site in one minute than `proxyRateLimitPerMinute` allows. The page script sends page views and events again while the page stays open; engagement updates are not sent again. | Raise the setting when the traffic is real; look for a loop in the proxy when it is not. |
+| `invalid` | A server proxy sent the right secret without a usable `X-EC-Client-IP`: missing, not one address, or a loopback address. | Send the visitor's own address. Behind a load balancer, take it from the header that layer sets. |
+| `bot` | A server proxy sent its own user agent instead of the visitor's. Counted under this install's own site. | Forward the visitor's `User-Agent`. |
 
 Also check that the middleware is installed: the Sites tab warns when it has not been seen for a day.
 

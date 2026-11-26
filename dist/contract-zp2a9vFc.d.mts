@@ -5,7 +5,7 @@
 declare const PLUGIN_ID = "cookieless-analytics";
 declare const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-declare const VERSION = "1.3.2";
+declare const VERSION = "1.4.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 declare const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
@@ -35,6 +35,13 @@ declare const ROUTES: {
   readonly contract: "contract";
   readonly rollup: "rollup";
   readonly shareView: "share/view";
+  readonly proxyCheck: "proxy/check";
+};
+/** Request headers of the event route's proxy mode: the site's proxy secret, the visitor's address, the visitor's country. */
+declare const PROXY_HEADERS: {
+  readonly key: "X-EC-Proxy-Key";
+  readonly clientIp: "X-EC-Client-IP";
+  readonly country: "X-EC-Country";
 };
 declare const DEFAULT_SCRIPT_PATH = "/_/e.js";
 declare const DEFAULT_COLLECT_PATH = "/_/e";
@@ -142,5 +149,12 @@ interface ContractResponse {
   collectPath: string;
   scriptPath: string;
   namespace: string;
+  /** The event route has the proxy mode (`PROXY_HEADERS`) and the install answers `GET .../proxy/check`. */
+  proxy: true;
 }
-export { isPassiveEvent as A, RESERVED_EVENTS as C, SessionReadResponse as D, SID_RE as E, VERSION as O, Props as S, ReservedEventName as T, LINK_EVENTS as _, CompanionHello as a, PRODUCT_URL as b, DEFAULT_NAMESPACE as c, FORBIDDEN_PUBLIC_WORDS as d, HIT_RE as f, IngestPageview as g, IngestEvent as h, CONTRACT_VERSION as i, isCompanionHello as k, DEFAULT_SCRIPT_PATH as l, IngestEngagement as m, COMPANION_PUBLISHER_DID as n, ContractResponse as o, IngestBody as p, COMPANION_SLUG as r, DEFAULT_COLLECT_PATH as s, COMPANION_NAME as t, DEFAULT_SHARE_PATH as u, PLUGIN_ID as v, ROUTES as w, PropValue as x, PRODUCT_NAME as y };
+/** Response of `GET .../proxy/check`: 200 with `ok: true` for the proxy secret of the site key, 403 with `ok: false` for anything else. */
+interface ProxyCheckResponse {
+  v: 1;
+  ok: boolean;
+}
+export { VERSION as A, Props as C, ReservedEventName as D, ROUTES as E, isPassiveEvent as M, SID_RE as O, PropValue as S, RESERVED_EVENTS as T, LINK_EVENTS as _, CompanionHello as a, PRODUCT_URL as b, DEFAULT_NAMESPACE as c, FORBIDDEN_PUBLIC_WORDS as d, HIT_RE as f, IngestPageview as g, IngestEvent as h, CONTRACT_VERSION as i, isCompanionHello as j, SessionReadResponse as k, DEFAULT_SCRIPT_PATH as l, IngestEngagement as m, COMPANION_PUBLISHER_DID as n, ContractResponse as o, IngestBody as p, COMPANION_SLUG as r, DEFAULT_COLLECT_PATH as s, COMPANION_NAME as t, DEFAULT_SHARE_PATH as u, PLUGIN_ID as v, ProxyCheckResponse as w, PROXY_HEADERS as x, PRODUCT_NAME as y };

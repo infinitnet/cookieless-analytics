@@ -8,9 +8,9 @@ The script that `EmDashHead` adds to every page, as built by `pnpm build:client`
 
 | Form | Size |
 |---|---|
-| Minified | 5,262 bytes |
-| gzip | 2,673 bytes |
-| Brotli | 2,402 bytes |
+| Minified | 5,282 bytes |
+| gzip | 2,684 bytes |
+| Brotli | 2,406 bytes |
 
 A test keeps it under 3,072 bytes gzipped. The settings add a short JSON object; with 20 link rules at the 2,048 character cap the served script stays under 4 KB gzipped (also a test). It is served from your own site with `Cache-Control: public, max-age=3600` and an ETag, so later pages within the hour take it from the browser cache. It has no dependencies, sets no cookie and stores nothing on the device except the opt-out flag a visitor sets by clicking the opt-out control.
 
@@ -43,6 +43,8 @@ Counted with the real event route in `tests/performance.test.ts`: a visit of two
 | Postgres | 2 statements | 1 statement | 1 statement |
 
 The D1 rows come from the test suite's meter. It counts rows written with the rules measured on production D1, so each index entry counts as a row. The Postgres statements are every statement sent to the database: Postgres 18 in PGlite behind a stand-in for the Hyperdrive driver. On Postgres the first request of an isolate adds 7 statements: the schema check and the query cache check. The EmDash database (settings, salt) is not written by these requests.
+
+A post forwarded by a server proxy ([client-sites.md](client-sites.md), section 4a) costs the same statements: its proxy secret is checked against the site record the route already holds, with one hash and no read of any database.
 
 With a typical mix of new visits, engagement updates and events, a page view costs about 3.3 rows written and 3.9 statements. That figure was measured on production D1 ([limits.md](limits.md#write-cost-per-event)).
 

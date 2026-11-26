@@ -15,10 +15,12 @@ import { optionsKv } from "../src/db/options-kv.js";
 import { pgOwnScope, pgScope } from "../src/db/pg.js";
 import { resetQueryCache } from "../src/db/query-cache.js";
 import { ensureSchema } from "../src/db/schema.js";
+import { newProxySecret } from "../src/keys/proxy-secret.js";
+import { invalidateRegistry } from "../src/multisite/registry.js";
 import { inRoute } from "../src/routes/in.js";
 import type { RouteEnv } from "../src/routes/env.js";
 import { normalizeSettings } from "../src/settings.js";
-import { eventRequest, meteredDb, memoryDb } from "./helpers.js";
+import { eventRequest, meteredDb, memoryDb, sitesColl } from "./helpers.js";
 import { dropPgDriver, hyperdrive, pglite, resetPg } from "./pg.helpers.js";
 import { ctx } from "./routes.helpers.js";
 
@@ -72,11 +74,52 @@ describe("page script bytes (scripts/measure-script.mjs)", () => {
 		expect(m.brotli).toBeLessThan(m.gzip);
 	});
 
-	it("the 2.7 KB of the README tagline and the package description is the gzip size, rounded", () => {
-		expect((m.gzip / 1000).toFixed(1)).toBe("2.7");
+	it("the ~3 KB of the README tagline and the package description is the gzip size rounded to the nearest KB, inside the 3,072 byte budget", () => {
+		// Rounded to whole kilobytes the size is 3, whether a kilobyte is read as 1,000 or as 1,024 bytes
+		// (true from 2,560 bytes up), and it stays under the budget of 3,072 bytes.
+		expect(Math.round(m.gzip / 1000)).toBe(3);
+		expect(Math.round(m.gzip / 1024)).toBe(3);
+		expect(m.gzip).toBeLessThan(3072);
 		const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { description: string };
-		expect(pkg.description).toContain("about 2.7 KB gzipped");
-		expect(readFileSync("README.md", "utf8").split("\n")[4]).toContain("A 2.7 KB script");
+		expect(pkg.description).toContain("about 3 KB gzipped");
+		expect(readFileSync("README.md", "utf8").split("\n")[4]).toContain("A ~3 KB script");
+		// Every public size claim is this rounded figure; the exact bytes are in docs/performance.md only.
+		const claims: Array<[string, string]> = [
+			["README.md", "about 3 KB gzipped"],
+			["src/index.ts", "about 3 KB gzipped"],
+			["docs/wiki/Home.md", "about 3 KB gzipped"],
+			["packages/companion/README.md", "about 3 KB gzipped"],
+			["packages/companion/listing/description.md", "about 3 KB gzipped"],
+			["packages/companion/src/copy.ts", "about 3 KB gzipped"],
+		];
+		for (const [file, text] of claims) {
+			const body = readFileSync(file, "utf8");
+			expect(body, file).toContain(text);
+			expect(body, file).not.toMatch(/\b2[.,]\d ?KB\b/i);
+		}
+	});
+
+	it("no tracked file but docs/performance.md states an exact byte size of the page script", () => {
+		// "2,684 bytes gzipped", "5,282 bytes minified", "gzip: 2,684 bytes" and the like: a byte figure next to a
+		// compression or minification word. The budget of 3,072 bytes is a limit, not a measurement, so it may appear.
+		const figure = /\b(\d[,.]?\d{3}) bytes,? (?:gzip|gzipped|minified|brotli)\b|\b(?:gzip|gzipped|brotli|minified)(?: size)?:? (\d[,.]?\d{3}) bytes\b/gi;
+		const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
+			.split("\0")
+			.filter((f) => /\.(md|ts|tsx|mjs|js|json|astro|html)$/.test(f) && !f.startsWith("dist/") && f !== "docs/performance.md" && f !== "tests/performance.test.ts");
+		expect(files).toContain("README.md");
+		const found: string[] = [];
+		for (const f of files) {
+			for (const hit of readFileSync(f, "utf8").matchAll(figure)) {
+				const n = (hit[1] ?? hit[2] ?? "").replace(/[,.]/g, "");
+				if (n !== "3072") found.push(`${f}: ${hit[0]}`);
+			}
+		}
+		expect(found).toEqual([]);
+		// The pattern sees the forms the docs use.
+		for (const text of ["2,684 bytes gzipped", "5,282 bytes minified", "gzip: 2,684 bytes", "4,835 bytes, gzipped"]) expect(text.match(figure), text).not.toBeNull();
+		for (const text of ["at most 8,192 bytes", "under 3,072 bytes gzipped", "100,000 bytes", "under 3 KB gzipped"]) {
+			expect([...text.matchAll(figure)].filter((h) => (h[1] ?? h[2] ?? "").replace(/[,.]/g, "") !== "3072"), text).toEqual([]);
+		}
 	});
 
 	it("docs/performance.md states the measured sizes (minified exact, compressed within 2 percent)", () => {
@@ -110,6 +153,56 @@ describe("one page view through the event route", () => {
 			{ statements: 1, written: 1, host: 0 },
 		]);
 		expect(doc).toContain("| D1 | 2 statements, 2 rows written | 1 statement, 1 row written | 1 statement, 1 row written |");
+	});
+
+	it("a post forwarded by a server proxy costs the same statements, and checking its secret reads no database", async () => {
+		invalidateRegistry();
+		const KEY = "kkkkkkkkkkkkkkkkkkkk";
+		const sites = sitesColl([{ id: "blog", key: KEY, hosts: ["blog.example.net"] }]);
+		const { secret, hash } = await newProxySecret();
+		Object.assign(sites.items.get("blog") as object, { proxyHash: hash, proxyCreated: NOW });
+		let registryLoads = 0;
+		const query = sites.query.bind(sites);
+		sites.query = (o) => (registryLoads++, query(o));
+		const facts = meteredDb();
+		await ensureSchema(facts.db, host().kv);
+		const h = host();
+		const s = normalizeSettings({});
+		const tasks: Array<() => Promise<unknown>> = [];
+		const env: RouteEnv = { deps: async () => ({ db: facts.db, kv: h.kv, settings: s }), after: (fn) => void tasks.push(fn) };
+		// The same visit of the blog twice: straight from the browser, then through its proxy (another visitor's address).
+		const send = async (body: object, at: number, proxied: boolean, ip: string) => {
+			const req = eventRequest({ ...body, k: KEY }, { origin: "https://blog.example.net", ...(proxied ? { "cf-connecting-ip": "192.0.2.10", "x-ec-proxy-key": secret, "x-ec-client-ip": ip } : { "cf-connecting-ip": ip }) });
+			const res = await inRoute({ ...env, deps: async (c) => ({ ...(await env.deps(c)), now: at }) }).handler({ ...ctx(req, await req.clone().text(), h.kv as never), requestMeta: { ip: proxied ? "192.0.2.10" : ip }, storage: { sites } });
+			expect(res.status).toBe(204);
+			for (const t of tasks.splice(0)) await t();
+		};
+		await send({ ...VISIT[0], sid: "zzzzzzzzzzzzzzzzzzzz", h: "zzzzzzzzzzz1" }, NOW - 60, false, "198.51.100.9");
+		const measure = async (proxied: boolean, ip: string, sid: string) => {
+			const per: Array<{ statements: number; written: number; host: number; hostWritten: number }> = [];
+			for (const [i, body] of VISIT.entries()) {
+				facts.reset();
+				h.reset();
+				await send({ ...body, sid, h: `${sid.slice(0, 11)}${i < 2 ? 1 : 2}` }, NOW + i * 10, proxied, ip);
+				per.push({ statements: facts.stats.statements, written: facts.stats.rowsWritten, host: h.stats.statements, hostWritten: h.stats.rowsWritten });
+			}
+			return per;
+		};
+		const direct = await measure(false, "203.0.113.7", "a".repeat(20));
+		const proxied = await measure(true, "203.0.114.7", "b".repeat(20));
+		// The public path: the figures of the table above, and no statement on the host database.
+		expect(direct).toEqual([
+			{ statements: 2, written: 2, host: 0, hostWritten: 0 },
+			{ statements: 1, written: 1, host: 0, hostWritten: 0 },
+			{ statements: 1, written: 1, host: 0, hostWritten: 0 },
+			{ statements: 1, written: 1, host: 0, hostWritten: 0 },
+		]);
+		// Through the proxy: 0 statements more on either database.
+		expect(proxied).toEqual(direct);
+		// Nine requests, one load of the sites registry, which the public path of a client site needs as well.
+		expect(registryLoads).toBe(1);
+		expect(facts.raw.prepare("SELECT COUNT(*) AS n FROM ca_sessions WHERE site = 'blog'").get()).toEqual({ n: 3 });
+		expect(doc).toContain("A post forwarded by a server proxy ([client-sites.md](client-sites.md), section 4a) costs the same statements: its proxy secret is checked against the site record the route already holds, with one hash and no read of any database.");
 	});
 
 	describe("Postgres through Hyperdrive", () => {

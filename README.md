@@ -2,7 +2,7 @@
 
 # Cookieless Analytics by Infinitnet
 
-Self-hosted, cookieless web analytics for EmDash and any site. A 2.7 KB script, no extra service, your own database.
+Self-hosted, cookieless web analytics for EmDash and any site. A ~3 KB script, no extra service, your own database.
 
 [![npm](https://img.shields.io/npm/v/@infinitnet/cookieless-analytics.svg)](https://www.npmjs.com/package/@infinitnet/cookieless-analytics) [![CI](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/infinitnet/cookieless-analytics/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE) [![EmDash 1.4 or later](https://img.shields.io/badge/EmDash-1.4%2B-informational.svg)](docs/install.md) [![Website](https://img.shields.io/badge/website-visit-informational.svg)](https://infinitnet.io/cookieless-analytics/)
 
@@ -18,7 +18,7 @@ Self-hosted, cookieless web analytics for EmDash and any site. A 2.7 KB script, 
 
 </div>
 
-Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.
+Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 3 KB gzipped.
 
 Cookieless Analytics shows its reports inside the EmDash admin. It also measures sites that are not EmDash, such as a plain Astro site, a static site or another CMS, through one script tag.
 
@@ -30,7 +30,7 @@ Most cookieless tools count page views and stop there. Cookieless Analytics is a
 
 - **Cookieless by design.** Cookieless Analytics sets no cookie and uses no session storage or IndexedDB; the only local storage is the opt-out flag a visitor sets by clicking the opt-out control. A daily salted hash joins the page views of a visit and cannot link days. [Privacy](docs/privacy.md)
 - **Real sessions.** Cookieless Analytics reports entry and exit pages, pages per session, bounce, duration and first-touch source, not only page views. [Sessions](docs/sessions.md)
-- **Light on your pages.** The page script weighs 2,466 bytes gzipped, loads with `defer` from your own site and stays cached for an hour. [Performance](docs/performance.md)
+- **Light on your pages.** The page script is under 3 KB gzipped, loads with `defer` from your own site and stays cached for an hour. [Performance](docs/performance.md)
 - **Few requests.** A page view sends one request, plus one engagement update when the tab is left. Pages never wait for the analytics database. [Performance](docs/performance.md)
 - **Light on your database.** A page view on a known visit costs one statement and one row written; a new visit costs two of each. Daily summaries answer older days. [Performance](docs/performance.md)
 - **No extra service.** Cookieless Analytics runs inside your EmDash site on your own Cloudflare account, with no third-party service and no telemetry. [Install](docs/install.md)

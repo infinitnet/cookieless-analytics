@@ -26,6 +26,10 @@ export type DropKind =
 	| "bot"
 	/** The daily write allowance of the `small` profile is used up; answered 503 without `Retry-After`. */
 	| "budget_blocked"
+	/** A post with `X-EC-Proxy-Key` whose secret is not the one of the event's site (missing `k`, no secret set, malformed or wrong). */
+	| "proxy_auth"
+	/** A proxy post above `proxyRateLimitPerMinute` for its site; answered 503 with `Retry-After` (the page script sends page views and events again while the page is open, never engagement updates). */
+	| "proxy_rate"
 	/**
 	 * Arrived after the summary of a day it could change was stored: a queued event applied after the day before its
 	 * own day closed (not written), or an agent event whose visit is on a closed day (its row is kept, the visit is not edited).

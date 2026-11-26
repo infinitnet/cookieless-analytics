@@ -10,7 +10,7 @@ The companion does not count visits and holds no analytics data. A plugin from t
 
 ## What only the full plugin does
 
-Cookieless Analytics by Infinitnet is a native EmDash plugin. It counts sessions without cookies, shows Search Console and Bing data next to your traffic, measures Search Satisfaction, marks annotations with their measured impact and offers an agent API. Its page script is about 2.5 KB gzipped.
+Cookieless Analytics by Infinitnet is a native EmDash plugin. It counts sessions without cookies, shows Search Console and Bing data next to your traffic, measures Search Satisfaction, marks annotations with their measured impact and offers an agent API. Its page script is about 3 KB gzipped.
 
 ## What it asks for
 

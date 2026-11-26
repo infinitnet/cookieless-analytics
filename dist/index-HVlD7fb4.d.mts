@@ -132,7 +132,7 @@ declare const ADMIN_WIDGETS: readonly [{
  */
 declare const PLUGIN_LABELS: {
   readonly displayName: "Cookieless Analytics by Infinitnet";
-  readonly description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 2.7 KB gzipped.";
+  readonly description: "Cookieless Analytics by Infinitnet is a self-hosted, cookieless web analytics plugin for EmDash CMS with real sessions, no cookies and a page script of about 3 KB gzipped.";
 };
 /**
  * `options.sites`: remote satellites; `options.database`: the D1 or Hyperdrive binding of an own analytics database;

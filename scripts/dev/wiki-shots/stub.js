@@ -262,6 +262,10 @@ function filteredDelete(r) {
 	};
 }
 
+/** A placeholder in the shape of a proxy secret (43 base64url characters); no install ever made it. */
+const PROXY_SECRET = "EXAMPLE-placeholder-proxy-secret-not-real00";
+let proxyMade = false;
+
 function route(r, body) {
 	if (r === "data/query") return body.report === "annotation_impacts" ? impacts(body) : report(body);
 	if (r === "config/agent_rules/list") return { items: DEMO.agentRules, cursor: null };
@@ -270,8 +274,12 @@ function route(r, body) {
 	if (r === "settings/get") return SETTINGS_GET;
 	if (r === "sites/hosts") return { hosts: [{ host: "example.com", kind: "own", lastEvent: null }] };
 	if (r.startsWith("tools/delete-") && r !== "tools/delete-all") return filteredDelete(r);
+	if (r === "sites/proxy-secret") {
+		proxyMade = !body.revoke;
+		return body.revoke ? { revoked: true } : { secret: PROXY_SECRET };
+	}
 	if (r === "sites/list") {
-		const client = (s, i) => ({ id: s.id, label: s.label, key: `${s.id}key0123456789abcde`.slice(0, 20), hosts: s.hosts, gscProperty: i ? "" : "sc-domain:blog.example.com", bingSiteUrl: "", paused: false, created: 1781000000, pageviewsToday: [412, 233][i] });
+		const client = (s, i) => ({ id: s.id, label: s.label, key: `${s.id}key0123456789abcde`.slice(0, 20), hosts: s.hosts, gscProperty: i ? "" : "sc-domain:blog.example.com", bingSiteUrl: "", paused: false, created: 1781000000, pageviewsToday: [412, 233][i], ...(proxyMade && s.id === "blog" ? { proxyCreated: 1782810000 } : {}) });
 		return { sites: SITES.map((s, i) => ({ ...s, hosts: s.hosts ?? ["example.com"], counts: { sessions: 1200 }, paused: false, keyPresent: true, ...(s.kind === "client" ? { client: client(s, i - 1) } : {}) })) };
 	}
 	if (r === "search/status") return searchStatus();

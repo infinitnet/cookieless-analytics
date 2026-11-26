@@ -1,4 +1,4 @@
-import { d as SITE_ID_RE } from "./queue-sink-BMpCPS7L.mjs";
+import { d as SITE_ID_RE } from "./queue-sink-CaP3WkIr.mjs";
 // src/multisite/config.ts
 /**
 * Remote satellites: the integration option `sites`, validated when the plugin is created. Each

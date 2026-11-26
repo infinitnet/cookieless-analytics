@@ -29,10 +29,10 @@ Everything the page script sends, and everything another sender may send, is one
 
 - Route: `POST /_emdash/api/plugins/cookieless-analytics/in`. It is public and takes a body of at most 8,192 bytes, as `text/plain` or `application/json` (so `navigator.sendBeacon` needs no preflight). Normally you reach it through the event path (`collectPath`, default `/_/e`), which the middleware forwards in process.
 - Response: `204 No Content` with no body and `cache-control: no-store`, for humans, bots, dropped events and invalid bodies, so a client cannot probe the rules. The event path adds `access-control-allow-origin: *`; `OPTIONS` on it answers 204 with the usual preflight headers. A body over the size limit is refused by the host before the plugin sees it.
-- A page view or an event is written before the answer: 204 means it is stored (or dropped by a rule). When the database refuses the write, the route answers `503` with `Retry-After: 5` (the event path also sends `access-control-expose-headers: retry-after`) and counts the refusal as `overload` (a database overload error, after one retry in the server) or `write_error`. Send the same body again after `Retry-After`; a `503` without `Retry-After` means do not send it again. Engagement updates are written after the answer and always get 204.
+- A page view or an event is written before the answer: 204 means it is stored (or dropped by a rule). When the database refuses the write, the route answers `503` with `Retry-After: 5` (the event path also sends `access-control-expose-headers: retry-after`) and counts the refusal as `overload` (a database overload error, after one retry in the server) or `write_error`. Send the same body again after `Retry-After`; a `503` without `Retry-After` means do not send it again. Engagement updates are written after the answer and get 204. One refusal comes before any write and applies to every body type: a post in proxy mode above `proxyRateLimitPerMinute` gets `503` with `Retry-After` set to the seconds until the next minute (`proxy_rate`).
 - Retries are safe: a page view is stored once per `h`, an event once per `h` (its client event id), an order once per `oid` (when the order was stored but the write to its visit failed, the retry is counted as `duplicate_order`: the revenue is kept, the visit misses that event). The page script sends page views and events with `fetch` and `keepalive` and retries a network failure or a `503` with `Retry-After` three times, after 5, 15 and 45 seconds (or `Retry-After` when it is longer), each delay lengthened at random by up to half, so pages refused at the same moment do not come back at the same moment. A retry still waiting when the visitor leaves the page is not sent. Other statuses are not retried. When the host itself answers 503 (not ready), the event path passes it on with `Retry-After: 5`. Engagement updates go by `navigator.sendBeacon` and are not retried; each one carries the page's running totals, and one is sent only when a number changed. Without `fetch` the script uses the beacon for everything.
 - Bots (user agent classifier, [bots.md](bots.md)) get the 204 before the body is read, and nothing is stored.
-- The server derives these itself and never trusts them from the body: the client address (used once, not stored), the user agent, the primary `Accept-Language` tag, `request.cf` country, asn and region, the `Sec-GPC` and `DNT` headers, the time and the `Origin` header.
+- The server derives these itself and never trusts them from the body: the client address (used once, not stored), the user agent, the primary `Accept-Language` tag, `request.cf` country and region, the `Sec-GPC` and `DNT` headers, the time and the `Origin` header. In proxy mode (below) the address and the country come from the proxy's headers instead and no region is stored.
 
 | Field | Used by | Rule |
 |---|---|---|
@@ -62,6 +62,18 @@ Engagement updates are cumulative: the server keeps the maximum of every field p
 The reserved event names are `_outbound` (property `url`), `_download` (`file`) and `_form` (`form`). Extra properties on them are dropped, and they never carry revenue fields. Any other name that starts with `_` is dropped.
 
 **Origin rule.** Without `k`, the request must carry no `Origin` (a server sender) or an `Origin` equal to the request's own origin, and the event belongs to this install's site. With `k`, the request must carry an `https` `Origin` whose host name is registered for the site that owns the key, and that site must not be paused. Anything else is dropped and counted (`origin_rejected`, `unknown_key`, `site_paused`), still with a 204.
+
+**Proxy mode.** A server proxy on a client site's own host forwards the browser's posts with three more headers; their names are `PROXY_HEADERS` in the contract module. Setup, the proxy's duties and the limits are in [client-sites.md](client-sites.md), section 4a.
+
+| Header | Rule |
+|---|---|
+| `X-EC-Proxy-Key` | The proxy secret of the site that owns the body's `k`. Its presence selects proxy mode. A post passes the origin rule first (the proxy passes the browser's `Origin` on), then this check; a secret that is not that site's (or a body without `k`) drops the post with a 204, counted as `proxy_auth`. |
+| `X-EC-Client-IP` | The visitor's address: one IPv4 or IPv6 address of at most 45 characters, not a loopback or unspecified address. With a valid secret and no usable address the post is dropped as `invalid`; it is never recorded under the proxy's own address. |
+| `X-EC-Country` | Optional, two letters, any case; `XX` and anything else count as absent. Absent means the visit has no country: the proxy's own location is never used. |
+
+Without `X-EC-Proxy-Key` the other two headers are never read, and the post is handled exactly as a browser post. The `OPTIONS` answer of the event path allows the `content-type` header only, so a browser cannot send any of the three across origins. The secret gives no authority over revenue: `acceptClientRevenue` applies as for every post with an `Origin`.
+
+`GET /_emdash/api/plugins/cookieless-analytics/proxy/check?k=<site key>` with the secret in `X-EC-Proxy-Key` tests a proxy's connection without sending an event: `200` with `{ "v": 1, "ok": true }` for the secret of that site, `403` with `{ "v": 1, "ok": false }` for anything else (type `ProxyCheckResponse`). It answers for the one site key given, with the same answer for an unknown key and a wrong secret, and it writes nothing.
 
 ## Reading the current session
 
@@ -103,15 +115,15 @@ Another plugin should treat this plugin as optional. Any of these works; absence
 3. `GET /_emdash/api/plugins/cookieless-analytics/contract`, public and cached for 60 seconds:
 
 ```json
-{ "v": 1, "pluginId": "cookieless-analytics", "collectPath": "/_/e", "scriptPath": "/_/e.js", "namespace": "__ec" }
+{ "v": 1, "pluginId": "cookieless-analytics", "collectPath": "/_/e", "scriptPath": "/_/e.js", "namespace": "__ec", "proxy": true }
 ```
 
-   The type is `ContractResponse`. Use `collectPath` to post events and `namespace` to find the window API.
+   The type is `ContractResponse`. Use `collectPath` to post events and `namespace` to find the window API. `proxy` is `true` on an install whose event route has the proxy mode and that answers `proxy/check`; an install without the field has neither.
 4. `getPluginSetting("cookieless-analytics", "collectPath")` from `emdash`.
 
 ## The window API and the DOM contract
 
-When the page script runs, it defines `window.__ec` (the name follows the `namespace` setting; `__ec` is the default) and fires an event. If the script did nothing (a bot, a privacy signal, a blocked script), `window.__ec` does not exist: check for it.
+When the page script runs, it defines `window.__ec` (the name follows the `namespace` setting; `__ec` is the default) and fires an event. If the script did nothing (a bot, a blocked script), `window.__ec` does not exist: check for it. With the visitor's opt-out flag or an honored privacy signal it exists, `off` is `true` and its calls do nothing.
 
 ```js
 window.__ec = {
@@ -121,12 +133,14 @@ window.__ec = {
   event(name, props, value),   // custom event
   page(path),                  // page view for a route change
   onReady(callback),           // calls callback(api)
+  off: false,                  // true while this page sends nothing
 };
 ```
 
 - `event(name, props?, value?)` sends a custom event for the current path. `props` is an object; `value` is a number (the order value in the site's default currency) or `{ value, currency?, id? }` for the order value, the ISO currency code and the order id. A name that is not a string is ignored.
 - `page(path?)` sends a page view for a route change of a single page app. `path` must start with `/`; without it the current location is used. The same path as the last page view is ignored. Astro's ClientRouter needs no call: the script listens to `astro:page-load`.
 - `onReady(cb)` calls `cb(api)`.
+- `off` is `true` while the script sends nothing from this page: the visitor's opt-out flag is set, or the browser sends a privacy signal the `signals` setting honors. It is read only and live: it turns `true` when the visitor opts out on the open page and stays `true` until the next page load. A page that was `off` from its load never sent its `sid`, so a server that reports an order with that `sid` gets `invalid_sid` from `agent/v1/events`. A page opted out by a click had already sent its page view, and with it its `sid`, before the click, so an order reported with that `sid` is attached to that visit. A server should not send the `sid` of a page that reported `off`. `off` exists in the browser only, like the opt-out flag itself (`localStorage`): a server cannot read either. A server that needs the state gets it from its own page code, for example in a form field sent with the order.
 - Event `__ec:ready` (`<namespace>:ready`) is dispatched once on `window` with the API as `detail`. Code that may run after it fired should check `window.__ec` first.
 - Queue: before the script has loaded, push to `window.__ecq` (`<namespace>q`). Items are functions, which get the API, or arrays of the method name and its arguments. When the script loads it replays the queue in order and replaces it with an object whose `push` runs an item at once. Errors in an item are swallowed.
 
@@ -230,9 +244,9 @@ Cookieless Analytics Companion (slug `cookieless-analytics-companion`) is a sand
 
 `@infinitnet/cookieless-analytics/contract` holds only constants, types and the `isCompanionHello` guard, so another plugin may also copy them. Changing a value is a breaking change.
 
-- Constants: `PLUGIN_ID`, `CONTRACT_VERSION` (1), `VERSION`, `PRODUCT_NAME`, `PRODUCT_URL`, `ROUTES`, `DEFAULT_SCRIPT_PATH`, `DEFAULT_COLLECT_PATH`, `DEFAULT_SHARE_PATH`, `DEFAULT_NAMESPACE`, `SID_RE`, `HIT_RE`, `RESERVED_EVENTS`, `LINK_EVENTS`, `FORBIDDEN_PUBLIC_WORDS`, `COMPANION_SLUG`, `COMPANION_NAME`, `COMPANION_PUBLISHER_DID`.
+- Constants: `PLUGIN_ID`, `CONTRACT_VERSION` (1), `VERSION`, `PRODUCT_NAME`, `PRODUCT_URL`, `ROUTES`, `DEFAULT_SCRIPT_PATH`, `DEFAULT_COLLECT_PATH`, `DEFAULT_SHARE_PATH`, `DEFAULT_NAMESPACE`, `SID_RE`, `HIT_RE`, `RESERVED_EVENTS`, `LINK_EVENTS`, `PROXY_HEADERS`, `FORBIDDEN_PUBLIC_WORDS`, `COMPANION_SLUG`, `COMPANION_NAME`, `COMPANION_PUBLISHER_DID`.
 - Function: `isCompanionHello`.
-- Types: `IngestBody`, `IngestPageview`, `IngestEngagement`, `IngestEvent`, `PropValue`, `Props`, `ReservedEventName`, `SessionReadResponse`, `ContractResponse`, `CompanionHello`.
+- Types: `IngestBody`, `IngestPageview`, `IngestEngagement`, `IngestEvent`, `PropValue`, `Props`, `ReservedEventName`, `SessionReadResponse`, `ContractResponse`, `ProxyCheckResponse`, `CompanionHello`.
 
 `@infinitnet/cookieless-analytics/server` exports `recordEvent` and the type `ServerEvent`.
 

@@ -9,6 +9,7 @@ import { D1Sink, type IngestSink, type VisitMsg } from "./apply.js";
 import { drops } from "./drops.js";
 import { type ChannelRule, DEFAULT_HOSTS, type HostLists } from "./channels.js";
 import { getOrCreateSalt, ipInCidr, type KvLike, randomId, sha256, truncateIp, vkey } from "./crypto.js";
+import { CLIENT_IP_HEADER, COUNTRY_HEADER } from "../keys/proxy-secret.js";
 import { roundMinor } from "./currency.js";
 import type { ValidIngest } from "./ids.js";
 import { siteSetting } from "./site-settings.js";
@@ -71,6 +72,30 @@ export function requestInfo(request: Request, ip?: string | null): RequestInfo {
 		host,
 		referer: h.get("referer"),
 	};
+}
+
+/**
+ * Addresses no visitor can have: a proxy that sends one is reporting itself or its own reverse proxy. An
+ * IPv4-mapped IPv6 address (`::ffff:127.0.0.1`, `::ffff:7f00:1`) is compared as its IPv4 address.
+ */
+const NOT_A_CLIENT = ["127.0.0.0/8", "0.0.0.0/32", "::1/128", "::/128"];
+/** The longest text form of one address: `0000:0000:0000:0000:0000:ffff:255.255.255.255`. */
+export const MAX_FORWARDED_IP_LENGTH = 45;
+
+/**
+ * Client facts a server proxy forwards: `X-EC-Client-IP` (one IPv4 or IPv6 address) and the optional
+ * `X-EC-Country` (two letters). The `in` route calls this only after the site's proxy secret matched.
+ * Null: no usable address. The value is one address of at most 45 characters made of hex digits, colons and
+ * dots only, so a list, a port in brackets and a zone id (`fe80::1%eth0`, which names an interface of the
+ * proxy, not a visitor) are refused. `truncateIp` returns "" for anything it cannot parse, which would hash every
+ * such visitor into one key, so an address counts only when it truncates to something.
+ */
+export function forwardedFacts(h: Headers): { ip: string; country: string | null } | null {
+	const ip = (h.get(CLIENT_IP_HEADER) ?? "").trim();
+	if (!ip || ip.length > MAX_FORWARDED_IP_LENGTH || !/^[0-9a-fA-F:.]+$/.test(ip)) return null;
+	if (truncateIp(ip) === "" || NOT_A_CLIENT.some((c) => ipInCidr(ip, c))) return null;
+	const country = (h.get(COUNTRY_HEADER) ?? "").trim().toUpperCase();
+	return { ip, country: /^[A-Z]{2}$/.test(country) && country !== "XX" ? country : null };
 }
 
 export type DropReason =

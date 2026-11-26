@@ -838,6 +838,50 @@ describe("visitor opt-out control", () => {
 		expect(p.sent).toEqual([]);
 	});
 
+	it("the window API tells whether this page sends: off is live, read only, and stays true until the next load", () => {
+		type Api = { off: boolean; sid: string; v: number };
+		const p = page();
+		const api = p.w.__ec as Api;
+		expect(api.off).toBe(false);
+		// Additive: the API version stays 1 and `off` is listed with the other members.
+		expect(api.v).toBe(1);
+		expect(Object.keys(api)).toEqual(["v", "sid", "ready", "event", "page", "onReady", "off"]);
+		p.press(p.$("oo"));
+		expect(api.off).toBe(true);
+		// Opting back in takes effect on the next page load: this page still sends nothing.
+		p.press(p.$("oo"));
+		expect(p.w.localStorage.getItem(KEY)).toBeNull();
+		expect(api.off).toBe(true);
+		const n = p.sent.length;
+		p.press(p.$("cta"));
+		expect(p.sent).toHaveLength(n);
+		// Read only: this module is strict, so the assignment throws; in sloppy code it does nothing.
+		expect(() => {
+			api.off = false;
+		}).toThrow(TypeError);
+		expect(api.off).toBe(true);
+		// The next load, with the flag gone, sends again.
+		expect((page().w.__ec as Api).off).toBe(false);
+		// A load with the flag set: the API exists, `off` is true, and the page's sid is one the server never sees.
+		const out = page({ before: flagged });
+		expect(out.w.__ec as Api).toMatchObject({ off: true, sid: expect.stringMatching(/^[a-z0-9]{20}$/) });
+		expect(out.sent).toEqual([]);
+		const gpc = page({ before: (w) => Object.defineProperty(w.navigator, "globalPrivacyControl", { value: true }) });
+		expect(gpc.w.__ec as Api).toMatchObject({ off: true, sid: expect.stringMatching(/^[a-z0-9]{20}$/) });
+		expect(gpc.sent).toEqual([]);
+		// A signal the settings do not honor leaves the page counted.
+		const ignored = page({ cfg: { g: "none" }, before: (w) => Object.defineProperty(w.navigator, "globalPrivacyControl", { value: true }) });
+		expect((ignored.w.__ec as Api).off).toBe(false);
+		expect(ignored.sent).toHaveLength(1);
+		// Do Not Track stops the page only with dnt_and_gpc.
+		const dnt = (g: "gpc" | "dnt_and_gpc") => page({ cfg: { g }, before: (w) => Object.defineProperty(w.navigator, "doNotTrack", { value: "1" }) });
+		expect([(dnt("gpc").w.__ec as Api).off, (dnt("dnt_and_gpc").w.__ec as Api).off]).toEqual([false, true]);
+		// The ready event hands out the same object.
+		const seen: Api[] = [];
+		page({ before: (w) => w.addEventListener("__ec:ready", (e) => void seen.push((e as CustomEvent<Api>).detail)) });
+		expect(seen.map((a) => a.off)).toEqual([false]);
+	});
+
 	it("a second click removes the flag, and the next load sends again", () => {
 		const p = page({ before: flagged });
 		p.press(p.$("oo"));

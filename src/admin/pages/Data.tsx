@@ -47,6 +47,8 @@ export const DROP_LABELS: Record<DropKind, string> = {
 	origin_rejected: "Sent from a host that is not registered",
 	unknown_key: "Unknown site key",
 	site_paused: "Site paused",
+	proxy_auth: "Proxy secret not accepted",
+	proxy_rate: "Proxy above its requests per minute (page views and events sent again)",
 	revenue_invalid: "Revenue value not valid",
 	revenue_not_accepted: "Revenue from the browser not accepted",
 	duplicate_order: "Order already recorded",

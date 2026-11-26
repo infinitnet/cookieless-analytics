@@ -22,7 +22,7 @@ It requests no permissions, adds nothing to public pages, makes no network reque
 
 ## What only the full plugin does
 
-Cookieless Analytics by Infinitnet is a native EmDash plugin, distributed on npm as `@infinitnet/cookieless-analytics`. It counts sessions without cookies, shows Search Console and Bing data next to your traffic, measures Search Satisfaction, marks annotations with their measured impact and offers an agent API with MCP tools. Its page script is about 2.5 KB gzipped.
+Cookieless Analytics by Infinitnet is a native EmDash plugin, distributed on npm as `@infinitnet/cookieless-analytics`. It counts sessions without cookies, shows Search Console and Bing data next to your traffic, measures Search Satisfaction, marks annotations with their measured impact and offers an agent API with MCP tools. Its page script is about 3 KB gzipped.
 
 The full plugin needs native plugin access, so the registry, which lists sandboxed plugins only, does not carry it. See [Why a native plugin](../../README.md#why-a-native-plugin).
 

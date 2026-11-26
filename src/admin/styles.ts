@@ -281,6 +281,8 @@ export const ADMIN_CSS = `@layer components {
 /* A row with action buttons centers every cell, so one-line text sits level with the buttons. */
 .ca-root :where(table) tr:has(> td > .ca-row-actions, > td:last-child > button) > :where(td, th) { vertical-align: middle; }
 .ca-row-actions { flex-wrap: nowrap; }
+/* A short identifier in a cell (a site id, a key prefix) stays on one line; the table scrolls on narrow screens. */
+.ca-root td.ca-ident { white-space: nowrap; }
 .ca-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ca-2); min-width: 0; }
 .ca-panel-head > :where(h2, h3) { display: flex; align-items: center; gap: var(--ca-1); min-width: 0; }
 .ca-panel-head > .ca-kebab { margin-left: auto; flex: none; }

@@ -62,39 +62,49 @@ function expandIpv6(ip: string): number[] | null {
 }
 
 /**
- * Truncate an IP to its network prefix: IPv4 /24 (strict /16), IPv6 /48 (strict /32).
- * Unparseable input returns "" so it still hashes but never leaks.
+ * Parse an address into 4 bytes (IPv4) or 16 bytes (IPv6), or null. An IPv4-mapped IPv6 address
+ * (`::ffff:0:0/96`, dotted `::ffff:203.0.113.7` or hex `::ffff:cb00:7107`, in any spelling of its zero groups)
+ * is its IPv4 address, so every notation of one address truncates, compares and is excluded alike. A zone id
+ * (`%eth0`) is ignored.
+ */
+function ipBytes(ip: string): number[] | null {
+	const octets = (q: string): number[] | null => {
+		const o = q.split(".").map(Number);
+		return o.every((n) => n <= 255) ? o : null;
+	};
+	const trimmed = ip.trim().toLowerCase();
+	if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(trimmed)) return octets(trimmed);
+	const v = trimmed.replace(/%.*$/, "");
+	// A dotted tail is read only after the mapped prefix: `::203.0.113.7` and other embeddings are not addresses here.
+	const dotted = /^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(v);
+	const g = expandIpv6(dotted ? `${dotted[1]}0:0` : v);
+	if (!g) return null;
+	const mapped = g.slice(0, 5).every((n) => n === 0) && g[5] === 0xffff;
+	if (dotted) return mapped ? octets(dotted[2] as string) : null;
+	if (mapped) return [(g[6] as number) >> 8, (g[6] as number) & 255, (g[7] as number) >> 8, (g[7] as number) & 255];
+	return g.flatMap((n) => [n >> 8, n & 255]);
+}
+
+/**
+ * Truncate an IP to its network prefix: IPv4 /24 (strict /16), IPv6 /48 (strict /32). An IPv4-mapped IPv6
+ * address truncates as its IPv4 address. Unparseable input returns "" so it still hashes but never leaks.
  */
 export function truncateIp(ip: string | null | undefined, mode: "standard" | "strict" = "standard"): string {
 	if (!ip) return "";
-	let v = ip.trim().toLowerCase();
-	const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
-	if (mapped?.[1]) v = mapped[1];
-	const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
-	if (v4) {
-		const o = v4.slice(1, 5).map(Number);
-		if (o.some((n) => n > 255)) return "";
-		return mode === "strict" ? `${o[0]}.${o[1]}.0.0` : `${o[0]}.${o[1]}.${o[2]}.0`;
-	}
-	const g = expandIpv6(v.replace(/%.*$/, ""));
-	if (!g) return "";
+	const b = ipBytes(ip);
+	if (!b) return "";
+	if (b.length === 4) return mode === "strict" ? `${b[0]}.${b[1]}.0.0` : `${b[0]}.${b[1]}.${b[2]}.0`;
 	const keep = mode === "strict" ? 2 : 3;
-	return `${g.slice(0, keep).map((n) => n.toString(16)).join(":")}::`;
+	const groups = Array.from({ length: keep }, (_, i) => (((b[i * 2] as number) << 8) | (b[i * 2 + 1] as number)).toString(16));
+	return `${groups.join(":")}::`;
 }
 
-/** True when `ip` lies inside `cidr` (IPv4 or IPv6, already validated by settings). */
+/** True when `ip` lies inside `cidr` (IPv4 or IPv6, already validated by settings). An IPv4-mapped address is IPv4. */
 export function ipInCidr(ip: string, cidr: string): boolean {
 	const [net = "", bitsRaw = ""] = cidr.split("/");
 	const bits = Number(bitsRaw);
-	const words = (v: string): number[] | null => {
-		const m = v.trim().toLowerCase().replace(/^::ffff:(?=\d+\.)/, "");
-		const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(m);
-		if (v4) return v4.slice(1, 5).map(Number);
-		const g = expandIpv6(m.replace(/%.*$/, ""));
-		return g ? g.flatMap((n) => [n >> 8, n & 255]) : null;
-	};
-	const a = words(ip);
-	const b = words(net);
+	const a = ipBytes(ip);
+	const b = ipBytes(net);
 	if (!a || !b || a.length !== b.length || !(bits >= 0 && bits <= a.length * 8)) return false;
 	for (let i = 0; i < a.length; i++) {
 		const keep = Math.max(0, Math.min(8, bits - i * 8));

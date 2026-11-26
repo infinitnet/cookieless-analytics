@@ -295,7 +295,8 @@ export function boot(w: Any, cfg: ClientConfig): void {
 		pv();
 
 		// 8. Window API, queue replay, ready event.
-		const api: Any = { v: 1, sid, ready: true, event: ev, page: pv, onReady: (cb: Any) => run(cb) };
+		// `off` is read only and live: true while this page sends nothing (opt-out flag or an honored privacy signal).
+		const api: Any = { v: 1, sid, ready: true, event: ev, page: pv, onReady: (cb: Any) => run(cb), get off() { return stop; } };
 		const run = (x: Any) => {
 			try {
 				if (typeof x === "function") x(api);

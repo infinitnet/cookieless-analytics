@@ -77,7 +77,7 @@ describe("plugin wiring", () => {
 		const shares = ["shares/list", "shares/create", "shares/delete"];
 		const dashboards = ["list", "get", "save", "delete", "export", "import", "copy", "email/status", "email/save", "email/send-test"].map((n) => `dashboards/${n}`);
 		const agent = ["query", "reports", "summary", "status", "annotations", "search/sync", "search/backfill", "dashboards", "dashboards/data", "dashboards/save", "dashboards/delete", "events", "data/dump", "data/load", "openapi.json"].map((n) => `agent/v1/${n}`);
-		expect(Object.keys(p.routes).sort()).toEqual(["contract", "share/view", "data/export", "data/query", "data/catalog", "in", "privacy/receipt", "annotations/preview", "editor/traffic", "session", "sites/list", "sites/summary", "sites/hosts", "sites/save", "sites/delete", "sites/key", "settings/get", "settings/save", ...config, ...tools, ...move, ...keys, ...search, ...shares, ...dashboards, ...agent].sort());
+		expect(Object.keys(p.routes).sort()).toEqual(["contract", "share/view", "data/export", "data/query", "data/catalog", "in", "privacy/receipt", "annotations/preview", "editor/traffic", "session", "sites/list", "sites/summary", "sites/hosts", "sites/save", "sites/delete", "sites/key", "sites/proxy-secret", "proxy/check", "settings/get", "settings/save", ...config, ...tools, ...move, ...keys, ...search, ...shares, ...dashboards, ...agent].sort());
 		expect(p.routes["data/export"]).toMatchObject({ response: "raw", permission: "plugins:read" });
 		expect(p.routes.in).toMatchObject({ public: true, response: "raw", request: { body: "text", maxBytes: 8192 } });
 		expect(p.routes["share/view"]).toMatchObject({ public: true, methods: ["GET"], request: { body: "none" } });

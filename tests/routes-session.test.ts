@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { validateIngest } from "../src/core/ids.js";
 import { recordClientEvent, requestInfo, resetCounters } from "../src/core/recorder.js";
 import type { IngestBody } from "../src/contract.js";
-import { contractRoute } from "../src/routes/contract.js";
+import { contractBody, contractRoute } from "../src/routes/contract.js";
 import { sessionRoute } from "../src/routes/session.js";
 import { normalizeSettings } from "../src/settings.js";
 import { CHROME_UA, GOOGLEBOT_UA, schemaDb } from "./helpers.js";
@@ -73,10 +73,16 @@ describe("session route", () => {
 });
 
 describe("contract route", () => {
-	it("returns the discovery body and is cacheable for 60 s", async () => {
+	it("returns the discovery body with the proxy capability and is cacheable for 60 s", async () => {
 		const r = contractRoute(fakeEnv(db).env);
 		expect(r).toMatchObject({ public: true, methods: ["GET"], cacheControl: "public, max-age=60" });
 		const res = await r.handler(ctx(get(""), {}, db.kv));
-		expect(JSON.parse((res.body as { value: string }).value)).toEqual({ v: 1, pluginId: "cookieless-analytics", collectPath: "/_/e", scriptPath: "/_/e.js", namespace: "__ec" });
+		expect(JSON.parse((res.body as { value: string }).value)).toEqual({ v: 1, pluginId: "cookieless-analytics", collectPath: "/_/e", scriptPath: "/_/e.js", namespace: "__ec", proxy: true });
+	});
+
+	it("keeps the fields a client of an earlier install reads and adds only the capability", () => {
+		const body = contractBody(normalizeSettings({ collectPath: "/_/x", scriptPath: "/_/x.js", namespace: "__zz" }));
+		expect(body).toEqual({ v: 1, pluginId: "cookieless-analytics", collectPath: "/_/x", scriptPath: "/_/x.js", namespace: "__zz", proxy: true });
+		expect(Object.keys(body)).toEqual(["v", "pluginId", "collectPath", "scriptPath", "namespace", "proxy"]);
 	});
 });

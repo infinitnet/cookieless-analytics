@@ -6,7 +6,7 @@
 export const PLUGIN_ID = "cookieless-analytics";
 export const CONTRACT_VERSION = 1;
 /** Package version, equal to `package.json` (tests/package.test.ts). */
-export const VERSION = "1.3.2";
+export const VERSION = "1.4.0";
 /** Product name for the admin footer and the plugin list; never served to visitors. */
 export const PRODUCT_NAME = "Cookieless Analytics by Infinitnet";
 /** Website, linked from the admin footer; equal to `package.json` `homepage` (tests/package.test.ts). */
@@ -55,7 +55,11 @@ export const ROUTES = {
 	contract: "contract",
 	rollup: "rollup",
 	shareView: "share/view",
+	proxyCheck: "proxy/check",
 } as const;
+
+/** Request headers of the event route's proxy mode: the site's proxy secret, the visitor's address, the visitor's country. */
+export const PROXY_HEADERS = { key: "X-EC-Proxy-Key", clientIp: "X-EC-Client-IP", country: "X-EC-Country" } as const;
 
 export const DEFAULT_SCRIPT_PATH = "/_/e.js";
 export const DEFAULT_COLLECT_PATH = "/_/e";
@@ -179,4 +183,12 @@ export interface ContractResponse {
 	collectPath: string;
 	scriptPath: string;
 	namespace: string;
+	/** The event route has the proxy mode (`PROXY_HEADERS`) and the install answers `GET .../proxy/check`. */
+	proxy: true;
+}
+
+/** Response of `GET .../proxy/check`: 200 with `ok: true` for the proxy secret of the site key, 403 with `ok: false` for anything else. */
+export interface ProxyCheckResponse {
+	v: 1;
+	ok: boolean;
 }

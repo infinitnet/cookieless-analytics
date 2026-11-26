@@ -107,7 +107,7 @@ Full steps, Tag Manager and linked hosts: [Multi-Site-and-Sites-View](Multi-Site
 
 The page script and the event path are served from your own origin, under neutral paths: `scriptPath` (default `/_/e.js`) and `collectPath` (default `/_/e`). No third party host is involved, and the paths contain no word that content blockers look for. A path that would contain such a word, or that collides with another path, falls back to its default. The data attribute prefix follows `namespace` (default `__ec`, giving `data-ec-`).
 
-A client site loads the script from your install, which is a third party host from its point of view. If you want first party paths there too, proxy `/_/e.js` and `/_/e` on the client's own Cloudflare zone to your install (an operator setup, not a plugin feature).
+A client site loads the script from your install, which is a third party host from its point of view. If you want first party paths there too, a server proxy on the client's own host can answer `/_/e.js` and `/_/e` and forward them to your install. It needs the site's proxy secret and must send each visitor's address, or every visitor behind it counts as one: [Multi-Site-and-Sites-View](Multi-Site-and-Sites-View), "A server proxy on the site's own host".
 
 ### Settings to look at first
 

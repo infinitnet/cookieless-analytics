@@ -43,6 +43,17 @@ describe("truncateIp", () => {
 		["203.0.113.77", "standard", "203.0.113.0"],
 		["203.0.113.77", "strict", "203.0.0.0"],
 		["::ffff:198.51.100.9", "standard", "198.51.100.0"],
+		// The hex notation of an IPv4-mapped address (the WHATWG URL serializer prints it) is the same IPv4 address.
+		["::ffff:c633:6409", "standard", "198.51.100.0"],
+		["::FFFF:C633:6409", "strict", "198.51.0.0"],
+		["0:0:0:0:0:ffff:c633:6409", "standard", "198.51.100.0"],
+		["0000:0000:0000:0000:0000:ffff:198.051.100.009", "standard", "198.51.100.0"],
+		["::ffff:7f00:1", "standard", "127.0.0.0"],
+		["::ffff:999.1.1.1", "standard", ""],
+		// Only the mapped prefix carries a dotted tail.
+		["::198.51.100.9", "standard", ""],
+		["64:ff9b::198.51.100.9", "standard", ""],
+		["::fffe:c633:6409", "standard", "0:0:0::"],
 		["2001:db8:abcd:12:1:2:3:4", "standard", "2001:db8:abcd::"],
 		["2001:db8:abcd:12:1:2:3:4", "strict", "2001:db8::"],
 		["2001:DB8::1", "standard", "2001:db8:0::"],

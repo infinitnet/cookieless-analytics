@@ -115,7 +115,7 @@ The guard is per database, while the Free plan's daily rows are per account. Wit
 
 ## Overload and refused events
 
-Page views and events are written before the event route answers: 204 when stored (or dropped by a rule), `503` with `Retry-After: 5` when the write fails. On the collect path the middleware answers `503` without `Retry-After` when the host's route dispatcher is missing or throws: the event did not reach the route, and the page script does not send it again. A write that fails with an overload error is tried once more on the server after 50 to 200 ms first. Engagement updates are written after the answer, which is always 204.
+Page views and events are written before the event route answers: 204 when stored (or dropped by a rule), `503` with `Retry-After: 5` when the write fails. On the collect path the middleware answers `503` without `Retry-After` when the host's route dispatcher is missing or throws: the event did not reach the route, and the page script does not send it again. A write that fails with an overload error is tried once more on the server after 50 to 200 ms first. Engagement updates are written after the answer, which is 204.
 
 The page script sends a page view or event refused with `Retry-After`, or lost to a network failure, again up to 3 times: after 5 to 7.5 s, 15 to 22.5 s and 45 to 67.5 s (65 to 97.5 s in total), only while the page stays open. Bursts of about a minute are absorbed that way; longer ones lose events. A `503` without `Retry-After` is not sent again.
 
@@ -124,6 +124,7 @@ Every refusal is counted per site, day and reason:
 - `overload`: D1 refused the write as overloaded.
 - `daily_limit`: D1 refused the write with the Free plan's daily row limit.
 - `write_error`: any other failed write (for example a missing database binding).
+- `proxy_rate`: a server proxy sent more than `proxyRateLimitPerMinute` posts for its site in one minute ([client-sites.md](client-sites.md), section 4a). These get `503` with `Retry-After` set to the seconds until the next minute, before any database work and for engagement updates too. The ceiling is counted per site and Worker isolate (default 3000, 60 to 60000). It stops a proxy that runs away and is not a security limit or a database guard: the public path has no such ceiling.
 
 The Data page lists them in its "Not recorded" table for today and the last 7 days. It shows a notice when events could not be stored because of overload, suggests the queue tier when overload drops occur on the direct tier, and suggests the `small` profile when the last 7 days hold `daily_limit` drops and the profile is not `small`. The counts are a lower bound: each server instance flushes them every 10 seconds, so an instance that stops loses up to 10 seconds of counts.
 

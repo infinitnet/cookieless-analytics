@@ -1,8 +1,9 @@
-/** Config, Sites tab: client sites registry, snippet, pause, key regeneration, delete. Local site only. */
+/** Config, Sites tab: client sites registry, snippet, pause, key regeneration, proxy secret, delete. Local site only. */
 import { Button } from "@cloudflare/kumo";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { CURRENCIES } from "../../core/currency.js";
-import type { ClientSite } from "../../multisite/registry.js";
+import { dayInZone } from "../../core/time.js";
+import type { ClientSiteView } from "../../multisite/registry.js";
 import type { SiteEntry, SnippetInfo } from "../../routes/sites.js";
 import { call, errorText } from "../api.js";
 import { snippets } from "../snippet.js";
@@ -11,11 +12,11 @@ import { count } from "../components/format.js";
 import { Notice, Empty, Loading } from "../components/ui.js";
 import { Field } from "./Config.js";
 
-type Row = ClientSite & { pageviewsToday?: number };
+type Row = ClientSiteView & { pageviewsToday?: number };
 interface ListResult {
 	sites: SiteEntry[];
 	/** Client sites linked to this site (not in the site switcher). */
-	linked?: ClientSite[];
+	linked?: ClientSiteView[];
 	middlewareSeen?: boolean;
 	snippet?: SnippetInfo;
 }
@@ -72,6 +73,76 @@ function SnippetPanel({ site, info }: { site: Row; info: SnippetInfo }) {
 	);
 }
 
+/**
+ * The proxy secret of one site: make, replace, remove. The secret is shown once, right after it is made; the
+ * list only tells whether one exists and since when.
+ */
+function ProxyPanel({ site, tz, busy, run }: { site: Row; tz: string; busy: boolean; run: (fn: () => Promise<unknown>) => Promise<boolean> }) {
+	const [secret, setSecret] = useState<string | null>(null);
+	const [armed, setArmed] = useState<"replace" | "remove" | null>(null);
+	const has = site.proxyCreated !== undefined;
+	const make = () =>
+		void run(async () => {
+			setSecret(null);
+			setSecret((await call<{ secret: string }>("sites/proxy-secret", { id: site.id })).secret);
+		}).then(() => setArmed(null));
+	const remove = () =>
+		void run(async () => {
+			await call("sites/proxy-secret", { id: site.id, revoke: true });
+			setSecret(null);
+		}).then(() => setArmed(null));
+	return (
+		<section aria-label={`Proxy secret for ${site.label}`}>
+			<h3>Proxy secret for {site.label}</h3>
+			<p className="ca-small">
+				Only needed when a server on this site's own host forwards the page script's posts to this install. That server sends the secret in the X-EC-Proxy-Key header and each visitor's address in X-EC-Client-IP, so visitors are told
+				apart. The script tag alone needs no secret. Keep the secret on the server and never put it into a page.
+			</p>
+			<p>{has ? `A proxy secret exists, made on ${dayInZone(site.proxyCreated as number, tz)}.` : "No proxy secret."}</p>
+			{secret && (
+				<Notice tone="warning">
+					Copy the secret now: it is not shown again. Every server of this install accepts it within 60 seconds, so a connection test can fail during that minute. <Copy label={`Proxy secret of ${site.label}`} text={secret} />
+				</Notice>
+			)}
+			{armed && (
+				<Notice tone="warning">
+					{armed === "replace" ? "A new secret stops the old one within 60 seconds." : "Removing the secret stops it within 60 seconds."} Until the proxy sends a valid secret, its posts are refused and counted as "Proxy secret not accepted". While the site list cannot be read, every proxy secret is refused once the last successful read is 10 minutes old.
+				</Notice>
+			)}
+			<div className="ca-actions">
+				{!has ? (
+					<Button variant="primary" size="sm" disabled={busy} onClick={make}>
+						Create proxy secret
+					</Button>
+				) : armed === "replace" ? (
+					<Button variant="primary" size="sm" disabled={busy} onClick={make}>
+						Confirm new proxy secret
+					</Button>
+				) : (
+					<Button size="sm" onClick={() => setArmed("replace")}>
+						New proxy secret
+					</Button>
+				)}
+				{has &&
+					(armed === "remove" ? (
+						<Button variant="secondary-destructive" size="sm" disabled={busy} onClick={remove}>
+							Confirm removal
+						</Button>
+					) : (
+						<Button variant="secondary-destructive" size="sm" onClick={() => setArmed("remove")}>
+							Remove proxy secret
+						</Button>
+					))}
+				{armed && (
+					<Button size="sm" onClick={() => setArmed(null)}>
+						Cancel
+					</Button>
+				)}
+			</div>
+		</section>
+	);
+}
+
 export function Sites() {
 	const [data, setData] = useState<ListResult | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -79,6 +150,7 @@ export function Sites() {
 	const [draft, setDraft] = useState<Draft | null>(null);
 	const [editing, setEditing] = useState<string | null>(null);
 	const [shown, setShown] = useState<string | null>(null);
+	const [proxyOf, setProxyOf] = useState<string | null>(null);
 	const [armedKey, setArmedKey] = useState<string | null>(null);
 	const [del, setDel] = useState<{ id: string; typed: string; data: boolean } | null>(null);
 	const [msg, setMsg] = useState<string | null>(null);
@@ -111,6 +183,7 @@ export function Sites() {
 		}
 	};
 
+	const tz = data?.sites.find((s) => s.local)?.timezone ?? "UTC";
 	const rows: Row[] = [...(data?.sites ?? []).flatMap((s) => (s.kind === "client" && s.client ? [s.client] : [])), ...(data?.linked ?? [])];
 	const save = async (e: FormEvent) => {
 		e.preventDefault();
@@ -179,12 +252,12 @@ export function Sites() {
 							{rows.map((r) => (
 								<tr key={r.id}>
 									<td>{r.label}</td>
-									<td>
+									<td className="ca-ident">
 										<code>{r.id}</code>
 									</td>
 									<td>{r.hosts.join(", ")}</td>
-									<td>{[r.paused ? "paused" : "active", r.linked && "linked to this site"].filter(Boolean).join(", ")}</td>
-									<td>
+									<td>{[r.paused ? "paused" : "active", r.linked && "linked to this site", r.proxyCreated !== undefined && "proxy secret set"].filter(Boolean).join(", ")}</td>
+									<td className="ca-ident">
 										<code>{r.key.slice(0, 4)}...</code>
 									</td>
 									<td>{[r.gscProperty && "Google", r.bingSiteUrl && "Bing"].filter(Boolean).join(", ") || "No property mapped"}</td>
@@ -225,6 +298,9 @@ export function Sites() {
 													New key
 												</Button>
 											)}
+											<Button size="sm" onClick={() => setProxyOf(proxyOf === r.id ? null : r.id)}>
+												Proxy secret
+											</Button>
 											<Button variant="secondary-destructive" size="sm" onClick={() => setDel({ id: r.id, typed: "", data: false })}>
 												Delete
 											</Button>
@@ -257,6 +333,7 @@ export function Sites() {
 				</form>
 			)}
 			{shown && data?.snippet && rows.find((r) => r.id === shown) && <SnippetPanel site={rows.find((r) => r.id === shown) as Row} info={data.snippet} />}
+			{proxyOf && rows.find((r) => r.id === proxyOf) && <ProxyPanel key={proxyOf} site={rows.find((r) => r.id === proxyOf) as Row} tz={tz} busy={busy} run={run} />}
 			<HostsList key={rows.map((r) => `${r.id}:${r.linked ? 1 : 0}:${r.hosts.join(",")}`).join(" ")} />
 			{draft ? (
 				<form aria-label={editing ? `Edit ${editing}` : "New client site"} className="ca-form" onSubmit={(e) => void save(e)}>

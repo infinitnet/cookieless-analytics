@@ -1,13 +1,15 @@
 /**
  * Site routes: `sites/list` (`plugins:read`) returns every kind of site the admin can
- * switch between; `sites/save`, `sites/delete` and `sites/key` (`plugins:manage`) edit the client sites
- * registry. Remote satellites come from the integration options and are listed, never edited.
+ * switch between; `sites/save`, `sites/delete`, `sites/key` and `sites/proxy-secret` (`plugins:manage`) edit the
+ * client sites registry. No answer holds the hash of a proxy secret (`siteView`). Remote satellites come from the
+ * integration options and are listed, never edited.
  */
 import type { ShareColl } from "../dashboards/shares.js";
 import { PluginRouteError } from "emdash";
 import { z } from "zod";
 import type { KvLike } from "../core/crypto.js";
 import { isCurrency } from "../core/currency.js";
+import { newProxySecret } from "../keys/proxy-secret.js";
 import { parseSiteSearchParams, SITE_SEARCH_MAX_PARAMS } from "../settings.js";
 import { dayInZone, previousPeriod, samePeriodLastYear } from "../core/time.js";
 import { visitDayKey } from "../db/dialect.js";
@@ -20,6 +22,7 @@ import { publicNames } from "../names.js";
 import {
 	type ClientSite,
 	ClientSiteSchema,
+	type ClientSiteView,
 	HOST_SEEN_PREFIX,
 	hostnameOf,
 	invalidateRegistry,
@@ -34,6 +37,7 @@ import {
 	SITE_KEY_RE,
 	siteProblem,
 	type SitesColl,
+	siteView,
 } from "../multisite/registry.js";
 import { purgeSite } from "../query/purge.js";
 import { clearReportCache, delta, mergeCompare } from "../query/reports/index.js";
@@ -58,7 +62,7 @@ export interface SiteEntry {
 	/** Remote satellites: whether the key env var is set on this install (never the key). */
 	keyPresent?: boolean;
 	/** Client sites: the registry record (the key is public: it is in the snippet). */
-	client?: ClientSite & { pageviewsToday?: number };
+	client?: ClientSiteView & { pageviewsToday?: number };
 	/** Sites recorded by this database: the `captureRegion` setting, so the admin can say why Regions is empty. Unknown for remote sites. */
 	captureRegion?: boolean;
 }
@@ -186,6 +190,9 @@ export const DeleteBody = z.object({ id: z.string().regex(SITE_ID_RE), deleteDat
 /** Regenerate the key, or set a given one (moving a site between installs keeps its snippet). */
 export const KeyBody = z.object({ id: z.string().regex(SITE_ID_RE), key: z.string().optional() }).strict();
 
+/** Make the proxy secret of a site, or replace it (the answer shows it once); `revoke` removes it. */
+export const ProxySecretBody = z.object({ id: z.string().regex(SITE_ID_RE), revoke: z.boolean().optional() }).strict();
+
 const bad = (msg: string) => new PluginRouteError("invalid_site", msg, 400);
 
 function coll(ctx: SitesCtx): SitesColl {
@@ -240,20 +247,20 @@ export function siteRoutes(env: SitesEnv) {
 		await syncLinked(ctx, [...(await loadSites(coll(ctx))).filter((o) => o.id !== site.id), site]);
 		await coll(ctx).put(site.id, site);
 		invalidateRegistry();
-		return { site };
+		return { site: siteView(site) };
 	}
 
 	return {
 		"sites/list": {
 			permission: "plugins:read" as const,
 			input: ListBody,
-			async handler(ctx: SitesCtx = {}): Promise<{ sites: SiteEntry[]; linked?: ClientSite[]; middlewareSeen?: boolean; snippet?: SnippetInfo }> {
+			async handler(ctx: SitesCtx = {}): Promise<{ sites: SiteEntry[]; linked?: ClientSiteView[]; middlewareSeen?: boolean; snippet?: SnippetInfo }> {
 				const body = ListBody.parse(ctx.input ?? undefined);
 				const s = await env.settings();
 				const all = await loadSites(ctx.storage?.sites);
 				// A linked site has no data of its own (its events are this site's), so it is not a site to switch to.
-				const clients = all.filter((c) => !c.linked);
-				const linked = all.filter((c) => c.linked);
+				const clients = all.filter((c) => !c.linked).map(siteView);
+				const linked = all.filter((c) => c.linked).map(siteView);
 				const sites: SiteEntry[] = [
 					{ id: s.siteId, label: "This site", local: true, kind: "local", timezone: s.siteTimezone, captureRegion: s.captureRegion },
 					...clients.map((c): SiteEntry => ({ id: c.id, label: c.label, local: false, kind: "client", timezone: s.siteTimezone, client: c, captureRegion: s.captureRegion })),
@@ -390,6 +397,21 @@ export function siteRoutes(env: SitesEnv) {
 				const cur = ClientSiteSchema.safeParse(await coll(ctx).get(body.id));
 				if (!cur.success) throw new PluginRouteError("not_found", "Unknown site.", 404);
 				return write(ctx, await checked(ctx, { ...cur.data, key: body.key ?? newSiteKey() }, body.id));
+			},
+		},
+
+		"sites/proxy-secret": {
+			permission: "plugins:manage" as const,
+			input: ProxySecretBody,
+			async handler(ctx: SitesCtx): Promise<{ site: ClientSiteView; secret?: string }> {
+				const body = ProxySecretBody.parse(ctx.input);
+				const cur = ClientSiteSchema.safeParse(await coll(ctx).get(body.id));
+				if (!cur.success) throw new PluginRouteError("not_found", "Unknown site.", 404);
+				const { proxyHash: _h, proxyCreated: _c, ...rest } = cur.data;
+				if (body.revoke) return write(ctx, rest);
+				// The secret leaves the server in this one answer; the record keeps its hash.
+				const { secret, hash } = await newProxySecret();
+				return { ...(await write(ctx, { ...rest, proxyHash: hash, proxyCreated: now() })), secret };
 			},
 		},
 
